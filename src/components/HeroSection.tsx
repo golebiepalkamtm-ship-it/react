@@ -1,25 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Trophy, Award, Star } from "lucide-react";
+import heroPigeon from "@/assets/hero-pigeon.jpg";
 
 const HeroSection = () => {
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Video Background */}
+    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-navy">
+      {/* Animated Background with Pigeon Image */}
       <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover"
-        >
-          <source
-            src="https://videos.pexels.com/video-files/4810659/4810659-uhd_2560_1440_25fps.mp4"
-            type="video/mp4"
-          />
-        </video>
-        {/* Overlay */}
-        <div className="absolute inset-0 video-overlay" />
+        <img 
+          src={heroPigeon}
+          alt="Racing pigeon"
+          className="w-full h-full object-cover animate-slow-zoom"
+        />
+        {/* Animated particles overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-navy/30 to-navy" />
+        {/* Main overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-navy/60 via-navy/40 to-navy/80" />
       </div>
 
       {/* Content */}
