@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Trophy, Award, Star } from "lucide-react";
-import heroPigeon from "@/assets/hero-pigeon.jpg";
+import heroPigeon from "@/assets/hero-pigeon.png";
 
 const HeroSection = () => {
   return (
