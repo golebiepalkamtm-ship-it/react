@@ -1,18 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Trophy, Award, Star } from "lucide-react";
-
 const HeroSection = () => {
-  return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-navy">
+  return <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-navy">
       {/* Video Background */}
-      <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover object-[center_top]"
-        >
+      <div className="absolute inset-0 z-0 border-double rounded-none shadow-lg opacity-70">
+        <video autoPlay loop muted playsInline className="w-full h-full object-cover object-[center_top]">
           <source src="/videos/hero-video.mp4" type="video/mp4" />
         </video>
         {/* Animated particles overlay */}
@@ -98,8 +90,6 @@ const HeroSection = () => {
           <ChevronDown className="w-5 h-5" />
         </a>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
