@@ -59,6 +59,12 @@ export default {
         navy: {
           DEFAULT: "hsl(var(--navy))",
           light: "hsl(var(--navy-light))",
+          900: "hsl(260 18% 12%)",
+        },
+        timeline: {
+          gold: "hsl(var(--timeline-gold))",
+          "light-shadow": "hsl(var(--timeline-light-shadow))",
+          "dark-shadow": "hsl(var(--timeline-dark-shadow))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

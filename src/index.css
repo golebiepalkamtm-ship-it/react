@@ -47,6 +47,13 @@
     --navy: 222 47% 15%;
     --navy-light: 222 35% 25%;
     --slate-dark: 220 20% 20%;
+    
+    /* Timeline Colors */
+    --timeline-gold: 40 100% 60%;
+    --timeline-light-shadow: 36 62% 29%;
+    --timeline-dark-shadow: 36 89% 13%;
+    --timeline-card-bg: linear-gradient(8deg, hsl(260 18% 12%) 75%, color-mix(in hsl, hsl(260 18% 12%), #fff 2.5%) 75.5%);
+    --glow-color: 210 100% 85%;
 
     /* Gradients */
     --gradient-gold: linear-gradient(135deg, hsl(45 80% 55%), hsl(45 70% 65%));
@@ -159,6 +166,28 @@
 
   .video-overlay {
     background: var(--gradient-hero-overlay);
+  }
+
+  /* Timeline Achievement Card */
+  .achievement-card {
+    position: relative;
+    background: var(--timeline-card-bg);
+    border: 1px solid hsl(var(--timeline-gold));
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'Inter', 'Outfit', sans-serif;
+    color: #e6eef8;
+    transition: all 0.3s ease;
+  }
+
+  .achievement-card:hover {
+    box-shadow: 0 0 30px hsla(var(--glow-color) / 0.4);
+    transform: translateY(-4px);
+  }
+
+  .achievement-card img {
+    image-rendering: crisp-edges;
+    filter: none !important;
   }
 }
 
