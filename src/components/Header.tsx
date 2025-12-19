@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
@@ -14,12 +15,15 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   const navLinks = [
-    { label: "Home", href: "#home" },
-    { label: "About", href: "#about" },
-    { label: "Auctions", href: "#auctions" },
-    { label: "Achievements", href: "#achievements" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", href: isHomePage ? "#home" : "/", isRoute: !isHomePage },
+    { label: "About", href: isHomePage ? "#about" : "/#about", isRoute: !isHomePage },
+    { label: "Auctions", href: isHomePage ? "#auctions" : "/#auctions", isRoute: !isHomePage },
+    { label: "Achievements", href: "/achievements", isRoute: true },
+    { label: "Contact", href: isHomePage ? "#contact" : "/#contact", isRoute: !isHomePage },
   ];
 
   return (
@@ -32,7 +36,7 @@ const Header = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
-        <a href="#home" className="flex items-center gap-3 group">
+        <Link to="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center">
             <span className="font-display text-navy font-bold text-lg">P</span>
           </div>
@@ -44,19 +48,29 @@ const Header = () => {
               Racing Pigeons
             </span>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="text-primary-foreground/80 hover:text-gold transition-colors duration-300 text-sm font-medium tracking-wide"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) =>
+            link.isRoute ? (
+              <Link
+                key={link.label}
+                to={link.href}
+                className="text-primary-foreground/80 hover:text-gold transition-colors duration-300 text-sm font-medium tracking-wide"
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                key={link.label}
+                href={link.href}
+                className="text-primary-foreground/80 hover:text-gold transition-colors duration-300 text-sm font-medium tracking-wide"
+              >
+                {link.label}
+              </a>
+            )
+          )}
           <Button variant="heroGold" size="default">
             View Auctions
           </Button>
@@ -75,16 +89,27 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-navy/98 backdrop-blur-md border-t border-gold/10">
           <nav className="container mx-auto px-4 py-6 flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-primary-foreground/80 hover:text-gold transition-colors duration-300 text-base font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="text-primary-foreground/80 hover:text-gold transition-colors duration-300 text-base font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-primary-foreground/80 hover:text-gold transition-colors duration-300 text-base font-medium py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+              )
+            )}
             <Button variant="heroGold" size="lg" className="mt-4">
               View Auctions
             </Button>
