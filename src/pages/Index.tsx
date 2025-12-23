@@ -2,8 +2,8 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
 import AuctionsSection from "@/components/AuctionsSection";
-import AchievementsSection from "@/components/AchievementsSection";
-
+import ChampionsSection from "@/components/ChampionsSection";
+import PressSection from "@/components/PressSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
@@ -15,8 +15,8 @@ const Index = () => {
         <HeroSection />
         <AboutSection />
         <AuctionsSection />
-        <AchievementsSection />
-        
+        <ChampionsSection />
+        <PressSection />
         <ContactSection />
       </main>
       <Footer />

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Clock, Gavel, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -7,12 +8,13 @@ interface AuctionCardProps {
   image: string;
   currentBid: number;
   timeLeft: string;
-  raceWins: number;
+  raceWins?: number;
   bloodline: string;
   featured?: boolean;
 }
 
 const AuctionCard = ({
+  id,
   name,
   image,
   currentBid,
@@ -33,7 +35,7 @@ const AuctionCard = ({
       {featured && (
         <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-gradient-to-r from-gold to-gold-light text-navy text-xs font-semibold uppercase tracking-wide flex items-center gap-1">
           <Trophy className="w-3 h-3" />
-          Featured
+          Wyróżnione
         </div>
       )}
 
@@ -64,26 +66,30 @@ const AuctionCard = ({
             </h3>
             <p className="text-muted-foreground text-sm">{bloodline}</p>
           </div>
-          <div className="flex items-center gap-1 text-gold">
-            <Trophy className="w-4 h-4" />
-            <span className="text-sm font-semibold">{raceWins} wins</span>
-          </div>
+          {raceWins && (
+            <div className="flex items-center gap-1 text-gold">
+              <Trophy className="w-4 h-4" />
+              <span className="text-sm font-semibold">{raceWins} wygranych</span>
+            </div>
+          )}
         </div>
 
         {/* Current Bid */}
         <div className="flex items-end justify-between pt-4 border-t border-border">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-              Current Bid
+              Aktualna oferta
             </p>
             <p className="font-display text-2xl text-foreground font-bold">
-              €{currentBid.toLocaleString()}
+              {currentBid.toLocaleString('pl-PL')} zł
             </p>
           </div>
-          <Button variant="gold" size="default" className="group-hover:shadow-gold">
-            <Gavel className="w-4 h-4 mr-2" />
-            Place Bid
-          </Button>
+          <Link to={`/auctions/${id}`}>
+            <Button variant="gold" size="default" className="group-hover:shadow-gold">
+              <Gavel className="w-4 h-4 mr-2" />
+              Licytuj
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

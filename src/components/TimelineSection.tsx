@@ -1,3 +1,6 @@
+import { useMemo, useRef, useState } from "react";
+import type { MotionValue } from "framer-motion";
+import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "framer-motion";
 import { Trophy, Medal, Award } from "lucide-react";
 
 interface Achievement {
@@ -11,6 +14,91 @@ interface Achievement {
 interface YearData {
   year: string;
   achievements: Achievement[];
+}
+
+function TimeTunnelCard({
+  yearData,
+  index,
+  count,
+  progress,
+  currentIndex,
+}: {
+  yearData: YearData;
+  index: number;
+  count: number;
+  progress: MotionValue<number>;
+  currentIndex: number;
+}) {
+  const safeCount = Math.max(count, 1);
+  const step = 1 / safeCount;
+  const start = index * step;
+  const mid = start + step * 0.5;
+  const end = start + step;
+
+  // Make non-active cards disappear faster to avoid visual overlap,
+  // while still keeping a strong "tunnel" feel.
+  const z = useTransform(progress, [start, mid, end], [-900, 0, 260]);
+  const y = useTransform(progress, [start, mid, end], [40, 0, -30]);
+  const rotateX = useTransform(progress, [start, mid, end], [20, 0, -12]);
+  const rotateY = useTransform(progress, [start, mid, end], [-8, 0, 8]);
+  const scale = useTransform(progress, [start, mid, end], [0.9, 1, 0.95]);
+  const opacity = useTransform(progress, [start, mid, end], [0, 1, 0]);
+  const blur = useTransform(progress, [start, mid, end], [8, 0, 10]);
+  const filter = useTransform(blur, (v) => `blur(${v}px)`);
+
+  const distance = Math.abs(index - currentIndex);
+  const zIndex = 50 - Math.min(40, distance * 5);
+
+  return (
+    <div className="relative h-[88vh]">
+      <motion.div
+        className="sticky top-28 preserve-3d"
+        style={{
+          z,
+          y,
+          rotateX,
+          rotateY,
+          scale,
+          opacity,
+          zIndex,
+          filter,
+        }}
+      >
+        <div className="relative overflow-hidden rounded-2xl border border-border/30 bg-card/20 backdrop-blur-md">
+          {/* Big year watermark */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="text-[72px] sm:text-[96px] md:text-[120px] font-bold tracking-widest text-foreground/10">
+              {yearData.year}
+            </div>
+          </div>
+
+          <div className="relative p-6 sm:p-8">
+            <div className="flex items-baseline justify-between gap-6">
+              <h3 className="text-2xl sm:text-3xl font-display text-gradient-gold">Sezon {yearData.year}</h3>
+              <div className="text-sm text-foreground/70">{yearData.achievements.length} osiągnięć</div>
+            </div>
+
+            <div className="mt-6 space-y-2">
+              {yearData.achievements.map((achievement, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm">
+                  <div className="mt-0.5">{getPositionIcon(achievement.position)}</div>
+                  <div className="flex-1">
+                    <span className="text-foreground font-medium">
+                      {achievement.region} – {achievement.category}
+                    </span>
+                    <span className="text-timeline-gold ml-2">{achievement.position}</span>
+                    {achievement.points !== "-" && (
+                      <span className="text-foreground/60 ml-2 text-xs">({achievement.points} pkt)</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
 }
 
 const timelineData: YearData[] = [
@@ -267,86 +355,88 @@ const getPositionIcon = (position: string) => {
 };
 
 const TimelineSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const items = useMemo(() => {
+    return [...timelineData].sort((a, b) => Number(a.year) - Number(b.year));
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.6 });
+
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (items.length <= 1) return;
+    const idx = Math.min(items.length - 1, Math.max(0, Math.round(v * (items.length - 1))));
+    setCurrentIndex(idx);
+  });
+
+  const progressFillScale = useTransform(progress, [0, 1], [0, 1]);
+  const indicatorTop = useTransform(progress, [0, 1], ["0%", "100%"]); 
+
   return (
-    <section id="achievements" className="py-20 bg-navy-900">
-      <div className="max-w-7xl mx-auto px-4 relative">
-        {/* Section Title */}
-        <div className="text-center mb-16">
-          <h2 className="font-playfair text-4xl md:text-5xl text-[#e6eef8] mb-4">
-            Nasza <span className="text-timeline-gold">Historia Sukcesów</span>
-          </h2>
-          <p className="text-[#e6eef8]/70 max-w-2xl mx-auto">
-            Ponad 20 lat pasji i osiągnięć w hodowli gołębi pocztowych
-          </p>
-        </div>
+    <section
+      id="achievements"
+      ref={sectionRef}
+      className="relative py-20 bg-slate-950"
+    >
+      {/* Subtle gradient on dark slate */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900/60" />
 
-        {/* Timeline Container */}
-        <div className="relative">
-          {/* Vertical Line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-timeline-gold via-timeline-gold/50 to-transparent hidden md:block" />
+      <div className="relative mx-auto max-w-7xl px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_120px] gap-10 items-start">
+          {/* Time tunnel */}
+          <div className="perspective-1000">
+            <div className="preserve-3d">
+              {items.map((yearData, index) => (
+                <TimeTunnelCard
+                  key={yearData.year}
+                  yearData={yearData}
+                  index={index}
+                  count={items.length}
+                  progress={progress}
+                  currentIndex={currentIndex}
+                />
+              ))}
+            </div>
+          </div>
 
-          {/* Timeline Items */}
-          <div className="space-y-8">
-            {timelineData.map((yearData, index) => (
-              <div
-                key={yearData.year}
-                className={`flex flex-col md:flex-row items-start gap-8 ${
-                  index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                }`}
-              >
-                {/* Card */}
-                <div className={`w-full md:w-5/12 ${index % 2 === 0 ? "md:text-right" : "md:text-left"}`}>
-                  <div className="achievement-card group">
-                    {/* Year */}
-                    <span className="text-4xl md:text-5xl font-bold text-timeline-gold font-playfair">
-                      {yearData.year}
-                    </span>
-                    
-                    {/* Achievements List */}
-                    <div className="mt-4 space-y-2">
-                      {yearData.achievements.map((achievement, i) => (
-                        <div 
-                          key={i} 
-                          className={`flex items-center gap-2 text-sm ${
-                            index % 2 === 0 ? "md:flex-row-reverse md:text-right" : "md:flex-row md:text-left"
-                          }`}
-                        >
-                          {getPositionIcon(achievement.position)}
-                          <div className="flex-1">
-                            <span className="text-[#e6eef8] font-medium">
-                              {achievement.region} - {achievement.category}
-                            </span>
-                            <span className="text-timeline-gold ml-2">
-                              {achievement.position}
-                            </span>
-                            {achievement.points !== "-" && (
-                              <span className="text-[#e6eef8]/60 ml-2 text-xs">
-                                ({achievement.points} pkt)
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Summary */}
-                    <div className="mt-4 pt-3 border-t border-timeline-gold/30">
-                      <span className="text-[#e6eef8]/70 text-sm">
-                        {yearData.achievements.length} osiągnięć w tym roku
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Timeline Dot */}
-                <div className="hidden md:flex w-2/12 justify-center items-start pt-4">
-                  <div className="w-4 h-4 rounded-full bg-timeline-gold shadow-[0_0_20px_hsla(var(--glow-color)/0.5)] border-2 border-timeline-light-shadow" />
-                </div>
-
-                {/* Spacer */}
-                <div className="hidden md:block w-5/12" />
+          {/* Progress bar */}
+          <div className="hidden lg:block sticky top-28 h-[68vh]">
+            <div className="relative h-full flex items-stretch justify-center">
+              {/* Track */}
+              <div className="relative w-8">
+                <div className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-border/40" />
+                <motion.div
+                  className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-timeline-gold"
+                  style={{ scaleY: progressFillScale, transformOrigin: "top" }}
+                />
+                <motion.div
+                  className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-timeline-gold shadow-[0_0_18px_hsla(var(--glow-color)/0.45)]"
+                  style={{ top: indicatorTop }}
+                />
               </div>
-            ))}
+
+              {/* Year labels */}
+              <div className="ml-4 flex flex-col justify-between py-1">
+                {items.map((y, idx) => (
+                  <div
+                    key={y.year}
+                    className={
+                      idx === currentIndex
+                        ? "text-sm font-semibold text-foreground"
+                        : "text-sm text-foreground/45"
+                    }
+                  >
+                    {y.year}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

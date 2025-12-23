@@ -1,0 +1,225 @@
+{
+  "auctions": [
+    {
+      "id": "1",
+      "title": "Champion Bloodline - Złoty Orzeł",
+      "description": "Wyjątkowy gołąb pocztowy z mistrzowskiej linii hodowlanej. Wielokrotny zwycięzca zawodów międzynarodowych. Doskonała genetyka, potwierdzona certyfikatami DNA. Idealny do hodowli rasowej oraz startów w zawodach długodystansowych.",
+      "startingPrice": 5000,
+      "currentPrice": 7500,
+      "buyNowPrice": 15000,
+      "reservePrice": 6000,
+      "endTime": "2025-12-25T18:00:00.000Z",
+      "snipeThresholdMinutes": 5,
+      "snipeExtensionMinutes": 5,
+      "minBidIncrement": 100,
+      "status": "active",
+      "reserveMet": true,
+      "category": "racing",
+      "pigeon": {
+        "bloodline": "Elite Champion Line - De Rauw-Sablon",
+        "achievements": "15 wygranych, 5 miejsc na podium",
+        "eyeColor": "Pomarańczowy",
+        "featherColor": "Niebieski z prążkami",
+        "vitality": "Wysoka",
+        "length": "Średni",
+        "endurance": "Bardzo wysoka",
+        "forkStrength": "Silna",
+        "forkAlignment": "Doskonałe",
+        "muscles": "Mocne",
+        "balance": "Idealny",
+        "back": "Szeroki, mocny",
+        "purpose": "[\"Długodystansowe\", \"Średniodystansowe\"]",
+        "gender": "male"
+      },
+      "age": 3,
+      "sex": "male",
+      "location": "Lubań, Polska",
+      "seller": {
+        "id": "seller-1",
+        "firstName": "MTM",
+        "lastName": "Pałka",
+        "email": "kontakt@palkamtm.pl",
+        "phoneNumber": "75 722 47 29",
+        "image": null,
+        "rating": 5.0,
+        "salesCount": 150
+      },
+      "images": [
+        "https://images.unsplash.com/photo-1544923246-77307dd628b9?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1606567595334-d39972c85dfd?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1555169062-013468b47731?w=800&h=600&fit=crop"
+      ],
+      "videos": [],
+      "documents": [
+        "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=1200&fit=crop"
+      ],
+      "bids": [
+        {
+          "id": "bid-1",
+          "amount": 7500,
+          "bidder": {
+            "id": "user-1",
+            "firstName": "Marek",
+            "lastName": "N."
+          },
+          "createdAt": "2025-12-19T10:30:00.000Z"
+        },
+        {
+          "id": "bid-2",
+          "amount": 7000,
+          "bidder": {
+            "id": "user-2",
+            "firstName": "Krzysztof",
+            "lastName": "W."
+          },
+          "createdAt": "2025-12-19T09:15:00.000Z"
+        }
+      ],
+      "_count": {
+        "watchlist": 12,
+        "bids": 2
+      }
+    },
+    {
+      "id": "2",
+      "title": "Racing Star - Srebrna Błyskawica",
+      "description": "Młody, perspektywiczny gołąb z wybitnymi osiągnięciami w krótkich dystansach. Szybki, zwinny, z doskonałą orientacją w terenie. Pochodzi z hodowli known za produkcję zwycięzców.",
+      "startingPrice": 3000,
+      "currentPrice": 4200,
+      "buyNowPrice": 8000,
+      "endTime": "2025-12-22T15:00:00.000Z",
+      "status": "active",
+      "reserveMet": true,
+      "category": "racing",
+      "pigeon": {
+        "bloodline": "Janssen Brothers Line",
+        "achievements": "8 wygranych w kategoriach młodzieżowych",
+        "eyeColor": "Ciemnobrązowy",
+        "featherColor": "Srebrny",
+        "vitality": "Bardzo wysoka",
+        "length": "Krótki-średni",
+        "endurance": "Wysoka",
+        "forkStrength": "Średnia",
+        "forkAlignment": "Dobre",
+        "muscles": "Dobrze rozwinięte",
+        "balance": "Bardzo dobry",
+        "back": "Proporcjonalny",
+        "purpose": "[\"Krótkie dystanse\", \"Sprint\"]",
+        "gender": "female"
+      },
+      "age": 2,
+      "sex": "female",
+      "location": "Lubań, Polska",
+      "seller": {
+        "id": "seller-2",
+        "firstName": "MTM",
+        "lastName": "Pałka",
+        "email": "kontakt@palkamtm.pl",
+        "phoneNumber": "75 722 47 29",
+        "image": null,
+        "rating": 5.0,
+        "salesCount": 150
+      },
+      "images": [
+        "https://images.unsplash.com/photo-1606567595334-d39972c85dfd?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1591198936750-16d8e15edb9e?w=800&h=600&fit=crop"
+      ],
+      "videos": [],
+      "documents": [
+        "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=1200&fit=crop"
+      ],
+      "bids": [
+        {
+          "id": "bid-3",
+          "amount": 4200,
+          "bidder": {
+            "id": "user-3",
+            "firstName": "Andrzej",
+            "lastName": "S."
+          },
+          "createdAt": "2025-12-19T11:00:00.000Z"
+        }
+      ],
+      "_count": {
+        "watchlist": 8,
+        "bids": 1
+      }
+    },
+    {
+      "id": "3",
+      "title": "Breeding Excellence - Królewski Feniks",
+      "description": "Wyjątkowy reproduktor z udokumentowaną linią rodowodową. Jego potomstwo zdobyło już liczne nagrody w zawodach krajowych i międzynarodowych. Idealny dla hodowców planujących podniesienie poziomu swojej hodowli.",
+      "startingPrice": 10000,
+      "currentPrice": 13500,
+      "buyNowPrice": 25000,
+      "endTime": "2025-12-28T20:00:00.000Z",
+      "status": "active",
+      "reserveMet": true,
+      "category": "breeding",
+      "pigeon": {
+        "bloodline": "Van Loon - Koopman Line",
+        "achievements": "Ojciec 22 zwycięzców zawodów",
+        "eyeColor": "Perłowy",
+        "featherColor": "Ciemnoczerwony",
+        "vitality": "Doskonała",
+        "length": "Długi",
+        "endurance": "Wyjątkowa",
+        "forkStrength": "Bardzo silna",
+        "forkAlignment": "Perfekcyjne",
+        "muscles": "Masywne",
+        "balance": "Doskonały",
+        "back": "Szeroki, atletyczny",
+        "purpose": "[\"Hodowla\", \"Długodystansowe\"]",
+        "gender": "male"
+      },
+      "age": 5,
+      "sex": "male",
+      "location": "Lubań, Polska",
+      "seller": {
+        "id": "seller-3",
+        "firstName": "MTM",
+        "lastName": "Pałka",
+        "email": "kontakt@palkamtm.pl",
+        "phoneNumber": "75 722 47 29",
+        "image": null,
+        "rating": 5.0,
+        "salesCount": 150
+      },
+      "images": [
+        "https://images.unsplash.com/photo-1555169062-013468b47731?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1522926193341-e9ffd686c60f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=800&h=600&fit=crop"
+      ],
+      "videos": [],
+      "documents": [
+        "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=1200&fit=crop"
+      ],
+      "bids": [
+        {
+          "id": "bid-4",
+          "amount": 13500,
+          "bidder": {
+            "id": "user-4",
+            "firstName": "Janusz",
+            "lastName": "P."
+          },
+          "createdAt": "2025-12-19T12:30:00.000Z"
+        },
+        {
+          "id": "bid-5",
+          "amount": 12000,
+          "bidder": {
+            "id": "user-5",
+            "firstName": "Robert",
+            "lastName": "M."
+          },
+          "createdAt": "2025-12-19T08:45:00.000Z"
+        }
+      ],
+      "_count": {
+        "watchlist": 24,
+        "bids": 2
+      }
+    }
+  ]
+}

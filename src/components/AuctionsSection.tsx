@@ -1,67 +1,20 @@
+import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuctionCard from "./AuctionCard";
+import { useAuctions } from "@/hooks/useAuctions";
+import { auctionService } from "@/services/auctionService";
 
 const AuctionsSection = () => {
-  const auctions = [
-    {
-      id: "1",
-      name: "Złoty Piorun",
-      image: "https://images.unsplash.com/photo-1544923246-77307dd628b9?w=600&h=400&fit=crop",
-      currentBid: 12500,
-      timeLeft: "2d 14h",
-      raceWins: 23,
-      bloodline: "Linia Mistrzowska 2019",
-      featured: true,
-    },
-    {
-      id: "2",
-      name: "Srebrna Strzała",
-      image: "https://images.unsplash.com/photo-1606567595334-d39972c85dfd?w=600&h=400&fit=crop",
-      currentBid: 8200,
-      timeLeft: "1d 6h",
-      raceWins: 18,
-      bloodline: "Elitarna Linia Sprintowa",
-    },
-    {
-      id: "3",
-      name: "Królewski Feniks",
-      image: "https://images.unsplash.com/photo-1555169062-013468b47731?w=600&h=400&fit=crop",
-      currentBid: 15800,
-      timeLeft: "3d 22h",
-      raceWins: 31,
-      bloodline: "Rodowód Mistrza Polski",
-      featured: true,
-    },
-    {
-      id: "4",
-      name: "Burzowy Gońiec",
-      image: "https://images.unsplash.com/photo-1591198936750-16d8e15edb9e?w=600&h=400&fit=crop",
-      currentBid: 6700,
-      timeLeft: "18h 45m",
-      raceWins: 12,
-      bloodline: "Szybki Kurier",
-    },
-    {
-      id: "5",
-      name: "Nocna Strzała",
-      image: "https://images.unsplash.com/photo-1522926193341-e9ffd686c60f?w=600&h=400&fit=crop",
-      currentBid: 9400,
-      timeLeft: "4d 8h",
-      raceWins: 15,
-      bloodline: "Dynastia Ciemnych Skrzydeł",
-    },
-    {
-      id: "6",
-      name: "Diamentowe Skrzydło",
-      image: "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=600&h=400&fit=crop",
-      currentBid: 21000,
-      timeLeft: "5d 12h",
-      raceWins: 27,
-      bloodline: "Najwyższy Mistrz 2022",
-      featured: true,
-    },
-  ];
+  const { auctions, loading } = useAuctions({ 
+    status: 'active', 
+    sortBy: 'newest', 
+    limit: 6 
+  });
+
+  const getFirstImage = (images: string[]) => {
+    return images && images.length > 0 ? images[0] : '/placeholder.svg';
+  };
 
   return (
     <section id="auctions" className="py-24 bg-muted/30">
@@ -70,39 +23,63 @@ const AuctionsSection = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
             <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-4">
-              Live Auctions
+              Aukcje Na Żywo
             </span>
             <h2 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight">
-              Acquire
-              <span className="text-gradient-gold"> Elite Birds</span>
+              Zdobądź
+              <span className="text-gradient-gold"> Elitarne Ptaki</span>
             </h2>
           </div>
-          <Button variant="outline" className="mt-6 md:mt-0 group">
-            View All Auctions
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <Link to="/auctions">
+            <Button variant="outline" className="mt-6 md:mt-0 group border-gold/50 hover:bg-gold hover:text-navy">
+              Zobacz Wszystkie Aukcje
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
 
         {/* Auction Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {auctions.map((auction) => (
-            <AuctionCard key={auction.id} {...auction} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl bg-card border border-border h-96 animate-pulse" />
+            ))}
+          </div>
+        ) : auctions.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {auctions.map((auction, index) => (
+              <AuctionCard
+                key={auction.id}
+                id={auction.id}
+                name={auction.title}
+                image={getFirstImage(auction.images)}
+                currentBid={auction.currentPrice}
+                timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
+                raceWins={auctionService.extractWins(auction.pigeon?.achievements)}
+                bloodline={auction.pigeon?.bloodline || 'Rodowód elitarny'}
+                featured={index < 2}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground">Obecnie brak aktywnych aukcji</p>
+          </div>
+        )}
 
         {/* Bottom CTA */}
         <div className="mt-16 text-center">
           <p className="text-muted-foreground mb-6">
-            Want to be notified about new auctions and exclusive offers?
+            Chcesz otrzymywać powiadomienia o nowych aukcjach i ekskluzywnych ofertach?
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder="Wprowadź swój email"
               className="w-full px-6 py-3 rounded-xl bg-card border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground placeholder:text-muted-foreground"
             />
             <Button variant="gold" size="lg" className="w-full sm:w-auto whitespace-nowrap">
-              Subscribe
+              Subskrybuj
             </Button>
           </div>
         </div>

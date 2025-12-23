@@ -1,0 +1,92 @@
+[
+    {
+        "name":  "Thunder Storm",
+        "ringNumber":  "DV-02906-11-98",
+        "bloodline":  "Janssen",
+        "gender":  "MALE",
+        "birthDate":  "2011-01-15T00:00:00.000Z",
+        "color":  "Blue",
+        "weight":  480,
+        "breeder":  "MTM PaĹ‚ka",
+        "description":  "Wybitny champion, mistrz olimpijski z doskonaĹ‚ymi wynikami w lotach dĹ‚ugodystansowych.",
+        "achievements":  [
+                             "Mistrz Olimpijski 2011",
+                             "1. miejsce - Barcelona 2011",
+                             "2. miejsce - TarnĂłw 2010"
+                         ],
+        "id":  "1",
+        "image":  "/champions/1/gallery/DV-02906-11-98t_OLIMP (1).jpg"
+    },
+    {
+        "name":  "Blue Lightning",
+        "ringNumber":  "DV-00987-11-396",
+        "bloodline":  "Janssen",
+        "gender":  "MALE",
+        "birthDate":  "2011-03-20T00:00:00.000Z",
+        "color":  "Blue",
+        "weight":  465,
+        "breeder":  "MTM PaĹ‚ka",
+        "description":  "Szybki i wytrzymaĹ‚y champion z doskonaĹ‚ymi predyspozycjami do lotĂłw Ĺ›redniodystansowych.",
+        "achievements":  [
+                             "Mistrz Polski 2011",
+                             "1. miejsce - PoznaĹ„ 2011",
+                             "3. miejsce - Warszawa 2010"
+                         ],
+        "id":  "2",
+        "image":  "/champions/2/gallery/dv-0987-11-396_c.jpg"
+    },
+    {
+        "name":  "Silver Arrow",
+        "ringNumber":  "DV-07136-10-202",
+        "bloodline":  "Janssen",
+        "gender":  "FEMALE",
+        "birthDate":  "2010-05-10T00:00:00.000Z",
+        "color":  "Silver",
+        "weight":  420,
+        "breeder":  "MTM PaĹ‚ka",
+        "description":  "Elegancka championka o srebrnym upierzeniu, specjalistka w lotach krĂłtkodystansowych.",
+        "achievements":  [
+                             "Mistrzyni Polski 2010",
+                             "1. miejsce - KrakĂłw 2010",
+                             "2. miejsce - GdaĹ„sk 2009"
+                         ],
+        "id":  "3",
+        "image":  "/champions/3/gallery/dv-07136-10-202_c.jpg"
+    },
+    {
+        "name":  "Golden Eagle",
+        "ringNumber":  "PL-11-160651",
+        "bloodline":  "Janssen",
+        "gender":  "MALE",
+        "birthDate":  "2011-07-08T00:00:00.000Z",
+        "color":  "Red",
+        "weight":  490,
+        "breeder":  "MTM PaĹ‚ka",
+        "description":  "PotÄ™ĹĽny champion o zĹ‚otym upierzeniu, mistrz w lotach dĹ‚ugodystansowych.",
+        "achievements":  [
+                             "Mistrz Europy 2011",
+                             "1. miejsce - Barcelona 2011",
+                             "1. miejsce - TarnĂłw 2010"
+                         ],
+        "id":  "4",
+        "image":  "/champions/4/gallery/PL-11-160651t_b2 (1).jpg"
+    },
+    {
+        "name":  "Storm King",
+        "ringNumber":  "PL-0446-12-328",
+        "bloodline":  "Janssen",
+        "gender":  "MALE",
+        "birthDate":  "2012-04-12T00:00:00.000Z",
+        "color":  "Blue",
+        "weight":  475,
+        "breeder":  "MTM PaĹ‚ka",
+        "description":  "KrĂłl burzy - champion o niezwykĹ‚ej wytrzymaĹ‚oĹ›ci i sile charakteru.",
+        "achievements":  [
+                             "Mistrz Polski 2012",
+                             "1. miejsce - PoznaĹ„ 2012",
+                             "2. miejsce - Warszawa 2011"
+                         ],
+        "id":  "5",
+        "image":  "/champions/5/gallery/PL-0446-12-328_2KK.jpg"
+    }
+]

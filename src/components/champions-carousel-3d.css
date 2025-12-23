@@ -1,0 +1,418 @@
+/* 3D Carousel Container */
+.champions-carousel-3d {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  min-height: 620px; /* reduced to match smaller cards */
+  padding: 1.5rem 0;
+  margin: 0 auto;
+}
+
+.champions-carousel-3d:active {
+  cursor: grabbing;
+}
+
+/* Background layers - hidden */
+.champions-carousel-3d__bg {
+  display: none;
+}
+
+.champions-carousel-3d__overlay {
+  display: none;
+}
+
+/* Perspective wrapper */
+.champions-carousel-3d__perspective {
+  position: relative;
+  perspective: 2600px;
+  perspective-origin: 50% 50%;
+  z-index: 1;
+  width: 100%;
+  max-width: 1400px;
+  height: 560px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wheel - the rotating container */
+.champions-carousel-3d__wheel {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+  width: 300px;
+  height: 430px;
+}
+
+/* Individual card in 3D space */
+.champions-carousel-3d__card-wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+  width: 300px;
+  height: 430px;
+  border-radius: 1.5rem;
+  /* clip children (glow / borders) to rounded corners */
+  overflow: hidden;
+}
+
+/* Card content */
+.champions-carousel-3d__card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0.01px);
+}
+
+/* Thicker gold frame + subtle glow to match achievement cards */
+.champions-carousel-3d__card.border-gradient-gold {
+  border-width: 3px;
+  border-style: solid;
+  border-image: linear-gradient(135deg, hsl(45 80% 55%), hsl(45 70% 70%)) 1;
+  box-shadow:
+    0 14px 50px rgba(0,0,0,0.45),
+    0 0 40px rgba(212,175,55,0.14),
+    0 0 120px rgba(212,175,55,0.06);
+  z-index: 2;
+}
+
+.champions-carousel-3d__card.border-gradient-gold:hover {
+  box-shadow:
+    0 22px 80px rgba(0,0,0,0.5),
+    0 0 80px rgba(212,175,55,0.24),
+    0 0 220px rgba(212,175,55,0.12);
+  transform: translateY(-6px) scale(1.02);
+}
+
+/* Inner button wrapper */
+.champions-carousel-3d__card-content {
+  /* interactive shine vars */
+  --mx: 50%;
+  --my: 50%;
+  --shine: 0;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: linear-gradient(to bottom, hsl(var(--navy-light)), hsl(var(--navy)));
+  transition: all 0.3s ease;
+  backface-visibility: hidden;
+
+  /* button reset */
+  appearance: none;
+  padding: 0;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* CodePen-like highlight/shimmer */
+.champions-carousel-3d__card-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: calc(var(--shine) * 0.5);
+  transition: opacity 0.2s ease-out;
+  background:
+    radial-gradient(
+      circle at var(--mx) var(--my),
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.08) 28%,
+      transparent 62%
+    );
+  mix-blend-mode: screen;
+}
+
+.champions-carousel-3d__card-content:focus-visible {
+  outline: 2px solid hsl(var(--gold) / 0.55);
+  outline-offset: 3px;
+}
+
+.champions-carousel-3d__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.champions-carousel-3d__card-title {
+  text-align: center;
+  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: hsl(var(--gold));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+.champions-carousel-3d__card-image-wrapper {
+  position: relative;
+  /* allow image area to grow and fill card while leaving details at bottom */
+  flex: 1 1 auto;
+  min-height: 0; /* allow flex child to shrink properly in firefox */
+  margin: 0 1rem 0.75rem;
+  border-radius: 1.25rem; /* match rounded card corners */
+  overflow: hidden;
+  border: 1px solid hsl(var(--gold) / 0.16);
+  display: block;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+}
+
+.champions-carousel-3d__card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* fill the available card area */
+  -webkit-user-select: none;
+  user-select: none;
+  display: block;
+  /* keep image corners square — frames are rounded, images stay rectangular */
+  border-radius: 0;
+}
+
+/* Orientation-specific tweaks to avoid cutting important parts */
+.champions-carousel-3d__card-image.img--portrait {
+  object-fit: contain;
+  width: auto;
+  height: 100%;
+  background: transparent;
+}
+
+.champions-carousel-3d__card-image.img--landscape {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reflection under the image (visual-only) */
+.champions-carousel-3d__card-image--reflection {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 40%;
+  transform: scaleY(-1) translateY(2px);
+  opacity: 0.18;
+  filter: blur(1px) saturate(1.02);
+  /* fade out downward */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 75%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 75%);
+  pointer-events: none;
+  border-radius: 0;
+}
+
+/* Ensure details area doesn't overlap image */
+.champions-carousel-3d__card-details {
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* keep details a fixed-ish area at the bottom */
+  flex: 0 0 auto;
+  background: transparent;
+}
+
+.champions-carousel-3d__card-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, hsl(var(--navy) / 0.8), transparent);
+}
+
+.champions-carousel-3d__card-details {
+  padding: 0 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.champions-carousel-3d__card-ring {
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  /* gold gradient text similar to achievements */
+  background: linear-gradient(135deg, hsl(45 80% 55%), hsl(45 70% 70%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: monospace;
+  padding: 0.5rem 0;
+}
+
+.champions-carousel-3d__pedigree-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
+  color: hsl(var(--navy));
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.champions-carousel-3d__pedigree-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.champions-carousel-3d__pedigree-btn:active {
+  transform: translateY(0);
+}
+
+.champions-carousel-3d__card-achievements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.champions-carousel-3d__card-achievement {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  color: hsl(0 0% 100% / 0.8);
+  font-size: 0.75rem;
+}
+
+.champions-carousel-3d__card-achievement-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.champions-carousel-3d__card-bloodline {
+  padding-top: 0.5rem;
+  border-top: 1px solid hsl(var(--gold) / 0.1);
+}
+
+.champions-carousel-3d__card-bloodline-text {
+  text-align: center;
+  font-size: 0.75rem;
+  color: hsl(var(--gold) / 0.8);
+}
+
+.champions-carousel-3d__instructions {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: 100%;
+  text-align: center;
+}
+
+.champions-carousel-3d__instructions-text {
+  color: hsl(0 0% 100% / 0.5);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* Navigation buttons */
+.champions-carousel-3d__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  background: hsl(var(--navy-light) / 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--gold) / 0.3);
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--gold));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.champions-carousel-3d__nav:hover {
+  background: hsl(var(--navy-light) / 0.95);
+  border-color: hsl(var(--gold) / 0.6);
+  color: hsl(var(--gold-light));
+  transform: translateY(-50%) scale(1.1);
+}
+
+.champions-carousel-3d__nav:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.champions-carousel-3d__nav--left {
+  left: 1rem;
+}
+
+.champions-carousel-3d__nav--right {
+  right: 1rem;
+}
+
+/* Icon styles */
+.champions-carousel-3d__icon-trophy {
+  flex-shrink: 0;
+  color: hsl(var(--gold));
+  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.5));
+  animation: trophy-glow 2s ease-in-out infinite;
+}
+
+@keyframes trophy-glow {
+  0%, 100% {
+    filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.8));
+  }
+}
+
+.champions-carousel-3d__icon-star {
+  flex-shrink: 0;
+  color: hsl(var(--gold));
+  margin-top: 0.125rem;
+}
+
+/* Empty state */
+.champions-carousel-3d__empty {
+  width: 100%;
+  height: 24rem;
+  background: hsl(var(--navy));
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.champions-carousel-3d__empty-text {
+  color: hsl(0 0% 100% / 0.6);
+}
