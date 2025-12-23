@@ -91,20 +91,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
       className="tunnel-card relative mb-24 md:mb-32"
     >
       <div className={`flex items-center gap-8 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-        {/* Year Ghost */}
-        <motion.div 
-          className="hidden md:block absolute inset-0 -z-10 overflow-hidden pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isActive ? 1 : 0.18 }}
-          transition={{ duration: 0.5 }}
-        >
-          <span 
-            className={`year-ghost year-ghost-strong absolute text-[12rem] lg:text-[16rem] font-display font-black leading-none
-              ${isEven ? '-left-8' : '-right-8'} top-1/2 -translate-y-1/2`}
-          >
-            {event.year}
-          </span>
-        </motion.div>
+        {/* Year watermark removed to avoid overlapping decorations on other sections */}
 
         {/* Content Card */}
         <motion.div

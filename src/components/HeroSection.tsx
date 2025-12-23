@@ -25,19 +25,19 @@ const HeroSection = () => {
           muted
           playsInline
           preload="auto"
-          className="absolute left-1/2 bottom-0 h-[60vh] w-auto -translate-x-1/2 object-cover opacity-90"
+          className="absolute left-1/2 bottom-0 h-[80vh] w-auto -translate-x-1/2 object-cover opacity-95 z-10"
         >
           <source src="/pigeon-tlo-Picsart-BackgroundRemover.mp4" type="video/mp4" />
         </video>
 
         {/* Animated particles overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-transparent via-navy/20 to-navy/70" />
-        {/* Main overlay (keep gradient) */}
-        <div className="absolute inset-0 bg-linear-to-b from-navy/60 via-navy/20 to-navy/50" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-transparent via-navy/10 to-navy/30" />
+        {/* Main overlay (keep gradient but lighter) */}
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-navy/5 to-navy/10" />
       </div>
 
       {/* Text above the pigeon (positioned above the video head) */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-10 text-center bottom-[calc(60vh+2rem)] w-full">
+      <div className="absolute left-1/2 -translate-x-1/2 z-20 text-center bottom-[calc(80vh+2rem)] w-full">
         {/* Entrance effects moved to global canvas; year lettering removed per request */}
 
         <h2 className="hero-title relative text-3xl md:text-5xl lg:text-6xl">

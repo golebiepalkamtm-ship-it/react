@@ -2,7 +2,6 @@ import { Trophy, Facebook, Instagram, Youtube, Twitter, Mail } from "lucide-reac
 import { Link } from "react-router-dom";
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
 
   const socialLinks = [
     { icon: Facebook, href: "https://www.facebook.com/PalkaGolebiepl/?locale=pl_PL", label: "Facebook" },
@@ -117,7 +116,7 @@ const Footer = () => {
 
         <div className="pt-4 border-t border-gold/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/40 text-xs">
-            © {currentYear} MTM Pałka. Wszystkie prawa zastrzeżone.
+            © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
           </p>
           <div className="flex gap-6">
             {footerLinks.legal.map((link) => (
