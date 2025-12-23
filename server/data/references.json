@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ref_001",
+    "breederName": "Piotr Lewandowski",
+    "location": "Kraków",
+    "experience": "20 lat hodowli gołębi rasowych",
+    "testimonial": "Współpraca z MTM Pałka uległa znacznemu poprawieniu moich wyników na konkursach. Gołębie wykazują wyjątkową trwałość i orientację. Zdecydowanie polecam wszystkim hodowcom.",
+    "rating": 5,
+    "achievements": "[{\"competition\": \"Konkurs Krajowy z Brukseli\", \"place\": 1, \"date\": \"2024-05-15\"}, {\"competition\": \"Lot z Paryża\", \"place\": 3, \"date\": \"2024-06-10\"}]",
+    "isApproved": true,
+    "createdAt": "2024-08-15T10:00:00.000Z"
+  },
+  {
+    "id": "ref_002",
+    "breederName": "Stanisław Kowalczyk",
+    "location": "Poznań",
+    "experience": "15 lat hodowli gołębi pocztowych",
+    "testimonial": "Hodowcy MTM Pałka to prawdziwi profesjonaliści. Ich wiedza i doświadczenie nie mają sobie równych. Każdy gołąb jest dokładnie opracowany genetycznie.",
+    "rating": 5,
+    "achievements": "[{\"competition\": \"Mistrzostwa Okręgu\", \"place\": 2, \"date\": \"2024-07-20\"}]",
+    "isApproved": true,
+    "createdAt": "2024-09-01T14:30:00.000Z"
+  },
+  {
+    "id": "ref_003",
+    "breederName": "Tomasz Szewczyk",
+    "location": "Wrocław",
+    "experience": "12 lat hodowli",
+    "testimonial": "Nie bez powodu MTM Pałka ma tak bogatą historię sukcesów. Ich gołębie łączą szybkość z niezawodnością. Jestem bardzo zadowolony z zakupu.",
+    "rating": 5,
+    "achievements": "[{\"competition\": \"Lot regionalny\", \"place\": 5, \"date\": \"2024-06-05\"}]",
+    "isApproved": true,
+    "createdAt": "2024-10-10T09:00:00.000Z"
+  }
+]

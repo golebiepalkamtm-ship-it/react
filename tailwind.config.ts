@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -117,7 +118,29 @@ export default {
         lg: "var(--shadow-lg)",
         gold: "var(--shadow-gold)",
       },
+      perspective: {
+        '1000': '1000px',
+      },
+      transformStyle: {
+        '3d': 'preserve-3d',
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    tailwindAnimate,
+    // Plugin for 3D transforms
+    function({ addUtilities }: { addUtilities: (utilities: Record<string, Record<string, string>>) => void }) {
+      addUtilities({
+        '.perspective-1000': {
+          perspective: '1000px',
+        },
+        '.preserve-3d': {
+          transformStyle: 'preserve-3d',
+        },
+        '.backface-hidden': {
+          backfaceVisibility: 'hidden',
+        },
+      });
+    },
+  ],
 } satisfies Config;

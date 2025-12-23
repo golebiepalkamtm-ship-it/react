@@ -4,27 +4,27 @@ const AboutSection = () => {
   const features = [
     {
       icon: Crown,
-      title: "Championship Bloodlines",
+      title: "Linie mistrzowskie",
       description:
-        "Our pigeons descend from generations of proven champions, carefully selected for speed, endurance, and homing instinct.",
+        "Nasze gołębie pochodzą z pokoleń sprawdzonych mistrzów, starannie selekcjonowanych pod kątem prędkości, wytrzymałości i instynktu nawigacyjnego.",
     },
     {
       icon: Target,
-      title: "Sprint Specialists",
+      title: "Specjaliści od sprintów",
       description:
-        "Dominating the sprint category with birds bred specifically for explosive speed over short distances.",
+        "Dominujemy w kategorii sprinterskiej z ptakami wyhodowanymi specjalnie do eksplozywnej prędkości na krótkich dystansach.",
     },
     {
       icon: Feather,
-      title: "Elite Genetics",
+      title: "Elitarna genetyka",
       description:
-        "Each bird carries genetics refined through decades of strategic breeding and meticulous selection.",
+        "Każdy ptak nosi w sobie genetykę udoskonalaną przez dziesięciolecia strategicznej hodowli i skrupulatnej selekcji.",
     },
     {
       icon: Award,
-      title: "Proven Results",
+      title: "Udowodnione wyniki",
       description:
-        "Consistent top placements in national and international competitions, year after year.",
+        "Konsekwentnie zajmujemy czołowe miejsca w krajowych i międzynarodowych zawodach, rok po roku.",
     },
   ];
 
@@ -39,33 +39,31 @@ const AboutSection = () => {
           {/* Left Content */}
           <div>
             <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6">
-              About Our Loft
+              O naszej hodowli
             </span>
             <h2 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-6">
-              A Legacy of
-              <span className="text-gradient-gold block">Racing Excellence</span>
+              Dziedzictwo
+              <span className="text-gradient-gold block">doskonałości wyścigowej</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-              For over 25 years, we have dedicated ourselves to breeding the finest
-              racing pigeons in Poland. Our birds have consistently proven themselves
-              on the most demanding courses, bringing home countless victories and
-              setting records that stand to this day.
+              Od ponad 45 lat poświęcamy się hodowli najlepszych gołębi pocztowych w Polsce. 
+              Nasze ptaki konsekwentnie sprawdzają się na najbardziej wymagających trasach, 
+              odnosząc niezliczone zwycięstwa i ustanawiając rekordy, które trwają do dziś.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-8">
-              As official breeders for the Polish Champion, we maintain the highest
-              standards in genetics, training, and care. Every pigeon that leaves our
-              loft carries with it a heritage of excellence and the potential for
-              greatness.
+              Jako MTM Pałka utrzymujemy najwyższe standardy w genetyce, treningu i opiece. 
+              Każdy gołąb opuszczający nasz gołębnik niesie ze sobą dziedzictwo doskonałości 
+              i potencjał do wielkich osiągnięć.
             </p>
             
             {/* Signature */}
             <div className="flex items-center gap-4 pt-6 border-t border-border">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center">
-                <span className="font-display text-navy font-bold text-xl">JK</span>
+                <span className="font-display text-navy font-bold text-xl">MTM</span>
               </div>
               <div>
-                <p className="font-display text-foreground font-semibold">Jan Kowalski</p>
-                <p className="text-muted-foreground text-sm">Master Breeder & Owner</p>
+                <p className="font-display text-foreground font-semibold">Mariusz, Tadeusz i Marcin Pałka</p>
+                <p className="text-muted-foreground text-sm">Mistrzowie Hodowcy i Właściciele</p>
               </div>
             </div>
           </div>

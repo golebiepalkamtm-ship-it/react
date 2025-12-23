@@ -1,0 +1,270 @@
+[
+  {
+    "name": "Thunder Storm",
+    "ringNumber": "DV-02906-11-98",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2011-01-15T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 480,
+    "breeder": "MTM Pałka",
+    "description": "Wybitny champion, mistrz olimpijski z doskonałymi wynikami w lotach długodystansowych.",
+    "achievements": [
+      "Mistrz Olimpijski 2011",
+      "1. miejsce - Barcelona 2011",
+      "2. miejsce - Tarnów 2010"
+    ],
+    "id": "1",
+    "image": "/champions/1/gallery/DV-02906-11-98t_OLIMP (1).jpg"
+  },
+  {
+    "name": "Blue Lightning",
+    "ringNumber": "DV-00987-11-396",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2011-03-20T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 465,
+    "breeder": "MTM Pałka",
+    "description": "Szybki i wytrzymały champion z doskonałymi predyspozycjami do lotów średniodystansowych.",
+    "achievements": [
+      "Mistrz Polski 2011",
+      "1. miejsce - Poznań 2011",
+      "3. miejsce - Warszawa 2010"
+    ],
+    "id": "2",
+    "image": "/champions/2/gallery/dv-0987-11-396_c.jpg"
+  },
+  {
+    "name": "Silver Arrow",
+    "ringNumber": "DV-07136-10-202",
+    "bloodline": "Janssen",
+    "gender": "FEMALE",
+    "birthDate": "2010-05-10T00:00:00.000Z",
+    "color": "Silver",
+    "weight": 420,
+    "breeder": "MTM Pałka",
+    "description": "Elegancka championka o srebrnym upierzeniu, specjalistka w lotach krótkodystansowych.",
+    "achievements": [
+      "Mistrzyni Polski 2010",
+      "1. miejsce - Kraków 2010",
+      "2. miejsce - Gdańsk 2009"
+    ],
+    "id": "3",
+    "image": "/champions/3/gallery/dv-07136-10-202_c.jpg"
+  },
+  {
+    "name": "Golden Eagle",
+    "ringNumber": "PL-11-160651",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2011-07-08T00:00:00.000Z",
+    "color": "Red",
+    "weight": 490,
+    "breeder": "MTM Pałka",
+    "description": "Potężny champion o złotym upierzeniu, mistrz w lotach długodystansowych.",
+    "achievements": [
+      "Mistrz Europy 2011",
+      "1. miejsce - Barcelona 2011",
+      "1. miejsce - Tarnów 2010"
+    ],
+    "id": "4",
+    "image": "/champions/4/gallery/PL-11-160651t_b2 (1).jpg"
+  },
+  {
+    "name": "Storm King",
+    "ringNumber": "PL-0446-12-328",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2012-04-12T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 475,
+    "breeder": "MTM Pałka",
+    "description": "Król burzy - champion o niezwykłej wytrzymałości i sile charakteru.",
+    "achievements": [
+      "Mistrz Polski 2012",
+      "1. miejsce - Poznań 2012",
+      "2. miejsce - Warszawa 2011"
+    ],
+    "id": "5",
+    "image": "/champions/5/gallery/PL-0446-12-328_2KK.jpg"
+  },
+  {
+    "name": "Sky Warrior",
+    "ringNumber": "PL-0446-12-1016",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2012-06-15T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 470,
+    "breeder": "MTM Pałka",
+    "description": "Wojownik nieba - champion o wyjątkowej determinacji.",
+    "achievements": [
+      "Mistrz regionu 2012",
+      "Wysokie miejsca w zawodach krajowych"
+    ],
+    "id": "6",
+    "image": "/champions/6/gallery/pl-0446-12-1016_c.jpg"
+  },
+  {
+    "name": "Wind Runner",
+    "ringNumber": "PL-0446-12-1046",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2012-07-20T00:00:00.000Z",
+    "color": "Blue Check",
+    "weight": 465,
+    "breeder": "MTM Pałka",
+    "description": "Mistrz szybkich lotów, znany z perfekcyjnej orientacji.",
+    "achievements": [
+      "Wielokrotny laureat zawodów regionalnych"
+    ],
+    "id": "7",
+    "image": "/champions/7/gallery/pl-0446-12-1046_c.jpg"
+  },
+  {
+    "name": "Thunder Strike",
+    "ringNumber": "PL-0446-13-5015",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2013-05-10T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 475,
+    "breeder": "MTM Pałka",
+    "description": "Uderzenie pioruna - niezwykle szybki sprint champion.",
+    "achievements": [
+      "Wybitne wyniki w lotach sprinterskich"
+    ],
+    "id": "8",
+    "image": "/champions/8/gallery/PL-0446-13-5015.jpg"
+  },
+  {
+    "name": "Olympic Star",
+    "ringNumber": "PL-0446-13-5071",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2013-06-12T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 480,
+    "breeder": "MTM Pałka",
+    "description": "Gwiazda olimpijska - champion z wybitnymi osiągnięciami.",
+    "achievements": [
+      "Mistrz Olimpijski",
+      "Czołowe miejsca w zawodach międzynarodowych"
+    ],
+    "id": "9",
+    "image": "/champions/9/gallery/PL-0446-13-5071_KK-OLIMP.jpg"
+  },
+  {
+    "name": "Swift Arrow",
+    "ringNumber": "PL-0446-15-4181",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2015-05-18T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 460,
+    "breeder": "MTM Pałka",
+    "description": "Szybka strzała - młody champion z wielkim potencjałem.",
+    "achievements": [
+      "Obiecujące wyniki w młodych gołębiach"
+    ],
+    "id": "10",
+    "image": "/champions/10/gallery/pl-0446-15-4181_c.jpg"
+  },
+  {
+    "name": "Victory Wing",
+    "ringNumber": "PL-0446-14-7012",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2014-06-08T00:00:00.000Z",
+    "color": "Blue Check",
+    "weight": 470,
+    "breeder": "MTM Pałka",
+    "description": "Skrzydło zwycięstwa - pewny i konsekwentny lider.",
+    "achievements": [
+      "Liczne zwycięstwa w zawodach regionalnych"
+    ],
+    "id": "11",
+    "image": "/champions/11/gallery/pl-0446-14-7012_c.jpg"
+  },
+  {
+    "name": "Speed Master",
+    "ringNumber": "PL-0446-14-7152",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2014-07-15T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 475,
+    "breeder": "MTM Pałka",
+    "description": "Mistrz prędkości - specjalista od szybkich lotów.",
+    "achievements": [
+      "Wybitne osiągnięcia w kategoriach szybkościowych"
+    ],
+    "id": "12",
+    "image": "/champions/12/gallery/pl-0446-14-7152_c.jpg"
+  },
+  {
+    "name": "Royal Champion",
+    "ringNumber": "PL-0446-14-7202",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2014-08-02T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 485,
+    "breeder": "MTM Pałka",
+    "description": "Królewski champion - gołąb o szlachetnym rodowodzie.",
+    "achievements": [
+      "Czołowe miejsca w prestiżowych zawodach"
+    ],
+    "id": "13",
+    "image": "/champions/13/gallery/pl-0446-14-7202_c.jpg"
+  },
+  {
+    "name": "Diamond Ace",
+    "ringNumber": "PL-0446-14-7158",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2014-07-22T00:00:00.000Z",
+    "color": "Blue Bar",
+    "weight": 468,
+    "breeder": "MTM Pałka",
+    "description": "Diamentowy as - gołąb o wyjątkowych predyspozycjach.",
+    "achievements": [
+      "Wybitny reprezentant linii hodowlanej"
+    ],
+    "id": "14",
+    "image": "/champions/14/gallery/pl-0446-14-7158_c.jpg"
+  },
+  {
+    "name": "Elite Racer",
+    "ringNumber": "PL-0446-16-2255",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2016-05-25T00:00:00.000Z",
+    "color": "Blue",
+    "weight": 472,
+    "breeder": "MTM Pałka",
+    "description": "Elitarny zawodnik - młody champion pełen energii.",
+    "achievements": [
+      "Obiecujący start w karierze wyścigowej"
+    ],
+    "id": "15",
+    "image": "/champions/15/gallery/pl-0446-16-2255_c.jpg"
+  },
+  {
+    "name": "Flying Legend",
+    "ringNumber": "PL-0446-16-1124",
+    "bloodline": "Janssen",
+    "gender": "MALE",
+    "birthDate": "2016-04-11T00:00:00.000Z",
+    "color": "Blue Check",
+    "weight": 478,
+    "breeder": "MTM Pałka",
+    "description": "Latająca legenda - gołąb który zapisał się w historii hodowli.",
+    "achievements": [
+      "Godny następca wielkich mistrzów"
+    ],
+    "id": "16",
+    "image": "/champions/16/gallery/pl-0446-16-1124_h.jpg"
+  }
+]

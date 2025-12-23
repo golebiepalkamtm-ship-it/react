@@ -36,6 +36,44 @@ npm i
 npm run dev
 ```
 
+## Development (start frontend + backend)
+
+Start both frontend (Vite) and backend (nodemon + tsx) concurrently:
+
+PowerShell:
+
+```powershell
+./scripts/start-dev.ps1
+```
+
+Bash/macOS/Linux:
+
+```bash
+./scripts/start-dev.sh
+```
+
+Or use the npm alias (cross-platform):
+
+```bash
+npm run dev:all
+
+## Helper scripts for pushing to GitHub
+
+I added simple helper scripts you can run locally to push this project and open a PR.
+
+Bash (Linux/macOS/WSL):
+```bash
+./scripts/push.sh [branch-name] [commit-message]
+```
+
+PowerShell (Windows):
+```powershell
+./scripts/push.ps1 -Branch feat/global-particles -Message "Add global particle trail and section animations"
+```
+
+Important: revoke any exposed personal access tokens immediately and authenticate locally via `gh auth login` or SSH before running these scripts.
+```
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).

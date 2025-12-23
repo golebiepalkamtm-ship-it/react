@@ -1,13 +1,13 @@
 import Header from "@/components/Header";
-import TimelineSection from "@/components/TimelineSection";
+import AchievementsSection from "@/components/AchievementsSection";
 import Footer from "@/components/Footer";
 
 const Achievements = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-navy">
       <Header />
-      <main className="pt-20">
-        <TimelineSection />
+      <main>
+        <AchievementsSection />
       </main>
       <Footer />
     </div>

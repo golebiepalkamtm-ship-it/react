@@ -1,10 +1,12 @@
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, Navigation, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { contactService } from "@/services/contactService";
 
 const ContactSection = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,39 +14,57 @@ const ContactSection = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you as soon as possible.",
-    });
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setIsSubmitting(true);
+    
+    try {
+      await contactService.submitContactForm({
+        fullName: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
+      toast({
+        title: "Wiadomość wysłana!",
+        description: "Odezwiemy się do Ciebie tak szybko, jak to możliwe.",
+      });
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      toast({
+        title: "Błąd!",
+        description: error instanceof Error ? error.message : "Nie udało się wysłać wiadomości",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
     {
       icon: MapPin,
-      label: "Location",
-      value: "Kraków, Poland",
-      detail: "Visit our loft by appointment",
+      label: "Lokalizacja",
+      value: "Lubań, Polska",
+      detail: "ul. Stawowa 6, 59-800 Lubań",
     },
     {
       icon: Phone,
-      label: "Phone",
-      value: "+48 123 456 789",
-      detail: "Mon-Sat, 8AM-6PM",
+      label: "Telefon",
+      value: "75 722 47 29",
+      detail: "Pon-Sob, 8:00-18:00",
     },
     {
       icon: Mail,
       label: "Email",
-      value: "info@polishchampion.pl",
-      detail: "We respond within 24 hours",
+      value: "kontakt@palkamtm.pl",
+      detail: "Odpowiadamy w ciągu 24h",
     },
     {
       icon: Clock,
-      label: "Visiting Hours",
-      value: "By Appointment",
-      detail: "Schedule a loft tour",
+      label: "Godziny odwiedzin",
+      value: "Po umówieniu",
+      detail: "Zapraszamy do kontaktu",
     },
   ];
 
@@ -54,15 +74,15 @@ const ContactSection = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6">
-            Get In Touch
+            Kontakt
           </span>
           <h2 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
-            Start Your
-            <span className="text-gradient-gold"> Journey</span>
+            Skontaktuj się
+            <span className="text-gradient-gold"> z nami</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Ready to acquire championship bloodlines? Have questions about our birds?
-            We're here to help you find the perfect addition to your loft.
+            Chcesz nabyć gołębie z mistrzowskich linii? Masz pytania dotyczące naszej hodowli?
+            Jesteśmy tutaj, aby pomóc Ci znaleźć idealne ptaki do Twojego gołębnika.
           </p>
         </div>
 
@@ -70,13 +90,13 @@ const ContactSection = () => {
           {/* Contact Form */}
           <div className="p-8 rounded-2xl bg-card border border-border shadow-lg">
             <h3 className="font-display text-2xl text-foreground font-semibold mb-6">
-              Send Us a Message
+              Wyślij wiadomość
             </h3>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Your Name
+                    Imię i Nazwisko
                   </label>
                   <input
                     type="text"
@@ -91,7 +111,7 @@ const ContactSection = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Email Address
+                    Adres Email
                   </label>
                   <input
                     type="email"
@@ -100,14 +120,14 @@ const ContactSection = () => {
                       setFormData({ ...formData, email: e.target.value })
                     }
                     className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground"
-                    placeholder="jan@example.com"
+                    placeholder="twoj@email.pl"
                     required
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Subject
+                  Temat
                 </label>
                 <input
                   type="text"
@@ -116,13 +136,13 @@ const ContactSection = () => {
                     setFormData({ ...formData, subject: e.target.value })
                   }
                   className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground"
-                  placeholder="Inquiry about auctions"
+                  placeholder="Temat wiadomości"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Message
+                  Wiadomość
                 </label>
                 <textarea
                   value={formData.message}
@@ -131,13 +151,13 @@ const ContactSection = () => {
                   }
                   rows={5}
                   className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground resize-none"
-                  placeholder="Tell us about your interest in our pigeons..."
+                  placeholder="Napisz nam o swoich zainteresowaniach..."
                   required
                 />
               </div>
-              <Button variant="gold" size="lg" className="w-full">
+              <Button variant="gold" size="lg" className="w-full" disabled={isSubmitting}>
                 <Send className="w-4 h-4 mr-2" />
-                Send Message
+                {isSubmitting ? 'Wysyłanie...' : 'Wyślij wiadomość'}
               </Button>
             </form>
           </div>
@@ -164,14 +184,41 @@ const ContactSection = () => {
               </div>
             ))}
 
-            {/* Map Placeholder */}
-            <div className="h-64 rounded-2xl overflow-hidden border border-border bg-muted flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="w-12 h-12 text-gold mx-auto mb-3 animate-pulse-soft" />
-                <p className="text-foreground font-semibold">Kraków, Poland</p>
-                <p className="text-muted-foreground text-sm">
-                  Schedule a visit to our world-class facility
-                </p>
+            {/* Google Maps */}
+            <div className="rounded-2xl overflow-hidden border border-border shadow-lg">
+              <div className="h-64">
+                <iframe
+                  src="https://maps.google.com/maps?q=ul.+Stawowa+6,+59-800+Lubań,+Poland&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Mapa hodowli MTM Pałka - ul. Stawowa 6, Lubań"
+                />
+              </div>
+              <div className="p-4 bg-card flex flex-col sm:flex-row gap-3">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=ul.+Stawowa+6,+59-800+Lubań"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold font-medium transition-colors"
+                >
+                  <MapPin className="w-4 h-4" />
+                  Zobacz na mapie
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://www.google.com/maps/dir/?api=1&destination=ul.+Stawowa+6,+59-800+Lubań"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold font-medium transition-colors"
+                >
+                  <Navigation className="w-4 h-4" />
+                  Wyznacz trasę
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
             </div>
           </div>
