@@ -335,10 +335,9 @@
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.02em;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  background-image: linear-gradient(135deg, hsl(45 80% 55%), hsl(45 70% 70%));
+  position: relative;
+  z-index: 30;
+  color: #ffffff;
   text-shadow: 0 6px 24px rgba(0,0,0,0.45), 0 0 18px rgba(255, 180, 80, 0.12);
   animation: fadeUp 0.9s cubic-bezier(.2,.9,.2,1) both;
 }
@@ -358,10 +357,10 @@
   right: 0;
   top: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
-  mix-blend-mode: overlay;
-  transform: translateX(-120%);
-  animation: shimmer 3.2s linear infinite;
+  /* disable shimmer so particles are visible */
+  background: none;
+  mix-blend-mode: normal;
+  opacity: 0;
   pointer-events: none;
 }
 
@@ -882,5 +881,105 @@
 
 /* allow variable delay per-section if desired */
 .section-hidden[style*="--appear-delay"] { transition-delay: var(--appear-delay); }
+
+/*letters*/
+
+.cont-letters {
+  width: min(60vmin, 400px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr;
+  place-content: center;
+  place-items: center;
+  margin-inline: auto;
+  position: fixed;
+  inset-inline: 0;
+  top: 55%;
+
+  & .letters {
+    --width: min(20vmin, 100px);
+    display: block;
+    position: relative;
+    font-size: 5vmax;
+    width: var(--width);
+    aspect-ratio: 1/1;
+    text-indent: 100vw;
+    opacity: 0;
+    animation: 5s flicker 4s ease infinite;
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: inherit;
+      height: inherit;
+    }
+
+    &.letter-2 {
+      background: url("https://assets.codepen.io/453571/numero-2.avif") 0%
+        center/cover no-repeat;
+
+      &.black {
+        background-position-x: 100%;
+      }
+    }
+    &.letter-0 {
+      background: url("https://assets.codepen.io/453571/numero-0.avif") 0%
+        center/cover no-repeat;
+    }
+    &.letter-6 {
+      background: url("https://assets.codepen.io/453571/numero-6.avif") 0%
+        center/cover no-repeat;
+
+      &::before,
+      &::after {
+        --b: 0.5px;
+
+        height: 30px;
+        width: 25px;
+        background: #edc951;
+        mask: radial-gradient(
+            oklch(0 0 0 / 0) 71%,
+            oklch(0 0 0) 72% calc(72% + var(--b)),
+            oklch(0 0 0 / 0) calc(73% + var(--b))
+          )
+          10000% 10000% / 99.5% 99.5%;
+      }
+      &::before {
+        height: 15px;
+        width: 12.5px;
+        top: 80%;
+        left: 10%;
+      }
+      &::after {
+        left: 80%;
+        --b: 10px;
+      }
+    }
+  }
+}
+
+/*anim*/
+@keyframes flicker {
+  6%,
+  12.9%,
+  22%,
+  62.9%,
+  64%,
+  64.9%,
+  70%,
+  100% {
+    opacity: 0.99;
+  }
+  7%,
+  13%,
+  21.9%,
+  63%,
+  63.9%,
+  65%,
+  69.9% {
+    opacity: 0.4;
+  }
+}
 
 

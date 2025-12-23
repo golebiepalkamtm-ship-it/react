@@ -1,8 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-// initialize global section entrance animator (adds animate-fade-up to sections when in view)
-import "./lib/sectionAnimator";
 // initialize global particle trail (WebGPU) across the whole page
 import { initHeroWebGPU } from "./lib/heroWebGPU";
 

@@ -65,12 +65,7 @@ function TimeTunnelCard({
         }}
       >
         <div className="relative overflow-hidden rounded-2xl border border-border/30 bg-card/20 backdrop-blur-md">
-          {/* Big year watermark */}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="text-[72px] sm:text-[96px] md:text-[120px] font-bold tracking-widest text-foreground/10">
-              {yearData.year}
-            </div>
-          </div>
+          {/* Removed big year watermark to avoid persistent overlay across sections */}
 
           <div className="relative p-6 sm:p-8">
             <div className="flex items-baseline justify-between gap-6">
