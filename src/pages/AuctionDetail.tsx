@@ -10,27 +10,17 @@ import { auctionService } from "@/services/auctionService";
 
 const AuctionDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { auction, loading, error, refetch } = useAuction(id);
   const { timeLeft, isEnded } = useAuctionTimer(auction?.endTime);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [bidAmount, setBidAmount] = useState<string>('');
-  const [token, setToken] = useState<string | null>(null);
-  
-  const getToken = async () => {
-    if (user) {
-      const t = await user.getIdToken();
-      setToken(t);
-      return t;
-    }
-    return null;
-  };
 
+  const token = session?.access_token ?? null;
   const { placeBid, loading: bidLoading, error: bidError, success: bidSuccess, meta } = useBid(id || '', token);
 
   const handleBid = async () => {
-    const t = await getToken();
-    if (!t || !auction) return;
+    if (!token || !auction) return;
     
     const amount = parseFloat(bidAmount);
     if (isNaN(amount)) return;
@@ -129,14 +119,14 @@ const AuctionDetail = () => {
                     <button
                       onClick={prevImage}
                       title="Poprzednie zdjęcie"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-navy/80 text-white hover:bg-navy transition-colors"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-card/60 text-foreground backdrop-blur-md border border-border/60 hover:border-primary/40 hover:bg-card/75 transition-colors"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                       onClick={nextImage}
                       title="Następne zdjęcie"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-navy/80 text-white hover:bg-navy transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-card/60 text-foreground backdrop-blur-md border border-border/60 hover:border-primary/40 hover:bg-card/75 transition-colors"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
@@ -159,7 +149,7 @@ const AuctionDetail = () => {
                   )}
                 </div>
 
-                <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-navy/80 text-white text-sm">
+                <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-card/60 text-foreground text-sm backdrop-blur-md border border-border/60">
                   {currentImageIndex + 1} / {auction.images.length}
                 </div>
               </div>
@@ -285,7 +275,7 @@ const AuctionDetail = () => {
                           {auction.buyNowPrice.toLocaleString('pl-PL')} zł
                         </p>
                       </div>
-                      <Button variant="outline" className="border-gold text-gold hover:bg-gold hover:text-navy">
+                      <Button variant="outline" className="border-gold text-gold hover:bg-gold hover:text-black">
                         Kup teraz
                       </Button>
                     </div>

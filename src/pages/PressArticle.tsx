@@ -40,9 +40,10 @@ const PressArticleDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen relative isolate">
+        <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
         <Header />
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
             <p className="text-muted-foreground">Ładowanie artykułu...</p>
@@ -55,9 +56,10 @@ const PressArticleDetail = () => {
 
   if (error || !article) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen relative isolate flex items-center justify-center">
+        <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Artykuł nie został znaleziony</h1>
+          <h1 className="text-2xl font-bold mb-4 text-foreground">Artykuł nie został znaleziony</h1>
           <Button asChild>
             <Link to="/press">Wróć do listy artykułów</Link>
           </Button>
@@ -80,7 +82,8 @@ const PressArticleDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative isolate">
+      <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
       
       <main>
@@ -113,7 +116,7 @@ const PressArticleDetail = () => {
                 <time>{new Date(article.date).toLocaleDateString('pl-PL')}</time>
               </div>
 
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6">
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6 text-foreground">
                 {article.title}
               </h1>
 
@@ -136,7 +139,7 @@ const PressArticleDetail = () => {
 
             {/* Featured Image */}
             <div className="max-w-4xl mx-auto mb-12">
-              <div className="rounded-2xl overflow-hidden">
+              <div className="rounded-2xl overflow-hidden border border-border/70 bg-card/30 backdrop-blur-md shadow-lg">
                 <img 
                   src={article.images.main} 
                   alt={article.title}
@@ -151,21 +154,23 @@ const PressArticleDetail = () => {
 
             {/* Article Content */}
             <div className="max-w-3xl mx-auto">
-              <div className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground mb-12">
-                {article.content.split('\n\n').map((paragraph, index) => {
-                  if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+              <div className="rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-6 md:p-8 shadow-lg mb-12">
+                <div className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground">
+                  {article.content.split('\n\n').map((paragraph, index) => {
+                    if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+                      return (
+                        <h3 key={index} className="text-xl font-semibold mt-8 mb-4 text-gold">
+                          {paragraph.replace(/\*\*/g, '')}
+                        </h3>
+                      );
+                    }
                     return (
-                      <h3 key={index} className="text-xl font-semibold mt-8 mb-4 text-gold">
+                      <p key={index} className="mb-4 leading-relaxed">
                         {paragraph.replace(/\*\*/g, '')}
-                      </h3>
+                      </p>
                     );
-                  }
-                  return (
-                    <p key={index} className="mb-4 leading-relaxed">
-                      {paragraph.replace(/\*\*/g, '')}
-                    </p>
-                  );
-                })}
+                  })}
+                </div>
               </div>
 
               {/* Scanned Pages */}
@@ -173,11 +178,11 @@ const PressArticleDetail = () => {
                 <div className="mb-12">
                   <div className="flex items-center gap-2 mb-6">
                     <ImageIcon className="w-5 h-5 text-gold" />
-                    <h3 className="text-xl font-semibold">Skany z gazety</h3>
+                    <h3 className="text-xl font-semibold text-foreground">Skany z gazety</h3>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     {article.images.pages.map((imageSrc, index) => (
-                      <div key={index} className="border rounded-lg overflow-hidden">
+                      <div key={index} className="border border-border/70 rounded-2xl overflow-hidden bg-card/30 backdrop-blur-md shadow-lg">
                         <img 
                           src={imageSrc}
                           alt={`Strona ${index + 1} artykułu`}
@@ -194,8 +199,8 @@ const PressArticleDetail = () => {
               )}
 
               {/* Share Section */}
-              <div className="mt-12 pt-8 border-t border-border">
-                <h3 className="text-lg font-semibold mb-4">Podziel się artykułem</h3>
+              <div className="mt-12 pt-8 border-t border-border/70">
+                <h3 className="text-lg font-semibold mb-4 text-foreground">Podziel się artykułem</h3>
                 <div className="flex flex-wrap gap-4">
                   <Button 
                     variant="outline" 

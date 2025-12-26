@@ -1,22 +1,26 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import admin from 'firebase-admin';
 
 // Lazily initialize Prisma client; if Prisma client hasn't been generated
 // (or fails to initialize) we fallback to a lightweight mock so the dev
 // server can run. Run `npx prisma generate` to enable full DB functionality.
 let prisma: any = null;
-import('@prisma/client')
-  .then((mod) => {
+Promise.all([
+  import('@prisma/client'),
+  import('@prisma/adapter-pg')
+])
+  .then(([mod, adapterMod]) => {
     try {
-      prisma = new mod.PrismaClient();
+      const PrismaPg = adapterMod.PrismaPg;
+      const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+      prisma = new mod.PrismaClient({ adapter });
     } catch (err) {
       console.warn('Prisma client failed to initialize:', err);
       prisma = null;
     }
   })
   .catch((err) => {
-    console.warn('Could not import @prisma/client. DB operations will be disabled:', err);
+    console.warn('Could not import @prisma/client or adapter. DB operations will be disabled:', err);
     prisma = null;
   });
 
@@ -46,10 +50,29 @@ export const setupWebSocket = (server: HttpServer) => {
       if (!token) {
         return next(new Error('No token provided'));
       }
-      
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      socket.data.userId = decodedToken.uid;
-      socket.data.user = decodedToken;
+
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const apiKey = supabaseAnonKey || supabaseServiceKey;
+      if (!supabaseUrl || !apiKey) {
+        return next(new Error('Supabase not configured on server'));
+      }
+
+      const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: apiKey,
+        },
+      });
+
+      if (!response.ok) {
+        return next(new Error('Invalid or expired token'));
+      }
+
+      const user = await response.json();
+      socket.data.userId = user.id;
+      socket.data.user = user;
       next();
     } catch (error) {
       console.error('WebSocket auth error:', error);

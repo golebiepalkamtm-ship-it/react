@@ -23,18 +23,19 @@ interface SuccessData {
 }
 
 const AuctionSuccess = () => {
-  const [successData, setSuccessData] = useState<SuccessData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const data = localStorage.getItem('auctionSuccess');
-    if (data) {
-      setSuccessData(JSON.parse(data));
-      // Wyczyść dane po załadowaniu
-      localStorage.removeItem('auctionSuccess');
+  const [successData, setSuccessData] = useState<SuccessData | null>(() => {
+    try {
+      const data = localStorage.getItem('auctionSuccess');
+      if (data) {
+        localStorage.removeItem('auctionSuccess');
+        return JSON.parse(data) as SuccessData;
+      }
+    } catch {
+      // ignore
     }
-    setIsLoading(false);
-  }, []);
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   const formatPrice = (value: number) => `${value.toLocaleString('pl-PL')} EUR`;
   
@@ -71,7 +72,7 @@ const AuctionSuccess = () => {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white mb-4">Błąd</h1>
             <p className="text-white/80 mb-6">Nie znaleziono danych o transakcji.</p>
-            <Link to="/auctions" className="btn-primary inline-block px-6 py-3 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors">
+            <Link to="/auctions" className="btn-primary inline-block px-6 py-3 rounded-md bg-black text-white hover:bg-black/90 transition-colors">
               Powrót do aukcji
             </Link>
           </div>

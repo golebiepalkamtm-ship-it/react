@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { auctionService } from '@/services/auctionService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +11,7 @@ interface CreateAuctionFormProps {
 }
 
 const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -37,7 +37,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name.startsWith('pigeon.')) {
       const pigeonField = name.replace('pigeon.', '');
@@ -65,18 +65,22 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
     setFormData(prev => ({ ...prev, images: updated }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) {
       setError('Musisz być zalogowany');
       return;
     }
 
+    const token = session?.access_token ?? null;
+    if (!token) {
+      setError('Brak tokenu sesji. Zaloguj się ponownie.');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-
-      const token = await user.getIdToken();
       
       const endTime = new Date();
       endTime.setDate(endTime.getDate() + 7);
@@ -94,7 +98,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
         pigeon: formData.pigeon as CreateAuctionRequest['pigeon'],
       };
 
-      await auctionService.createAuction(auctionData);
+      await auctionService.createAuction(auctionData, token);
       onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd tworzenia aukcji');

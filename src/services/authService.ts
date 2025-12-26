@@ -1,44 +1,26 @@
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  User
-} from 'firebase/auth';
-import { auth } from '../lib/firebase';
-
-class AuthService {
-  private user: User | null = null;
-  private token: string | null = null;
-
+export class AuthServiceRemovedError extends Error {
   constructor() {
-    onAuthStateChanged(auth, async (user) => {
-      this.user = user;
-      this.token = user ? await user.getIdToken() : null;
-    });
+    super('Firebase authService was removed. Use Supabase via AuthContext (useAuth) instead.');
   }
-
-  async login(email: string, password: string) {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    this.token = await result.user.getIdToken();
-    return result.user;
-  }
-
-  async register(email: string, password: string) {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    this.token = await result.user.getIdToken();
-    return result.user;
-  }
-
-  async logout() {
-    await signOut(auth);
-    this.token = null;
-    this.user = null;
-  }
-
-  getToken = () => this.token;
-  getCurrentUser = () => this.user;
-  isAuthenticated = () => !!this.user;
 }
 
-export const authService = new AuthService();
+export const authService = {
+  login: async () => {
+    throw new AuthServiceRemovedError();
+  },
+  register: async () => {
+    throw new AuthServiceRemovedError();
+  },
+  logout: async () => {
+    throw new AuthServiceRemovedError();
+  },
+  getToken: () => {
+    throw new AuthServiceRemovedError();
+  },
+  getCurrentUser: () => {
+    throw new AuthServiceRemovedError();
+  },
+  isAuthenticated: () => {
+    throw new AuthServiceRemovedError();
+  },
+};

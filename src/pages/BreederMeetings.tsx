@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import { FullscreenImageModal } from '@/components/ui/FullscreenImageModal';
 import { SmartImage } from '@/components/ui/SmartImage';
 import AddBreederMeetingForm from '@/components/breeder-meetings/AddBreederMeetingForm';
+import MeetingsStaticGallery from '@/components/breeder-meetings/MeetingsStaticGallery';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Camera, CheckCircle, AlertCircle, Upload, X } from 'lucide-react';
@@ -56,54 +57,65 @@ export default function BreederMeetings() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400 mx-auto mb-4" />
-          <div className="text-lg">Ładowanie zdjęć...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4" />
+          <div className="text-lg text-foreground">Ładowanie zdjęć...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative isolate">
+      <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
       <main>
-        <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-navy">
-            <div className="absolute inset-0 bg-gradient-to-b from-navy/90 via-navy/40 to-transparent" />
-            <div className="relative z-10 container mx-auto px-4 text-center">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">Spotkania z Hodowcami</h1>
-                <p className="max-w-3xl mx-auto text-white/80 text-lg">Galeria zdjęć z naszych spotkań z hodowcami gołębi pocztowych</p>
-            </div>
+        <section className="relative overflow-hidden text-center">
+          <div className="relative z-10 container mx-auto px-4 pt-28 pb-10 md:pt-32 md:pb-14">
+            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
+              Spotkania <span className="text-gradient-gold">z hodowcami</span>
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+              Galeria zdjęć z naszych spotkań z hodowcami gołębi pocztowych
+            </p>
+          </div>
         </section>
 
-        <div className="max-w-7xl mx-auto px-4 pb-20">
-        <section className="mb-20">
+        <div className="container mx-auto px-4 pb-20">
+        <section className="mb-20 pt-12 section-surface-alt">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4 text-gradient">Dodaj Zdjęcia ze Spotkania</h2>
+            <h2 className="text-3xl font-bold mb-4 text-foreground">
+              Dodaj <span className="text-gradient-gold">zdjęcia</span> ze spotkania
+            </h2>
             <p className="text-muted-foreground text-lg">Podziel się zdjęciami z naszych spotkań z hodowcami</p>
           </div>
 
           <AddBreederMeetingForm />
-        </section>
+          </section>
 
-        <section>
+          {/* Static gallery from public/meetings-with-breeders */}
+          <MeetingsStaticGallery />
+
+        <section className="section-surface-alt">
           <div className="space-y-12">
             {breederMeetings && Array.isArray(breederMeetings) && breederMeetings.map((meeting, index) => (
               <div key={meeting.id}>
                 <article 
-                  className={`p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
+                  className={`rounded-2xl bg-card/55 backdrop-blur-md border border-border/70 p-6 shadow-lg magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
                 >
                   <div className="mb-6">
-                    <h3 className="text-2xl md:text-3xl font-bold text-gradient text-center">{meeting.name}</h3>
+                    <h3 className="text-2xl md:text-3xl font-bold text-foreground text-center">
+                      <span className="text-gradient-gold">{meeting.name}</span>
+                    </h3>
                     {meeting.location && <p className="text-base md:text-lg font-semibold uppercase tracking-[0.3em] text-muted-foreground text-center mt-2">{meeting.location}</p>}
                   </div>
 
-                  <div className="grid gap-5 rounded-2xl border border-muted-foreground/10 bg-muted-foreground/5 p-6">
+                  <div className="grid gap-5 rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                       {meeting.images.map((image, imageIndex) => (
-                        <div key={imageIndex} className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-muted-foreground/5 bg-black/20" onClick={() => handleImageClick(meeting.id, imageIndex)}>
+                        <div key={imageIndex} className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-border/70 bg-background/30" onClick={() => handleImageClick(meeting.id, imageIndex)}>
                           <SmartImage src={image} alt={`${meeting.name} - zdjęcie ${imageIndex + 1}`} width={300} height={192} fitMode="cover" aspectRatio="16/9" className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <div className="w-8 h-8 bg-amber-500/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-amber-400/50"><span className="text-amber-200 text-xs font-bold">{imageIndex + 1}</span></div>
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <div className="w-8 h-8 bg-gold/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-gold/35"><span className="text-gold text-xs font-bold">{imageIndex + 1}</span></div>
                           </div>
                         </div>
                       ))}
@@ -115,8 +127,8 @@ export default function BreederMeetings() {
           </div>
 
           {breederMeetings.length === 0 && (
-            <div className="p-12 text-center card-glass">
-              <h2 className="text-2xl font-bold mb-4">Brak spotkań</h2>
+            <div className="p-12 text-center rounded-2xl bg-card/55 backdrop-blur-md border border-border/70 shadow-lg">
+              <h2 className="text-2xl font-bold mb-4 text-foreground">Brak spotkań</h2>
               <p className="mb-6 text-muted-foreground">Jeszcze nie ma zdjęć ze spotkań z hodowcami.</p>
             </div>
           )}

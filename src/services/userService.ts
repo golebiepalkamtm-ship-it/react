@@ -1,5 +1,4 @@
-import apiClient from './api';
-import { authService } from './authService';
+import { supabase } from '@/lib/supabase';
 
 interface UserProfile {
   id: string;
@@ -21,44 +20,40 @@ interface UpdateProfileData {
 
 export const userService = {
   async getProfile(): Promise<UserProfile> {
-    const token = authService.getToken();
-    if (!token) throw new Error('Authentication required');
-    
-    return apiClient.get<UserProfile>('/users/profile');
+    if (!supabase) throw new Error('Supabase not configured');
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    if (!userId) throw new Error('Authentication required');
+
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    if (error) throw error;
+    return data as UserProfile;
   },
 
   async updateProfile(data: UpdateProfileData): Promise<UserProfile> {
-    const token = authService.getToken();
-    if (!token) throw new Error('Authentication required');
-    
-    return apiClient.put<UserProfile>('/users/profile', data, token);
+    if (!supabase) throw new Error('Supabase not configured');
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    if (!userId) throw new Error('Authentication required');
+
+    const { data: updated, error } = await supabase.from('users').update(data).eq('id', userId).select('*').single();
+    if (error) throw error;
+    return updated as UserProfile;
   },
 
   async getWatchlist(): Promise<any[]> {
-    const token = authService.getToken();
-    if (!token) throw new Error('Authentication required');
-    
-    return apiClient.get<any[]>('/users/watchlist');
+    throw new Error('Watchlist API not implemented (Supabase-only cleanup).');
   },
 
   async addToWatchlist(auctionId: string): Promise<void> {
-    const token = authService.getToken();
-    if (!token) throw new Error('Authentication required');
-    
-    await apiClient.post(`/users/watchlist/${auctionId}`, {}, token);
+    throw new Error('Watchlist API not implemented (Supabase-only cleanup).');
   },
 
   async removeFromWatchlist(auctionId: string): Promise<void> {
-    const token = authService.getToken();
-    if (!token) throw new Error('Authentication required');
-    
-    await apiClient.delete(`/users/watchlist/${auctionId}`, token);
+    throw new Error('Watchlist API not implemented (Supabase-only cleanup).');
   },
 
   async getBidHistory(): Promise<any[]> {
-    const token = authService.getToken();
-    if (!token) throw new Error('Authentication required');
-    
-    return apiClient.get<any[]>('/users/bids');
+    throw new Error('Bid history API not implemented (Supabase-only cleanup).');
   }
 };

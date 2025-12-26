@@ -90,23 +90,23 @@ export default function AddBreederMeetingForm() {
 
   return (
     <div className="py-8 px-4">
-      <div className="max-w-4xl mx-auto bg-card border border-border rounded-2xl p-8 shadow-lg">
+      <div className="max-w-4xl mx-auto bg-card/55 backdrop-blur-md border border-border/70 rounded-2xl p-8 shadow-lg">
           {/* Header is rendered by the parent page to avoid duplicate titles */}
 
         {user ? (
           <>
             {!canAddPhotos ? (
-              <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+              <div className="mb-6 p-4 bg-gold/10 border border-gold/25 rounded-lg">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <AlertCircle className="h-5 w-5 text-yellow-400" />
+                    <AlertCircle className="h-5 w-5 text-gold" />
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-yellow-200"><strong>Weryfikacja profilu wymagana</strong></p>
-                    <p className="text-sm text-yellow-200 mt-1">Aby dodawać zdjęcia, musisz uzupełnić dane w profilu i zweryfikować numer telefonu.</p>
-                    {missingFields.length > 0 && <p className="text-sm text-yellow-200 mt-1">Brakujące pola: {missingFields.join(', ')}</p>}
+                    <p className="text-sm text-foreground"><strong>Weryfikacja profilu wymagana</strong></p>
+                    <p className="text-sm text-muted-foreground mt-1">Aby dodawać zdjęcia, musisz uzupełnić dane w profilu i zweryfikować numer telefonu.</p>
+                    {missingFields.length > 0 && <p className="text-sm text-muted-foreground mt-1">Brakujące pola: {missingFields.join(', ')}</p>}
                     <div className="mt-3">
-                      <button onClick={() => navigate('/dashboard?tab=profile&edit=true')} className="font-medium underline text-yellow-300 hover:text-yellow-400">Uzupełnij profil</button>
+                      <button onClick={() => navigate('/dashboard?tab=profile&edit=true')} className="font-medium underline text-gold hover:text-gold-light">Uzupełnij profil</button>
                     </div>
                   </div>
                 </div>

@@ -11,6 +11,7 @@ interface AuctionCardProps {
   raceWins?: number;
   bloodline: string;
   featured?: boolean;
+  imageFit?: 'cover' | 'contain';
 }
 
 const AuctionCard = ({
@@ -22,10 +23,11 @@ const AuctionCard = ({
   raceWins,
   bloodline,
   featured = false,
+  imageFit = 'cover',
 }: AuctionCardProps) => {
   return (
     <div
-      className={`group relative rounded-2xl overflow-hidden bg-card border transition-all duration-500 hover-lift ${
+      className={`group relative mx-auto w-full max-w-[360px] rounded-2xl overflow-hidden bg-card border transition-all duration-500 hover-lift hover:shadow-lg ${
         featured
           ? "border-gold/50 shadow-gold"
           : "border-border hover:border-gold/30"
@@ -44,14 +46,16 @@ const AuctionCard = ({
         <img
           src={image}
           alt={name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          loading="lazy"
+          decoding="async"
+          className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-3 bg-black/15' : 'object-cover'} transition-[filter] duration-300 group-hover:brightness-[1.03]`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent" />
         
         {/* Time Badge */}
-        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-navy/80 backdrop-blur-sm border border-gold/20">
-          <Clock className="w-4 h-4 text-gold" />
-          <span className="text-primary-foreground text-sm font-medium">
+        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/60 backdrop-blur-md border border-border/60">
+          <Clock className="w-4 h-4 text-primary" />
+          <span className="text-foreground text-sm font-medium">
             {timeLeft}
           </span>
         </div>

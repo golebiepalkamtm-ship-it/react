@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 const CONFIG: any = {
   particleCount: 400000,
   perMouse: 300,
@@ -107,23 +107,34 @@ class WebGPUApp {
   }
 
   async init() {
-    if (!('gpu' in navigator)) throw new Error('WebGPU not supported');
-    // @ts-ignore
-    this.adapter = await (navigator as any).gpu.requestAdapter();
-    // @ts-ignore
-    this.device = await this.adapter.requestDevice();
-    this.context = this.canvas.getContext('webgpu');
-    this.format = (navigator as any).gpu.getPreferredCanvasFormat();
+    if (!('gpu' in navigator)) {
+      console.warn('WebGPU not supported');
+      return;
+    }
+    try {
+      // @ts-expect-error - webgpu types may not be available in all TS configs
+      this.adapter = await (navigator as any).gpu.requestAdapter();
+      // @ts-expect-error - adapter.requestDevice may be missing from lib types
+      this.device = await this.adapter.requestDevice();
+      this.context = this.canvas.getContext('webgpu');
+      this.format = (navigator as any).gpu.getPreferredCanvasFormat();
 
-    this.context.configure({ device: this.device, format: this.format, alphaMode: 'premultiplied' });
+      this.context.configure({ device: this.device, format: this.format, alphaMode: 'premultiplied' });
 
-    await this.setupParticles();
-    this.setupInputs();
+      await this.setupParticles();
+      this.setupInputs();
 
-    window.addEventListener('resize', () => this.resize());
+      window.addEventListener('resize', () => this.resize());
 
-    this.animStartTime = performance.now();
-    requestAnimationFrame((t) => this.render(t));
+      this.animStartTime = performance.now();
+      requestAnimationFrame((t) => this.render(t));
+    } catch (e: any) {
+      console.error('WebGPU init failed:', e);
+      // Log error code if available
+      if (e instanceof GPUValidationError || e instanceof GPUOutOfMemoryError) {
+        console.error('Error code:', e.message);
+      }
+    }
   }
 
   resize() {

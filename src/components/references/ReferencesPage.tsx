@@ -105,18 +105,17 @@ export function ReferencesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-navy text-center">
-        <div className="absolute inset-0 bg-linear-to-b from-navy/90 via-navy/40 to-transparent" />
+      <section className="relative min-h-[52vh] flex items-center justify-center overflow-hidden text-center">
         <div className="relative z-10 container mx-auto px-4">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Users className="w-8 h-8 text-gold" />
           </div>
-          <h1 className="font-display text-4xl md:text-5xl text-white font-bold leading-tight mb-4">
+          <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
             Referencje <span className="text-gradient-gold">hodowców</span>
           </h1>
-          <p className="text-white/80 text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Poznaj opinie zadowolonych hodowców o naszych gołębiach
           </p>
 
@@ -131,7 +130,7 @@ export function ReferencesPage() {
             <Button
               variant="outline"
               onClick={() => void loadReferences()}
-              className="border-white/30 text-white hover:bg-white/10"
+              className="border-gold/40 text-foreground hover:bg-gold/10"
             >
               Odśwież
             </Button>
@@ -140,11 +139,11 @@ export function ReferencesPage() {
       </section>
 
       {/* Main Reference Carousel */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20 section-surface-alt">
         <div className="container mx-auto px-4">
           {isLoading ? (
             <div className="max-w-5xl mx-auto">
-              <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
+              <div className="rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-10 text-center text-muted-foreground shadow-lg">
                 Ładuję referencje…
               </div>
             </div>
@@ -191,7 +190,7 @@ export function ReferencesPage() {
                     </div>
                   </div>
 
-                  <div className="p-6 rounded-2xl bg-card border border-border">
+                  <div className="p-6 rounded-2xl bg-card/55 backdrop-blur-md border border-border/70 shadow-lg">
                     <div className="flex items-center gap-3 mb-3">
                       <Trophy className="w-5 h-5 text-gold" />
                       <h4 className="font-semibold text-foreground">
@@ -204,7 +203,7 @@ export function ReferencesPage() {
 
                 {/* Pigeon Image */}
                 <div className="relative">
-                  <div className="aspect-square rounded-2xl overflow-hidden border border-border shadow-2xl">
+                  <div className="aspect-square rounded-2xl overflow-hidden border border-border/70 bg-card/30 backdrop-blur-md shadow-2xl">
                     {getPrimaryImage(currentRef) ? (
                       <img 
                         src={getPrimaryImage(currentRef) as string} 
@@ -213,7 +212,7 @@ export function ReferencesPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <div className="w-full h-full flex items-center justify-center bg-background/30">
                         <div className="text-center text-muted-foreground">
                           <ImageOff className="w-10 h-10 mx-auto mb-3" />
                           <div className="text-sm">Brak zdjęcia</div>
@@ -224,7 +223,7 @@ export function ReferencesPage() {
                   
                   {/* Navigation */}
                   <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
-                    <div className="flex items-center gap-4 bg-card border border-border rounded-full p-2 shadow-lg">
+                    <div className="flex items-center gap-4 bg-card/55 backdrop-blur-md border border-border/70 rounded-full p-2 shadow-lg">
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -255,7 +254,7 @@ export function ReferencesPage() {
             </div>
           ) : (
             <div className="max-w-5xl mx-auto">
-              <div className="rounded-2xl border border-border bg-card p-10 text-center">
+              <div className="rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-10 text-center shadow-lg">
                 <h2 className="font-display text-2xl font-bold text-foreground">Brak referencji</h2>
                 <p className="mt-2 text-muted-foreground">
                   Dodaj pierwszą opinię – pojawi się tutaj od razu.
@@ -268,7 +267,7 @@ export function ReferencesPage() {
       </section>
 
       {/* All References Grid */}
-      <section className="py-16 bg-background">
+      <section className="py-16 section-surface-alt">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -285,8 +284,8 @@ export function ReferencesPage() {
                 key={ref.id}
                 className={`group cursor-pointer p-6 rounded-2xl border transition-all duration-300 ${
                   index === currentIndex 
-                    ? 'border-gold bg-gold/5 shadow-lg shadow-gold/10' 
-                    : 'border-border bg-card hover:border-gold/30 hover-lift'
+                    ? 'border-gold/60 bg-gold/10 shadow-lg shadow-gold/10' 
+                    : 'border-border/70 bg-card/55 backdrop-blur-md hover:border-gold/30 hover-lift'
                 }`}
                 onClick={() => setCurrentIndex(index)}
               >
@@ -443,7 +442,9 @@ function ModalSideEffects({
       const first = container.querySelector<HTMLElement>('input,select,textarea,button,a[href],[tabindex]:not([tabindex="-1"])');
       try {
         first?.focus();
-      } catch {}
+      } catch (err) {
+        // ignore optional parse errors
+      }
     }
 
     const onKey = (e: KeyboardEvent) => {
@@ -454,13 +455,16 @@ function ModalSideEffects({
 
     document.addEventListener('keydown', onKey);
 
+    const triggerEl = triggerRef.current;
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
       // restore focus
       try {
-        (triggerRef.current ?? previouslyActive.current)?.focus();
-      } catch {}
+        (triggerEl ?? previouslyActive.current)?.focus();
+      } catch (err) {
+        // ignore optional parse errors
+      }
     };
   }, [modalRef, onClose, triggerRef]);
 

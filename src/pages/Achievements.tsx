@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 
 const Achievements = () => {
   return (
-    <div className="min-h-screen bg-navy">
+    <div className="min-h-screen">
       <Header />
       <main>
         <AchievementsSection />

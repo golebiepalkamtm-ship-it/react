@@ -322,10 +322,10 @@ const AchievementsSection = () => {
     <section
       id="achievements"
       ref={containerRef}
-      className="achievements-tunnel relative isolate min-h-[400vh] overflow-x-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"
+      className="achievements-tunnel relative isolate min-h-[400vh] overflow-x-hidden"
     >
       {/* Fixed Background - Dark Navy */}
-      <div className="fixed inset-0 bg-tunnel grid-overlay -z-10 pointer-events-none" />
+      <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       
       {/* Radial Glow Effect - Gold */}
       <motion.div
@@ -433,7 +433,7 @@ const AchievementsSection = () => {
       {/* Mobile Progress Indicator */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:hidden z-50">
         <div className="glass-card px-4 py-2 flex items-center gap-3">
-          <span className="font-display text-lg text-primary glow-text">
+          <span className="font-display text-lg text-black glow-text">
             {years[activeIndex]}
           </span>
           <div className="w-24 h-1 rounded-full bg-muted overflow-hidden">

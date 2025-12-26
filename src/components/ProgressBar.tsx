@@ -35,9 +35,9 @@ const ProgressBar = ({ years, activeIndex }: ProgressBarProps) => {
               <motion.div 
                 className={`w-3 h-3 rounded-full border-2 transition-all duration-300
                   ${isActive 
-                    ? 'bg-primary border-primary glow-primary animate-pulse-glow' 
+                    ? 'bg-black border-black glow-black animate-pulse-glow' 
                     : isPast 
-                      ? 'bg-primary/50 border-primary/50' 
+                      ? 'bg-black/50 border-black/50' 
                       : 'bg-muted border-muted-foreground/30'
                   }`}
                 animate={isActive ? { scale: [1, 1.3, 1] } : { scale: 1 }}
@@ -48,7 +48,7 @@ const ProgressBar = ({ years, activeIndex }: ProgressBarProps) => {
               <motion.span 
                 className={`font-display text-xs tracking-wider whitespace-nowrap transition-all duration-300
                   ${isActive 
-                    ? 'text-primary glow-text opacity-100' 
+                    ? 'text-black glow-text opacity-100' 
                     : isPast 
                       ? 'text-muted-foreground opacity-70' 
                       : 'text-muted-foreground/50 opacity-50'

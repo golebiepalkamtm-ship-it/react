@@ -38,37 +38,37 @@ const PressPage = () => {
     : pressArticles.filter(article => article.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative isolate">
+      <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
       
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-navy text-center">
-          <div className="absolute inset-0 bg-gradient-to-b from-navy/90 via-navy/40 to-transparent" />
+        <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden text-center">
           <div className="relative z-10 container mx-auto px-4">
             <div className="flex items-center justify-center gap-2 mb-6">
               <Newspaper className="w-8 h-8 text-gold" />
             </div>
-            <h1 className="font-display text-4xl md:text-5xl text-white font-bold leading-tight mb-4">
+            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
               Media <span className="text-gradient-gold">o nas</span>
             </h1>
-            <p className="text-white/80 text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Przeczytaj co piszą o nas media branżowe i ogólnopolskie
             </p>
           </div>
         </section>
 
         {/* Featured Video */}
-        <section className="py-12 bg-background/0">
+        <section className="py-12 section-surface-alt">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center mb-8">
               <h2 className="font-display text-3xl text-foreground font-bold mb-2">Film o nas</h2>
               <p className="text-muted-foreground">Zobacz materiał wideo</p>
             </div>
             <div className="max-w-4xl mx-auto">
-              <div className="relative pb-[56.25%] h-0">
+              <div className="relative pb-[56.25%] h-0 rounded-2xl overflow-hidden border border-border/70 bg-card/30 backdrop-blur-md shadow-lg">
                 <iframe
-                  className="absolute inset-0 w-full h-full rounded-xl shadow-lg"
+                  className="absolute inset-0 w-full h-full"
                   src="https://www.youtube.com/embed/utXkaMWyZfk"
                   title="YouTube video player"
                   frameBorder="0"
@@ -81,11 +81,11 @@ const PressPage = () => {
         </section>
 
         {/* Content Section */}
-        <section className="py-16 bg-background">
+        <section className="py-16 section-surface-alt">
           <div className="container mx-auto px-4">
             
             {/* Filter */}
-            <div className="flex flex-wrap items-center gap-4 mb-12">
+            <div className="flex flex-wrap items-center gap-4 mb-12 rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-4 md:p-5 shadow-lg">
               <div className="flex items-center gap-2 text-foreground font-medium">
                 <Filter className="w-4 h-4" />
                 Kategoria:
@@ -109,13 +109,15 @@ const PressPage = () => {
                 {filteredArticles.map((article) => (
                   <article 
                     key={article.id}
-                    className="group bg-card rounded-2xl border border-border overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"
+                    className="group bg-card/55 backdrop-blur-md rounded-2xl border border-border/70 overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"
                   >
-                    <div className="h-56 overflow-hidden">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-linear-to-b from-black/15 via-transparent to-black/20">
                       <img 
                         src={article.images.main} 
                         alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-[1.02] transition-transform duration-300"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop';

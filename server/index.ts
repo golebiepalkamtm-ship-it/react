@@ -1,4 +1,3 @@
-import express from 'express';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
 import { setupWebSocket } from './websocket/bidding.ts';
@@ -9,9 +8,24 @@ dotenv.config();
 const server = createServer(app);
 setupWebSocket(server);
 
-const PORT = process.env.PORT || 8000;
+const INITIAL_PORT = Number(process.env.PORT) || 8001;
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+const tryListen = (port: number) => {
+  server.listen(port, () => {
+    console.log(`🚀 Server running on port ${port}`);
+    console.log(`📊 Health check: http://localhost:${port}/health`);
+  });
+};
+
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE') {
+    const nextPort = (Number(process.env.PORT) || INITIAL_PORT) + 1;
+    process.env.PORT = String(nextPort);
+    console.warn(`⚠️ Port in use. Retrying on port ${nextPort}...`);
+    setTimeout(() => tryListen(nextPort), 200);
+    return;
+  }
+  throw err;
 });
+
+tryListen(INITIAL_PORT);

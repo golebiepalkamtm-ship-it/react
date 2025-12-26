@@ -33,7 +33,9 @@ function initSectionAnimator() {
         if (!(n instanceof Element)) return;
         if (n.tagName.toLowerCase() === 'section') observeSection(n, io);
         // also handle sections inside added subtrees
-        n.querySelectorAll && n.querySelectorAll('section').forEach((s) => observeSection(s, io));
+        if ('querySelectorAll' in n) {
+          (n as Element).querySelectorAll('section').forEach((s) => observeSection(s, io));
+        }
       });
     }
   });

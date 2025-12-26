@@ -8,6 +8,9 @@
     <meta name="description" content="Profesjonalne aukcje gołębi pocztowych z hodowli MTM Pałka. Trzy pokolenia pasji i sukcesów." />
     <meta name="author" content="MTM Pałka" />
 
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1e293b" />
+
     <!-- TODO: Update og:title to match your application name -->
     <meta property="og:title" content="MTM Pałka - Aukcje Gołębi Pocztowych" />
     <meta property="og:description" content="Profesjonalne aukcje gołębi pocztowych z hodowli MTM Pałka." />
@@ -20,23 +23,7 @@
   </head>
 
   <body>
-    <div id="loader">Initializing WebGPU...</div>
     <canvas id="canvas"></canvas>
-
-    <div class="cont-letters">
-      <div class="letter-wrapper">
-        <span class="letters letter-2">2</span>
-      </div>
-      <div class="letter-wrapper">
-        <span class="letters letter-0">0</span>
-      </div>
-      <div class="letter-wrapper">
-        <span class="letters letter-2 black">2</span>
-      </div>
-      <div class="letter-wrapper">
-        <span class="letters letter-6">6</span>
-      </div>
-    </div>
 
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

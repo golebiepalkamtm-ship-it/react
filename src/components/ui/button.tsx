@@ -15,10 +15,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        gold: "bg-gradient-to-r from-gold to-gold-light text-primary font-semibold hover:shadow-gold hover:-translate-y-0.5",
+        gold: "bg-gradient-to-r from-gold to-gold-light text-black font-semibold hover:shadow-gold hover:-translate-y-0.5",
         hero: "bg-primary/10 text-primary-foreground border border-primary-foreground/30 backdrop-blur-sm hover:bg-primary-foreground/10 hover:border-primary-foreground/50",
-        heroGold: "bg-gradient-to-r from-gold to-gold-light text-navy font-semibold hover:shadow-gold hover:-translate-y-0.5 px-8",
-        premium: "bg-navy text-gold border border-gold/30 hover:border-gold hover:shadow-gold",
+        heroGold: "bg-gradient-to-r from-gold to-gold-light text-black font-semibold hover:shadow-gold hover:-translate-y-0.5 px-8",
+        premium: "bg-white text-gold border border-gold/30 hover:border-gold hover:shadow-gold",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -49,5 +49,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export { Button, buttonVariants };

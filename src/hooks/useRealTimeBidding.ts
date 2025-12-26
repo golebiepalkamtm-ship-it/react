@@ -24,14 +24,26 @@ export const useRealTimeBidding = (auctionId: string) => {
   }, []);
 
   useEffect(() => {
-    websocketService.connect();
-    websocketService.joinAuction(auctionId);
-    setIsConnected(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        await websocketService.connect();
+        if (cancelled) return;
+        websocketService.joinAuction(auctionId);
+        // Avoid synchronous setState inside effect — schedule async.
+        setTimeout(() => {
+          if (!cancelled) setIsConnected(true);
+        }, 0);
+      } catch (err) {
+        console.error('Failed to connect websocket:', err);
+      }
+    })();
 
     websocketService.onBidPlaced(handleBidPlaced);
     websocketService.onBidError(handleBidError);
 
     return () => {
+      cancelled = true;
       websocketService.offBidPlaced(handleBidPlaced);
       websocketService.offBidError(handleBidError);
       websocketService.leaveAuction();

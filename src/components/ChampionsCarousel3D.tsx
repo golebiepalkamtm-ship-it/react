@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useCallback, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useCallback, useState, startTransition } from 'react';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -14,7 +14,7 @@ const RADIUS_FALLBACK = 1400;
 const TILT_SENSITIVITY = 0;
 const DRAG_SENSITIVITY = 0.4;
 const INERTIA_FRICTION = 0.95;
-const AUTOSPIN_SPEED = 0.08; // deg per frame-ish (only when idle)
+const AUTOSPIN_SPEED: number = 0.08; // deg per frame-ish (only when idle)
 const IDLE_TIMEOUT = 3000;
 const ROTATION_SPEED = 0.3;
 
@@ -141,15 +141,22 @@ const Card = React.memo(({ champion, onSelect, onPedigreeClick }: CardProps) => 
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
         <span className="edge-glow" aria-hidden="true" />
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           className="champions-carousel-3d__card-content"
-          ref={cardRef}
+          ref={cardRef as any}
           onClick={onSelect}
           onPointerMove={onPointerMove}
           onPointerEnter={onPointerEnter}
           onPointerLeave={onPointerLeave}
           aria-label={onSelect ? `Otwórz ${champion.name}` : undefined}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onSelect?.();
+            }
+          }}
         >
           {/* Header */}
           {/* header removed per request */}
@@ -187,21 +194,28 @@ const Card = React.memo(({ champion, onSelect, onPedigreeClick }: CardProps) => 
             <div className="champions-carousel-3d__card-image-overlay" />
           </div>
 
-          {/* Ring Number and Pedigree Button */}
+          {/* Details */}
           <div className="champions-carousel-3d__card-details">
-            <p className="champions-carousel-3d__card-ring">
-              {champion.ringNumber}
-            </p>
-            <button
+            <p className="champions-carousel-3d__card-ring">{champion.ringNumber}</p>
+
+            <div
+              role="button"
+              tabIndex={0}
               onClick={handlePedigreeClick}
               className="champions-carousel-3d__pedigree-btn"
-              type="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handlePedigreeClick(e as unknown as React.MouseEvent);
+                }
+              }}
+              aria-label="Pokaż rodowód"
             >
               <FileText size={16} />
               <span>Rodowód</span>
-            </button>
+            </div>
           </div>
-        </button>
+        </div>
       </motion.div>
     </div>
   );
@@ -224,7 +238,7 @@ const ChampionsCarousel3D: React.FC<ChampionsCarousel3DProps> = ({ champions }) 
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef(0);
   const initialRotationRef = useRef(0);
-  const lastInteractionRef = useRef(Date.now());
+  const lastInteractionRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
 
   // Mouse tilt effect
@@ -254,6 +268,9 @@ const ChampionsCarousel3D: React.FC<ChampionsCarousel3DProps> = ({ champions }) 
 
   // Animation loop
   useEffect(() => {
+    // initialize last interaction timestamp
+    lastInteractionRef.current = Date.now();
+
     const animate = () => {
       const now = Date.now();
       const isIdle = now - lastInteractionRef.current > IDLE_TIMEOUT;
@@ -333,11 +350,15 @@ const ChampionsCarousel3D: React.FC<ChampionsCarousel3DProps> = ({ champions }) 
 
   // Navigation functions
   const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % champions.length);
+    startTransition(() => {
+      setCurrentIndex((prev) => (prev + 1) % champions.length);
+    });
   }, [champions.length]);
 
   const goToPrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + champions.length) % champions.length);
+    startTransition(() => {
+      setCurrentIndex((prev) => (prev - 1 + champions.length) % champions.length);
+    });
   }, [champions.length]);
 
   // Event listeners
@@ -384,15 +405,8 @@ const ChampionsCarousel3D: React.FC<ChampionsCarousel3DProps> = ({ champions }) 
     });
   }, [cards]);
 
-  if (!champions || champions.length === 0) {
-    return (
-      <div className="w-full h-96 bg-navy rounded-2xl flex items-center justify-center">
-        <p className="text-white/60">Brak danych champions</p>
-      </div>
-    );
-  }
-
-  const activeChampion = champions[0];
+  // Active champion and background for pedigree preview (declare before any early returns)
+  const activeChampion = champions[currentIndex];
   const pedigreeBg =
     activeChampion?.pedigreeImages && activeChampion.pedigreeImages.length > 0
       ? encodeImagePath(activeChampion.pedigreeImages[0])
@@ -402,6 +416,15 @@ const ChampionsCarousel3D: React.FC<ChampionsCarousel3DProps> = ({ champions }) 
     if (!bgRef.current) return;
     bgRef.current.style.backgroundImage = `url('${pedigreeBg}')`;
   }, [pedigreeBg]);
+
+  if (!champions || champions.length === 0) {
+    return (
+      <div className="w-full h-96 bg-white rounded-2xl flex items-center justify-center">
+        <p className="text-black/60">Brak danych champions</p>
+      </div>
+    );
+  }
+
 
   return (
     <div className="champions-carousel-3d">
@@ -432,7 +455,7 @@ const ChampionsCarousel3D: React.FC<ChampionsCarousel3DProps> = ({ champions }) 
             <Card
               key={card.key}
               champion={card.champion}
-              onSelect={() => setCurrentIndex(card.index)}
+              onSelect={() => startTransition(() => setCurrentIndex(card.index))}
               onPedigreeClick={(champion) => {
                 // TODO: Implement pedigree modal/view
                 console.log('Show pedigree for:', champion);

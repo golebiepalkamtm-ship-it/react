@@ -1,6 +1,7 @@
 import { Newspaper, Calendar, ExternalLink, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface PressArticle {
   id: string;
@@ -13,6 +14,7 @@ interface PressArticle {
 }
 
 const PressSection = () => {
+
   // Real press articles from newspapers and magazines
   const pressArticles: PressArticle[] = [
     {
@@ -54,10 +56,23 @@ const PressSection = () => {
   ];
 
   return (
-    <section id="press" className="py-24 bg-muted/30">
+    <motion.section
+      id="press"
+      className="py-20 section-surface-alt"
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-120px" }}
+      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+    >
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 18, filter: 'blur(10px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, margin: "-140px" }}
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        >
           <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6">
             Media o nas
           </span>
@@ -67,20 +82,42 @@ const PressSection = () => {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Zobacz jak media opisują nasze sukcesy w hodowli gołębi pocztowych
           </p>
-        </div>
+        </motion.div>
 
         {/* Articles Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <motion.div
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-120px" }}
+          variants={{
+            hidden: {},
+            show: {
+              transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+            },
+          }}
+        >
           {pressArticles.map((article) => (
-            <article 
+            <motion.article 
               key={article.id}
               className="group bg-card rounded-2xl border border-border overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"
+              variants={{
+                hidden: { opacity: 0, y: 22, scale: 0.985 },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                },
+              }}
             >
-              <div className="h-48 overflow-hidden">
+              <div className="relative aspect-[16/10] overflow-hidden bg-linear-to-b from-black/15 via-transparent to-black/20">
                 <img 
                   src={article.image} 
                   alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-[1.02] transition-transform duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop';
@@ -117,20 +154,26 @@ const PressSection = () => {
                   </Link>
                 </Button>
               </div>
-            </article>
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
         
-        <div className="text-center">
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 16, filter: 'blur(10px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, margin: "-120px" }}
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        >
           <Button variant="outline" size="lg" className="border-gold/50 hover:bg-gold hover:text-navy" asChild>
             <Link to="/press">
               Zobacz wszystkie artykuły
               <Newspaper className="w-4 h-4 ml-2" />
             </Link>
           </Button>
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

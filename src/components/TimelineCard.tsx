@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 interface TimelineEvent {
@@ -17,7 +17,12 @@ interface TimelineCardProps {
 const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const glowTargetRef = useRef<HTMLDivElement>(null);
-  
+
+  const hoverRotateXRaw = useMotionValue(0);
+  const hoverRotateYRaw = useMotionValue(0);
+  const hoverRotateX = useSpring(hoverRotateXRaw, { stiffness: 260, damping: 26, mass: 0.8 });
+  const hoverRotateY = useSpring(hoverRotateYRaw, { stiffness: 260, damping: 26, mass: 0.8 });
+
   const { scrollYProgress } = useScroll({
     target: cardRef,
     offset: ["start end", "end start"],
@@ -65,16 +70,39 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
     el.style.setProperty("--pointer-d", `${pointerD.toFixed(3)}`);
   };
 
+  const updateTilt = (el: HTMLElement, clientX: number, clientY: number) => {
+    const rect = el.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    const nx = (x / rect.width) * 2 - 1; // -1..1
+    const ny = (y / rect.height) * 2 - 1; // -1..1
+
+    const max = 10;
+    hoverRotateXRaw.set((-ny) * max);
+    hoverRotateYRaw.set(nx * max);
+  };
+
+  const isMotionDisabled = () => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  };
+
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = glowTargetRef.current;
     if (!el) return;
+    if (e.pointerType === "touch" || isMotionDisabled()) return;
     updateGlowVars(el, e.clientX, e.clientY);
+    updateTilt(el, e.clientX, e.clientY);
   };
 
   const onPointerEnter = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = glowTargetRef.current;
     if (!el) return;
+    if (e.pointerType === "touch" || isMotionDisabled()) return;
+    el.style.setProperty("--shine", "1");
     updateGlowVars(el, e.clientX, e.clientY);
+    updateTilt(el, e.clientX, e.clientY);
   };
 
   const onPointerLeave = () => {
@@ -82,6 +110,9 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
     if (!el) return;
     // Fade out the effect quickly
     el.style.setProperty("--pointer-d", "0");
+    el.style.setProperty("--shine", "0");
+    hoverRotateXRaw.set(0);
+    hoverRotateYRaw.set(0);
   };
 
   return (
@@ -91,12 +122,24 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
       className="tunnel-card relative mb-24 md:mb-32"
     >
       <div className={`flex items-center gap-8 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-        {/* Year watermark removed to avoid overlapping decorations on other sections */}
+        {/* Year label (side, not behind the card) */}
+        <motion.div
+          className="hidden md:flex w-28 lg:w-40 shrink-0 items-center justify-center"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: isActive ? 1 : 0.45, y: 0 }}
+          transition={{ duration: 0.5 }}
+          aria-hidden="true"
+        >
+          <span className="year-ghost year-ghost-strong text-[6rem] lg:text-[8rem] font-display font-black leading-none">
+            {event.year}
+          </span>
+        </motion.div>
 
         {/* Content Card */}
         <motion.div
-          className={`glass-card p-6 md:p-8 w-full md:w-[60%] lg:w-[50%] relative z-10
+          className={`rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md shadow-lg p-6 md:p-8 w-full md:w-[60%] lg:w-[50%] relative z-10
             ${isEven ? 'md:ml-auto' : 'md:mr-auto'} ${isActive ? 'tunnel-card-active' : ''} edge-glow-card`}
+          style={{ rotateX: hoverRotateX, rotateY: hoverRotateY, transformPerspective: 1000 }}
           ref={glowTargetRef}
           onPointerMove={onPointerMove}
           onPointerEnter={onPointerEnter}
@@ -110,7 +153,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
           <span className="edge-glow" aria-hidden="true" />
           {/* Mobile Year Badge */}
           <div className="md:hidden mb-4">
-            <span className="font-display text-5xl font-bold text-primary/30">
+            <span className="font-display text-5xl font-bold text-foreground/20">
               {event.year}
             </span>
           </div>
@@ -118,14 +161,14 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
           {/* Card Header */}
           <div className="flex items-start justify-between gap-4 mb-4">
             <motion.span 
-              className="hidden md:inline-block font-display text-sm tracking-widest text-primary glow-text"
+              className="hidden md:inline-block font-display text-sm tracking-widest text-muted-foreground"
               animate={isActive ? { opacity: [0.7, 1, 0.7] } : { opacity: 0.7 }}
               transition={{ duration: 2, repeat: Infinity }}
             >
               {event.year}
             </motion.span>
             {event.highlight && (
-              <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary/20 text-primary border border-primary/30">
+              <span className="px-3 py-1 text-xs font-medium rounded-full bg-gold/10 text-gold border border-gold/25">
                 {event.highlight}
               </span>
             )}
@@ -152,7 +195,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                   viewport={{ once: true, margin: "-50px" }}
                 >
                   <motion.span 
-                    className="text-primary mt-1 text-xs"
+                    className="text-gold mt-1 text-xs"
                     initial={{ scale: 0 }}
                     whileInView={{ scale: 1 }}
                     transition={{ 
@@ -173,7 +216,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
 
           {/* Decorative Line */}
           <motion.div 
-            className="absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-primary via-[hsl(var(--glow-secondary))] to-transparent"
+            className="absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-gold via-[hsl(var(--glow-secondary))] to-transparent"
             initial={{ width: "0%" }}
             whileInView={{ width: "100%" }}
             transition={{ duration: 1, delay: 0.2 }}
