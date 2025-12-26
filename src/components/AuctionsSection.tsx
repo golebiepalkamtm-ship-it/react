@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import AuctionCard from "./AuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
 import { auctionService } from "@/services/auctionService";
+import { motion } from 'framer-motion';
 
 const AuctionsSection = () => {
   const { auctions, loading } = useAuctions({ 
@@ -17,10 +18,23 @@ const AuctionsSection = () => {
   };
 
   return (
-    <section id="auctions" className="py-24 bg-muted/30">
+    <motion.section
+      id="auctions"
+      className="pt-16 pb-24 section-surface-alt"
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-120px" }}
+      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+    >
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <motion.div
+          className="flex flex-col md:flex-row md:items-end justify-between mb-12"
+          initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, margin: "-140px" }}
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div>
             <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-4">
               Aukcje Na Żywo
@@ -36,7 +50,7 @@ const AuctionsSection = () => {
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-        </div>
+        </motion.div>
 
         {/* Auction Grid */}
         {loading ? (
@@ -46,21 +60,44 @@ const AuctionsSection = () => {
             ))}
           </div>
         ) : auctions.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-120px" }}
+            variants={{
+              hidden: {},
+              show: {
+                transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+              },
+            }}
+          >
             {auctions.map((auction, index) => (
-              <AuctionCard
+              <motion.div
                 key={auction.id}
-                id={auction.id}
-                name={auction.title}
-                image={getFirstImage(auction.images)}
-                currentBid={auction.currentPrice}
-                timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
-                raceWins={auctionService.extractWins(auction.pigeon?.achievements)}
-                bloodline={auction.pigeon?.bloodline || 'Rodowód elitarny'}
-                featured={index < 2}
-              />
+                variants={{
+                  hidden: { opacity: 0, y: 22, scale: 0.985 },
+                  show: {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                  },
+                }}
+              >
+                <AuctionCard
+                  id={auction.id}
+                  name={auction.title}
+                  image={getFirstImage(auction.images)}
+                  currentBid={auction.currentPrice}
+                  timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
+                  raceWins={auctionService.extractWins(auction.pigeon?.achievements)}
+                  bloodline={auction.pigeon?.bloodline || 'Rodowód elitarny'}
+                  featured={index < 2}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="text-center py-16">
             <p className="text-muted-foreground">Obecnie brak aktywnych aukcji</p>
@@ -68,7 +105,13 @@ const AuctionsSection = () => {
         )}
 
         {/* Bottom CTA */}
-        <div className="mt-16 text-center">
+        <motion.div
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 18, filter: 'blur(10px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, margin: "-120px" }}
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        >
           <p className="text-muted-foreground mb-6">
             Chcesz otrzymywać powiadomienia o nowych aukcjach i ekskluzywnych ofertach?
           </p>
@@ -82,9 +125,9 @@ const AuctionsSection = () => {
               Subskrybuj
             </Button>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

@@ -6,20 +6,6 @@ const router = express.Router();
 // Lazily import Prisma client and provide a mock fallback so the dev
 // server can run without running `prisma generate` / connecting a DB.
 let prisma: any = null;
-import('@prisma/client')
-  .then((mod) => {
-    try {
-      prisma = new mod.PrismaClient();
-    } catch (err) {
-      console.warn('Prisma client failed to initialize:', err);
-      prisma = null;
-    }
-  })
-  .catch((err) => {
-    console.warn('Could not import @prisma/client. DB operations will be disabled:', err);
-    prisma = null;
-  });
-
 function createPrismaMock() {
   return {
     auction: {
@@ -34,6 +20,27 @@ function createPrismaMock() {
     },
   };
 }
+
+Promise.all([
+  import('@prisma/client'),
+  import('@prisma/adapter-pg')
+])
+  .then(([mod, adapterMod]) => {
+    try {
+      const PrismaPg = adapterMod.PrismaPg;
+      const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+      prisma = new mod.PrismaClient({ adapter });
+    } catch (err) {
+      console.warn('Prisma client failed to initialize:', err);
+      prisma = createPrismaMock();
+    }
+  })
+  .catch((err) => {
+    console.warn('Could not import @prisma/client or adapter. DB operations will be mocked:', err);
+    prisma = createPrismaMock();
+  });
+
+// (createPrismaMock moved above)
 
 // Get all auctions with filtering
 router.get('/', async (req, res) => {

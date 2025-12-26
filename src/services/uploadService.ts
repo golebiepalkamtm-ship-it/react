@@ -1,43 +1,24 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../lib/firebase';
-import { authService } from './authService';
+export class UploadServiceRemovedError extends Error {
+  constructor() {
+    super('Firebase storage uploadService was removed. Configure Supabase Storage if you need uploads.');
+  }
+}
 
 class UploadService {
   async uploadPigeonImages(files: File[], pigeonId: string): Promise<string[]> {
-    const uploadPromises = files.map(async (file, index) => {
-      const path = `pigeons/${pigeonId}/image_${index}_${Date.now()}.${file.name.split('.').pop()}`;
-      const storageRef = ref(storage, path);
-      const snapshot = await uploadBytes(storageRef, file);
-      return getDownloadURL(snapshot.ref);
-    });
-    
-    return Promise.all(uploadPromises);
+    throw new UploadServiceRemovedError();
   }
 
   async uploadPedigreeDocuments(files: File[], pigeonId: string): Promise<string[]> {
-    const uploadPromises = files.map(async (file, index) => {
-      const path = `pigeons/${pigeonId}/pedigree_${index}_${Date.now()}.pdf`;
-      const storageRef = ref(storage, path);
-      const snapshot = await uploadBytes(storageRef, file);
-      return getDownloadURL(snapshot.ref);
-    });
-    
-    return Promise.all(uploadPromises);
+    throw new UploadServiceRemovedError();
   }
 
   async uploadProfileAvatar(file: File): Promise<string> {
-    const userId = authService.getCurrentUser()?.uid;
-    if (!userId) throw new Error('User not authenticated');
-    
-    const path = `users/${userId}/avatar_${Date.now()}.${file.name.split('.').pop()}`;
-    const storageRef = ref(storage, path);
-    const snapshot = await uploadBytes(storageRef, file);
-    return getDownloadURL(snapshot.ref);
+    throw new UploadServiceRemovedError();
   }
 
   async deleteFile(url: string): Promise<void> {
-    const storageRef = ref(storage, url);
-    await deleteObject(storageRef);
+    throw new UploadServiceRemovedError();
   }
 
   validateImageFile(file: File): boolean {

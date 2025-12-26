@@ -4,7 +4,7 @@ import AuctionsPage from "@/components/AuctionsPage";
 
 const Auctions = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
       <main>
         <AuctionsPage />

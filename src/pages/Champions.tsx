@@ -7,13 +7,13 @@ const Champions = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-navy text-center">
-          <div className="absolute inset-0 bg-gradient-to-b from-navy/90 via-navy/40 to-transparent" />
+        <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-white text-center">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/40 to-transparent" />
           <div className="relative z-10 container mx-auto px-4">
-            <h1 className="font-display text-4xl md:text-5xl text-white font-bold leading-tight mb-4">
+            <h1 className="font-display text-4xl md:text-5xl text-black font-bold leading-tight mb-4">
               Nasi <span className="text-gradient-gold">Mistrzowie</span>
             </h1>
-            <p className="text-white/80 text-lg max-w-2xl mx-auto">
+            <p className="text-black/80 text-lg max-w-2xl mx-auto">
               Galeria najwybitniejszych gołębi z naszej hodowli, które zdobywały najwyższe laury na arenie krajowej i międzynarodowej.
             </p>
           </div>

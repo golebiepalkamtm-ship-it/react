@@ -1,16 +1,18 @@
 import { io, Socket } from 'socket.io-client';
-import { authService } from './authService';
+import { supabase } from '@/lib/supabase';
 
 class WebSocketService {
   private socket: Socket | null = null;
   private auctionId: string | null = null;
 
-  connect() {
-    const token = authService.getToken();
+  async connect() {
+    if (!supabase) throw new Error('Supabase not configured');
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
     if (!token) throw new Error('Authentication required');
 
     this.socket = io(import.meta.env.VITE_WS_URL, {
-      auth: { token }
+      auth: { token },
     });
 
     this.socket.on('connect', () => {
@@ -30,7 +32,7 @@ class WebSocketService {
   }
 
   joinAuction(auctionId: string) {
-    if (!this.socket) this.connect();
+    if (!this.socket) void this.connect();
     this.auctionId = auctionId;
     this.socket?.emit('join-auction', auctionId);
   }

@@ -1,17 +1,13 @@
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ContactPageClient from "@/components/contact/ContactPageClient";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Contact = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <ContactPageClient />
-      </main>
-      <Footer />
-    </div>
-  );
+  const navigate = useNavigate();
+  useEffect(() => {
+    // Redirect to homepage contact section
+    navigate('/#contact', { replace: true });
+  }, [navigate]);
+  return null;
 };
 
 export default Contact;

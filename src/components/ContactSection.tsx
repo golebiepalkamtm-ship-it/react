@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { contactService } from "@/services/contactService";
+import { motion } from 'framer-motion';
 
 const ContactSection = () => {
   const { toast } = useToast();
@@ -69,10 +70,23 @@ const ContactSection = () => {
   ];
 
   return (
-    <section id="contact" className="py-24 bg-background">
+    <motion.section
+      id="contact"
+      className="pt-20 pb-24 section-surface-alt"
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-120px" }}
+      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+    >
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 18, filter: 'blur(10px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, margin: "-140px" }}
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        >
           <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6">
             Kontakt
           </span>
@@ -84,11 +98,17 @@ const ContactSection = () => {
             Chcesz nabyć gołębie z mistrzowskich linii? Masz pytania dotyczące naszej hodowli?
             Jesteśmy tutaj, aby pomóc Ci znaleźć idealne ptaki do Twojego gołębnika.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           {/* Contact Form */}
-          <div className="p-8 rounded-2xl bg-card border border-border shadow-lg">
+          <motion.div
+            className="p-8 rounded-2xl bg-card border border-border shadow-lg"
+            initial={{ opacity: 0, x: -18, filter: 'blur(10px)' }}
+            whileInView={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            viewport={{ once: true, margin: "-120px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          >
             <h3 className="font-display text-2xl text-foreground font-semibold mb-6">
               Wyślij wiadomość
             </h3>
@@ -160,14 +180,32 @@ const ContactSection = () => {
                 {isSubmitting ? 'Wysyłanie...' : 'Wyślij wiadomość'}
               </Button>
             </form>
-          </div>
+          </motion.div>
 
           {/* Contact Info */}
-          <div className="space-y-6">
+          <motion.div
+            className="space-y-6"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-120px" }}
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.08 } },
+            }}
+          >
             {contactInfo.map((info) => (
-              <div
+              <motion.div
                 key={info.label}
                 className="group flex items-start gap-5 p-6 rounded-2xl bg-card border border-border hover:border-gold/30 transition-all duration-300 hover-lift"
+                variants={{
+                  hidden: { opacity: 0, y: 18, scale: 0.99 },
+                  show: {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                  },
+                }}
               >
                 <div className="w-14 h-14 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gold/20 transition-colors">
                   <info.icon className="w-6 h-6 text-gold" />
@@ -181,11 +219,22 @@ const ContactSection = () => {
                   </p>
                   <p className="text-muted-foreground text-sm">{info.detail}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
 
             {/* Google Maps */}
-            <div className="rounded-2xl overflow-hidden border border-border shadow-lg">
+            <motion.div
+              className="rounded-2xl overflow-hidden border border-border shadow-lg"
+              variants={{
+                hidden: { opacity: 0, y: 18, scale: 0.99 },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+                },
+              }}
+            >
               <div className="h-64">
                 <iframe
                   src="https://maps.google.com/maps?q=ul.+Stawowa+6,+59-800+Lubań,+Poland&t=&z=15&ie=UTF8&iwloc=&output=embed"
@@ -220,11 +269,11 @@ const ContactSection = () => {
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

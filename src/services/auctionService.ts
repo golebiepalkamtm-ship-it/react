@@ -1,5 +1,4 @@
 import apiClient from './api';
-import { authService } from './authService';
 import type {
   Auction,
   AuctionsResponse,
@@ -62,40 +61,32 @@ export const auctionService = {
   /**
    * Złóż ofertę na aukcji
    */
-  async placeBid(auctionId: string, bidData: BidRequest): Promise<BidResponse> {
-    const token = authService.getToken();
+  async placeBid(auctionId: string, bidData: BidRequest, token: string | null): Promise<BidResponse> {
     if (!token) throw new Error('Authentication required');
-    
     return apiClient.post<BidResponse>(`/auctions/${auctionId}/bids`, bidData, token);
   },
 
   /**
    * Utwórz nową aukcję
    */
-  async createAuction(data: CreateAuctionRequest): Promise<Auction> {
-    const token = authService.getToken();
+  async createAuction(data: CreateAuctionRequest, token: string | null): Promise<Auction> {
     if (!token) throw new Error('Authentication required');
-    
     return apiClient.post<Auction>('/auctions', data, token);
   },
 
   /**
    * Pobierz aukcje użytkownika
    */
-  async getUserAuctions(): Promise<Auction[]> {
-    const token = authService.getToken();
+  async getUserAuctions(token: string | null): Promise<Auction[]> {
     if (!token) throw new Error('Authentication required');
-    
     return apiClient.get<Auction[]>('/auctions/my');
   },
 
   /**
    * Usuń aukcję
    */
-  async deleteAuction(id: string): Promise<void> {
-    const token = authService.getToken();
+  async deleteAuction(id: string, token: string | null): Promise<void> {
     if (!token) throw new Error('Authentication required');
-    
     await apiClient.delete(`/auctions/${id}`, token);
   },
 

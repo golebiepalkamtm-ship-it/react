@@ -4,37 +4,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import admin from 'firebase-admin';
 import { randomUUID } from 'crypto';
+import { authMiddleware } from './middleware/auth.js';
 
 dotenv.config();
-
-const isFirebaseConfigured = () => {
-  return Boolean(
-    process.env.FIREBASE_PROJECT_ID &&
-      process.env.FIREBASE_CLIENT_EMAIL &&
-      process.env.FIREBASE_PRIVATE_KEY,
-  );
-};
-
-const initFirebaseAdmin = () => {
-  if (!isFirebaseConfigured()) return;
-  if (admin.apps?.length) return;
-
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId,
-      clientEmail,
-      privateKey,
-    }),
-  });
-};
-
-initFirebaseAdmin();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,30 +31,6 @@ const getNamePartsFromToken = (decodedToken) => {
   const firstName = parts[0] || 'Użytkownik';
   const lastName = parts.slice(1).join(' ');
   return { firstName, lastName };
-};
-
-const requireAuth = async (req, res, next) => {
-  try {
-    if (!isFirebaseConfigured()) {
-      return res.status(501).json({
-        error:
-          'Authentication is not configured on the server. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.',
-      });
-    }
-
-    const header = req.headers.authorization;
-    if (!header?.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const token = header.slice('Bearer '.length).trim();
-    const decoded = await admin.auth().verifyIdToken(token);
-    req.user = decoded;
-    return next();
-  } catch (error) {
-    console.error('Auth error:', error);
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
 };
 
 // Helper function to read auctions data
@@ -334,7 +283,7 @@ app.get('/api/auctions/:id', (req, res) => {
 });
 
 // POST /api/auctions/:id/bids - Place a bid
-app.post('/api/auctions/:id/bids', requireAuth, (req, res) => {
+app.post('/api/auctions/:id/bids', authMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const { amount, maxBid } = req.body;
@@ -418,7 +367,7 @@ app.post('/api/auctions/:id/bids', requireAuth, (req, res) => {
 });
 
 // POST /api/auctions - Create new auction
-app.post('/api/auctions', requireAuth, (req, res) => {
+app.post('/api/auctions', authMiddleware, (req, res) => {
   try {
     const auctionData = req.body;
     const data = readAuctionsData();

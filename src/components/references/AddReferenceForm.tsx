@@ -46,7 +46,9 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
       if (imagePreview) {
         try {
           URL.revokeObjectURL(imagePreview);
-        } catch {}
+        } catch (err) {
+          // ignore parse errors from optional fields
+        }
       }
     };
   }, [imagePreview]);

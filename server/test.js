@@ -1,0 +1,1 @@
+import('@prisma/adapter-pg').then(mod => console.log(Object.keys(mod)));

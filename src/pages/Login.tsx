@@ -1,9 +1,9 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { authService } from "@/services/authService";
+import { useAuth } from "@/contexts/AuthContext";
 
 function useCallbackUrl(): string {
   const location = useLocation();
@@ -17,11 +17,27 @@ function useCallbackUrl(): string {
 export default function Login() {
   const navigate = useNavigate();
   const callbackUrl = useCallbackUrl();
+  const { signIn, user, profile, loading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && user && profile) {
+      // Check verification level
+      if (profile.role === 'USER_REGISTERED') {
+        // Redirect to email confirmation or profile completion
+        navigate('/verify-email');
+      } else if (profile.role === 'USER_EMAIL_VERIFIED') {
+        // Redirect to profile completion
+        navigate('/complete-profile');
+      } else {
+        navigate(callbackUrl);
+      }
+    }
+  }, [user, profile, loading, navigate, callbackUrl]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -29,8 +45,9 @@ export default function Login() {
     setError(null);
 
     try {
-      await authService.login(email.trim(), password);
-      navigate(callbackUrl);
+      const { error } = await signIn(email.trim(), password);
+      if (error) throw error;
+      // Navigation will happen in useEffect
     } catch (err) {
       const message = err instanceof Error ? err.message : "Nie udało się zalogować";
       setError(message);
@@ -38,6 +55,10 @@ export default function Login() {
       setIsSubmitting(false);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">

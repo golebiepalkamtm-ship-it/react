@@ -1,5 +1,5 @@
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Enkoduje ścieżkę URL zachowując slashe
 const encodeImagePath = (path: string): string => {
@@ -26,10 +26,23 @@ export const FullscreenImageModal = ({
   title
 }: FullscreenImageModalProps) => {
   const [index, setIndex] = useState(currentIndex);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setIndex(currentIndex);
   }, [currentIndex]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    return () => {
+      previouslyFocusedRef.current?.focus();
+    };
+  }, [isOpen]);
 
   const handlePrevious = useCallback(() => {
     setIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
@@ -54,12 +67,23 @@ export const FullscreenImageModal = ({
 
   if (!isOpen || !images || images.length === 0) return null;
 
+  const titleId = 'fullscreen-image-modal-title';
+  const descId = 'fullscreen-image-modal-desc';
+
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descId}
+    >
       {/* Close button */}
       <button
+        ref={closeButtonRef}
         onClick={onClose}
         title="Zamknij"
+        aria-label="Zamknij podgląd zdjęcia"
         className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-10"
       >
         <X className="w-6 h-6 text-white" />
@@ -67,8 +91,8 @@ export const FullscreenImageModal = ({
 
       {/* Title */}
       <div className="absolute top-4 left-4 text-white z-10">
-        <h2 className="text-xl font-bold">{title}</h2>
-        <p className="text-sm text-white/60">
+        <h2 id={titleId} className="text-xl font-bold">{title}</h2>
+        <p id={descId} className="text-sm text-white/60">
           {index + 1} / {images.length}
         </p>
       </div>
@@ -79,6 +103,7 @@ export const FullscreenImageModal = ({
           <button
             onClick={handlePrevious}
             title="Poprzednie zdjęcie"
+            aria-label="Poprzednie zdjęcie"
             className="absolute left-4 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
           >
             <ChevronLeft className="w-8 h-8 text-white" />
@@ -86,6 +111,7 @@ export const FullscreenImageModal = ({
           <button
             onClick={handleNext}
             title="Następne zdjęcie"
+            aria-label="Następne zdjęcie"
             className="absolute right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
           >
             <ChevronRight className="w-8 h-8 text-white" />

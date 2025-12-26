@@ -4,7 +4,8 @@ import { ReferencesPage } from "@/components/references/ReferencesPage";
 
 const References = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative isolate">
+      <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
       <main>
         <ReferencesPage />

@@ -4,8 +4,6 @@ export { contactService } from './contactService';
 export { championsService } from './championsService';
 export { meetingsService } from './meetingsService';
 export { referencesService } from './referencesService';
-export { authService } from './authService';
-export { uploadService } from './uploadService';
 export { userService } from './userService';
 export { websocketService } from './websocketService';
 

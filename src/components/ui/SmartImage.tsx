@@ -42,6 +42,8 @@ export const SmartImage = ({
       alt={alt}
       width={width}
       height={height}
+      loading="lazy"
+      decoding="async"
       className={`${aspectRatioClass} ${fitMode === 'cover' ? 'object-cover' : 'object-contain'} ${className}`}
       onError={(e) => {
         (e.target as HTMLImageElement).src = '/placeholder.svg';
