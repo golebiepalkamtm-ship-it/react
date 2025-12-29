@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 function useCallbackUrl(): string {
   const location = useLocation();
@@ -22,6 +23,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOAuthSubmitting, setIsOAuthSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,17 +58,37 @@ export default function Login() {
     }
   };
 
+  const handleOAuth = async (provider: 'google' | 'facebook') => {
+    setIsOAuthSubmitting(true);
+    setError(null);
+    try {
+      const redirectTo = window.location.origin;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+        },
+      });
+      if (error) throw error;
+      // OAuth will redirect; no navigation here
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `Błąd logowania przez ${provider}`;
+      setError(message);
+      setIsOAuthSubmitting(false);
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
 
       <main className="pt-28 md:pt-32">
         <div className="container mx-auto px-4">
-          <div className="mx-auto w-full max-w-md rounded-2xl border border-border/40 bg-card/30 p-6 backdrop-blur-md">
+          <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
             <h1 className="font-display text-3xl font-semibold text-foreground">Logowanie</h1>
             <p className="mt-2 text-sm text-muted-foreground">Zaloguj się, aby korzystać z funkcji użytkownika.</p>
 
@@ -76,7 +98,34 @@ export default function Login() {
               </div>
             )}
 
-            <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+            <div className="mt-6 space-y-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={isOAuthSubmitting}
+                onClick={() => handleOAuth('google')}
+              >
+                {isOAuthSubmitting ? "Logowanie…" : "Kontynuuj z Google"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={isOAuthSubmitting}
+                onClick={() => handleOAuth('facebook')}
+              >
+                {isOAuthSubmitting ? "Logowanie…" : "Kontynuuj z Facebook"}
+              </Button>
+            </div>
+
+            <div className="my-4 flex items-center">
+              <div className="h-px flex-1 bg-border"></div>
+              <span className="px-3 text-xs text-muted-foreground">lub</span>
+              <div className="h-px flex-1 bg-border"></div>
+            </div>
+
+            <form className="space-y-4" onSubmit={onSubmit}>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground" htmlFor="email">
                   Email

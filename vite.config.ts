@@ -18,7 +18,21 @@ export default defineConfig(({ mode }) => ({
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Tworzy osobny chunk dla react i react-dom
+          react: ["react", "react-dom"],
+          // Tworzy osobny chunk dla bibliotek 3D
+          three: ["three", "@react-three/fiber", "@react-three/drei"],
+          // Tworzy osobny chunk dla biblioteki do animacji
+          "framer-motion": ["framer-motion"],
+        },
+      },
     },
   },
 }));

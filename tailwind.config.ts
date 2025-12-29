@@ -145,6 +145,23 @@ export default {
           "0%": { transform: "scale(1)" },
           "100%": { transform: "scale(1.1)" },
         },
+        /* Added ethereal-inspired motion */
+        float: {
+          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-20px) rotate(2deg)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(45 80% 55% / 0.3)" },
+          "50%": { boxShadow: "0 0 60px hsl(45 80% 55% / 0.6)" },
+        },
+        "rotate-slow": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        "spin-slow": {
+          from: { transform: "rotateY(0deg)" },
+          to: { transform: "rotateY(360deg)" },
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -156,6 +173,11 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         shimmer: "shimmer 3s linear infinite",
         "slow-zoom": "slow-zoom 20s ease-in-out infinite alternate",
+        /* ethereal animations */
+        float: "float 6s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        "rotate-slow": "rotate-slow 20s linear infinite",
+        "spin-slow": "spin-slow 20s linear infinite",
       },
       backgroundImage: {
         "gradient-gold": "var(--gradient-gold)",
@@ -168,6 +190,9 @@ export default {
         md: "var(--shadow-md)",
         lg: "var(--shadow-lg)",
         gold: "var(--shadow-gold)",
+        glow: "var(--glow-gold)",
+        "glow-sm": "var(--glow-soft)",
+        "glow-lg": "0 0 100px hsl(45 80% 55% / 0.5)",
       },
       perspective: {
         '1000': '1000px',

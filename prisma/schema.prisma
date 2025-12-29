@@ -1,11 +1,11 @@
 generator client {
+  // JS client with client engine (no Rust binary)
   provider = "prisma-client-js"
-  binaryTargets = ["native"]
+  engineType = "client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {

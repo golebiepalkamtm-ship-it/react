@@ -377,11 +377,8 @@ const TimelineSection = () => {
     <section
       id="achievements"
       ref={sectionRef}
-      className="relative py-20 bg-slate-950"
+      className="relative py-20"
     >
-      {/* Subtle gradient on dark slate */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900/60" />
-
       <div className="relative mx-auto max-w-7xl px-4">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_120px] gap-10 items-start">
           {/* Time tunnel */}

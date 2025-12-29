@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
         this.props.fallback || (
           <div className="min-h-screen flex items-center justify-center bg-background">
             <div className="text-center space-y-4 p-8">
-              <h1 className="text-4xl font-bold text-foreground">Coś poszło nie tak</h1>
+              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Coś poszło nie tak</h1>
               <p className="text-muted-foreground">Wystąpił nieoczekiwany błąd. Spróbuj odświeżyć stronę.</p>
               <button 
                 onClick={() => window.location.reload()}

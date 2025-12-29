@@ -110,14 +110,8 @@ export default function ContactPageClient() {
         style={{ animationDuration: '1s', animationDelay: '0.2s' }}
       >
         <div className="max-w-4xl mx-auto text-center">
-          <div className="gold-text-3d mb-6">
-            <div className="bg">Kontakt</div>
-            <div className="fg">Kontakt</div>
-          </div>
-          <div className="gold-text-3d-subtitle mb-8 max-w-3xl mx-auto">
-            <div className="bg">Skontaktuj się z nami, aby dowiedzieć się więcej o naszych gołębiach i hodowli</div>
-            <div className="fg">Skontaktuj się z nami, aby dowiedzieć się więcej o naszych gołębiach i hodowli</div>
-          </div>
+          <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Kontakt</h1>
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto mb-8">Skontaktuj się z nami, aby dowiedzieć się więcej o naszych gołębiach i hodowli</p>
         </div>
       </section>
 

@@ -7,7 +7,8 @@ import AddBreederMeetingForm from '@/components/breeder-meetings/AddBreederMeeti
 import MeetingsStaticGallery from '@/components/breeder-meetings/MeetingsStaticGallery';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Camera, CheckCircle, AlertCircle, Upload, X } from 'lucide-react';
+import { Camera, CheckCircle, AlertCircle, Upload, X, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { meetingsService } from '@/services/meetingsService';
 
 interface BreederMeeting {
@@ -30,7 +31,7 @@ const getContainerAnim = (index: number) => {
   }
 };
 
-export default function BreederMeetings() {
+export default function BreederMeetings(props) {
   const { user } = useAuth();
   const [breederMeetings, setBreederMeetings] = useState<BreederMeeting[]>([]);
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -70,13 +71,32 @@ export default function BreederMeetings() {
       <Header />
       <main>
         <section className="relative overflow-hidden text-center">
-          <div className="relative z-10 container mx-auto px-4 pt-28 pb-10 md:pt-32 md:pb-14">
-            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
-              Spotkania <span className="text-gradient-gold">z hodowcami</span>
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-              Galeria zdjęć z naszych spotkań z hodowcami gołębi pocztowych
-            </p>
+          <div className="relative z-10 container mx-auto px-4 pt-4 pb-2 md:pt-6 md:pb-4">
+            <div className="mx-auto max-w-4xl">
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <Users className="w-8 h-8 text-gold" />
+              </div>
+              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Spotkania z <span className="text-gradient-gold">hodowcami</span></h1>
+              <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+                Galeria zdjęć z naszych spotkań z hodowcami gołębi pocztowych
+              </p>
+
+              <div className="mt-8 flex items-center justify-center gap-3">
+                <Button
+                  onClick={() => alert('Dodawanie spotkań nie jest zaimplementowane tutaj')}
+                  className="bg-gold text-navy hover:bg-gold/90"
+                >
+                  Dodaj spotkanie
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="border-gold/40 text-foreground hover:bg-gold/10"
+                >
+                  Odśwież
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -100,7 +120,7 @@ export default function BreederMeetings() {
             {breederMeetings && Array.isArray(breederMeetings) && breederMeetings.map((meeting, index) => (
               <div key={meeting.id}>
                 <article 
-                  className={`rounded-2xl bg-card/55 backdrop-blur-md border border-border/70 p-6 shadow-lg magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
+                  className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
                 >
                   <div className="mb-6">
                     <h3 className="text-2xl md:text-3xl font-bold text-foreground text-center">
@@ -109,10 +129,10 @@ export default function BreederMeetings() {
                     {meeting.location && <p className="text-base md:text-lg font-semibold uppercase tracking-[0.3em] text-muted-foreground text-center mt-2">{meeting.location}</p>}
                   </div>
 
-                  <div className="grid gap-5 rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-6">
+                  <div className="grid gap-5 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                       {meeting.images.map((image, imageIndex) => (
-                        <div key={imageIndex} className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-border/70 bg-background/30" onClick={() => handleImageClick(meeting.id, imageIndex)}>
+                        <div key={imageIndex} className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]" onClick={() => handleImageClick(meeting.id, imageIndex)}>
                           <SmartImage src={image} alt={`${meeting.name} - zdjęcie ${imageIndex + 1}`} width={300} height={192} fitMode="cover" aspectRatio="16/9" className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
                           <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                             <div className="w-8 h-8 bg-gold/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-gold/35"><span className="text-gold text-xs font-bold">{imageIndex + 1}</span></div>
@@ -127,7 +147,7 @@ export default function BreederMeetings() {
           </div>
 
           {breederMeetings.length === 0 && (
-            <div className="p-12 text-center rounded-2xl bg-card/55 backdrop-blur-md border border-border/70 shadow-lg">
+            <div className="p-12 text-center rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg">
               <h2 className="text-2xl font-bold mb-4 text-foreground">Brak spotkań</h2>
               <p className="mb-6 text-muted-foreground">Jeszcze nie ma zdjęć ze spotkań z hodowcami.</p>
             </div>

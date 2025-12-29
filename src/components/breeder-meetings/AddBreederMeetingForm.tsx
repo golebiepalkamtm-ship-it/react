@@ -80,7 +80,7 @@ export default function AddBreederMeetingForm() {
   if (loading || verificationLoading) {
     return (
       <div className="min-h-[200px] flex items-center justify-center">
-        <div className="bg-card border border-border rounded-2xl p-8 text-center">
+        <div className="bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-2xl p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4" />
           <p className="text-lg text-foreground">Sprawdzanie autoryzacji...</p>
         </div>
@@ -90,7 +90,7 @@ export default function AddBreederMeetingForm() {
 
   return (
     <div className="py-8 px-4">
-      <div className="max-w-4xl mx-auto bg-card/55 backdrop-blur-md border border-border/70 rounded-2xl p-8 shadow-lg">
+      <div className="max-w-4xl mx-auto bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-2xl p-8 shadow-lg">
           {/* Header is rendered by the parent page to avoid duplicate titles */}
 
         {user ? (
@@ -106,7 +106,7 @@ export default function AddBreederMeetingForm() {
                     <p className="text-sm text-muted-foreground mt-1">Aby dodawać zdjęcia, musisz uzupełnić dane w profilu i zweryfikować numer telefonu.</p>
                     {missingFields.length > 0 && <p className="text-sm text-muted-foreground mt-1">Brakujące pola: {missingFields.join(', ')}</p>}
                     <div className="mt-3">
-                      <button onClick={() => navigate('/dashboard?tab=profile&edit=true')} className="font-medium underline text-gold hover:text-gold-light">Uzupełnij profil</button>
+                      <button onClick={() => navigate('/complete-profile')} className="font-medium underline text-gold hover:text-gold-light">Uzupełnij profil</button>
                     </div>
                   </div>
                 </div>

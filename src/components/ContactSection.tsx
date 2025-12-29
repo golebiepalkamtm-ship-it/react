@@ -1,9 +1,9 @@
+import React, { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Send, Navigation, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { contactService } from "@/services/contactService";
 import { motion } from 'framer-motion';
+import { Button } from "@/components/ui/button";
 
 const ContactSection = () => {
   const { toast } = useToast();
@@ -103,7 +103,7 @@ const ContactSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           {/* Contact Form */}
           <motion.div
-            className="p-8 rounded-2xl bg-card border border-border shadow-lg"
+            className="p-8 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg"
             initial={{ opacity: 0, x: -18, filter: 'blur(10px)' }}
             whileInView={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
             viewport={{ once: true, margin: "-120px" }}
@@ -196,7 +196,7 @@ const ContactSection = () => {
             {contactInfo.map((info) => (
               <motion.div
                 key={info.label}
-                className="group flex items-start gap-5 p-6 rounded-2xl bg-card border border-border hover:border-gold/30 transition-all duration-300 hover-lift"
+                className="group flex items-start gap-5 p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30 transition-all duration-300 hover-lift"
                 variants={{
                   hidden: { opacity: 0, y: 18, scale: 0.99 },
                   show: {
@@ -224,7 +224,7 @@ const ContactSection = () => {
 
             {/* Google Maps */}
             <motion.div
-              className="rounded-2xl overflow-hidden border border-border shadow-lg"
+              className="rounded-2xl overflow-hidden border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg"
               variants={{
                 hidden: { opacity: 0, y: 18, scale: 0.99 },
                 show: {
@@ -247,7 +247,7 @@ const ContactSection = () => {
                   title="Mapa hodowli MTM Pałka - ul. Stawowa 6, Lubań"
                 />
               </div>
-              <div className="p-4 bg-card flex flex-col sm:flex-row gap-3">
+              <div className="p-4 bg-black/70 backdrop-blur-xl flex flex-col sm:flex-row gap-3">
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=ul.+Stawowa+6,+59-800+Lubań"
                   target="_blank"
@@ -277,4 +277,4 @@ const ContactSection = () => {
   );
 };
 
-export default ContactSection;
+export default React.memo(ContactSection);

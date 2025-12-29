@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { websocketService } from '../services/websocketService';
+import { logger } from '@/lib/logger';
 
 interface Bid {
   id: string;
@@ -20,7 +21,7 @@ export const useRealTimeBidding = (auctionId: string) => {
   }, []);
 
   const handleBidError = useCallback((error: any) => {
-    console.error('Bid error:', error);
+    logger.error('Bid error:', error);
   }, []);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export const useRealTimeBidding = (auctionId: string) => {
           if (!cancelled) setIsConnected(true);
         }, 0);
       } catch (err) {
-        console.error('Failed to connect websocket:', err);
+        logger.error('Failed to connect websocket:', err);
       }
     })();
 
@@ -55,7 +56,7 @@ export const useRealTimeBidding = (auctionId: string) => {
     try {
       websocketService.placeBid(auctionId, amount);
     } catch (error) {
-      console.error('Failed to place bid:', error);
+      logger.error('Failed to place bid:', error);
     }
   };
 

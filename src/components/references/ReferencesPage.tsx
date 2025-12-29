@@ -107,7 +107,7 @@ export function ReferencesPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-[52vh] flex items-center justify-center overflow-hidden text-center">
+      <section className="relative min-h-[40vh] flex items-center justify-center overflow-hidden text-center">
         <div className="relative z-10 container mx-auto px-4">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Users className="w-8 h-8 text-gold" />
@@ -143,7 +143,7 @@ export function ReferencesPage() {
         <div className="container mx-auto px-4">
           {isLoading ? (
             <div className="max-w-5xl mx-auto">
-              <div className="rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-10 text-center text-muted-foreground shadow-lg">
+              <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-10 text-center text-muted-foreground shadow-lg">
                 Ładuję referencje…
               </div>
             </div>
@@ -190,7 +190,7 @@ export function ReferencesPage() {
                     </div>
                   </div>
 
-                  <div className="p-6 rounded-2xl bg-card/55 backdrop-blur-md border border-border/70 shadow-lg">
+                  <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg">
                     <div className="flex items-center gap-3 mb-3">
                       <Trophy className="w-5 h-5 text-gold" />
                       <h4 className="font-semibold text-foreground">
@@ -203,7 +203,7 @@ export function ReferencesPage() {
 
                 {/* Pigeon Image */}
                 <div className="relative">
-                  <div className="aspect-square rounded-2xl overflow-hidden border border-border/70 bg-card/30 backdrop-blur-md shadow-2xl">
+                  <div className="aspect-square rounded-2xl overflow-hidden border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-2xl">
                     {getPrimaryImage(currentRef) ? (
                       <img 
                         src={getPrimaryImage(currentRef) as string} 
@@ -212,7 +212,7 @@ export function ReferencesPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-background/30">
+                      <div className="w-full h-full flex items-center justify-center bg-black/60">
                         <div className="text-center text-muted-foreground">
                           <ImageOff className="w-10 h-10 mx-auto mb-3" />
                           <div className="text-sm">Brak zdjęcia</div>
@@ -223,7 +223,7 @@ export function ReferencesPage() {
                   
                   {/* Navigation */}
                   <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
-                    <div className="flex items-center gap-4 bg-card/55 backdrop-blur-md border border-border/70 rounded-full p-2 shadow-lg">
+                    <div className="flex items-center gap-4 bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-full p-2 shadow-lg">
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -254,7 +254,7 @@ export function ReferencesPage() {
             </div>
           ) : (
             <div className="max-w-5xl mx-auto">
-              <div className="rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-10 text-center shadow-lg">
+              <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-10 text-center shadow-lg">
                 <h2 className="font-display text-2xl font-bold text-foreground">Brak referencji</h2>
                 <p className="mt-2 text-muted-foreground">
                   Dodaj pierwszą opinię – pojawi się tutaj od razu.
@@ -285,7 +285,7 @@ export function ReferencesPage() {
                 className={`group cursor-pointer p-6 rounded-2xl border transition-all duration-300 ${
                   index === currentIndex 
                     ? 'border-gold/60 bg-gold/10 shadow-lg shadow-gold/10' 
-                    : 'border-border/70 bg-card/55 backdrop-blur-md hover:border-gold/30 hover-lift'
+                    : 'border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30 hover-lift'
                 }`}
                 onClick={() => setCurrentIndex(index)}
               >

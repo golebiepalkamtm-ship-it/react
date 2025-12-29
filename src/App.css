@@ -1,3 +1,5 @@
+/* Global project styles - Tailwind is imported in index.css */
+
 #root {
   max-width: 1280px;
   margin: 0 auto;

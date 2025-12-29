@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
+import logger from '../lib/logger.js';
 
 // Lazily initialize Prisma client; if Prisma client hasn't been generated
 // (or fails to initialize) we fallback to a lightweight mock so the dev
@@ -9,18 +10,18 @@ Promise.all([
   import('@prisma/client'),
   import('@prisma/adapter-pg')
 ])
-  .then(([mod, adapterMod]) => {
+    .then(([mod, adapterMod]) => {
     try {
       const PrismaPg = adapterMod.PrismaPg;
       const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
       prisma = new mod.PrismaClient({ adapter });
     } catch (err) {
-      console.warn('Prisma client failed to initialize:', err);
+      logger.warn('Prisma client failed to initialize:', err);
       prisma = null;
     }
   })
   .catch((err) => {
-    console.warn('Could not import @prisma/client or adapter. DB operations will be disabled:', err);
+    logger.warn('Could not import @prisma/client or adapter. DB operations will be disabled:', err);
     prisma = null;
   });
 
@@ -75,22 +76,22 @@ export const setupWebSocket = (server: HttpServer) => {
       socket.data.user = user;
       next();
     } catch (error) {
-      console.error('WebSocket auth error:', error);
+      logger.error('WebSocket auth error:', error);
       next(new Error('Authentication error'));
     }
   });
 
   io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.data.userId}`);
+    logger.info(`User connected: ${socket.data.userId}`);
 
     socket.on('join-auction', (auctionId: string) => {
       socket.join(`auction-${auctionId}`);
-      console.log(`User ${socket.data.userId} joined auction ${auctionId}`);
+      logger.info(`User ${socket.data.userId} joined auction ${auctionId}`);
     });
 
     socket.on('leave-auction', (auctionId: string) => {
       socket.leave(`auction-${auctionId}`);
-      console.log(`User ${socket.data.userId} left auction ${auctionId}`);
+      logger.info(`User ${socket.data.userId} left auction ${auctionId}`);
     });
 
     socket.on('place-bid', async (data: { auctionId: string; amount: number }) => {
@@ -140,10 +141,10 @@ export const setupWebSocket = (server: HttpServer) => {
           auctionId
         });
 
-        console.log(`Bid placed: ${amount} by ${userId} on auction ${auctionId}`);
+        logger.info(`Bid placed: ${amount} by ${userId} on auction ${auctionId}`);
 
       } catch (error) {
-        console.error('Bid error:', error);
+        logger.error('Bid error:', error);
         socket.emit('bid-error', { 
           message: 'Failed to place bid. Please try again.' 
         });
@@ -151,7 +152,7 @@ export const setupWebSocket = (server: HttpServer) => {
     });
 
     socket.on('disconnect', () => {
-      console.log(`User disconnected: ${socket.data.userId}`);
+      logger.info(`User disconnected: ${socket.data.userId}`);
     });
   });
 

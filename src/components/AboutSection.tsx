@@ -1,3 +1,4 @@
+import React from 'react';
 import { Award, Target, Feather, Crown } from "lucide-react";
 import { motion } from 'framer-motion';
 
@@ -94,7 +95,7 @@ const AboutSection = () => {
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
-                className="feature-item group p-6 rounded-2xl bg-card border border-border hover:border-gold/30 hover:shadow-lg transition-all duration-300 hover-lift"
+                className="feature-item group p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30 hover:shadow-lg transition-all duration-300 hover-lift"
                 variants={{
                   hidden: { opacity: 0, y: 20, scale: 0.985, filter: 'blur(10px)' },
                   show: {
@@ -124,4 +125,4 @@ const AboutSection = () => {
   );
 };
 
-export default AboutSection;
+export default React.memo(AboutSection);

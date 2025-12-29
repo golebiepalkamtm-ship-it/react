@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Newspaper, Calendar, Filter, ArrowRight } from 'lucide-react';
 import { PressService, PressArticle } from '@/services/pressService';
 
-const PressPage = () => {
+const PressPage = (props) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [pressArticles, setPressArticles] = useState<PressArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +18,7 @@ const PressPage = () => {
         const articles = await PressService.loadArticles();
         setPressArticles(articles);
       } catch (error) {
-        console.error('Failed to load articles:', error);
+        logger.error('Failed to load articles:', error);
       } finally {
         setLoading(false);
       }
@@ -44,17 +45,17 @@ const PressPage = () => {
       
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden text-center">
+        <section className="relative min-h-[40vh] flex items-center justify-center overflow-hidden text-center">
           <div className="relative z-10 container mx-auto px-4">
             <div className="flex items-center justify-center gap-2 mb-6">
               <Newspaper className="w-8 h-8 text-gold" />
             </div>
-            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
-              Media <span className="text-gradient-gold">o nas</span>
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Przeczytaj co piszą o nas media branżowe i ogólnopolskie
-            </p>
+            <div className="mx-auto max-w-4xl">
+              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Media <span className="text-gradient-gold">o nas</span></h1>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Przeczytaj co piszą o nas media branżowe i ogólnopolskie
+              </p>
+            </div>
           </div>
         </section>
 
@@ -66,7 +67,7 @@ const PressPage = () => {
               <p className="text-muted-foreground">Zobacz materiał wideo</p>
             </div>
             <div className="max-w-4xl mx-auto">
-              <div className="relative pb-[56.25%] h-0 rounded-2xl overflow-hidden border border-border/70 bg-card/30 backdrop-blur-md shadow-lg">
+              <div className="relative pb-[56.25%] h-0 rounded-2xl overflow-hidden border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
                 <iframe
                   className="absolute inset-0 w-full h-full"
                   src="https://www.youtube.com/embed/utXkaMWyZfk"
@@ -85,7 +86,7 @@ const PressPage = () => {
           <div className="container mx-auto px-4">
             
             {/* Filter */}
-            <div className="flex flex-wrap items-center gap-4 mb-12 rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-4 md:p-5 shadow-lg">
+            <div className="flex flex-wrap items-center gap-4 mb-12 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-4 md:p-5">
               <div className="flex items-center gap-2 text-foreground font-medium">
                 <Filter className="w-4 h-4" />
                 Kategoria:
@@ -109,7 +110,7 @@ const PressPage = () => {
                 {filteredArticles.map((article) => (
                   <article 
                     key={article.id}
-                    className="group bg-card/55 backdrop-blur-md rounded-2xl border border-border/70 overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"
+                    className="group bg-black/70 backdrop-blur-xl rounded-2xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden bg-linear-to-b from-black/15 via-transparent to-black/20">
                       <img 

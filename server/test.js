@@ -1,1 +1,3 @@
-import('@prisma/adapter-pg').then(mod => console.log(Object.keys(mod)));
+import logger from './lib/logger.js';
+
+import('@prisma/adapter-pg').then(mod => logger.info(Object.keys(mod)));

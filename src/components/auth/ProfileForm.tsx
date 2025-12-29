@@ -2,22 +2,24 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { z } from 'zod';
-import { useProfile } from '../../hooks/useProfile';
+import { useProfile } from '@/hooks/useProfile';
 import PhoneVerification from './PhoneVerification';
-
-const profileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-});
+import { useLocale } from '@/contexts/LocaleContext';
 
 interface ProfileFormProps {
   onCompleted: () => void;
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ onCompleted }) => {
+  const { t } = useLocale();
   const [name, setName] = useState('');
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [error, setError] = useState('');
   const { completeProfile, loading } = useProfile();
+
+  const profileSchema = z.object({
+    name: z.string().min(2, t('profile.name_error')),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onCompleted }) => {
       setShowPhoneVerification(true);
     } catch (err: any) {
       if (err instanceof z.ZodError) {
-        setError(err.errors[0].message);
+        setError(err.issues[0]?.message ?? t('profile.name_error'));
       } else {
         setError(err.message);
       }
@@ -46,11 +48,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onCompleted }) => {
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-md mx-auto bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl p-8"
     >
-      <h2 className="text-2xl font-bold text-white text-center mb-6">Complete Your Profile</h2>
+      <h2 className="text-2xl font-bold text-white text-center mb-6">{t('profile.title')}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          placeholder="Full Name"
+          placeholder={t('profile.full_name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
@@ -62,7 +64,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onCompleted }) => {
           disabled={loading}
           className="w-full py-3 bg-[#D4AF37] text-[#00172D] font-semibold rounded-lg hover:bg-[#B8942A] transition-colors disabled:opacity-50"
         >
-          {loading ? 'Saving...' : 'Continue to Phone Verification'}
+          {loading ? t('profile.saving') : t('profile.save')}
         </button>
       </form>
     </motion.div>

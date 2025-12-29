@@ -14,7 +14,7 @@ function useCallbackUrl(): string {
   }, [location.search]);
 }
 
-export default function Register() {
+export default function Register(props) {
   const callbackUrl = useCallbackUrl();
   const { signUp } = useAuth();
 
@@ -53,12 +53,12 @@ export default function Register() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Header />
         <main className="pt-28 md:pt-32">
           <div className="container mx-auto px-4">
-            <div className="mx-auto w-full max-w-md rounded-2xl border border-border/40 bg-card/30 p-6 backdrop-blur-md text-center">
-              <h1 className="font-display text-3xl font-semibold text-foreground">Sprawdź swoją skrzynkę email</h1>
+            <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] text-center">
+              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Sprawdź swoją skrzynkę email</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Wysyłaliśmy link potwierdzający na {email}. Kliknij w niego, aby aktywować konto.
               </p>
@@ -78,13 +78,13 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
 
       <main className="pt-28 md:pt-32">
         <div className="container mx-auto px-4">
-          <div className="mx-auto w-full max-w-md rounded-2xl border border-border/40 bg-card/30 p-6 backdrop-blur-md">
-            <h1 className="font-display text-3xl font-semibold text-foreground">Rejestracja</h1>
+          <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Rejestracja</h1>
             <p className="mt-2 text-sm text-muted-foreground">Utwórz konto, aby korzystać z funkcji użytkownika.</p>
 
             {error && (

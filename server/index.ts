@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import dotenv from 'dotenv';
-import { setupWebSocket } from './websocket/bidding.ts';
-import app from './app.ts';
+import { setupWebSocket } from './websocket/bidding.js';
+import app from './app.js';
 
 dotenv.config();
 

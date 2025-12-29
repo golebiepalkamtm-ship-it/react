@@ -3,6 +3,8 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Search, SlidersHorizontal, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/sonner";
 import AuctionCard from "./AuctionCard";
 import CreateAuctionForm from "./CreateAuctionForm";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +13,8 @@ import { auctionService } from "@/services/auctionService";
 import type { AuctionSortBy } from "@/types/auction";
 
 const AuctionsPage = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<AuctionSortBy>("newest");
   const [showFilters, setShowFilters] = useState(false);
@@ -52,7 +55,7 @@ const AuctionsPage = () => {
       {
         id: "demo-1",
         title: "Przykład (czempion)",
-        image: "/champions/1/gallery/DV-02906-11-98t_OLIMP (1).jpg",
+        image: "/placeholder.svg",
         currentPrice: 12500,
         timeLeft: "12h",
         bloodline: "Linia: Janssen (demo)",
@@ -61,7 +64,7 @@ const AuctionsPage = () => {
       {
         id: "demo-2",
         title: "Przykład (czempion)",
-        image: "/champions/4/gallery/PL-11-160651t_b2 (1).jpg",
+        image: "/placeholder.svg",
         currentPrice: 8900,
         timeLeft: "1d 6h",
         bloodline: "Linia: Janssen (demo)",
@@ -70,7 +73,7 @@ const AuctionsPage = () => {
       {
         id: "demo-3",
         title: "Przykład (czempion)",
-        image: "/champions/16/gallery/pl-0446-16-1124_h.jpg",
+        image: "/placeholder.svg",
         currentPrice: 15400,
         timeLeft: "90m",
         bloodline: "Linia: Janssen (demo)",
@@ -90,6 +93,51 @@ const AuctionsPage = () => {
     setCategory("all");
     setGender("all");
     setSortBy("newest");
+  };
+
+  const handleCreateAuctionClick = () => {
+    if (!user) {
+      toast("Musisz się zalogować, aby utworzyć aukcję.", {
+        description: "Za chwilę przeniosę Cię do logowania.",
+      });
+      setTimeout(() => navigate("/auth?mode=login"), 350);
+      return;
+    }
+
+    if (!profile) {
+      toast('Ładuję Twój profil…', {
+        description: 'Poczekaj chwilę i spróbuj ponownie.',
+      });
+      return;
+    }
+
+    if (profile.role === 'USER_REGISTERED') {
+      toast('Najpierw potwierdź email.', {
+        description: 'Wyślaliśmy do Ciebie link weryfikacyjny. Po kliknięciu wróć tutaj i spróbuj ponownie.',
+      });
+      setTimeout(() => navigate('/verify-email'), 350);
+      return;
+    }
+
+    if (profile.role === 'USER_EMAIL_VERIFIED') {
+      toast('Dokończ weryfikację konta.', {
+        description: 'Uzupełnij profil i zweryfikuj numer telefonu, aby móc tworzyć aukcje.',
+      });
+      setTimeout(() => navigate('/complete-profile'), 350);
+      return;
+    }
+
+    if (profile.role !== 'USER_FULL_VERIFIED' && profile.role !== 'ADMIN') {
+      toast('Brak uprawnień do tworzenia aukcji.', {
+        description: 'Dokończ weryfikację konta (email + telefon) i spróbuj ponownie.',
+      });
+      return;
+    }
+
+    toast("Otwieram formularz tworzenia aukcji…", {
+      description: "Uzupełnij dane i kliknij „Utwórz aukcję”.",
+    });
+    setShowCreateModal(true);
   };
 
   const hasActiveFilters = searchTerm || priceMin || priceMax || category !== "all" || gender !== "all" || sortBy !== "newest";
@@ -120,7 +168,7 @@ const AuctionsPage = () => {
 
   if (loading) {
     return (
-      <section className="pt-40 pb-12">
+      <section className="pt-16 pb-6">
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
@@ -132,7 +180,7 @@ const AuctionsPage = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl bg-card border border-border h-96 animate-pulse" />
+              <div key={i} className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] h-96 animate-pulse" />
             ))}
           </div>
         </div>
@@ -143,7 +191,7 @@ const AuctionsPage = () => {
   return (
     <>
       <section className="relative overflow-hidden text-center">
-        <div className="relative z-10 container mx-auto px-4 pt-28 pb-10 md:pt-32 md:pb-14">
+        <div className="relative z-10 container mx-auto px-4 pt-12 pb-6 md:pt-16 md:pb-8">
           <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
             Wszystkie <span className="text-gradient-gold">Aukcje</span>
           </h1>
@@ -156,7 +204,7 @@ const AuctionsPage = () => {
         <div className="container mx-auto px-4">
           {/* Search and Filters */}
           <div className="mb-8 space-y-4">
-            <div className="rounded-2xl border border-border/70 bg-card/55 backdrop-blur-md p-4 md:p-5 shadow-lg">
+            <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-4 md:p-5 shadow-lg">
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Search */}
                 <div className="flex-1 relative">
@@ -188,13 +236,13 @@ const AuctionsPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 border-border/70 bg-background/20 hover:bg-background/30"
+                  className="flex items-center gap-2 border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30"
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                   Filtry {hasActiveFilters && <span className="ml-1 w-2 h-2 rounded-full bg-gold"></span>}
                 </Button>
 
-                <div className="flex items-center rounded-xl border border-border/70 bg-background/20 p-1">
+                <div className="flex items-center rounded-xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-1">
                   <Button
                     type="button"
                     variant={imageFit === 'cover' ? 'secondary' : 'ghost'}
@@ -216,21 +264,19 @@ const AuctionsPage = () => {
                 </div>
 
                 {/* Add Auction Button */}
-                {user && (
-                  <Button
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-gold to-gold-light hover:opacity-90 transition-opacity"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Dodaj aukcję
-                  </Button>
-                )}
+                <Button
+                  onClick={handleCreateAuctionClick}
+                  className="flex items-center gap-2 bg-gradient-to-r from-gold to-gold-light hover:opacity-90 transition-opacity"
+                >
+                  <Plus className="w-4 h-4" />
+                  Dodaj aukcję
+                </Button>
               </div>
             </div>
 
           {/* Advanced Filters (collapsible) */}
           {showFilters && (
-            <div className="p-6 rounded-2xl bg-card/55 backdrop-blur-md border border-border/70 space-y-4 shadow-lg">
+            <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] space-y-4 shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-foreground">Zaawansowane filtry</h3>
                 {hasActiveFilters && (
@@ -418,21 +464,37 @@ const AuctionsPage = () => {
 
       {/* Create Auction Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Dodaj nową aukcję</DialogTitle>
-            <DialogDescription>
-              Wypełnij formularz, aby utworzyć nową aukcję gołębia
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <CreateAuctionForm 
-              onSuccess={() => { 
-                setShowCreateModal(false); 
-                refetch(); 
-              }} 
-              onCancel={() => setShowCreateModal(false)}
-            />
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="bg-black/60 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
+            {/* Image header */}
+            <div className="relative">
+              <img
+                src={getFirstImage(demoAuctions[0].image ? [demoAuctions[0].image] : [])}
+                alt="Header"
+                className="w-full h-48 object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-40 text-white">
+                <h3 className="text-2xl font-bold">Dodaj nową aukcję</h3>
+                <p className="text-sm opacity-90">Wypełnij formularz, aby utworzyć nową aukcję gołębia</p>
+              </div>
+              <button
+                aria-label="Zamknij"
+                onClick={() => setShowCreateModal(false)}
+                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <CreateAuctionForm
+                onSuccess={() => {
+                  setShowCreateModal(false);
+                  refetch();
+                }}
+                onCancel={() => setShowCreateModal(false)}
+              />
+            </div>
           </div>
         </DialogContent>
       </Dialog>

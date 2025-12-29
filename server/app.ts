@@ -4,16 +4,20 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs';
-import authRoutes from './routes/auth';
-import auctionRoutes from './routes/auctions';
-import userRoutes from './routes/users';
-import uploadRoutes from './routes/upload';
-import messageRoutes from './routes/messages';
-import adminRoutes from './routes/admin';
-import { errorHandler, notFound } from './middleware/errorHandler';
-import { authMiddleware } from './middleware/auth';
+import { fileURLToPath } from 'url';
+import authRoutes from './routes/auth.js';
+import auctionRoutes from './routes/auctions.js';
+import userRoutes from './routes/users.js';
+import uploadRoutes from './routes/upload.js';
+import messageRoutes from './routes/messages.js';
+import adminRoutes from './routes/admin.js';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
+import { authMiddleware } from './middleware/auth.js';
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Security & middleware
 app.use(helmet());
@@ -37,7 +41,7 @@ app.use(rateLimit({
 }));
 
 // Serve static files from public directory
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -55,7 +59,7 @@ app.use('/api/admin', authMiddleware, adminRoutes);
 // Breeder meetings endpoint
 app.get('/api/breeder-meetings', (req: Request, res: Response) => {
   try {
-    const meetingsPath = path.join(process.cwd(), 'server/data/meetings.json');
+    const meetingsPath = path.join(__dirname, 'data/meetings.json');
     const meetingsData = fs.readFileSync(meetingsPath, 'utf-8');
     const meetings = JSON.parse(meetingsData);
     res.json(meetings.meetings);

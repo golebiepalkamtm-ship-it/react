@@ -8,7 +8,7 @@ import { useAuction, useBid, useAuctionTimer } from "@/hooks/useAuctions";
 import { useAuth } from "@/contexts/AuthContext";
 import { auctionService } from "@/services/auctionService";
 
-const AuctionDetail = () => {
+const AuctionDetail = (props) => {
   const { id } = useParams<{ id: string }>();
   const { user, session } = useAuth();
   const { auction, loading, error, refetch } = useAuction(id);
@@ -46,7 +46,7 @@ const AuctionDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Header />
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4">
@@ -70,12 +70,12 @@ const AuctionDetail = () => {
 
   if (error || !auction) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Header />
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 text-center">
             <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Nie znaleziono aukcji</h1>
+            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Nie znaleziono aukcji</h1>
             <p className="text-muted-foreground mb-6">{error || 'Aukcja o podanym ID nie istnieje.'}</p>
             <Link to="/auctions">
               <Button variant="outline">
@@ -95,7 +95,7 @@ const AuctionDetail = () => {
   const wins = auctionService.extractWins(auction.pigeon?.achievements);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
       <main className="pt-24 pb-12">
         <div className="container mx-auto px-4">
@@ -108,7 +108,7 @@ const AuctionDetail = () => {
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <div className="relative rounded-2xl overflow-hidden bg-card border border-border aspect-[4/3]">
+              <div className="relative rounded-2xl overflow-hidden bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] aspect-[4/3]">
                 <img
                   src={auction.images[currentImageIndex] || '/placeholder.svg'}
                   alt={auction.title}
@@ -119,14 +119,14 @@ const AuctionDetail = () => {
                     <button
                       onClick={prevImage}
                       title="Poprzednie zdjęcie"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-card/60 text-foreground backdrop-blur-md border border-border/60 hover:border-primary/40 hover:bg-card/75 transition-colors"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-foreground backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30 transition-colors"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                       onClick={nextImage}
                       title="Następne zdjęcie"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-card/60 text-foreground backdrop-blur-md border border-border/60 hover:border-primary/40 hover:bg-card/75 transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-foreground backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30 transition-colors"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
@@ -149,7 +149,7 @@ const AuctionDetail = () => {
                   )}
                 </div>
 
-                <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-card/60 text-foreground text-sm backdrop-blur-md border border-border/60">
+                <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-black/70 text-foreground text-sm backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
                   {currentImageIndex + 1} / {auction.images.length}
                 </div>
               </div>
@@ -177,9 +177,9 @@ const AuctionDetail = () => {
                   <Trophy className="w-4 h-4" />
                   {auction.category === 'racing' ? 'Wyścigowy' : auction.category === 'breeding' ? 'Hodowlany' : 'Pokazowy'}
                 </div>
-                <h1 className="font-display text-3xl md:text-4xl text-foreground font-bold mb-3">
-                  {auction.title}
-                </h1>
+                <div className="mx-auto max-w-4xl text-left mb-3">
+                  <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">{auction.title}</h1>
+                </div>
                 <div className="flex items-center gap-4 text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
@@ -192,7 +192,7 @@ const AuctionDetail = () => {
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
+              <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Aktualna cena</p>
@@ -267,7 +267,7 @@ const AuctionDetail = () => {
                 )}
 
                 {auction.buyNowPrice && !isEnded && (
-                  <div className="pt-4 border-t border-border">
+                  <div className="pt-4 border-t border-white/15">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Kup teraz</p>
@@ -275,7 +275,7 @@ const AuctionDetail = () => {
                           {auction.buyNowPrice.toLocaleString('pl-PL')} zł
                         </p>
                       </div>
-                      <Button variant="outline" className="border-gold text-gold hover:bg-gold hover:text-black">
+                      <Button variant="outline" className="border-gold text-gold hover:bg-gold hover:text-navy">
                         Kup teraz
                       </Button>
                     </div>
@@ -300,7 +300,7 @@ const AuctionDetail = () => {
                 </Button>
               </div>
 
-              <div className="p-4 rounded-xl bg-card border border-border">
+              <div className="p-4 rounded-xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
                 <h3 className="font-semibold text-foreground mb-3">Sprzedający</h3>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center">
@@ -317,7 +317,7 @@ const AuctionDetail = () => {
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-border flex flex-col gap-2 text-sm">
+                <div className="mt-3 pt-3 border-t border-white/15 flex flex-col gap-2 text-sm">
                   <a href={`mailto:${auction.seller.email}`} className="flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors">
                     <Mail className="w-4 h-4" />
                     {auction.seller.email}
@@ -333,12 +333,12 @@ const AuctionDetail = () => {
 
           <div className="mt-12 grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
                 <h2 className="font-display text-xl font-bold text-foreground mb-4">Opis</h2>
                 <p className="text-muted-foreground leading-relaxed">{auction.description}</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
                 <h2 className="font-display text-xl font-bold text-foreground mb-4">Osiągnięcia</h2>
                 <div className="flex items-center gap-3">
                   <Trophy className="w-8 h-8 text-gold" />
@@ -352,7 +352,7 @@ const AuctionDetail = () => {
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-card border border-border">
+            <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
               <h2 className="font-display text-xl font-bold text-foreground mb-4">Charakterystyka</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -400,7 +400,7 @@ const AuctionDetail = () => {
           </div>
 
           {auction.bids.length > 0 && (
-            <div className="mt-12 p-6 rounded-2xl bg-card border border-border">
+            <div className="mt-12 p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
               <h2 className="font-display text-xl font-bold text-foreground mb-4">
                 Historia licytacji ({auction.bids.length})
               </h2>

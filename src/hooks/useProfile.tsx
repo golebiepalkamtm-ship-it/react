@@ -1,6 +1,6 @@
 // src/hooks/useProfile.tsx
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useProfile = () => {
   const { user, profile, updateProfile } = useAuth();
@@ -10,6 +10,9 @@ export const useProfile = () => {
   const updateUserProfile = async (updates: {
     name?: string;
     phone?: string;
+    street?: string;
+    postal_code?: string;
+    country?: string;
     role?: 'USER_REGISTERED' | 'USER_EMAIL_VERIFIED' | 'USER_FULL_VERIFIED' | 'ADMIN';
   }) => {
     if (!user) return;

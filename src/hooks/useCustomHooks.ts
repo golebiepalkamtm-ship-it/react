@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { championsService, type Champion } from '@/services/championsService';
 import { meetingsService, type Meeting } from '@/services/meetingsService';
 import { referencesService, type Reference } from '@/services/referencesService';
 
@@ -26,33 +25,31 @@ export const useScrollReveal = () => {
   };
 };
 
-// Hook dla czempionów
-export const useChampions = () => {
-  const [champions, setChampions] = useState<Champion[]>([]);
+// Hook dla spotkań z hodowcami
+export const useMeetings = () => {
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchChampions = useCallback(async () => {
+  const fetchMeetings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await championsService.getChampions();
-      setChampions(data);
+      const data = await meetingsService.getMeetings();
+      setMeetings(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Błąd pobierania czempionów');
+      setError(err instanceof Error ? err.message : 'Błąd pobierania spotkań');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchChampions();
-  }, [fetchChampions]);
+    fetchMeetings();
+  }, [fetchMeetings]);
 
-  return { champions, loading, error, refetch: fetchChampions };
+  return { meetings, loading, error, refetch: fetchMeetings };
 };
-
-// Hook dla spotkań z hodowcami
 export const useMeetings = () => {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);

@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon --watch . --ext ts --exec \"tsx\" index.ts",
+    "create-admin": "node ./scripts/create-admin.js",
     "build": "tsc",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit"

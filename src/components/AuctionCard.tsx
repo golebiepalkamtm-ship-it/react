@@ -27,10 +27,10 @@ const AuctionCard = ({
 }: AuctionCardProps) => {
   return (
     <div
-      className={`group relative mx-auto w-full max-w-[360px] rounded-2xl overflow-hidden bg-card border transition-all duration-500 hover-lift hover:shadow-lg ${
+      className={`group relative mx-auto w-full max-w-[360px] rounded-2xl overflow-hidden gold-border glass-card transition-all duration-500 hover-lift ${
         featured
-          ? "border-gold/50 shadow-gold"
-          : "border-border hover:border-gold/30"
+          ? "shadow-glow border-gold/50"
+          : "hover:shadow-glow hover:border-gold/30"
       }`}
     >
       {/* Featured Badge */}
@@ -53,7 +53,7 @@ const AuctionCard = ({
         <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent" />
         
         {/* Time Badge */}
-        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/60 backdrop-blur-md border border-border/60">
+        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-foreground text-sm font-medium">
             {timeLeft}

@@ -4,6 +4,7 @@ import { auctionService } from '@/services/auctionService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { CreateAuctionRequest } from '@/types/auction';
 import { X, Plus, Upload, AlertCircle } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 interface CreateAuctionFormProps {
   onSuccess?: () => void;
@@ -11,7 +12,7 @@ interface CreateAuctionFormProps {
 }
 
 const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
-  const { user, session } = useAuth();
+  const { user, session, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -69,18 +70,59 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
     e.preventDefault();
     if (!user) {
       setError('Musisz być zalogowany');
+      toast('Musisz się zalogować, aby utworzyć aukcję.', {
+        description: 'Zaloguj się i spróbuj ponownie.',
+      });
+      return;
+    }
+
+    if (!profile) {
+      setError('Ładowanie profilu...');
+      toast('Ładuję Twój profil…', {
+        description: 'Poczekaj chwilę i spróbuj ponownie.',
+      });
+      return;
+    }
+
+    if (profile.role === 'USER_REGISTERED') {
+      setError('Musisz potwierdzić email, aby tworzyć aukcje.');
+      toast('Najpierw potwierdź email.', {
+        description: 'Wejdź w link w emailu weryfikacyjnym, a potem spróbuj ponownie.',
+      });
+      return;
+    }
+
+    if (profile.role === 'USER_EMAIL_VERIFIED') {
+      setError('Musisz zweryfikować numer telefonu, aby tworzyć aukcje.');
+      toast('Dokończ weryfikację konta.', {
+        description: 'Uzupełnij profil i zweryfikuj numer telefonu, aby móc tworzyć aukcje.',
+      });
+      return;
+    }
+
+    if (profile.role !== 'USER_FULL_VERIFIED' && profile.role !== 'ADMIN') {
+      setError('Brak uprawnień do tworzenia aukcji.');
+      toast('Brak uprawnień do tworzenia aukcji.', {
+        description: 'Dokończ weryfikację konta (email + telefon) i spróbuj ponownie.',
+      });
       return;
     }
 
     const token = session?.access_token ?? null;
     if (!token) {
       setError('Brak tokenu sesji. Zaloguj się ponownie.');
+      toast('Sesja wygasła lub jest niekompletna.', {
+        description: 'Wyloguj się i zaloguj ponownie, a potem spróbuj jeszcze raz.',
+      });
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
+      toast('Tworzę aukcję…', {
+        description: 'Nie zamykaj okna — zapisuję dane.',
+      });
       
       const endTime = new Date();
       endTime.setDate(endTime.getDate() + 7);
@@ -99,9 +141,15 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
       };
 
       await auctionService.createAuction(auctionData, token);
+      toast('Aukcja utworzona.', {
+        description: 'Możesz ją teraz znaleźć na liście aukcji.',
+      });
       onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd tworzenia aukcji');
+      toast('Nie udało się utworzyć aukcji.', {
+        description: 'Sprawdź połączenie i spróbuj ponownie. Jeśli problem wraca, odśwież stronę i zaloguj się ponownie.',
+      });
     } finally {
       setLoading(false);
     }

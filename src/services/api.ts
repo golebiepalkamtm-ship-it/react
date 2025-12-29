@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 interface RequestConfig extends RequestInit {
@@ -25,7 +27,7 @@ class ApiClient {
     const { params, ...fetchConfig } = config;
     const url = this.buildUrl(endpoint, params);
     
-    console.log('API Request:', url);
+    logger.debug('API Request:', url);
 
     const response = await fetch(url, {
       ...fetchConfig,
@@ -35,16 +37,16 @@ class ApiClient {
       },
     });
     
-    console.log('API Response status:', response.status);
+    logger.debug('API Response status:', response.status);
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      console.error('API Error:', error);
+      logger.error('API Error:', error);
       throw new Error(error.error || `HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('API Response data:', data);
+    logger.debug('API Response data:', data);
     return data;
   }
 

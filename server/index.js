@@ -71,67 +71,13 @@ const readMeetingsData = () => {
   return { meetings };
 };
 
-// Helper function to read champions data from server/data/champions.json
-const readChampionsData = () => {
-  const dataPath = path.join(__dirname, 'data', 'champions.json');
-  if (!fs.existsSync(dataPath)) return [];
-  
-  try {
-    const data = fs.readFileSync(dataPath, 'utf-8');
-    // Remove BOM if present
-    const cleanData = data.replace(/^\uFEFF/, '');
-    return JSON.parse(cleanData);
-  } catch (err) {
-    console.error('Error reading champions data:', err);
-    return [];
-  }
-};
-
-const isImageFile = (filename) => /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
-
-const encodeUrlPath = (rawPath) => {
-  // encode each segment but preserve '/'
-  return rawPath
-    .split('/')
-    .map((segment) => (segment.length ? encodeURIComponent(segment) : segment))
-    .join('/');
-};
-
-const safeReadDirFiles = (dirPath) => {
-  try {
-    if (!fs.existsSync(dirPath)) return [];
-    return fs
-      .readdirSync(dirPath)
-      .filter((f) => isImageFile(f));
-  } catch {
-    return [];
-  }
-};
-
-const enrichChampionWithImages = (champion) => {
-  const championsRoot = path.join(__dirname, '..', 'public', 'champions');
-  const id = String(champion.id);
-  const galleryDir = path.join(championsRoot, id, 'gallery');
-  const pedigreeDir = path.join(championsRoot, id, 'pedigree');
-
-  const galleryFiles = safeReadDirFiles(galleryDir);
-  const pedigreeFiles = safeReadDirFiles(pedigreeDir);
-
-  const gallery = galleryFiles.map((f) => encodeUrlPath(`/champions/${id}/gallery/${f}`));
-  const pedigree = pedigreeFiles.map((f) => encodeUrlPath(`/champions/${id}/pedigree/${f}`));
-
-  // prefer explicit champion.image, otherwise first gallery image
-  const image = champion.image ? encodeUrlPath(champion.image) : (gallery[0] || '/placeholder.svg');
-
-  return {
-    ...champion,
-    image,
-    images: gallery,
-    pedigreeImages: pedigree,
-  };
-};
-
 // Helper function to read references data
+const readReferencesData = () => {
+  const dataPath = path.join(__dirname, 'data', 'references.json');
+  if (!fs.existsSync(dataPath)) return [];
+  const data = fs.readFileSync(dataPath, 'utf-8');
+  return JSON.parse(data);
+};
 const readReferencesData = () => {
   const dataPath = path.join(__dirname, 'data', 'references.json');
   if (!fs.existsSync(dataPath)) return [];
@@ -162,18 +108,16 @@ app.get('/api/breeder-meetings', (req, res) => {
   }
 });
 
-// GET /api/champions - Get all champions
-app.get('/api/champions', (req, res) => {
+// GET /api/references - Get all references
+app.get('/api/references', (req, res) => {
   try {
-    const data = readChampionsData().map(enrichChampionWithImages);
+    const data = readReferencesData();
     res.json(data);
   } catch (error) {
-    console.error('Error fetching champions:', error);
+    console.error('Error fetching references:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// GET /api/references - Get all references
 app.get('/api/references', (req, res) => {
   try {
     const data = readReferencesData();

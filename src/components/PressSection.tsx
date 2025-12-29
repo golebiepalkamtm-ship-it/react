@@ -1,3 +1,4 @@
+import React from 'react';
 import { Newspaper, Calendar, ExternalLink, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -100,7 +101,7 @@ const PressSection = () => {
           {pressArticles.map((article) => (
             <motion.article 
               key={article.id}
-              className="group bg-card rounded-2xl border border-border overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"
+              className="group bg-black/70 backdrop-blur-xl rounded-2xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"
               variants={{
                 hidden: { opacity: 0, y: 22, scale: 0.985 },
                 show: {
@@ -177,4 +178,4 @@ const PressSection = () => {
   );
 };
 
-export default PressSection;
+export default React.memo(PressSection);

@@ -1,0 +1,21 @@
+{
+  "champions": [
+    { "id": 1, "image": "DV-02906-11-98t_OLIMP (1).jpg", "pedigree": "DV-02906-11-98.1.jpg" },
+    { "id": 2, "image": "dv-0987-11-396_c.jpg", "pedigree": "DV-00987-11-396.1.jpg" },
+    { "id": 3, "image": "dv-07136-10-202_c.jpg", "pedigree": "DV-07136-10-202.1.jpg" },
+    { "id": 4, "image": "PL-11-160651t_b2 (1).jpg", "pedigree": "PL-11-160651.1.jpg" },
+    { "id": 5, "image": "PL-0446-12-328_2KK.jpg", "pedigree": "PL-0446-12-328.1.jpg" },
+    { "id": 6, "image": "pl-0446-12-1016_c.jpg", "pedigree": "PL-0446-12-1016.1.jpg" },
+    { "id": 7, "image": "pl-0446-12-1046_c.jpg", "pedigree": "PL-0446-12-1046.1.jpg" },
+    { "id": 8, "image": "PL-0446-13-5015.jpg", "pedigree": "PL-0446-13-5015.1.jpg" },
+    { "id": 9, "image": "PL-0446-13-5071_KK-OLIMP.jpg", "pedigree": "PL-0446-13-5071.1.jpg" },
+    { "id": 10, "image": "pl-0446-15-4181_c.jpg", "pedigree": "PL-0446-15-4181.1.jpg" },
+    { "id": 11, "image": "pl-0446-14-7012_c.jpg", "pedigree": "PL-0446-14-7012.1.jpg" },
+    { "id": 12, "image": "pl-0446-14-7152_c.jpg", "pedigree": "PL-0446-14-7152.1.jpg" },
+    { "id": 13, "image": "pl-0446-14-7202_c.jpg", "pedigree": "PL-0446-14-7202.1.jpg" },
+    { "id": 14, "image": "pl-0446-14-7158_c.jpg", "pedigree": "PL-0446-14-7158.1.jpg" },
+    { "id": 15, "image": "pl-0446-16-2255_c.jpg", "pedigree": "PL-0446-16-2255.1.jpg" },
+    { "id": 16, "image": "pl-0446-16-1124_h.jpg", "pedigree": "PL-0446-16-1124.1.jpg" }
+  ],
+  "lastUpdated": "2024-12-28"
+}

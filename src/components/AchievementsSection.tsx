@@ -3,6 +3,10 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import TimelineCard from "./TimelineCard";
 import ProgressBar from "./ProgressBar";
 
+ type AchievementsSectionProps = {
+   showHeader?: boolean;
+ };
+
 const timelineEvents = [
   {
     year: 2001,
@@ -285,7 +289,7 @@ const timelineEvents = [
   },
 ];
 
-const AchievementsSection = () => {
+const AchievementsSection = ({ showHeader = true }: AchievementsSectionProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -371,41 +375,51 @@ const AchievementsSection = () => {
       </div>
 
       {/* Timeline Content */}
-      <div className="relative z-10 pt-32 md:pt-36 lg:pt-40 pb-24 md:pb-28 lg:pb-32 px-4 md:px-16 lg:px-24 max-w-7xl mx-auto">
+      <div
+        className={
+          "relative z-10 " +
+          (showHeader
+            ? "pt-32 md:pt-36 lg:pt-40 "
+            : "pt-14 md:pt-16 lg:pt-18 ") +
+          "pb-24 md:pb-28 lg:pb-32 px-4 md:px-16 lg:px-24 max-w-7xl mx-auto"
+        }
+      >
         {/* Header */}
-        <motion.div 
-          className="text-center mb-8 md:mb-10"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
-        >
-          <motion.h1 
-            className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 glow-text"
-            animate={{ opacity: [0.8, 1, 0.8] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            HISTORIA OSIĄGNIĘĆ
-          </motion.h1>
-          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
-            Przewijaj czas i odkryj historię sukcesów od 2001 roku
-          </p>
-          
-          {/* Scroll Indicator */}
+        {showHeader ? (
           <motion.div 
-            className="mt-4 flex flex-col items-center gap-2"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            className="text-center mb-8 md:mb-10"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
           >
-            <span className="text-sm text-muted-foreground">Przewijaj aby odkryć</span>
-            <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
-              <motion.div 
-                className="w-1.5 h-3 bg-primary rounded-full"
-                animate={{ y: [0, 12, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              />
-            </div>
+            <motion.h1 
+              className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 glow-text"
+              animate={{ opacity: [0.8, 1, 0.8] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              HISTORIA OSIĄGNIĘĆ
+            </motion.h1>
+            <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
+              Przewijaj czas i odkryj historię sukcesów od 2001 roku
+            </p>
+            
+            {/* Scroll Indicator */}
+            <motion.div 
+              className="mt-4 flex flex-col items-center gap-2"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className="text-sm text-muted-foreground">Przewijaj aby odkryć</span>
+              <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
+                <motion.div 
+                  className="w-1.5 h-3 bg-primary rounded-full"
+                  animate={{ y: [0, 12, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        ) : null}
 
         {/* Timeline Cards */}
         {timelineEvents.map((event, index) => (
@@ -433,7 +447,7 @@ const AchievementsSection = () => {
       {/* Mobile Progress Indicator */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:hidden z-50">
         <div className="glass-card px-4 py-2 flex items-center gap-3">
-          <span className="font-display text-lg text-black glow-text">
+          <span className="font-display text-lg text-foreground glow-text">
             {years[activeIndex]}
           </span>
           <div className="w-24 h-1 rounded-full bg-muted overflow-hidden">

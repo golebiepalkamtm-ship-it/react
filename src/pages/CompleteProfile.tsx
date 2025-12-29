@@ -10,7 +10,7 @@ export default function CompleteProfile() {
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        navigate('/login');
+        navigate('/auth?mode=login');
       } else if (profile?.role === 'USER_FULL_VERIFIED') {
         navigate('/');
       } else if (profile?.role === 'USER_REGISTERED') {

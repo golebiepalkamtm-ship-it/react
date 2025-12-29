@@ -22,7 +22,7 @@ interface SuccessData {
   timestamp: string;
 }
 
-const AuctionSuccess = () => {
+const AuctionSuccess = (props) => {
   const [successData, setSuccessData] = useState<SuccessData | null>(() => {
     try {
       const data = localStorage.getItem('auctionSuccess');
@@ -51,12 +51,12 @@ const AuctionSuccess = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Header />
         <div className="min-h-screen flex items-center justify-center pt-20">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-white/80">Ładowanie...</p>
+            <p className="text-muted-foreground">Ładowanie...</p>
           </div>
         </div>
         <Footer />
@@ -66,13 +66,16 @@ const AuctionSuccess = () => {
 
   if (!successData) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Header />
         <div className="min-h-screen flex items-center justify-center pt-20">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white mb-4">Błąd</h1>
-            <p className="text-white/80 mb-6">Nie znaleziono danych o transakcji.</p>
-            <Link to="/auctions" className="btn-primary inline-block px-6 py-3 rounded-md bg-black text-white hover:bg-black/90 transition-colors">
+            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Błąd</h1>
+            <p className="text-muted-foreground mb-6">Nie znaleziono danych o transakcji.</p>
+            <Link
+              to="/auctions"
+              className="inline-block px-6 py-3 rounded-md bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] text-foreground hover:border-gold/30 transition-colors"
+            >
               Powrót do aukcji
             </Link>
           </div>
@@ -83,20 +86,20 @@ const AuctionSuccess = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
       <div className="min-h-screen py-12 pt-32">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="card hover:border-white/80 transition-colors">
+          <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg p-8 hover:border-gold/30 transition-colors">
             {/* Ikona sukcesu */}
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
                 {successData.type === 'buy_now' ? 'Zakup zakończony!' : 'Wygrana licytacja!'}
               </h1>
-              <p className="text-white/80">
+              <p className="text-muted-foreground">
                 {successData.type === 'buy_now'
                   ? 'Pomyślnie zakupiłeś gołębia pocztowego'
                   : 'Gratulacje! Wygrałeś licytację'}
@@ -104,63 +107,63 @@ const AuctionSuccess = () => {
             </div>
 
             {/* Szczegóły transakcji */}
-            <div className="border-t border-white/20 pt-8">
-              <h2 className="text-xl font-semibold text-white mb-6">Szczegóły transakcji</h2>
+            <div className="border-t border-white/15 pt-8">
+              <h2 className="text-xl font-semibold text-foreground mb-6">Szczegóły transakcji</h2>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-white/20">
+                <div className="flex items-center justify-between py-3 border-b border-white/15">
                   <div className="flex items-center gap-3">
-                    <Euro className="w-5 h-5 text-white/60" />
-                    <span className="text-white/80">Cena</span>
+                    <Euro className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-muted-foreground">Cena</span>
                   </div>
-                  <span className="font-semibold text-white">{formatPrice(successData.price)}</span>
+                  <span className="font-semibold text-foreground">{formatPrice(successData.price)}</span>
                 </div>
 
-                <div className="py-3 border-b border-white/20">
+                <div className="py-3 border-b border-white/15">
                   <div className="flex items-center gap-3 mb-3">
-                    <User className="w-5 h-5 text-white/60" />
-                    <span className="text-white/80">Sprzedawca</span>
+                    <User className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-muted-foreground">Sprzedawca</span>
                   </div>
                   <div className="pl-8 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">{successData.seller.name}</span>
+                      <span className="font-semibold text-foreground">{successData.seller.name}</span>
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-sm text-white/60">
+                        <span className="text-sm text-muted-foreground">
                           {successData.seller.rating} ({successData.seller.salesCount} sprzedaży)
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-white/60">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin className="w-4 h-4" />
                       <span>{successData.seller.location}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-white/60">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Phone className="w-4 h-4" />
                       <span>{successData.seller.phone}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-white/60">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Mail className="w-4 h-4" />
                       <span>{successData.seller.email}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between py-3 border-b border-white/20">
+                <div className="flex items-center justify-between py-3 border-b border-white/15">
                   <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-white/60" />
-                    <span className="text-white/80">Data</span>
+                    <Clock className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-muted-foreground">Data</span>
                   </div>
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-foreground">
                     {formatDate(successData.timestamp)}
                   </span>
                 </div>
 
                 <div className="py-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-white/80">Gołąb</span>
+                    <span className="text-muted-foreground">Gołąb</span>
                   </div>
-                  <span className="font-semibold text-white">{successData.auctionTitle}</span>
+                  <span className="font-semibold text-foreground">{successData.auctionTitle}</span>
                 </div>
               </div>
             </div>
@@ -180,13 +183,13 @@ const AuctionSuccess = () => {
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Link
                 to="/auctions"
-                className="flex-1 bg-white/10 text-white py-3 px-6 rounded-md font-medium hover:bg-white/20 transition-colors text-center border border-white/30"
+                className="flex-1 bg-black/70 text-foreground py-3 px-6 rounded-md font-medium backdrop-blur-xl transition-colors text-center border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30"
               >
                 Przeglądaj więcej aukcji
               </Link>
               <Link
                 to="/"
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-md font-medium hover:bg-blue-700 transition-colors text-center"
+                className="flex-1 bg-gradient-to-r from-gold to-gold-light text-navy py-3 px-6 rounded-md font-medium hover:opacity-90 transition-opacity text-center"
               >
                 Strona główna
               </Link>

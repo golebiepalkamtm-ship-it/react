@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 class WebSocketService {
   private socket: Socket | null = null;
@@ -16,11 +17,11 @@ class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('WebSocket connected');
+      logger.info('WebSocket connected');
     });
 
     this.socket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+      logger.info('WebSocket disconnected');
     });
   }
 

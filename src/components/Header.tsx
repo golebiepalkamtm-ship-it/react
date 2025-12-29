@@ -1,10 +1,16 @@
-import { useState, useEffect, useCallback, memo, useRef } from "react";
+import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
+import AccountModal from './AccountModal';
+import AdminModal from './AdminModal';
 
 const Header = () => {
+  const { user, profile } = useAuth();
+  const { locale, toggleLocale } = useLocale();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -24,24 +30,35 @@ const Header = () => {
   const isBreederPage = location.pathname.startsWith('/breeder-meetings');
   const isAuctionsPage = location.pathname.startsWith('/auctions');
   const isAchievementsPage = location.pathname.startsWith('/achievements');
-  const isChampionsPage = location.pathname.startsWith('/champions');
   const isContactPage = location.pathname.startsWith('/contact');
   const isReferencesPage = location.pathname.startsWith('/references');
-  const isOverlay = !isScrolled && (isHomePage || isBreederPage || isAuctionsPage || isAchievementsPage || isChampionsPage || isContactPage || isReferencesPage);
+  const isOverlay = useMemo(() => !isScrolled && (isHomePage || isBreederPage || isAuctionsPage || isAchievementsPage || isContactPage || isReferencesPage), [isScrolled, isHomePage, isBreederPage, isAuctionsPage, isAchievementsPage, isContactPage, isReferencesPage]);
+  const accountHref = user ? "/account" : "/auth";
 
-  const navLinks = [
-    { label: "Start", href: "/#home" },
-    { label: "Aukcje", href: "/auctions" },
-    { label: "Championy", href: "/champions" },
-    { label: "Osiągnięcia", href: "/achievements" },
-    { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
-    { label: "Referencje", href: "/references" },
-    { label: "Prasa i media", href: "/press" },
-    { label: "O nas", href: "/#about" },
-    { label: "Kontakt", href: "/#contact" },
-    { label: "Rejestracja", href: "/register" },
-    { label: "Logowanie", href: "/login" },
-  ];
+  const navLinks = useMemo(() => {
+    const baseLinks = [
+      { label: "Start", href: "/#home" },
+      { label: "Aukcje", href: "/auctions" },
+      { label: "Osiągnięcia", href: "/achievements" },
+      { label: "Championzy", href: "/champions" },
+      { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
+      { label: "Referencje", href: "/references" },
+      { label: "Prasa i media", href: "/press" },
+      { label: "O nas", href: "/#about" },
+      { label: "Kontakt", href: "/#contact" },
+      { label: "Konto", href: accountHref },
+    ];
+
+    // Add admin link for admins
+    if (profile?.role === 'ADMIN') {
+      baseLinks.splice(baseLinks.length - 1, 0, { label: 'Panel admina', href: '/admin' });
+    }
+
+    return baseLinks;
+  }, [profile?.role, accountHref]);
+
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(prev => !prev);
@@ -78,7 +95,7 @@ const Header = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isOverlay
-          ? "bg-transparent py-6"
+          ? "bg-transparent py-3"
           : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-3"
       }`}
     >
@@ -98,25 +115,49 @@ const Header = () => {
         </RouterLink>
 
         <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <HashLink 
-              key={link.label} 
-              to={link.href} 
-              smooth 
-              className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}
-            >
-              {link.label}
-            </HashLink>
-          ))}
+          {navLinks.map((link) => {
+            if (link.href === '/account') {
+              return (
+                <button key={link.label} onClick={() => setShowAccountModal(true)} className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}>
+                  {link.label}
+                </button>
+              );
+            }
+
+            if (link.href === '/admin') {
+              return (
+                <button key={link.label} onClick={() => setShowAdminModal(true)} className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}>
+                  {link.label}
+                </button>
+              );
+            }
+
+            return (
+              <HashLink key={link.label} to={link.href} smooth className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}>
+                {link.label}
+              </HashLink>
+            );
+          })}
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className="rounded-md border border-white/15 bg-black/30 px-2 py-1 text-xs font-semibold tracking-widest text-white/90 hover:bg-black/40"
+            aria-label={locale === 'pl' ? 'Zmień język na angielski' : 'Switch language to Polish'}
+          >
+            {locale.toUpperCase()}
+          </button>
           <ThemeToggle />
         </nav>
+
+        <AccountModal open={showAccountModal} onClose={() => setShowAccountModal(false)} />
+        <AdminModal open={showAdminModal} onClose={() => setShowAdminModal(false)} />
 
         <button
           className={`md:hidden p-2 text-white`}
           onClick={toggleMobileMenu}
           ref={mobileMenuButtonRef}
           aria-label={isMobileMenuOpen ? "Zamknij menu" : "Otwórz menu"}
-          aria-expanded={isMobileMenuOpen}
+          aria-expanded={isMobileMenuOpen ? 'true' : 'false'}
           aria-controls={mobileNavId}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}

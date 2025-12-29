@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,7 @@ const AuctionsSection = () => {
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl bg-card border border-border h-96 animate-pulse" />
+              <div key={i} className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] h-96 animate-pulse" />
             ))}
           </div>
         ) : auctions.length > 0 ? (
@@ -119,7 +120,7 @@ const AuctionsSection = () => {
             <input
               type="email"
               placeholder="Wprowadź swój email"
-              className="w-full px-6 py-3 rounded-xl bg-card border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground placeholder:text-muted-foreground"
+              className="w-full px-6 py-3 rounded-xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground placeholder:text-muted-foreground"
             />
             <Button variant="gold" size="lg" className="w-full sm:w-auto whitespace-nowrap">
               Subskrybuj
@@ -131,4 +132,4 @@ const AuctionsSection = () => {
   );
 };
 
-export default AuctionsSection;
+export default React.memo(AuctionsSection);

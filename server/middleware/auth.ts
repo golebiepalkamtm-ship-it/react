@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
-interface AuthenticatedRequest extends Request {
-  user?: { id: string; email?: string; role?: string };
+export interface AuthenticatedRequest extends Request {
+  user?: { id: string; uid?: string; email?: string; role?: string };
+  authToken?: string;
 }
 
 export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -10,6 +11,8 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
     if (!token) {
       return res.status(401).json({ error: 'No token provided' });
     }
+
+    req.authToken = token;
 
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
