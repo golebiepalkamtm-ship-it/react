@@ -5,18 +5,21 @@
  * - Liquid distortion na hover
  */
 import { useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, FileText } from 'lucide-react';
 import type { Champion } from '@/hooks/useChampions';
+import './ChampionCard.css';
 
 
 interface ChampionCardProps {
   champion: Champion;
   index: number;
   onSelect?: (champion: Champion) => void;
+  onViewPedigree?: (pedigreeUrl: string) => void;
 }
 
-export const ChampionCard = ({ champion, index, onSelect }: ChampionCardProps) => {
+export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: ChampionCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
@@ -39,7 +42,7 @@ export const ChampionCard = ({ champion, index, onSelect }: ChampionCardProps) =
   const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
   const lightY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
   
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     
     const rect = cardRef.current.getBoundingClientRect();
@@ -63,11 +66,21 @@ export const ChampionCard = ({ champion, index, onSelect }: ChampionCardProps) =
     setMousePos({ x: 0.5, y: 0.5 });
   };
   
+  const handlePedigreeOpen = (e: ReactMouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (!champion.pedigree) return;
+
+    if (onViewPedigree) {
+      onViewPedigree(champion.pedigree);
+    } else {
+      window.open(champion.pedigree, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <motion.div
       ref={cardRef}
-      className="relative cursor-pointer group"
-      style={{ perspective: 1000 }}
+      className="relative cursor-pointer group gallery-card-perspective"
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
@@ -119,7 +132,7 @@ export const ChampionCard = ({ champion, index, onSelect }: ChampionCardProps) =
           <img
             src={champion.image}
             alt={champion.name}
-            className="w-full h-full object-contain object-top"
+            className="w-full h-full object-contain object-top filter brightness-110 contrast-105"
             onError={(e) => {
               // Fallback do gradientu jeśli obraz nie załaduje się
               (e.target as HTMLImageElement).style.display = 'none';
@@ -129,8 +142,7 @@ export const ChampionCard = ({ champion, index, onSelect }: ChampionCardProps) =
           {/* Fallback gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-gold/20 -z-10" />
           
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent pointer-events-none" />
+          {/* Bezpośrednio eksponujemy obraz bez dodatkowej winiety, żeby był jaśniejszy */}
           
           {/* Scanline effect */}
           <motion.div
@@ -138,25 +150,16 @@ export const ChampionCard = ({ champion, index, onSelect }: ChampionCardProps) =
             initial={{ opacity: 0 }}
             animate={{ opacity: isHovered ? 0.15 : 0 }}
           >
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
-              }}
-            />
+            <div className="absolute inset-0 gallery-scanline-pattern" />
           </motion.div>
           
         </div>
         
         {/* Content - numer gołębia i przycisk rodowodu */}
-        <div
-          className="relative p-3 bg-card"
-          style={{ transform: 'translateZ(20px)' }}
-        >
+        <div className="relative p-3 bg-card gallery-card-content">
           {/* Numer obrączki */}
           <motion.h3
-            className="text-base font-bold font-display text-foreground text-center group-hover:text-gold transition-all duration-300 mb-2"
-            style={{ transform: 'translateZ(30px)' }}
+            className="text-base font-bold font-display text-foreground text-center group-hover:text-gold transition-all duration-300 mb-2 gallery-card-title"
           >
             {champion.ringNumber || champion.records[0] || champion.name}
           </motion.h3>
@@ -165,10 +168,7 @@ export const ChampionCard = ({ champion, index, onSelect }: ChampionCardProps) =
           {champion.pedigree && (
             <div className="flex justify-center">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(champion.pedigree, '_blank');
-                }}
+                onClick={handlePedigreeOpen}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-full text-gold text-xs font-medium transition-all duration-300"
               >
                 <FileText className="w-4 h-4" />

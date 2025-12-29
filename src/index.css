@@ -1029,12 +1029,9 @@
     );
   }
 
-  /* Grid pattern overlay */
+  /* Grid pattern overlay disabled to keep backgrounds clean */
   .grid-overlay {
-    background-image: 
-      linear-gradient(hsl(var(--border) / 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--border) / 0.1) 1px, transparent 1px);
-    background-size: 60px 60px;
+    background-image: none;
   }
 
   /* Scrollbar styling */

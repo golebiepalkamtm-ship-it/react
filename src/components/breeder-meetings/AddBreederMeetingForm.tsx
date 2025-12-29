@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileVerification } from '@/hooks/useProfileVerification';
@@ -8,7 +9,12 @@ import { AlertCircle, Camera, CheckCircle, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { meetingsService } from '@/services/meetingsService';
 
-export default function AddBreederMeetingForm() {
+interface AddBreederMeetingFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export default function AddBreederMeetingForm({ onSuccess, onCancel }: AddBreederMeetingFormProps) {
   const { user, loading } = useAuth();
   const { canBid, missingFields } = useProfileVerification();
   const verificationLoading = false;
@@ -50,7 +56,9 @@ export default function AddBreederMeetingForm() {
       setPreviewImages([]);
       // feedback
       try { window.alert('Spotkanie zostało dodane pomyślnie!'); } catch (e) { /* ignore */ }
-      setTimeout(() => navigate('/breeder-meetings'), 1200);
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Wystąpił błąd podczas wysyłania formularza';
       setSubmitStatus('error');
@@ -89,8 +97,42 @@ export default function AddBreederMeetingForm() {
   }
 
   return (
-    <div className="py-8 px-4">
-      <div className="max-w-4xl mx-auto bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-2xl p-8 shadow-lg">
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
+      dragElastic={0.1}
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -20 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      className="bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move max-h-[90vh] overflow-y-auto"
+    >
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing"
+      >
+        <h2 id="add-meeting-title" className="font-display font-bold text-xl md:text-2xl text-white select-none flex items-center gap-2">
+          <Camera className="w-6 h-6 text-gold" />
+          Dodaj spotkanie
+        </h2>
+        {onCancel && (
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onCancel}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Zamknij formularz"
+            title="Zamknij formularz"
+          >
+            <X className="w-5 h-5 text-white/70" />
+          </motion.button>
+        )}
+      </motion.div>
+
+      <div className="max-w-4xl mx-auto">
           {/* Header is rendered by the parent page to avoid duplicate titles */}
 
         {user ? (
@@ -199,6 +241,6 @@ export default function AddBreederMeetingForm() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

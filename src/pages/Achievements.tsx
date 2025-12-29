@@ -3,12 +3,14 @@ import AchievementsSection from "@/components/AchievementsSection";
 import Footer from "@/components/Footer";
 import { Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ParticleBackground } from '@/components/gallery/ParticleBackground';
 
 const Achievements = (props) => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative isolate overflow-hidden">
+      <ParticleBackground particleCount={60} variant="gold" />
       <Header />
-      <main>
+      <main className="relative z-10">
         <div className="section-surface-alt">
           <section className="relative overflow-hidden text-center">
             <div className="relative z-10 container mx-auto px-4 pt-4 pb-2 md:pt-6 md:pb-4">
@@ -45,7 +47,9 @@ const Achievements = (props) => {
           </section>
         </div>
       </main>
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 };

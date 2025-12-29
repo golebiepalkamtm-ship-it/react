@@ -56,6 +56,8 @@ const PressSection = () => {
     }
   ];
 
+  const articlesToRender = pressArticles.slice(0, 3);
+
   return (
     <motion.section
       id="press"
@@ -98,7 +100,7 @@ const PressSection = () => {
             },
           }}
         >
-          {pressArticles.map((article) => (
+          {articlesToRender.map((article) => (
             <motion.article 
               key={article.id}
               className="group bg-black/70 backdrop-blur-xl rounded-2xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] overflow-hidden hover:border-gold/30 transition-all duration-300 hover-lift"

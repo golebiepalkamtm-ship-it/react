@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { ParticleBackground } from '@/components/gallery/ParticleBackground';
 import { Newspaper, Calendar, Filter, ArrowRight } from 'lucide-react';
 import { PressService, PressArticle } from '@/services/pressService';
 
@@ -39,11 +40,12 @@ const PressPage = (props) => {
     : pressArticles.filter(article => article.category === selectedCategory);
 
   return (
-    <div className="min-h-screen relative isolate">
+    <div className="min-h-screen relative isolate overflow-hidden">
+      <ParticleBackground particleCount={70} variant="mixed" />
       <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
       
-      <main>
+      <main className="relative z-10">
         {/* Hero Section */}
         <section className="relative min-h-[40vh] flex items-center justify-center overflow-hidden text-center">
           <div className="relative z-10 container mx-auto px-4">
@@ -178,7 +180,9 @@ const PressPage = (props) => {
         </section>
       </main>
 
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 };

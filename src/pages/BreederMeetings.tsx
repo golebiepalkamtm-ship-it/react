@@ -4,12 +4,12 @@ import Footer from '@/components/Footer';
 import { FullscreenImageModal } from '@/components/ui/FullscreenImageModal';
 import { SmartImage } from '@/components/ui/SmartImage';
 import AddBreederMeetingForm from '@/components/breeder-meetings/AddBreederMeetingForm';
-import MeetingsStaticGallery from '@/components/breeder-meetings/MeetingsStaticGallery';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Camera, CheckCircle, AlertCircle, Upload, X, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { meetingsService } from '@/services/meetingsService';
+import { ParticleBackground } from '@/components/gallery/ParticleBackground';
 
 interface BreederMeeting {
   id: string;
@@ -36,6 +36,9 @@ export default function BreederMeetings(props) {
   const [breederMeetings, setBreederMeetings] = useState<BreederMeeting[]>([]);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ meetingId: string; imageIndex: number } | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const triggerButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  const modalRef = React.useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const fetchBreederMeetings = async () => {
@@ -66,10 +69,11 @@ export default function BreederMeetings(props) {
   }
 
   return (
-    <div className="min-h-screen relative isolate">
+    <div className="min-h-screen relative isolate overflow-hidden">
+      <ParticleBackground particleCount={70} variant="mixed" />
       <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
-      <main>
+      <main className="relative z-10">
         <section className="relative overflow-hidden text-center">
           <div className="relative z-10 container mx-auto px-4 pt-4 pb-2 md:pt-6 md:pb-4">
             <div className="mx-auto max-w-4xl">
@@ -83,7 +87,8 @@ export default function BreederMeetings(props) {
 
               <div className="mt-8 flex items-center justify-center gap-3">
                 <Button
-                  onClick={() => alert('Dodawanie spotkań nie jest zaimplementowane tutaj')}
+                  ref={triggerButtonRef}
+                  onClick={() => setIsFormOpen(true)}
                   className="bg-gold text-navy hover:bg-gold/90"
                 >
                   Dodaj spotkanie
@@ -101,26 +106,12 @@ export default function BreederMeetings(props) {
         </section>
 
         <div className="container mx-auto px-4 pb-20">
-        <section className="mb-20 pt-12 section-surface-alt">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4 text-foreground">
-              Dodaj <span className="text-gradient-gold">zdjęcia</span> ze spotkania
-            </h2>
-            <p className="text-muted-foreground text-lg">Podziel się zdjęciami z naszych spotkań z hodowcami</p>
-          </div>
-
-          <AddBreederMeetingForm />
-          </section>
-
-          {/* Static gallery from public/meetings-with-breeders */}
-          <MeetingsStaticGallery />
-
-        <section className="section-surface-alt">
+        <section className="section-surface-alt pt-12">
           <div className="space-y-12">
             {breederMeetings && Array.isArray(breederMeetings) && breederMeetings.map((meeting, index) => (
               <div key={meeting.id}>
                 <article 
-                  className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
+                  className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
                 >
                   <div className="mb-6">
                     <h3 className="text-2xl md:text-3xl font-bold text-foreground text-center">
@@ -147,7 +138,7 @@ export default function BreederMeetings(props) {
           </div>
 
           {breederMeetings.length === 0 && (
-            <div className="p-12 text-center rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg">
+            <div className="p-12 text-center rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
               <h2 className="text-2xl font-bold mb-4 text-foreground">Brak spotkań</h2>
               <p className="mb-6 text-muted-foreground">Jeszcze nie ma zdjęć ze spotkań z hodowcami.</p>
             </div>
@@ -162,8 +153,48 @@ export default function BreederMeetings(props) {
         if (!currentImage) return null;
         return <FullscreenImageModal isOpen={selectedImage !== null} onClose={handleCloseModal} images={meeting.images} currentIndex={selectedImage.imageIndex} title={meeting.name} />;
       })()}
+
+      <AnimatePresence>
+        {isFormOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-meeting-title"
+          >
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              type="button"
+              className="absolute inset-0 bg-transparent"
+              aria-label="Zamknij"
+              onClick={() => setIsFormOpen(false)}
+            />
+
+            <div
+              ref={modalRef}
+              className="relative z-10 w-full max-w-4xl"
+            >
+              <AddBreederMeetingForm 
+                onCancel={() => setIsFormOpen(false)}
+                onSuccess={() => {
+                  setIsFormOpen(false);
+                  window.location.reload();
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       </main>
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 }

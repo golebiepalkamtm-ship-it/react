@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { Search, SlidersHorizontal, Plus, X } from "lucide-react";
+import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
@@ -265,6 +266,9 @@ const AuctionsPage = () => {
 
                 {/* Add Auction Button */}
                 <Button
+                  ref={ (
+                    (el: HTMLButtonElement | null) => { /* keep as-is for simplicity */ }
+                  ) }
                   onClick={handleCreateAuctionClick}
                   className="flex items-center gap-2 bg-gradient-to-r from-gold to-gold-light hover:opacity-90 transition-opacity"
                 >
@@ -462,42 +466,62 @@ const AuctionsPage = () => {
       </div>
       </section>
 
-      {/* Create Auction Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
-          <div className="bg-black/60 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
-            {/* Image header */}
-            <div className="relative">
-              <img
-                src={getFirstImage(demoAuctions[0].image ? [demoAuctions[0].image] : [])}
-                alt="Header"
-                className="w-full h-48 object-cover"
-              />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-40 text-white">
-                <h3 className="text-2xl font-bold">Dodaj nową aukcję</h3>
-                <p className="text-sm opacity-90">Wypełnij formularz, aby utworzyć nową aukcję gołębia</p>
-              </div>
-              <button
-                aria-label="Zamknij"
-                onClick={() => setShowCreateModal(false)}
-                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* Create Auction Modal (draggable, same style as other modals) */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-auction-title"
+          >
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              type="button"
+              className="absolute inset-0 bg-transparent"
+              aria-label="Zamknij"
+              onClick={() => setShowCreateModal(false)}
+            />
 
-            <div className="p-6">
-              <CreateAuctionForm
-                onSuccess={() => {
-                  setShowCreateModal(false);
-                  refetch();
-                }}
-                onCancel={() => setShowCreateModal(false)}
-              />
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+            <motion.div
+              drag
+              dragMomentum={false}
+              dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
+              dragElastic={0.1}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="relative z-10 w-full max-w-3xl bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move"
+            >
+              <div className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing">
+                <h3 id="create-auction-title" className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-gold" /> Dodaj nową aukcję
+                </h3>
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowCreateModal(false)} className="p-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Zamknij">
+                  <X className="w-5 h-5 text-white/80" />
+                </motion.button>
+              </div>
+
+              <div className="p-2 md:p-4">
+                <CreateAuctionForm
+                  onSuccess={() => {
+                    setShowCreateModal(false);
+                    refetch();
+                  }}
+                  onCancel={() => setShowCreateModal(false)}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

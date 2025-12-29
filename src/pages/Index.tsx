@@ -64,7 +64,7 @@ const Index = () => {
   return (
     <div className="min-h-screen relative">
       {/* Particle Background - efekt cząsteczek z ethereal-canvas */}
-      <ParticleBackground particleCount={30} variant="gold" />
+      <ParticleBackground particleCount={80} variant="gold" />
       
       <Header />
       {authMessage && showAuthMessage && (

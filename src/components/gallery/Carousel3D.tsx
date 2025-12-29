@@ -4,17 +4,24 @@
  * - Fizyka momentum scrolling
  * - Kolorystyka zgodna z paletą projektu (gold/primary/navy)
  */
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text, useCursor, Stats, RoundedBox } from '@react-three/drei';
 import { motion } from 'framer-motion';
 import * as THREE from 'three';
 import { useChampions, type Champion } from '@/hooks/useChampions';
 import { useMomentumScroll } from '@/hooks/useMomentumScroll';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react';
+import { PedigreeModal } from './PedigreeModal';
+
+const SITE_BACKGROUND_COLOR = '#090e1a';
+const SITE_BACKGROUND_ACCENT = '#0e1525';
+const SITE_BACKGROUND_SOFT = '#060910';
+const SITE_GOLD_ACCENT = '#f0d060';
 
 // Komponent do ładowania tekstury z fallbackiem - używa CanvasTexture (mniej obciążające dla GPU)
-const ChampionImage = React.memo(({ imageUrl, width, height }: { imageUrl: string; width: number; height: number }) => {
+const ChampionImage = React.memo(({ imageUrl, width, height, onImageClick }: { imageUrl: string; width: number; height: number; onImageClick?: () => void }) => {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
   useEffect(() => {
@@ -66,7 +73,7 @@ const ChampionImage = React.memo(({ imageUrl, width, height }: { imageUrl: strin
 
   console.log('[ChampionImage] RENDERING TEXTURE:', imageUrl);
   return (
-    <mesh position={[0, 0.5, 0.02]}>
+    <mesh position={[0, 0.55, 0.02]} onClick={onImageClick}>
       <planeGeometry args={[width, height]} />
       <meshBasicMaterial map={texture} />
     </mesh>
@@ -81,21 +88,51 @@ interface Card3DProps {
   scrollPosition: number;
   isActive: boolean;
   onClick: (index: number) => void;
+  onImageClick: (championId: string) => void;
+  onPedigreeClick: (pedigreeUrl: string) => void;
 }
 
-const Card3D = React.memo(({ champion, index, totalCards, scrollPosition, isActive, onClick }: Card3DProps) => {
+const Card3D = React.memo(({ champion, index, totalCards, scrollPosition, isActive, onClick, onImageClick, onPedigreeClick }: Card3DProps) => {
   const meshRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
+
+  const barGradientTexture = useMemo(() => {
+    if (typeof document === 'undefined') return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, 'rgba(9, 14, 26, 0)');
+    gradient.addColorStop(0.35, 'rgba(9, 14, 26, 0.35)');
+    gradient.addColorStop(0.7, 'rgba(6, 9, 16, 0.7)');
+    gradient.addColorStop(1, 'rgba(6, 9, 16, 0.95)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    return texture;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      barGradientTexture?.dispose();
+    };
+  }, [barGradientTexture]);
   
-  const cardBg = '#0d1117';
-  const cardWidth = 5.5;
+  const cardBg = '#000000';
+  const cardWidth = 6.9;
   const gap = 0.8;
   const totalWidth = (cardWidth + gap) * totalCards;
   
   useFrame((state) => {
     if (!meshRef.current) return;
     
+    // Normal carousel mode
     const baseX = index * (cardWidth + gap) - scrollPosition * 0.01;
     let wrappedX = baseX % totalWidth;
     if (wrappedX < -totalWidth / 2) wrappedX += totalWidth;
@@ -105,13 +142,13 @@ const Card3D = React.memo(({ champion, index, totalCards, scrollPosition, isActi
     const normalizedDistance = Math.min(distanceFromCenter / (cardWidth * 2), 1);
     
     meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, wrappedX, 0.1);
-    const targetZ = -normalizedDistance * 2;
+    const targetZ = -normalizedDistance * 10;
     meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, targetZ + (hovered ? 0.5 : 0), 0.1);
     
     const targetRotY = -wrappedX * 0.08;
     meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, targetRotY, 0.1);
     
-    const scale = 1 - normalizedDistance * 0.3 + (hovered ? 0.05 : 0);
+    const scale = 1 - normalizedDistance * 0.3 + (hovered ? 0.06 : 0);
     meshRef.current.scale.setScalar(THREE.MathUtils.lerp(meshRef.current.scale.x, scale, 0.1));
     
     if (isActive) {
@@ -130,99 +167,148 @@ const Card3D = React.memo(({ champion, index, totalCards, scrollPosition, isActi
       <directionalLight position={[2, 2, 3]} intensity={20} color="#ffffff" />
       
       {/* Tło karty z zaokrąglonymi narożnikami */}
-      <RoundedBox position={[0, 0, -0.01]} args={[cardWidth, 5.6, 0.01]} radius={0.12}>
-        <meshBasicMaterial color="#1a1a2e" />
+      <RoundedBox position={[0, 0, -0.01]} args={[cardWidth, 6.0, 0.01]} radius={0.12}>
+        <meshBasicMaterial color="#000000" />
       </RoundedBox>
       
-      {/* Zdjęcie championa */}
-      <mesh 
-        position={[0, 0.5, 0.02]}
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedChampionId(champion.id);
-        }}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      >
-        <planeGeometry args={[cardWidth - 0.1, 4.5]} />
-        <meshBasicMaterial map={new THREE.TextureLoader().load(champion.image)} />
-      </mesh>
+        {/* Zdjęcie championa */}
+        <ChampionImage 
+          imageUrl={champion.image} 
+          width={cardWidth - 0.1} 
+          height={4.7}
+          onImageClick={() => onImageClick(champion.id)}
+        />
       
       {/* Złota krawędź - lewa */}
       <mesh position={[-(cardWidth/2) - 0.025, 0, 0.02]}>
-        <planeGeometry args={[0.015, 5.6]} />
+        <planeGeometry args={[0.015, 6.0]} />
         <meshBasicMaterial color="#f0d060" />
       </mesh>
       <mesh position={[cardWidth/2 + 0.025, 0, 0.02]}>
-        <planeGeometry args={[0.015, 5.6]} />
+        <planeGeometry args={[0.015, 6.0]} />
         <meshBasicMaterial color="#f0d060" />
       </mesh>
       
       {/* Złota krawędź - górna */}
-      <mesh position={[0, 5.6/2 + 0.025, 0.02]}>
+      <mesh position={[0, 6.0/2 + 0.025, 0.02]}>
         <planeGeometry args={[cardWidth + 0.05, 0.015]} />
         <meshBasicMaterial color="#f0d060" />
       </mesh>
       
       {/* Złota krawędź - dolna */}
-      <mesh position={[0, -(5.6/2) - 0.025, 0.02]}>
+      <mesh position={[0, -(6.0/2) - 0.025, 0.02]}>
         <planeGeometry args={[cardWidth + 0.05, 0.015]} />
+        <meshBasicMaterial color="#f0d060" />
+      </mesh>
+
+      {/* Narożniki zewnętrznej ramki - półokrągłe */}
+      <mesh position={[-(cardWidth/2) - 0.018, 6.0/2 + 0.018, 0.02]}>
+        <circleGeometry args={[0.025, 16]} />
+        <meshBasicMaterial color="#f0d060" />
+      </mesh>
+      <mesh position={[cardWidth/2 + 0.018, 6.0/2 + 0.018, 0.02]}>
+        <circleGeometry args={[0.025, 16]} />
+        <meshBasicMaterial color="#f0d060" />
+      </mesh>
+      <mesh position={[-(cardWidth/2) - 0.018, -(6.0/2) - 0.018, 0.02]}>
+        <circleGeometry args={[0.025, 16]} />
+        <meshBasicMaterial color="#f0d060" />
+      </mesh>
+      <mesh position={[cardWidth/2 + 0.018, -(6.0/2) - 0.018, 0.02]}>
+        <circleGeometry args={[0.025, 16]} />
         <meshBasicMaterial color="#f0d060" />
       </mesh>
 
       {/* Druga ramka wewnętrzna */}
       {/* Złota krawędź wewnętrzna - lewa */}
       <mesh position={[-(cardWidth/2) + 0.025, 0, 0.02]}>
-        <planeGeometry args={[0.015, 5.6 - 0.05]} />
+        <planeGeometry args={[0.015, 6.0 - 0.05]} />
         <meshBasicMaterial color="#d4af37" />
       </mesh>
       <mesh position={[cardWidth/2 - 0.025, 0, 0.02]}>
-        <planeGeometry args={[0.015, 5.6 - 0.05]} />
+        <planeGeometry args={[0.015, 6.0 - 0.05]} />
         <meshBasicMaterial color="#d4af37" />
       </mesh>
       
       {/* Złota krawędź wewnętrzna - górna */}
-      <mesh position={[0, 5.6/2 - 0.025, 0.02]}>
+      <mesh position={[0, 6.0/2 - 0.025, 0.02]}>
         <planeGeometry args={[cardWidth - 0.05, 0.015]} />
         <meshBasicMaterial color="#d4af37" />
       </mesh>
       
       {/* Złota krawędź wewnętrzna - dolna */}
-      <mesh position={[0, -(5.6/2) + 0.025, 0.02]}>
+      <mesh position={[0, -(6.0/2) + 0.025, 0.02]}>
         <planeGeometry args={[cardWidth - 0.05, 0.015]} />
+        <meshBasicMaterial color="#d4af37" />
+      </mesh>
+
+      {/* Narożniki wewnętrznej ramki - półokrągłe */}
+      <mesh position={[-(cardWidth/2) + 0.018, 6.0/2 - 0.018, 0.02]}>
+        <circleGeometry args={[0.02, 16]} />
+        <meshBasicMaterial color="#d4af37" />
+      </mesh>
+      <mesh position={[cardWidth/2 - 0.018, 6.0/2 - 0.018, 0.02]}>
+        <circleGeometry args={[0.02, 16]} />
+        <meshBasicMaterial color="#d4af37" />
+      </mesh>
+      <mesh position={[-(cardWidth/2) + 0.018, -(6.0/2) + 0.018, 0.02]}>
+        <circleGeometry args={[0.02, 16]} />
+        <meshBasicMaterial color="#d4af37" />
+      </mesh>
+      <mesh position={[cardWidth/2 - 0.018, -(6.0/2) + 0.018, 0.02]}>
+        <circleGeometry args={[0.02, 16]} />
         <meshBasicMaterial color="#d4af37" />
       </mesh>
       
 
-      {/* Turkusowy pasek pod zdjęciem */}
-      <mesh position={[0, -2.35, 0.01]}>
+      {/* Pasek pod zdjęciem dopasowany do tła strony */}
+      <mesh position={[0, -2.5, 0.01]}>
         <planeGeometry args={[cardWidth - 0.03, 0.9]} />
-        <meshBasicMaterial color="#1dd4d4" transparent opacity={0.2} alphaTest={0.1} />
+        <meshBasicMaterial
+          color="#ffffff"
+          map={barGradientTexture ?? undefined}
+          transparent
+          opacity={0.95}
+          alphaTest={0.02}
+        />
       </mesh>
       
-      {/* Złota obramowka kółka */}
-      <mesh position={[0, -2.3, 0.01]}>
+      {/* Obramowanie przycisku */}
+      <mesh position={[0, -2.45, 0.01]}>
         <circleGeometry args={[0.26, 32]} />
-        <meshBasicMaterial color="#1dd4d4" />
+        <meshBasicMaterial color={SITE_GOLD_ACCENT} transparent opacity={0.8} />
       </mesh>
       
       {/* Kółko dla ikony */}
       <mesh 
-        position={[0, -2.3, 0.015]}
+        position={[0, -2.45, 0.015]}
         onClick={(e) => {
           e.stopPropagation();
-          window.open(`/champions/${champion.id}/pedigree`, '_blank');
+          if (champion.pedigree) {
+            onPedigreeClick(champion.pedigree);
+          }
         }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
-        style={{ cursor: 'pointer' }}
       >
         <circleGeometry args={[0.25, 32]} />
-        <meshBasicMaterial color="#1a1a2e" />
+        <meshBasicMaterial color={SITE_BACKGROUND_COLOR} transparent opacity={0.95} />
       </mesh>
       
       {/* Link do rodowoodu - ikona kartki */}
-      <Text position={[0, -2.3, 0.02]} fontSize={0.16} color="#1dd4d4" anchorX="center" anchorY="middle">
+      <Text 
+        position={[0, -2.45, 0.02]} 
+        fontSize={0.16} 
+        color={SITE_GOLD_ACCENT} 
+        anchorX="center" 
+        anchorY="middle"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (champion.pedigree) {
+            onPedigreeClick(champion.pedigree);
+          }
+        }}
+      >
         📄
       </Text>
     </group>
@@ -233,38 +319,47 @@ const Card3D = React.memo(({ champion, index, totalCards, scrollPosition, isActi
 export const Carousel3D = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedChampionId, setSelectedChampionId] = useState<string | null>(null);
+  const [selectedPedigree, setSelectedPedigree] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { champions, loading, error } = useChampions();
   
-  const { position, handlers, addImpulse } = useMomentumScroll({
-    friction: 0.95,
+  // Ukryj body scrollbar gdy modal jest otwarty
+  useEffect(() => {
+    if (selectedChampionId || selectedPedigree) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedChampionId, selectedPedigree]);
+  
+  const { position, handlers, addImpulse, setPosition } = useMomentumScroll({
+    friction: 0.90,
     sensitivity: 0.5,
   });
   
-  const cardWidth = 5.5;
+  const cardWidth = 6.9;
   const gap = 0.8;
   const cardSpacing = cardWidth + gap;
 
   const handlePrev = useCallback(() => {
     const newIndex = (activeIndex - 1 + champions.length) % champions.length;
-    const targetPosition = -newIndex * cardSpacing * 100;
-    const impulse = targetPosition - position;
     setActiveIndex(newIndex);
-    addImpulse(impulse * 0.1);
-  }, [activeIndex, champions.length, position, addImpulse]);
+    setPosition(-newIndex * cardSpacing * 100);
+  }, [activeIndex, champions.length, setPosition]);
   
   const handleNext = useCallback(() => {
     const newIndex = (activeIndex + 1) % champions.length;
-    const targetPosition = -newIndex * cardSpacing * 100;
-    const impulse = targetPosition - position;
     setActiveIndex(newIndex);
-    addImpulse(impulse * 0.1);
-  }, [activeIndex, champions.length, position, addImpulse]);
+    setPosition(-newIndex * cardSpacing * 100);
+  }, [activeIndex, champions.length, setPosition]);
   const handleCardClick = useCallback((index: number) => setActiveIndex(index), []);
   
   if (loading) {
     return (
-      <section className="relative py-24 overflow-hidden section-surface" style={{ background: 'transparent' }}>
+      <section className="relative py-24 overflow-hidden section-surface">
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-gold animate-spin" />
           <span className="ml-3 text-muted-foreground">Ładowanie championów...</span>
@@ -278,7 +373,7 @@ export const Carousel3D = () => {
   }
   
   return (
-    <section className="relative py-24 overflow-hidden section-surface" style={{ background: 'transparent' }}>
+    <section className="relative py-24 overflow-hidden section-surface">
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/30 to-transparent pointer-events-none z-20" />
       
       <div className="text-center mb-16 relative z-10">
@@ -297,7 +392,7 @@ export const Carousel3D = () => {
           transition={{ delay: 0.1 }}
           className="text-4xl md:text-6xl font-bold font-display gold-text mb-4"
         >
-          Champions
+          Czempioni
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -332,32 +427,78 @@ export const Carousel3D = () => {
               scrollPosition={position}
               isActive={index === activeIndex}
               onClick={handleCardClick}
+              onImageClick={(id) => setSelectedChampionId(id)}
+              onPedigreeClick={(url) => setSelectedPedigree(url)}
             />
           ))}
         </Canvas>
         
-        {/* Modal powiększonego zdjęcia */}
-        {selectedChampionId && (
-          <div
-            className="fixed inset-0 flex items-center justify-center z-50"
-            onClick={() => setSelectedChampionId(null)}
-          >
-            <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-              <img
-                src={champions.find(c => c.id === selectedChampionId)?.image}
-                alt="Champion"
-                className="w-full h-full object-contain rounded-3xl gold-border"
-              />
-              <button
-                className="absolute top-4 right-4 bg-black/70 hover:bg-black/90 text-white w-10 h-10 rounded-full flex items-center justify-center text-2xl transition-colors"
-                onClick={() => setSelectedChampionId(null)}
-              >
-                ✕
-              </button>
+        {/* Modal powiększonego zdjęcia - renderowany w portalu */}
+        {selectedChampionId && createPortal((() => {
+          const currentIndex = champions.findIndex(c => c.id === selectedChampionId);
+          const handleModalPrev = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            const prevIndex = (currentIndex - 1 + champions.length) % champions.length;
+            setSelectedChampionId(champions[prevIndex].id);
+          };
+          const handleModalNext = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            const nextIndex = (currentIndex + 1) % champions.length;
+            setSelectedChampionId(champions[nextIndex].id);
+          };
+          
+          return (
+            <div
+              className="fixed inset-0 bg-black/95 flex items-center justify-center z-[9999]"
+              onClick={() => setSelectedChampionId(null)}
+            >
+              <div className="relative w-full h-full flex items-center justify-center p-8" onClick={(e) => e.stopPropagation()}>
+                {/* Przycisk zamknięcia */}
+                <button
+                  className="absolute top-4 right-4 z-[10000] p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedChampionId(null);
+                  }}
+                  aria-label="Zamknij"
+                >
+                  <X className="w-8 h-8" />
+                </button>
+
+                <img
+                  src={champions[currentIndex]?.image}
+                  alt="Champion"
+                  className="max-w-[90vw] max-h-[90vh] object-contain pointer-events-none select-none"
+                />
+                
+                {/* Strzałka w lewo - poprzednie zdjęcie */}
+                <button
+                  className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors cursor-pointer z-[10000]"
+                  onClick={handleModalPrev}
+                  aria-label="Poprzednie zdjęcie"
+                >
+                  <ChevronLeft className="w-8 h-8" />
+                </button>
+                
+                {/* Strzałka w prawo - następne zdjęcie */}
+                <button
+                  className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors cursor-pointer z-[10000]"
+                  onClick={handleModalNext}
+                  aria-label="Następne zdjęcie"
+                >
+                  <ChevronRight className="w-8 h-8" />
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })(), document.body)}
         
+        <PedigreeModal
+          isOpen={!!selectedPedigree}
+          onClose={() => setSelectedPedigree(null)}
+          pedigreeUrl={selectedPedigree}
+        />
+
         <button
           onClick={handlePrev}
           aria-label="Poprzedni"

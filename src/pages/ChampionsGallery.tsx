@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trophy, MapPin, Zap, Calendar, Award, Sparkles, Loader2 } from 'lucide-react';
 import { ChampionCard } from '@/components/gallery/ChampionCard';
 import { ParticleBackground } from '@/components/gallery/ParticleBackground';
+import { PedigreeModal } from '@/components/gallery/PedigreeModal';
 import { useChampions, type Champion } from '@/hooks/useChampions';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -149,6 +150,8 @@ const ChampionModal = ({ champion, onClose }: ChampionModalProps) => {
 
 export const ChampionsGallery = () => {
   const [selectedChampion, setSelectedChampion] = useState<Champion | null>(null);
+  const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
+  const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
   const { champions, loading, error } = useChampions();
 
   const handleSelect = useCallback((champion: Champion) => {
@@ -159,8 +162,18 @@ export const ChampionsGallery = () => {
     setSelectedChampion(null);
   }, []);
 
+  const handleViewPedigree = useCallback((url: string) => {
+    setPedigreeUrl(url);
+    setIsPedigreeOpen(true);
+  }, []);
+
+  const handleClosePedigree = useCallback(() => {
+    setIsPedigreeOpen(false);
+    setPedigreeUrl(null);
+  }, []);
+
   return (
-    <div className="min-h-screen relative" style={{ background: 'transparent' }}>
+    <div className="min-h-screen relative bg-transparent">
       {/* Particle Background - mixed gold/primary */}
       <ParticleBackground particleCount={40} variant="mixed" />
 
@@ -256,6 +269,7 @@ export const ChampionsGallery = () => {
                     champion={champion}
                     index={index}
                     onSelect={handleSelect}
+                    onViewPedigree={handleViewPedigree}
                   />
                 </motion.div>
               ))}
@@ -274,6 +288,12 @@ export const ChampionsGallery = () => {
           <ChampionModal champion={selectedChampion} onClose={handleClose} />
         )}
       </AnimatePresence>
+
+      <PedigreeModal
+        isOpen={isPedigreeOpen}
+        onClose={handleClosePedigree}
+        pedigreeUrl={pedigreeUrl}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Camera, MapPin, MessageSquare, Plus, Star, Trophy, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -201,88 +201,112 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="card-glass p-8"
+      drag
+      dragMomentum={false}
+      dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
+      dragElastic={0.1}
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -20 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      className="bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move"
     >
-      <div className="flex items-center justify-between mb-8">
-        <h2 id="add-reference-title" className="font-display font-bold text-2xl text-white">Dodaj referencję</h2>
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing"
+      >
+        <h2 id="add-reference-title" className="font-display font-bold text-xl md:text-2xl text-white select-none">Dodaj referencję</h2>
         {onCancel && (
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
             onClick={onCancel}
             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
             aria-label="Zamknij formularz"
             title="Zamknij formularz"
           >
             <X className="w-5 h-5 text-white/70" />
-          </button>
+          </motion.button>
         )}
-      </div>
+      </motion.div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-          <p className="text-red-400">{error}</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg overflow-hidden"
+          >
+            <p className="text-red-400">{error}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Podstawowe informacje */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-3"
+        >
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              <User className="w-4 h-4 inline mr-2" />
-              Imię i nazwisko hodowcy
+            <label className="block text-xs font-medium text-white mb-1">
+              <User className="w-3 h-3 inline mr-1" />
+              Imię i nazwisko
             </label>
             <input
               type="text"
               value={formData.breederName}
               onChange={e => handleInputChange('breederName', e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="np. Imię i Nazwisko"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
+              placeholder="Imię Nazwisko"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              <MapPin className="w-4 h-4 inline mr-2" />
+            <label className="block text-xs font-medium text-white mb-1">
+              <MapPin className="w-3 h-3 inline mr-1" />
               Lokalizacja
             </label>
             <input
               type="text"
               value={formData.location}
               onChange={e => handleInputChange('location', e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="np. Kraków"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
+              placeholder="Miasto"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              <Calendar className="w-4 h-4 inline mr-2" />
+            <label className="block text-xs font-medium text-white mb-1">
+              <Calendar className="w-3 h-3 inline mr-1" />
               Doświadczenie
             </label>
             <input
               type="text"
               value={formData.experience}
               onChange={e => handleInputChange('experience', e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="np. 10 lat hodowli"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
+              placeholder="np. 10 lat"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
-              <Star className="w-4 h-4 inline mr-2" />
-              Ocena (1-5)
+            <label className="block text-xs font-medium text-white mb-1">
+              <Star className="w-3 h-3 inline mr-1" />
+              Ocena
             </label>
             <select
               value={formData.rating}
               onChange={e => handleInputChange('rating', parseInt(e.target.value))}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
               aria-label="Ocena hodowcy od 1 do 5"
               title="Wybierz ocenę od 1 do 5"
             >
@@ -293,31 +317,40 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
               ))}
             </select>
           </div>
-        </div>
+        </motion.div>
 
         {/* Testimonial */}
-        <div>
-          <label className="block text-sm font-medium text-white mb-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <label className="block text-xs font-medium text-white mb-1">
             <MessageSquare className="w-4 h-4 inline mr-2" />
             Opinia hodowcy
           </label>
           <textarea
             value={formData.testimonial}
             onChange={e => handleInputChange('testimonial', e.target.value)}
-            rows={4}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Opisz swoje doświadczenia z gołębiami z naszej hodowli..."
+            rows={2}
+            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30 resize-none"
+            placeholder="Opisz swoje doświadczenia z gołębiami..."
             required
           />
-          <div className="flex items-center justify-between mt-2">
-            <div className="text-sm text-muted-foreground">{formData.testimonial.length} znaków</div>
-            <div className="text-sm text-muted-foreground">minimum 20 znaków</div>
+          <div className="flex items-center justify-between mt-1">
+            <div className="text-xs text-muted-foreground">{formData.testimonial.length} znaków</div>
+            <div className="text-xs text-muted-foreground">min. 20</div>
           </div>
-        </div>
+        </motion.div>
 
         {/* File Upload */}
-        <div>
-          <label className="block text-sm font-medium text-white mb-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="hidden"
+        >
+          <label className="block text-xs font-medium text-white mb-1">
             <Camera className="w-4 h-4 inline mr-2" />
             Zdjęcie gołębia (opcjonalnie)
           </label>
@@ -344,60 +377,86 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
             title="Wybierz zdjęcie gołębia (opcjonalnie)"
             placeholder="Brak wybranego pliku"
           />
-          {image && (
-            <div className="mt-4">
-              <div className="w-48 h-48 rounded-lg overflow-hidden border border-white/10">
-                <img
-                  src={imagePreview ?? URL.createObjectURL(image)}
-                  alt="Podgląd zdjęcia"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          )}
-        </div>
+          <AnimatePresence>
+            {image && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="mt-4"
+              >
+                <div className="w-48 h-48 rounded-lg overflow-hidden border border-white/20 shadow-xl hover:border-gold/40 transition-all duration-300 hover:shadow-gold/20">
+                  <img
+                    src={imagePreview ?? URL.createObjectURL(image)}
+                    alt="Podgląd zdjęcia"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
         {/* Osiągnięcia */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-bold text-lg text-white">
-              <Trophy className="w-5 h-5 inline mr-2" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-display font-bold text-sm md:text-base text-white">
+              <Trophy className="w-5 h-5 inline mr-2 text-gold" />
               Osiągnięcia gołębi
             </h3>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               type="button"
               onClick={addAchievement}
-              className="flex items-center space-x-2 text-white/80 hover:text-white font-medium"
+              className="flex items-center space-x-2 text-white/80 hover:text-gold font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span>Dodaj gołębia</span>
-            </button>
+              <span className="hidden sm:inline">Dodaj gołębia</span>
+              <span className="sm:hidden">Dodaj</span>
+            </motion.button>
           </div>
 
-          <div className="space-y-6">
-            {achievements.map((achievement, achievementIndex) => (
-              <div
-                key={achievementIndex}
-                className="bg-white/5 rounded-xl p-6 border border-white/10"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium text-white">Gołąb {achievementIndex + 1}</h4>
-                  {achievements.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeAchievement(achievementIndex)}
-                      className="text-red-500 hover:text-red-700"
-                      aria-label={`Usuń gołębia ${achievementIndex + 1}`}
-                      title={`Usuń gołębia ${achievementIndex + 1}`}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {achievements.map((achievement, achievementIndex) => (
+                <motion.div
+                  key={achievementIndex}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-white/5 rounded-lg p-3 border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-white flex items-center gap-2 text-sm">
+                      <span className="w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-gold text-xs font-bold">
+                        {achievementIndex + 1}
+                      </span>
+                      Gołąb
+                    </h4>
+                    {achievements.length > 1 && (
+                      <motion.button
+                        whileHover={{ scale: 1.1, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                        type="button"
+                        onClick={() => removeAchievement(achievementIndex)}
+                        className="text-red-500 hover:text-red-400 transition-colors p-1"
+                        aria-label={`Usuń gołębia ${achievementIndex + 1}`}
+                        title={`Usuń gołębia ${achievementIndex + 1}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </motion.button>
+                    )}
+                  </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
+                    <label className="block text-xs font-medium text-white mb-1">
                       Nazwa gołębia
                     </label>
                     <input
@@ -406,13 +465,13 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                       onChange={e =>
                         handleAchievementChange(achievementIndex, 'pigeon', e.target.value)
                       }
-                      className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-2 py-1.5 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                       placeholder="np. Thunder Storm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
+                    <label className="block text-xs font-medium text-white mb-1">
                       Numer obrączki
                     </label>
                     <input
@@ -421,26 +480,25 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                       onChange={e =>
                         handleAchievementChange(achievementIndex, 'ringNumber', e.target.value)
                       }
-                      className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-2 py-1.5 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                       placeholder="np. PL-2023-001"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h5 className="font-medium text-white">Wyniki</h5>
-                    <button
-                      type="button"
-                      onClick={() => addResult(achievementIndex)}
-                      className="flex items-center space-x-1 text-white/80 hover:text-white text-sm"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Dodaj wynik</span>
-                    </button>
-                  </div>
-
-                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-white text-xs">Wyniki</h5>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        onClick={() => addResult(achievementIndex)}
+                        className="flex items-center space-x-1 text-white/80 hover:text-gold text-xs transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Dodaj</span>
+                      </motion.button>
                     {achievement.results.map((result, resultIndex) => (
                       <div key={resultIndex} className="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <div className="md:col-span-2">
@@ -473,7 +531,7 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                                 parseInt(e.target.value),
                               )
                             }
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-2 py-1.5 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                             aria-label="Miejsce w zawodach"
                             title="Wybierz miejsce w zawodach"
                           >
@@ -485,7 +543,7 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                           </select>
                         </div>
 
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
                           <input
                             type="date"
                             value={result.date}
@@ -497,7 +555,7 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                                 e.target.value,
                               )
                             }
-                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="flex-1 px-2 py-1.5 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                             aria-label="Data zawodów"
                             title="Wybierz datę zawodów"
                             placeholder="RRRR-MM-DD"
@@ -515,47 +573,59 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                                 e.target.value,
                               )
                             }
-                            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent datetime-fallback hidden"
+                            className="flex-1 px-2 py-1.5 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 datetime-fallback hidden"
                             placeholder="RRRR-MM-DD"
                             aria-label="Data zawodów (format: RRRR-MM-DD)"
                             title="Wprowadź datę w formacie RRRR-MM-DD"
                           />
                           {achievement.results.length > 1 && (
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               type="button"
                               onClick={() => removeResult(achievementIndex, resultIndex)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-500 hover:text-red-400 transition-colors p-1"
                               aria-label={`Usuń wynik ${resultIndex + 1}`}
                               title={`Usuń wynik ${resultIndex + 1}`}
                             >
                               <X className="w-4 h-4" />
-                            </button>
+                            </motion.button>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
-            ))}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
 
         {/* Przyciski */}
-        <div className="flex flex-col sm:flex-row items-center justify-end gap-4 pt-6 border-t border-white/20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-white/20"
+        >
           {onCancel && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 border border-white/30 text-white/80 hover:bg-white/10 font-medium rounded-lg transition-colors"
+              className="w-full sm:w-auto px-4 py-2 border border-white/30 text-white/80 hover:bg-white/10 hover:border-white/40 font-medium rounded-lg transition-all duration-200 text-sm"
             >
               Anuluj
-            </button>
+            </motion.button>
           )}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSubmitting}
-            className="px-8 py-3 bg-gold text-navy hover:bg-gold/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium rounded-lg transition-colors flex items-center space-x-2"
+            className="w-full sm:w-auto px-6 py-2 bg-gold text-navy hover:bg-gold/90 hover:shadow-lg hover:shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-medium rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 text-sm"
           >
             {isSubmitting ? (
               <>
@@ -568,8 +638,8 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                 <span>Dodaj referencję</span>
               </>
             )}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </form>
     </motion.div>
   );

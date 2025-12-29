@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useProfile } from "@/hooks/useProfile";
 import PhoneVerification from "@/components/auth/PhoneVerification";
+import { ParticleBackground } from "@/components/gallery/ParticleBackground";
 
 export default function Account(props) {
   const navigate = useNavigate();
@@ -73,9 +74,11 @@ export default function Account(props) {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative isolate overflow-hidden">
+      <ParticleBackground particleCount={65} variant="gold" />
+      <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
-      <main className="pt-28 md:pt-32">
+      <main className="pt-28 md:pt-32 relative z-10">
         <div className="container mx-auto px-4 space-y-6">
           <div className="rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
             <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">{t("account.title")}</h1>
@@ -124,6 +127,7 @@ export default function Account(props) {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    placeholder={t('profile.full_name')}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     required
                   />
@@ -145,6 +149,7 @@ export default function Account(props) {
                     type="text"
                     value={street}
                     onChange={(e) => setStreet(e.target.value)}
+                    placeholder={t('profile.street')}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     required
                   />
@@ -155,6 +160,7 @@ export default function Account(props) {
                     type="text"
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
+                    placeholder={t('profile.postal_code')}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     required
                   />
@@ -165,6 +171,7 @@ export default function Account(props) {
                     type="text"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
+                    placeholder={t('profile.country')}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     required
                   />
