@@ -8,8 +8,8 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "."
+    "rootDir": ".."
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "./**/*.d.ts", "../shared/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

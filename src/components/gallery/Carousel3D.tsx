@@ -26,7 +26,6 @@ const ChampionImage = React.memo(({ imageUrl, width, height, onImageClick }: { i
 
   useEffect(() => {
     if (!imageUrl) {
-      console.warn('[ChampionImage] No imageUrl provided');
       return;
     }
 
@@ -38,17 +37,13 @@ const ChampionImage = React.memo(({ imageUrl, width, height, onImageClick }: { i
       loader.setCrossOrigin('anonymous');
     }
 
-    console.log('[ChampionImage] Loading texture:', imageUrl);
-
     loader.load(
       imageUrl,
       (tex) => {
         if (!mounted) {
-          console.log(`[TextureLoader] Unmounted before texture loaded for: ${imageUrl}`);
           tex.dispose();
           return;
         }
-        console.log(`[TextureLoader] SUCCESS for: ${imageUrl}`, tex);
         tex.minFilter = THREE.LinearFilter;
         tex.magFilter = THREE.LinearFilter;
         tex.generateMipmaps = false;
@@ -67,11 +62,9 @@ const ChampionImage = React.memo(({ imageUrl, width, height, onImageClick }: { i
 
   // Render ONLY texture when loaded, nothing while loading
   if (!texture) {
-    console.warn('[ChampionImage] WAITING FOR TEXTURE:', imageUrl);
     return null; // Return null instead of fallback mesh
   }
 
-  console.log('[ChampionImage] RENDERING TEXTURE:', imageUrl);
   return (
     <mesh position={[0, 0.55, 0.02]} onClick={onImageClick}>
       <planeGeometry args={[width, height]} />
@@ -348,13 +341,13 @@ export const Carousel3D = () => {
     const newIndex = (activeIndex - 1 + champions.length) % champions.length;
     setActiveIndex(newIndex);
     setPosition(-newIndex * cardSpacing * 100);
-  }, [activeIndex, champions.length, setPosition]);
+  }, [activeIndex, cardSpacing, champions.length, setPosition]);
   
   const handleNext = useCallback(() => {
     const newIndex = (activeIndex + 1) % champions.length;
     setActiveIndex(newIndex);
     setPosition(-newIndex * cardSpacing * 100);
-  }, [activeIndex, champions.length, setPosition]);
+  }, [activeIndex, cardSpacing, champions.length, setPosition]);
   const handleCardClick = useCallback((index: number) => setActiveIndex(index), []);
   
   if (loading) {

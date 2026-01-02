@@ -38,7 +38,8 @@ export const useSpring = (
   const velocityRef = useRef(0);
   const targetRef = useRef(targetValue);
   const rafRef = useRef<number>();
-  const lastTimeRef = useRef(performance.now());
+  const lastTimeRef = useRef(0);
+  const animateRef = useRef<() => void>(() => {});
 
   const animate = useCallback(() => {
     const now = performance.now();
@@ -72,11 +73,12 @@ export const useSpring = (
         velocity: velocityRef.current,
         isAnimating: true,
       });
-      rafRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(() => animateRef.current());
     }
   }, [stiffness, damping, mass, precision]);
 
   useEffect(() => {
+    animateRef.current = animate;
     targetRef.current = targetValue;
     
     if (rafRef.current) {
@@ -84,7 +86,7 @@ export const useSpring = (
     }
     
     lastTimeRef.current = performance.now();
-    rafRef.current = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(() => animateRef.current());
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);

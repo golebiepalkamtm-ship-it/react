@@ -92,7 +92,6 @@ const AuctionsSection = () => {
                   image={getFirstImage(auction.images)}
                   currentBid={auction.currentPrice}
                   timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
-                  raceWins={auctionService.extractWins(auction.pigeon?.achievements)}
                   bloodline={auction.pigeon?.bloodline || 'Rodowód elitarny'}
                   featured={index < 2}
                 />

@@ -1,6 +1,10 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import logger from '../lib/logger.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import jwt from 'jsonwebtoken';
 
 // Lazily initialize Prisma client; if Prisma client hasn't been generated
 // (or fails to initialize) we fallback to a lightweight mock so the dev
@@ -25,16 +29,84 @@ Promise.all([
     prisma = null;
   });
 
-function createPrismaMock() {
-  return {
-    auction: {
-      findUnique: async () => null,
-      update: async () => ({}),
-    },
-    bid: {
-      create: async ({ data }: any) => ({ id: 'mock-bid', ...data }),
-    },
-  };
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const AUCTIONS_PATH = path.join(__dirname, '..', 'data', 'auctions.json');
+
+function getSupabaseAdminConfig(): { supabaseUrl: string; serviceKey: string } | null {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+  return { supabaseUrl, serviceKey };
+}
+
+async function supabaseJson<T>(url: string, init: RequestInit & { headers?: Record<string, string> }) {
+  const response = await fetch(url, init);
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`Supabase request failed (${response.status}): ${text}`);
+  }
+  if (response.status === 204) return undefined as T;
+  const text = await response.text().catch(() => '');
+  if (!text) return undefined as T;
+  return JSON.parse(text) as T;
+}
+
+function getJwtSecret(): string | null {
+  return process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET || null;
+}
+
+function verifySupabaseJwt(token: string) {
+  const secret = getJwtSecret();
+  if (!secret) return null;
+  const payload = jwt.verify(token, secret) as any;
+  const id = String(payload?.sub || payload?.user_id || payload?.id || '');
+  if (!id) return null;
+  return { id, raw: payload };
+}
+
+function formatRpcErrorMessage(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  const m = raw.match(/Supabase request failed \(\d+\):\s*(.*)$/s);
+  const body = (m?.[1] || raw).trim();
+  try {
+    const parsed = JSON.parse(body);
+    const message = parsed?.message || parsed?.error || parsed?.hint || parsed?.details;
+    return message ? String(message) : 'Bid rejected';
+  } catch {
+    const cleaned = body.replace(/^\{[\s\S]*\}$/s, 'Bid rejected');
+    return cleaned || 'Bid rejected';
+  }
+}
+
+function loadAuctionsData(): any[] {
+  try {
+    const raw = fs.readFileSync(AUCTIONS_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed?.auctions) ? parsed.auctions : [];
+  } catch (err) {
+    logger.warn('Could not load auctions.json for websocket bidding:', err);
+    return [];
+  }
+}
+
+function saveAuctionsData(auctions: any[]) {
+  fs.writeFileSync(AUCTIONS_PATH, JSON.stringify({ auctions }, null, 2));
+}
+
+function getNamePartsFromUser(user: any): { firstName: string; lastName: string } {
+  const raw = String(
+    user?.user_metadata?.full_name ||
+      user?.user_metadata?.name ||
+      user?.name ||
+      user?.email ||
+      ''
+  ).trim();
+  if (!raw) return { firstName: 'Użytkownik', lastName: '' };
+  const parts = raw.split(/\s+/).filter(Boolean);
+  const firstName = parts[0] || 'Użytkownik';
+  const lastName = parts.slice(1).join(' ');
+  return { firstName, lastName };
 }
 
 export const setupWebSocket = (server: HttpServer) => {
@@ -45,17 +117,24 @@ export const setupWebSocket = (server: HttpServer) => {
     }
   });
 
-    io.use(async (socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth.token;
       if (!token) {
         return next(new Error('No token provided'));
       }
 
+      const local = verifySupabaseJwt(token);
+      if (local) {
+        socket.data.userId = local.id;
+        socket.data.user = { id: local.id, ...local.raw };
+        return next();
+      }
+
       const supabaseUrl = process.env.SUPABASE_URL;
       const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
       const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const apiKey = supabaseAnonKey || supabaseServiceKey;
+      const apiKey = supabaseServiceKey || supabaseAnonKey;
       if (!supabaseUrl || !apiKey) {
         return next(new Error('Supabase not configured on server'));
       }
@@ -83,6 +162,7 @@ export const setupWebSocket = (server: HttpServer) => {
 
   io.on('connection', (socket) => {
     logger.info(`User connected: ${socket.data.userId}`);
+    socket.join(`user-${socket.data.userId}`);
 
     socket.on('join-auction', (auctionId: string) => {
       socket.join(`auction-${auctionId}`);
@@ -94,62 +174,14 @@ export const setupWebSocket = (server: HttpServer) => {
       logger.info(`User ${socket.data.userId} left auction ${auctionId}`);
     });
 
-    socket.on('place-bid', async (data: { auctionId: string; amount: number }) => {
-      try {
-        const { auctionId, amount } = data;
-        const userId = socket.data.userId;
-
-        // Validate auction
-        const db = prisma || createPrismaMock();
-        const auction = await db.auction.findUnique({
-          where: { id: auctionId }
-        });
-
-        if (!auction) {
-          return socket.emit('bid-error', { message: 'Auction not found' });
-        }
-
-        if (auction.status !== 'active' || new Date(auction.endTime) < new Date()) {
-          return socket.emit('bid-error', { message: 'Auction is not active' });
-        }
-
-        if (amount <= auction.currentPrice) {
-          return socket.emit('bid-error', { 
-            message: 'Bid must be higher than current price' 
-          });
-        }
-
-        // Create bid
-        const bid = await db.bid.create({
-          data: {
-            amount,
-            userId,
-            auctionId
-          },
-        });
-
-        // Update auction (noop for mock)
-        await db.auction.update({
-          where: { id: auctionId },
-          data: { currentPrice: amount }
-        });
-
-        // Notify all users in auction room
-        io.to(`auction-${auctionId}`).emit('bid-placed', {
-          bid,
-          newPrice: amount,
-          auctionId
-        });
-
-        logger.info(`Bid placed: ${amount} by ${userId} on auction ${auctionId}`);
-
-      } catch (error) {
-        logger.error('Bid error:', error);
-        socket.emit('bid-error', { 
-          message: 'Failed to place bid. Please try again.' 
-        });
-      }
+    // Heartbeat
+    socket.on('ping', () => {
+      socket.emit('pong');
     });
+
+    // Bidding is now handled via HTTP POST /api/auctions/:id/bids
+    // This ensures atomic transactions via Supabase RPC and proper validation.
+    // The WebSocket server acts as a broadcaster for 'bid-placed' events emitted by the HTTP handler.
 
     socket.on('disconnect', () => {
       logger.info(`User disconnected: ${socket.data.userId}`);

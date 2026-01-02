@@ -1,16 +1,33 @@
 {
-  "version": 3,
+  "version": 2,
+  "name": "champion-pigeon-auctions",
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "https://champion-pigeon-auctions-backend.onrender.com/api/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": "@supabase-url",
+    "VITE_SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "VITE_API_URL": "https://champion-pigeon-auctions-backend.onrender.com"
+  },
+  "functions": {
+    "src/pages/api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }

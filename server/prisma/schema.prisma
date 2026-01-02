@@ -1,6 +1,12 @@
-// server/prisma/schema.prisma
-// This schema file relies on the root `prisma/schema.prisma` for generator and datasource
-// to avoid duplicate datasource/generator definitions in the workspace.
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model Auction {
   id             String   @id @default(cuid())

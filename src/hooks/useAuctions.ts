@@ -75,7 +75,10 @@ export function useAuction(id: string | undefined): UseAuctionResult {
 }
 
 interface UseBidResult {
-  placeBid: (amount: number) => Promise<void>;
+  placeBid: (amount: number, displayName?: string) => Promise<{
+    success: boolean;
+    meta: { wasExtended: boolean; newEndTime: string | null } | null;
+  }>;
   loading: boolean;
   error: string | null;
   success: boolean;
@@ -91,10 +94,11 @@ export function useBid(auctionId: string, token: string | null): UseBidResult {
   const [success, setSuccess] = useState(false);
   const [meta, setMeta] = useState<{ wasExtended: boolean; newEndTime: string | null } | null>(null);
 
-  const placeBid = useCallback(async (amount: number) => {
-    if (!token) {
+  const placeBid = useCallback(async (amount: number, displayName?: string) => {
+    // In development allow simulated bids even without token
+    if (!token && import.meta.env.MODE !== 'development') {
       setError('Musisz być zalogowany, aby licytować');
-      return;
+      return { success: false, meta: null };
     }
 
     try {
@@ -102,14 +106,17 @@ export function useBid(auctionId: string, token: string | null): UseBidResult {
       setError(null);
       setSuccess(false);
       
-      const response = await auctionService.placeBid(auctionId, { amount }, token);
+      const response = await auctionService.placeBid(auctionId, { amount, ...(displayName ? { displayName } : {}) }, token);
       setSuccess(response.success);
-      setMeta({
+      const nextMeta = {
         wasExtended: response.meta.wasExtended,
         newEndTime: response.meta.newEndTime,
-      });
+      };
+      setMeta(nextMeta);
+      return { success: response.success, meta: nextMeta };
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd składania oferty');
+      return { success: false, meta: null };
     } finally {
       setLoading(false);
     }

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Send, Navigation, ExternalLink } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { contactService } from "@/services/contactService";
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 
 const ContactSection = () => {
-  const { toast } = useToast();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -26,16 +26,13 @@ const ContactSection = () => {
         subject: formData.subject,
         message: formData.message,
       });
-      toast({
-        title: "Wiadomość wysłana!",
+      toast("Wiadomość wysłana!", {
         description: "Odezwiemy się do Ciebie tak szybko, jak to możliwe.",
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
-      toast({
-        title: "Błąd!",
+      toast.error("Błąd!", {
         description: error instanceof Error ? error.message : "Nie udało się wysłać wiadomości",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -240,7 +237,7 @@ const ContactSection = () => {
                   src="https://maps.google.com/maps?q=ul.+Stawowa+6,+59-800+Lubań,+Poland&t=&z=15&ie=UTF8&iwloc=&output=embed"
                   width="100%"
                   height="100%"
-                  style={{ border: 0 }}
+                  className="border-0"
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"

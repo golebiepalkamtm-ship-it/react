@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, Plus, X } from "lucide-react";
-import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import AuctionCard from "./AuctionCard";
-import CreateAuctionForm from "./CreateAuctionForm";
+import CreateAuctionModal from "./CreateAuctionModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuctions } from "@/hooks/useAuctions";
 import { auctionService } from "@/services/auctionService";
@@ -20,9 +18,7 @@ const AuctionsPage = () => {
   const [sortBy, setSortBy] = useState<AuctionSortBy>("newest");
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [gridCols, setGridCols] = useState(1);
   const [imageFit, setImageFit] = useState<'cover' | 'contain'>('cover');
-  const [showDemoAuctions, setShowDemoAuctions] = useState(true);
   
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
@@ -32,6 +28,11 @@ const AuctionsPage = () => {
   const { auctions, loading, refetch } = useAuctions({ status: 'active', sortBy });
 
   const filteredAuctions = useMemo(() => {
+    const normalizeCategory = (c: unknown) => {
+      if (c === 'racing' || c === 'breeding' || c === 'show') return 'pigeons';
+      return typeof c === 'string' ? c : '';
+    };
+
     return auctions.filter(auction => {
       const matchesSearch = 
         auction.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,8 +42,7 @@ const AuctionsPage = () => {
         (!priceMin || auction.currentPrice >= parseFloat(priceMin)) &&
         (!priceMax || auction.currentPrice <= parseFloat(priceMax));
       
-      const matchesCategory = 
-        category === "all" || auction.category === category;
+      const matchesCategory = category === "all" || normalizeCategory(auction.category) === category;
       
       const matchesGender = 
         gender === "all" || auction.pigeon?.gender === gender;
@@ -50,38 +50,6 @@ const AuctionsPage = () => {
       return matchesSearch && matchesPrice && matchesCategory && matchesGender;
     });
   }, [auctions, searchTerm, priceMin, priceMax, category, gender]);
-
-  const demoAuctions = useMemo(() => {
-    return [
-      {
-        id: "demo-1",
-        title: "Przykład (czempion)",
-        image: "/placeholder.svg",
-        currentPrice: 12500,
-        timeLeft: "12h",
-        bloodline: "Linia: Janssen (demo)",
-        featured: true,
-      },
-      {
-        id: "demo-2",
-        title: "Przykład (czempion)",
-        image: "/placeholder.svg",
-        currentPrice: 8900,
-        timeLeft: "1d 6h",
-        bloodline: "Linia: Janssen (demo)",
-        featured: false,
-      },
-      {
-        id: "demo-3",
-        title: "Przykład (czempion)",
-        image: "/placeholder.svg",
-        currentPrice: 15400,
-        timeLeft: "90m",
-        bloodline: "Linia: Janssen (demo)",
-        featured: false,
-      },
-    ];
-  }, []);
 
   const getFirstImage = (images: string[]) => {
     return images && images.length > 0 ? images[0] : '/placeholder.svg';
@@ -142,30 +110,6 @@ const AuctionsPage = () => {
   };
 
   const hasActiveFilters = searchTerm || priceMin || priceMax || category !== "all" || gender !== "all" || sortBy !== "newest";
-
-  useEffect(() => {
-    const updateCols = () => {
-      const w = window.innerWidth;
-      if (w >= 1024) setGridCols(3);
-      else if (w >= 768) setGridCols(2);
-      else setGridCols(1);
-    };
-
-    updateCols();
-    window.addEventListener("resize", updateCols, { passive: true });
-    return () => window.removeEventListener("resize", updateCols);
-  }, []);
-
-  const rowCount = useMemo(() => {
-    const cols = Math.max(1, gridCols);
-    return Math.ceil(filteredAuctions.length / cols);
-  }, [filteredAuctions.length, gridCols]);
-
-  const rowVirtualizer = useWindowVirtualizer({
-    count: rowCount,
-    estimateSize: () => 460,
-    overscan: 5,
-  });
 
   if (loading) {
     return (
@@ -330,9 +274,9 @@ const AuctionsPage = () => {
                     className="w-full px-3 py-2 rounded-lg bg-background border border-border focus:border-gold outline-none text-foreground"
                   >
                     <option value="all">Wszystkie</option>
-                    <option value="racing">Wyścigowe</option>
-                    <option value="breeding">Hodowlane</option>
-                    <option value="show">Pokazowe</option>
+                    <option value="pigeons">Aukcje gołębi</option>
+                    <option value="supplements">Suplementy / odżywki / witaminy</option>
+                    <option value="accessories">Akcesoria hodowlane</option>
                   </select>
                 </div>
                 <div>
@@ -374,45 +318,20 @@ const AuctionsPage = () => {
 
         {/* Auction Grid */}
         {filteredAuctions.length > 0 && (
-          <div className="relative" style={{ height: rowVirtualizer.getTotalSize() }}>
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const rowIndex = virtualRow.index;
-              const baseIndex = rowIndex * gridCols;
-
-              return (
-                <div
-                  key={virtualRow.key}
-                  className="absolute left-0 top-0 w-full"
-                  style={{ transform: `translateY(${virtualRow.start}px)` }}
-                >
-                  <div
-                    className="grid gap-8"
-                    style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
-                  >
-                    {Array.from({ length: gridCols }).map((_, colIndex) => {
-                      const itemIndex = baseIndex + colIndex;
-                      const auction = filteredAuctions[itemIndex];
-                      if (!auction) return <div key={`empty-${rowIndex}-${colIndex}`} />;
-
-                      return (
-                        <AuctionCard
-                          key={auction.id}
-                          id={auction.id}
-                          name={auction.title}
-                          image={getFirstImage(auction.images)}
-                          currentBid={auction.currentPrice}
-                          timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
-                          raceWins={auctionService.extractWins(auction.pigeon?.achievements)}
-                          bloodline={auction.pigeon?.bloodline || "Rodowód elitarny"}
-                          featured={itemIndex < 2}
-                          imageFit={imageFit}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {filteredAuctions.map((auction, index) => (
+              <AuctionCard
+                key={auction.id}
+                id={auction.id}
+                name={auction.title}
+                image={getFirstImage(auction.images)}
+                currentBid={auction.currentPrice}
+                timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
+                bloodline={auction.pigeon?.bloodline || "Rodowód elitarny"}
+                featured={index < 2}
+                imageFit={imageFit}
+              />
+            ))}
           </div>
         )}
 
@@ -433,95 +352,22 @@ const AuctionsPage = () => {
                   Wyczyść filtry
                 </Button>
               )}
-              {!hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDemoAuctions((v) => !v)}
-                  className="mt-4"
-                >
-                  {showDemoAuctions ? 'Ukryj przykładowe aukcje' : 'Pokaż przykładowe aukcje'}
-                </Button>
-              )}
             </div>
 
-            {!hasActiveFilters && showDemoAuctions && (
-              <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {demoAuctions.map((a, idx) => (
-                  <AuctionCard
-                    key={a.id}
-                    id={a.id}
-                    name={a.title}
-                    image={a.image}
-                    currentBid={a.currentPrice}
-                    timeLeft={a.timeLeft}
-                    bloodline={a.bloodline}
-                    featured={idx === 0}
-                    imageFit={imageFit}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>
       </section>
 
-      {/* Create Auction Modal (draggable, same style as other modals) */}
-      <AnimatePresence>
-        {showCreateModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-auction-title"
-          >
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              type="button"
-              className="absolute inset-0 bg-transparent"
-              aria-label="Zamknij"
-              onClick={() => setShowCreateModal(false)}
-            />
-
-            <motion.div
-              drag
-              dragMomentum={false}
-              dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
-              dragElastic={0.1}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="relative z-10 w-full max-w-3xl bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move"
-            >
-              <div className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing">
-                <h3 id="create-auction-title" className="text-2xl font-bold text-white flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-gold" /> Dodaj nową aukcję
-                </h3>
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowCreateModal(false)} className="p-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Zamknij">
-                  <X className="w-5 h-5 text-white/80" />
-                </motion.button>
-              </div>
-
-              <div className="p-2 md:p-4">
-                <CreateAuctionForm
-                  onSuccess={() => {
-                    setShowCreateModal(false);
-                    refetch();
-                  }}
-                  onCancel={() => setShowCreateModal(false)}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Create Auction Modal (reusable component) */}
+      <CreateAuctionModal
+        open={showCreateModal}
+        onOpenChange={(open) => setShowCreateModal(open)}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          refetch();
+        }}
+      />
     </>
   );
 };

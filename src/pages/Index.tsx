@@ -14,6 +14,10 @@ import { Button } from "@/components/ui/button";
 const Index = () => {
   const { user, profile, loading } = useAuth();
   const [showAuthMessage, setShowAuthMessage] = useState(false);
+  const [authMessageShown, setAuthMessageShown] = useState(() => {
+    if (typeof sessionStorage === 'undefined') return false;
+    return sessionStorage.getItem('authMessageShown') === '1';
+  });
 
   // ensure body has a class on the homepage so we can target header/background reliably
   useEffect(() => {
@@ -22,15 +26,21 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Show message once after login
-    if (!loading && user && profile) {
+    // Show message once per session after login
+    if (!loading && user && profile && !authMessageShown) {
       const timer = setTimeout(() => {
         setShowAuthMessage(true);
+        setAuthMessageShown(true);
+        try {
+          sessionStorage.setItem('authMessageShown', '1');
+        } catch {
+          /* ignore */
+        }
         setTimeout(() => setShowAuthMessage(false), 8000);
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [loading, user, profile]);
+  }, [loading, user, profile, authMessageShown]);
 
   const getAuthMessage = () => {
     if (!user || !profile) return null;
@@ -87,6 +97,11 @@ const Index = () => {
                 </Button>
               </div>
             )}
+            <div className="mt-2 flex justify-end">
+              <Button size="sm" variant="ghost" onClick={() => setShowAuthMessage(false)}>
+                Zamknij
+              </Button>
+            </div>
           </div>
         </div>
       )}

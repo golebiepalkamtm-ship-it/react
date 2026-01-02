@@ -144,6 +144,72 @@ const HeroSection = () => {
   );
 };
 
+// About Section
+const AboutSection = () => {
+  return (
+    <section id="about" className="py-24 px-4 relative">
+      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+        {/* Content */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+        >
+          <span className="inline-block px-4 py-1 border border-primary/30 rounded-full text-xs tracking-[0.2em] text-primary/70 uppercase mb-6">
+            O nas
+          </span>
+          <h2 className="text-4xl md:text-5xl font-bold font-display gold-text mb-6">
+            Tradycja i Mistrzostwo
+          </h2>
+          <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
+            Champion Pigeon Auctions to kulminacja dziesięcioleci pasji i doświadczenia rodziny Pałka. 
+            Od lat pielęgnujemy tradycje hodowlane, łącząc je z nowoczesną wiedzą genetyczną, 
+            by wychowywać gołębie o niespotykanej wytrzymałości i szybkości.
+          </p>
+          <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+            Nasze gołębie to nie tylko ptaki – to atleci, którzy zdobywają najwyższe laury 
+            na arenach krajowych i międzynarodowych. Każdy champion w naszej galerii 
+            to historia sukcesu, którą chcemy się z Wami podzielić.
+          </p>
+          
+          <Link 
+            to="/contact"
+            className="text-gold font-semibold hover:text-gold-light transition-colors inline-flex items-center gap-2"
+          >
+            Poznaj naszą historię <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
+
+        {/* Visual */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="relative aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden bg-card/30 border border-white/10"
+        >
+            <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/50 to-transparent z-10" />
+            {/* Abstract representation of a pigeon or loft if actual image is missing */}
+             <div className="absolute inset-0 flex items-center justify-center">
+                <Trophy className="w-48 h-48 text-gold/5" />
+             </div>
+             
+             {/* Stats Overlay */}
+             <div className="absolute bottom-8 left-8 right-8 z-20 grid grid-cols-2 gap-4">
+                <div className="bg-black/60 backdrop-blur-md p-4 rounded-xl border border-white/10">
+                    <div className="text-3xl font-bold text-white mb-1">50+</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Lat tradycji</div>
+                </div>
+                <div className="bg-black/60 backdrop-blur-md p-4 rounded-xl border border-white/10">
+                    <div className="text-3xl font-bold text-gold mb-1">Top 1</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Jakość hodowli</div>
+                </div>
+             </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
 // Features Section - project colors
 const FeaturesSection = () => {
   const features = [
@@ -254,6 +320,9 @@ export const HomePage = (props) => {
         <div id="carousel">
           <Carousel3D />
         </div>
+
+        {/* About Section */}
+        <AboutSection />
 
         {/* Features */}
         <FeaturesSection />

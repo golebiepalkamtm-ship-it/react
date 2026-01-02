@@ -1,74 +1,9 @@
-export interface Bidder {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
-
-export interface Bid {
-  id: string;
-  amount: number;
-  bidder: Bidder;
-  createdAt: string;
-}
-
-export interface Seller {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  image: string | null;
-  rating: number;
-  salesCount: number;
-}
-
-export interface Pigeon {
-  bloodline: string;
-  achievements: string;
-  eyeColor: string;
-  featherColor: string;
-  vitality: string;
-  length: string;
-  endurance: string;
-  forkStrength: string;
-  forkAlignment: string;
-  muscles: string;
-  balance: string;
-  back: string;
-  purpose: string;
-  gender: 'male' | 'female';
-}
+import type { Auction, AuctionCategory, Bid, Pigeon } from '@shared/contracts/auction';
+export type { Auction, AuctionCategory, Bid, Bidder, Pigeon, Seller } from '@shared/contracts/auction';
 
 export interface AuctionCount {
   watchlist: number;
   bids: number;
-}
-
-export interface Auction {
-  id: string;
-  title: string;
-  description: string;
-  startingPrice: number;
-  currentPrice: number;
-  buyNowPrice?: number;
-  reservePrice?: number;
-  endTime: string;
-  snipeThresholdMinutes?: number;
-  snipeExtensionMinutes?: number;
-  minBidIncrement?: number;
-  status: 'active' | 'ended' | 'cancelled';
-  reserveMet: boolean;
-  category: 'racing' | 'breeding' | 'show';
-  pigeon: Pigeon;
-  age: number;
-  sex: 'male' | 'female';
-  location: string;
-  seller: Seller;
-  images: string[];
-  videos: string[];
-  documents: string[];
-  bids: Bid[];
-  _count: AuctionCount;
 }
 
 export interface AuctionListItem {
@@ -77,7 +12,7 @@ export interface AuctionListItem {
   currentPrice: number;
   images: string[];
   endTime: string;
-  category?: string;
+  category?: AuctionCategory | string;
   pigeon?: {
     bloodline?: string;
     achievements?: string;
@@ -92,6 +27,7 @@ export interface AuctionsResponse {
 export interface BidRequest {
   amount: number;
   maxBid?: number;
+  displayName?: string;
 }
 
 export interface BidResponse {
@@ -114,9 +50,8 @@ export interface CreateAuctionRequest {
   snipeThresholdMinutes?: number;
   snipeExtensionMinutes?: number;
   minBidIncrement?: number;
-  category: 'racing' | 'breeding' | 'show';
+  category: AuctionCategory;
   pigeon: Partial<Pigeon>;
-  age: number;
   sex: 'male' | 'female';
   location: string;
   images: string[];

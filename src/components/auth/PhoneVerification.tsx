@@ -14,12 +14,12 @@ interface PhoneVerificationProps {
 
 const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initialPhone, lockPhone }) => {
   const { t } = useLocale();
+  const { sendPhoneVerification, verifyPhone, updateProfile } = useAuth();
   const [phone, setPhone] = useState(initialPhone ?? '');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { user, updateProfile } = useAuth();
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,20 +27,8 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
     setError('');
 
     try {
-      if (!supabase) throw new Error('Supabase not configured');
-      const { error } = await supabase.auth.updateUser({
-        phone,
-      });
-
+      const { error } = await sendPhoneVerification(phone);
       if (error) throw error;
-
-      // Send OTP
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        phone,
-      });
-
-      if (otpError) throw otpError;
-
       setStep('otp');
     } catch (err: any) {
       setError(err.message);
@@ -55,13 +43,7 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
     setError('');
 
     try {
-      if (!supabase) throw new Error('Supabase not configured');
-      const { error } = await supabase.auth.verifyOtp({
-        phone,
-        token: otp,
-        type: 'sms',
-      });
-
+      const { error } = await verifyPhone(phone, otp);
       if (error) throw error;
 
       // Update profile with phone and role
@@ -84,11 +66,7 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
     setError('');
 
     try {
-      if (!supabase) throw new Error('Supabase not configured');
-      const { error } = await supabase.auth.signInWithOtp({
-        phone,
-      });
-
+      const { error } = await sendPhoneVerification(phone);
       if (error) throw error;
     } catch (err: any) {
       setError(err.message);

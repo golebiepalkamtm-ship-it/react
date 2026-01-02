@@ -29,12 +29,14 @@ class ApiClient {
     
     logger.debug('API Request:', url);
 
+    const isFormData = fetchConfig.body instanceof FormData;
+    const headers: Record<string, string> = isFormData
+      ? { ...fetchConfig.headers } as Record<string, string>
+      : { 'Content-Type': 'application/json', ...fetchConfig.headers } as Record<string, string>;
+
     const response = await fetch(url, {
       ...fetchConfig,
-      headers: {
-        'Content-Type': 'application/json',
-        ...fetchConfig.headers,
-      },
+      headers,
     });
     
     logger.debug('API Response status:', response.status);
@@ -55,18 +57,36 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    if (data instanceof FormData) {
+      return this.request<T>(endpoint, {
+        method: 'POST',
+        body: data,
+        headers,
+      });
+    }
+
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      headers,
     });
   }
 
   async put<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    if (data instanceof FormData) {
+      return this.request<T>(endpoint, {
+        method: 'PUT',
+        body: data,
+        headers,
+      });
+    }
+
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      headers,
     });
   }
 

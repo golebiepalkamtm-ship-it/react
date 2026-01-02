@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -9,8 +9,9 @@ import AccountModal from './AccountModal';
 import AdminModal from './AdminModal';
 
 const Header = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const { locale, toggleLocale } = useLocale();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -34,6 +35,8 @@ const Header = () => {
   const isReferencesPage = location.pathname.startsWith('/references');
   const isOverlay = useMemo(() => !isScrolled && (isHomePage || isBreederPage || isAuctionsPage || isAchievementsPage || isContactPage || isReferencesPage), [isScrolled, isHomePage, isBreederPage, isAuctionsPage, isAchievementsPage, isContactPage, isReferencesPage]);
   const accountHref = user ? "/account" : "/auth";
+  const displayName = profile?.display_name || user?.email || user?.phone || null;
+  const showUserBadge = !!user;
 
   const navLinks = useMemo(() => {
     const baseLinks = [
@@ -91,6 +94,20 @@ const Header = () => {
     mobileMenuButtonRef.current?.focus();
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    if (loading) return;
+    const params = new URLSearchParams(location.search);
+    if (params.get('openAccount') === '1') {
+      if (user) {
+        setShowAccountModal(true);
+        params.delete('openAccount');
+        navigate({ pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : '' }, { replace: true });
+      } else {
+        navigate('/auth?mode=login&callbackUrl=/account', { replace: true });
+      }
+    }
+  }, [location.pathname, location.search, navigate, user, loading]);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -118,7 +135,17 @@ const Header = () => {
           {navLinks.map((link) => {
             if (link.href === '/account') {
               return (
-                <button key={link.label} onClick={() => setShowAccountModal(true)} className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}>
+                <button
+                  key={link.label}
+                  onClick={() => {
+                    if (user) {
+                      setShowAccountModal(true);
+                    } else {
+                      navigate('/auth?mode=login&callbackUrl=/account', { replace: true });
+                    }
+                  }}
+                  className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}
+                >
                   {link.label}
                 </button>
               );
@@ -138,6 +165,11 @@ const Header = () => {
               </HashLink>
             );
           })}
+          {showUserBadge && (
+            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 border border-white/15" title="Jesteś zalogowany">
+              {displayName || 'Zalogowany'}
+            </span>
+          )}
           <button
             type="button"
             onClick={toggleLocale}
@@ -167,20 +199,62 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-hero-gradient/95 backdrop-blur-md border-t border-primary/20">
           <nav id={mobileNavId} aria-label="Menu mobilne" className="container mx-auto px-4 py-6 flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <HashLink 
-                key={link.label} 
-                to={link.href} 
-                smooth 
-                className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary" 
-                onClick={closeMobileMenu}
-                ref={link.label === navLinks[0]?.label ? (el) => {
-                  firstMobileLinkRef.current = el;
-                } : undefined}
-              >
-                {link.label}
-              </HashLink>
-            ))}
+            {navLinks.map((link) => {
+              if (link.href === '/account' && user) {
+                return (
+                  <button
+                    key={link.label}
+                    type="button"
+                    className="text-left transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary"
+                    onClick={() => {
+                      setShowAccountModal(true);
+                      closeMobileMenu();
+                    }}
+                    ref={link.label === navLinks[0]?.label ? (el) => {
+                      firstMobileLinkRef.current = el as HTMLAnchorElement | null;
+                    } : undefined}
+                  >
+                    {link.label}
+                  </button>
+                );
+              }
+
+              if (link.href === '/admin' && profile?.role === 'ADMIN') {
+                return (
+                  <button
+                    key={link.label}
+                    type="button"
+                    className="text-left transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary"
+                    onClick={() => {
+                      setShowAdminModal(true);
+                      closeMobileMenu();
+                    }}
+                  >
+                    {link.label}
+                  </button>
+                );
+              }
+
+              return (
+                <HashLink 
+                  key={link.label} 
+                  to={link.href} 
+                  smooth 
+                  className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary" 
+                  onClick={closeMobileMenu}
+                  ref={link.label === navLinks[0]?.label ? (el) => {
+                    firstMobileLinkRef.current = el;
+                  } : undefined}
+                >
+                  {link.label}
+                </HashLink>
+              );
+            })}
+            {showUserBadge && (
+              <span className="rounded-full bg-white/10 px-3 py-2 text-sm font-semibold text-white/90 border border-white/15" title="Jesteś zalogowany">
+                {displayName || 'Zalogowany'}
+              </span>
+            )}
           </nav>
         </div>
       )}

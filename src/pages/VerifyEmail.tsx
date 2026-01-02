@@ -15,10 +15,13 @@ export default function VerifyEmail(props) {
 
   useEffect(() => {
     if (!loading) {
+      const provider = user?.app_metadata?.provider || user?.identities?.[0]?.provider;
+      const isSocial = provider === 'google' || provider === 'facebook';
+
       if (!user && !pendingEmailVerification) {
         navigate('/auth?mode=login');
-      } else if (profile?.role === 'USER_EMAIL_VERIFIED') {
-        navigate('/account');
+      } else if (profile?.role === 'USER_EMAIL_VERIFIED' || isSocial) {
+        navigate('/?openAccount=1');
       } else if (profile?.role === 'USER_FULL_VERIFIED') {
         navigate('/');
       }

@@ -12,9 +12,9 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 // In production, reduce noisy console output from third-party libs
 if (import.meta.env.PROD) {
   try {
+    const mutedConsole = console as unknown as Record<string, (...args: unknown[]) => void>;
     ['log', 'info', 'debug'].forEach((k) => {
-      // @ts-ignore
-      console[k] = () => {};
+      mutedConsole[k] = () => {};
     });
   } catch (e) {
     logger.warn('Failed to override console in production', e);

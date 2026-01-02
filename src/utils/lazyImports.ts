@@ -18,8 +18,8 @@ export const LazyAdmin = lazy(() => import('../pages/Admin').then(module => ({ d
 
 // Strony uwierzytelniania i konta użytkownika
 export const LazyAuth = lazy(() => import('../pages/Auth').then(module => ({ default: module.default })));
-export const LazyAccount = lazy(() => import('../pages/Account').then(module => ({ default: module.default })));
 
 // Nowe strony - Galeria 3D
 export const LazyHomePage3D = lazy(() => import('../pages/HomePage').then(module => ({ default: module.default })));
 export const LazyChampionsGallery = lazy(() => import('../pages/ChampionsGallery').then(module => ({ default: module.default })));
+export const LazyDevAuctions = lazy(() => import('../pages/DevAuctions').then(module => ({ default: module.default })));

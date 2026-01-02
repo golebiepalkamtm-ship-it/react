@@ -6,9 +6,10 @@ import app from './app.js';
 dotenv.config();
 
 const server = createServer(app);
-setupWebSocket(server);
+const io = setupWebSocket(server);
+app.set('io', io);
 
-const INITIAL_PORT = Number(process.env.PORT) || 8001;
+const INITIAL_PORT = Number(process.env.PORT) || 8000;
 
 const tryListen = (port: number) => {
   server.listen(port, () => {

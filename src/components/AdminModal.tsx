@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import GlassModal from './GlassModal';
 import AdminPage from '@/pages/Admin';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,10 +15,24 @@ const AdminModal: React.FC<Props> = ({ open, onClose }) => {
   if (!profile || profile.role !== 'ADMIN') return null;
 
   return (
-    <GlassModal open={open} onClose={onClose} title="Panel administratora" description="Zarządzaj użytkownikami i statystykami">
-      <div className="max-h-[60vh] overflow-y-auto">
+    <GlassModal
+      open={open}
+      onClose={onClose}
+      title="Panel administratora"
+      description="Centrum dowodzenia: użytkownicy, aukcje i treści"
+      variant="hero"
+      containerClassName="max-w-6xl"
+      contentClassName="px-2 pb-2 md:px-4 md:pb-4"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: -10 }}
+        transition={{ duration: 0.2 }}
+        className=""
+      >
         <AdminPage />
-      </div>
+      </motion.div>
     </GlassModal>
   );
 };

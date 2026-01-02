@@ -9,3 +9,5 @@ export { websocketService } from './websocketService';
 export type { ContactFormData } from './contactService';
 export type { Meeting, CreateMeetingRequest } from './meetingsService';
 export type { Reference, CreateReferenceRequest } from './referencesService';
+
+export type { SupabaseClient } from '@supabase/supabase-js';

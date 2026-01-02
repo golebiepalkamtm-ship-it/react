@@ -13,7 +13,9 @@ function useQueryParams() {
 }
 
 function sanitizeCallbackUrl(callbackUrl: string | null): string {
-  return callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
+  if (!callbackUrl || !callbackUrl.startsWith("/")) return "/";
+  if (callbackUrl === "/account") return "/?openAccount=1";
+  return callbackUrl;
 }
 
 type Mode = "login" | "register";
@@ -42,17 +44,20 @@ export default function Auth(props) {
     if (modeFromQuery === "register" || modeFromQuery === "login") {
       setMode(modeFromQuery);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [modeFromQuery]);
 
   useEffect(() => {
     if (!loading && user && profile && !(success && mode === 'register')) {
-      if (profile.role === "USER_REGISTERED") {
+      const provider = user?.app_metadata?.provider || user?.identities?.[0]?.provider;
+      const isSocial = provider === 'google' || provider === 'facebook';
+
+      if (profile.role === "USER_REGISTERED" && !isSocial) {
         navigate("/verify-email", { replace: true });
-      } else if (profile.role === "USER_EMAIL_VERIFIED") {
-        navigate("/account", { replace: true });
-      } else {
+      } else if (profile.role === "USER_FULL_VERIFIED" || profile.role === "ADMIN") {
         navigate(callbackUrl, { replace: true });
+      } else {
+        navigate("/?openAccount=1", { replace: true });
       }
     }
   }, [callbackUrl, loading, navigate, profile, user, success, mode]);

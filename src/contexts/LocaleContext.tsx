@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 type Locale = "pl" | "en";
 
@@ -110,16 +110,16 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  const setLocale = (next: Locale) => {
+  const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     try {
       localStorage.setItem("locale", next);
     } catch {
       // ignore
     }
-  };
+  }, []);
 
-  const toggleLocale = () => setLocale(locale === "pl" ? "en" : "pl");
+  const toggleLocale = useCallback(() => setLocale(locale === "pl" ? "en" : "pl"), [locale, setLocale]);
 
   const value = useMemo<LocaleContextType>(() => {
     return {
@@ -132,7 +132,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
         return interpolate(entry[locale], vars);
       },
     };
-  }, [locale]);
+  }, [locale, setLocale, toggleLocale]);
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }

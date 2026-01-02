@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Clock, Gavel, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getOptimizedImageUrl } from "@/utils/imageOptimizer";
 
 interface AuctionCardProps {
   id: string;
@@ -8,7 +9,6 @@ interface AuctionCardProps {
   image: string;
   currentBid: number;
   timeLeft: string;
-  raceWins?: number;
   bloodline: string;
   featured?: boolean;
   imageFit?: 'cover' | 'contain';
@@ -20,11 +20,12 @@ const AuctionCard = ({
   image,
   currentBid,
   timeLeft,
-  raceWins,
   bloodline,
   featured = false,
   imageFit = 'cover',
 }: AuctionCardProps) => {
+  const optimizedImage = getOptimizedImageUrl(image, 400);
+
   return (
     <div
       className={`group relative mx-auto w-full max-w-[360px] rounded-2xl overflow-hidden gold-border glass-card transition-all duration-500 hover-lift ${
@@ -44,7 +45,7 @@ const AuctionCard = ({
       {/* Image Container */}
       <div className="relative h-64 overflow-hidden">
         <img
-          src={image}
+          src={optimizedImage}
           alt={name}
           loading="lazy"
           decoding="async"
@@ -70,12 +71,6 @@ const AuctionCard = ({
             </h3>
             <p className="text-muted-foreground text-sm">{bloodline}</p>
           </div>
-          {raceWins && (
-            <div className="flex items-center gap-1 text-gold">
-              <Trophy className="w-4 h-4" />
-              <span className="text-sm font-semibold">{raceWins} wygranych</span>
-            </div>
-          )}
         </div>
 
         {/* Current Bid */}

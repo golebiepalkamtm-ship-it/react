@@ -16,7 +16,15 @@ jobs:
           node-version: 20
       - name: Install
         run: npm ci
-      - name: Lint (fix)
+      - name: Lint
         run: npm run lint
+      - name: Typecheck (frontend)
+        run: npm run typecheck
       - name: Build
         run: npm run build
+      - name: Install (server)
+        run: npm ci --prefix server
+      - name: Typecheck (server)
+        run: npm run typecheck:server
+      - name: Build (server)
+        run: npm --prefix server run build

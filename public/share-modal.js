@@ -13,36 +13,40 @@
         return;
       }
 
-      var openBtn = document.querySelector('[data-share-open]');
-      var closeBtn = document.querySelector('[data-share-close]');
+      var openBtns = Array.from(document.querySelectorAll('[data-share-open]'));
+      var closeBtns = Array.from(document.querySelectorAll('[data-share-close]'));
       var modal = document.querySelector('[data-share-modal]');
 
-      if (!openBtn || !closeBtn || !modal) {
+      if (!modal || (openBtns.length === 0 && closeBtns.length === 0)) {
         logger.log('Share modal elements not found - modal disabled');
         return;
       }
 
-      // Dodaj event listenery z lepszym sprawdzaniem błędów
+      // Obsłuż wiele przycisków i dodatkowo zabezpiecz przed null.
       try {
-        if (openBtn && openBtn instanceof Element && typeof openBtn.addEventListener === 'function') {
-          openBtn.addEventListener('click', function () {
-            if (modal && modal instanceof Element) {
-              modal.classList.add('is-open');
-            }
-          });
-        }
+        openBtns.forEach(function (btn) {
+          if (btn && typeof btn.addEventListener === 'function') {
+            btn.addEventListener('click', function () {
+              if (modal && typeof modal.classList !== 'undefined') {
+                modal.classList.add('is-open');
+              }
+            });
+          }
+        });
 
-        if (closeBtn && closeBtn instanceof Element && typeof closeBtn.addEventListener === 'function') {
-          closeBtn.addEventListener('click', function () {
-            if (modal && modal instanceof Element) {
-              modal.classList.remove('is-open');
-            }
-          });
-        }
+        closeBtns.forEach(function (btn) {
+          if (btn && typeof btn.addEventListener === 'function') {
+            btn.addEventListener('click', function () {
+              if (modal && typeof modal.classList !== 'undefined') {
+                modal.classList.remove('is-open');
+              }
+            });
+          }
+        });
 
         if (typeof document.addEventListener === 'function') {
           document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && modal && modal instanceof Element) {
+            if (e.key === 'Escape' && modal && typeof modal.classList !== 'undefined') {
               modal.classList.remove('is-open');
             }
           });

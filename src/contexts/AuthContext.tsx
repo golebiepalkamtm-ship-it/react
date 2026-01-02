@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { logger } from '@/lib/logger';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -10,7 +10,9 @@ export interface Profile {
   email?: string;
   phone?: string;
   name?: string;
+  display_name?: string;
   street?: string;
+  city?: string;
   postal_code?: string;
   country?: string;
   role: UserRole;
@@ -28,6 +30,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
   signInWithGoogle: () => Promise<{ user: User | null; error: any }>;
   signInWithFacebook: () => Promise<{ user: User | null; error: any }>;
+  sendPhoneVerification: (phone: string) => Promise<{ error: any }>;
+  verifyPhone: (phone: string, token: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   loading: boolean;
@@ -56,6 +60,84 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ignore
     }
   };
+
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      const queryPromise = supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+        setTimeout(() => resolve({ data: null, error: { message: 'Profile fetch timeout' } }), 8000);
+      });
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+
+      if (error) {
+        const maybeNotFound =
+          (error as any)?.status === 404 ||
+          (error as any)?.code === 'PGRST116' ||
+          (typeof (error as any)?.message === 'string' &&
+            (error as any).message.toLowerCase().includes('not found'));
+        if (maybeNotFound && session?.user?.id === userId) {
+          try {
+            const { error: upsertError } = await supabase
+              .from('users')
+              .upsert(
+                {
+                  id: userId,
+                  email: session?.user?.email ?? null,
+                  role: 'USER_REGISTERED',
+                },
+                { onConflict: 'id' }
+              );
+            if (!upsertError) {
+              const { data: data2, error: error2 } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', userId)
+                .single();
+              if (!error2) {
+                setProfile(data2);
+                return;
+              }
+            }
+          } catch (uErr) {
+            logger.warn('Failed to upsert missing profile row', uErr);
+          }
+        }
+        logger.error('Error fetching profile:', error);
+        setProfile(null);
+      } else {
+        const provider = session?.user?.app_metadata?.provider || session?.user?.identities?.[0]?.provider || null;
+        let nextProfile = data;
+
+        if (data?.role === 'USER_REGISTERED' && provider && (provider === 'google' || provider === 'facebook')) {
+          try {
+            const { error: updateError } = await supabase
+              .from('users')
+              .update({ role: 'USER_EMAIL_VERIFIED' })
+              .eq('id', userId);
+
+            if (!updateError) {
+              nextProfile = { ...data, role: 'USER_EMAIL_VERIFIED' };
+            }
+          } catch (err) {
+            logger.warn('Failed to auto-upgrade role for OAuth user', err);
+          }
+        }
+
+        setProfile(nextProfile);
+      }
+    } catch (error) {
+      logger.error('Error fetching profile:', error);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
 
   useEffect(() => {
     if (!supabase) {
@@ -98,35 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const queryPromise = supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
-        setTimeout(() => resolve({ data: null, error: { message: 'Profile fetch timeout' } }), 8000);
-      });
-
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
-
-      if (error) {
-        logger.error('Error fetching profile:', error);
-        setProfile(null);
-      } else {
-        setProfile(data);
-      }
-    } catch (error) {
-      logger.error('Error fetching profile:', error);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchProfile]);
 
   const signUp = async (email: string, password: string) => {
     if (!supabase) return { user: null, error: 'Supabase not configured' };
@@ -220,6 +274,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await fetchProfile(user.id);
   };
 
+  const sendPhoneVerification = async (phone: string) => {
+    if (!supabase) return { error: 'Supabase not configured' };
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
+    });
+    return { error };
+  };
+
+  const verifyPhone = async (phone: string, token: string) => {
+    if (!supabase) return { error: 'Supabase not configured' };
+    const { error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
+    });
+    return { error };
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -230,6 +302,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signInWithGoogle,
     signInWithFacebook,
+    sendPhoneVerification,
+    verifyPhone,
     signOut,
     updateProfile,
     loading,

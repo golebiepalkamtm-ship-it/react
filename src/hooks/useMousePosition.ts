@@ -29,6 +29,7 @@ export const useMousePosition = (options: UseMousePositionOptions = {}) => {
   const targetRef = useRef({ x: 0, y: 0 });
   const currentRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number>();
+  const animateRef = useRef<() => void>(() => {});
 
   const lerp = (start: number, end: number, factor: number) => 
     start + (end - start) * factor;
@@ -47,18 +48,19 @@ export const useMousePosition = (options: UseMousePositionOptions = {}) => {
       normalizedY,
     });
 
-    rafRef.current = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(() => animateRef.current());
   }, [smoothing]);
 
   useEffect(() => {
     if (!enabled) return;
+    animateRef.current = animate;
 
     const handleMouseMove = (e: MouseEvent) => {
       targetRef.current = { x: e.clientX, y: e.clientY };
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    rafRef.current = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(() => animateRef.current());
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);

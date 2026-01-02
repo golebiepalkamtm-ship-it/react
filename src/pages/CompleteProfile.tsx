@@ -1,11 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileForm from "@/components/auth/ProfileForm";
+import PhoneVerification from "@/components/auth/PhoneVerification";
 
 export default function CompleteProfile() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const [step, setStep] = useState<'profile' | 'phone'>('profile');
 
   useEffect(() => {
     if (!loading) {
@@ -29,7 +31,11 @@ export default function CompleteProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#00172D] to-[#002244] flex items-center justify-center p-4">
-      <ProfileForm onCompleted={() => navigate('/')} />
+      {step === 'profile' ? (
+        <ProfileForm onCompleted={() => setStep('phone')} />
+      ) : (
+        <PhoneVerification onVerified={() => navigate('/')} />
+      )}
     </div>
   );
 }

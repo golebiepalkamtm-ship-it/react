@@ -42,6 +42,7 @@ export const useSmoothScroll = (options = { lerp: 0.1, threshold: 0.5 }) => {
   const currentRef = useRef(0);
   const velocityRef = useRef(0);
   const animationRef = useRef<number>();
+  const updateRef = useRef<() => void>(() => {});
 
   const update = useCallback(() => {
     const diff = targetRef.current - currentRef.current;
@@ -54,11 +55,12 @@ export const useSmoothScroll = (options = { lerp: 0.1, threshold: 0.5 }) => {
       velocityRef.current = 0;
     }
 
-    animationRef.current = requestAnimationFrame(update);
+    animationRef.current = requestAnimationFrame(() => updateRef.current());
   }, [options.lerp, options.threshold]);
 
   useEffect(() => {
-    animationRef.current = requestAnimationFrame(update);
+    updateRef.current = update;
+    animationRef.current = requestAnimationFrame(() => updateRef.current());
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);

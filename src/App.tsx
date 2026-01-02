@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -26,11 +26,9 @@ import {
   LazyAdmin,
   LazyHomePage3D,
   LazyChampionsGallery,
-  LazyAuth,
-  LazyAccount
+  LazyDevAuctions,
+  LazyAuth
 } from "@/utils/lazyImports";
-
-import ParticleBackground from "@/components/ui/ParticleBackground";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +39,7 @@ const App = () => (
         <LocaleProvider>
           <AuthProvider>
             <TooltipProvider>
-              <Toaster />
+
               <Sonner />
               <BrowserRouter
                 future={{
@@ -64,13 +62,14 @@ const App = () => (
                     <Route path="/verify-email" element={<LazyVerifyEmail />} />
                     <Route path="/complete-profile" element={<LazyCompleteProfile />} />
                     <Route path="/auth" element={<LazyAuth />} />
-                    <Route path="/account" element={<LazyAccount />} />
+                    <Route path="/account" element={<Navigate to="/?openAccount=1" replace />} />
                     <Route path="/admin" element={<LazyAdmin />} />
                     <Route path="/login" element={<Navigate to="/auth?mode=login" replace />} />
                     <Route path="/register" element={<Navigate to="/auth?mode=register" replace />} />
                     {/* Galeria 3D z efektami Three.js */}
                     <Route path="/gallery-3d" element={<LazyHomePage3D />} />
                     <Route path="/champions" element={<LazyChampionsGallery />} />
+                    <Route path="/dev/auctions" element={<LazyDevAuctions />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<LazyNotFound />} />
                   </Routes>

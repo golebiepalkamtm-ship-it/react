@@ -4,33 +4,17 @@ import { ArrowLeft, Clock, Gavel, Trophy, MapPin, User, Phone, Mail, Heart, Shar
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { AuctionBiddingSection } from "@/components/AuctionBiddingSection";
 import { useAuction, useBid, useAuctionTimer } from "@/hooks/useAuctions";
 import { useAuth } from "@/contexts/AuthContext";
 import { auctionService } from "@/services/auctionService";
 
 const AuctionDetail = (props) => {
   const { id } = useParams<{ id: string }>();
-  const { user, session } = useAuth();
+  const { user, session, profile } = useAuth();
   const { auction, loading, error, refetch } = useAuction(id);
   const { timeLeft, isEnded } = useAuctionTimer(auction?.endTime);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [bidAmount, setBidAmount] = useState<string>('');
-
-  const token = session?.access_token ?? null;
-  const { placeBid, loading: bidLoading, error: bidError, success: bidSuccess, meta } = useBid(id || '', token);
-
-  const handleBid = async () => {
-    if (!token || !auction) return;
-    
-    const amount = parseFloat(bidAmount);
-    if (isNaN(amount)) return;
-    
-    await placeBid(amount);
-    if (!bidError) {
-      refetch();
-      setBidAmount('');
-    }
-  };
 
   const nextImage = () => {
     if (auction?.images) {
@@ -92,7 +76,6 @@ const AuctionDetail = (props) => {
 
   const minimumBid = auctionService.getMinimumBid(auction);
   const isNearEnd = auctionService.isNearEnd(auction);
-  const wins = auctionService.extractWins(auction.pigeon?.achievements);
 
   return (
     <div className="min-h-screen">
@@ -164,7 +147,7 @@ const AuctionDetail = (props) => {
                         idx === currentImageIndex ? 'border-gold' : 'border-transparent'
                       }`}
                     >
-                      <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={getOptimizedImageUrl(img, 200)} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -211,82 +194,8 @@ const AuctionDetail = (props) => {
                   </div>
                 </div>
 
-                {bidSuccess && (
-                  <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center gap-2 text-green-500">
-                    <Check className="w-5 h-5" />
-                    <span>Oferta złożona pomyślnie!</span>
-                    {meta?.wasExtended && (
-                      <span className="text-sm opacity-80">(Czas aukcji został przedłużony)</span>
-                    )}
-                  </div>
-                )}
-
-                {bidError && (
-                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center gap-2 text-destructive">
-                    <AlertCircle className="w-5 h-5" />
-                    <span>{bidError}</span>
-                  </div>
-                )}
-
-                {!isEnded && (
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="number"
-                          value={bidAmount}
-                          onChange={(e) => setBidAmount(e.target.value)}
-                          placeholder={`Min. ${minimumBid.toLocaleString('pl-PL')} zł`}
-                          className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-foreground"
-                          min={minimumBid}
-                          step={auction.minBidIncrement || 100}
-                        />
-                      </div>
-                      <Button
-                        variant="gold"
-                        size="lg"
-                        onClick={handleBid}
-                        disabled={!user || bidLoading || !bidAmount || parseFloat(bidAmount) < minimumBid}
-                      >
-                        {bidLoading ? (
-                          <span className="animate-spin">⏳</span>
-                        ) : (
-                          <>
-                            <Gavel className="w-5 h-5 mr-2" />
-                            Licytuj
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    {!user && (
-                      <p className="text-sm text-muted-foreground text-center">
-                        <Link to="/login" className="text-gold hover:underline">Zaloguj się</Link>, aby licytować
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {auction.buyNowPrice && !isEnded && (
-                  <div className="pt-4 border-t border-white/15">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Kup teraz</p>
-                        <p className="font-display text-xl font-bold text-gold">
-                          {auction.buyNowPrice.toLocaleString('pl-PL')} zł
-                        </p>
-                      </div>
-                      <Button variant="outline" className="border-gold text-gold hover:bg-gold hover:text-navy">
-                        Kup teraz
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {auction.reservePrice && (
-                  <div className={`text-sm ${auction.reserveMet ? 'text-green-500' : 'text-orange-500'}`}>
-                    {auction.reserveMet ? '✓ Cena minimalna osiągnięta' : '⚠ Cena minimalna nie została osiągnięta'}
-                  </div>
-                )}
+                {/* New Auction Bidding Section */}
+                <AuctionBiddingSection auctionId={id || ''} />
               </div>
 
               <div className="flex gap-3">
@@ -337,19 +246,6 @@ const AuctionDetail = (props) => {
                 <h2 className="font-display text-xl font-bold text-foreground mb-4">Opis</h2>
                 <p className="text-muted-foreground leading-relaxed">{auction.description}</p>
               </div>
-
-              <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">Osiągnięcia</h2>
-                <div className="flex items-center gap-3">
-                  <Trophy className="w-8 h-8 text-gold" />
-                  <div>
-                    <p className="font-medium text-foreground">{auction.pigeon.achievements}</p>
-                    {wins && (
-                      <p className="text-sm text-gold">{wins} wygranych zawodów</p>
-                    )}
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
@@ -360,8 +256,8 @@ const AuctionDetail = (props) => {
                   <p className="font-medium text-foreground">{auction.pigeon.bloodline}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Wiek</p>
-                  <p className="font-medium text-foreground">{auction.age} lat</p>
+                  <p className="text-sm text-muted-foreground">Numer obrączki</p>
+                  <p className="font-medium text-foreground">{auction.pigeon.ringNumber || '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Płeć</p>
@@ -372,9 +268,17 @@ const AuctionDetail = (props) => {
                   <p className="font-medium text-foreground">{auction.pigeon.eyeColor}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Umaszczenie</p>
-                  <p className="font-medium text-foreground">{auction.pigeon.featherColor}</p>
+                  <p className="text-sm text-muted-foreground">Kolor</p>
+                  <p className="font-medium text-foreground">{auction.pigeon.color || (auction.pigeon as any).featherColor || '-'}</p>
                 </div>
+                {auction.documents?.[0] && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Zdjęcie rodowodu</p>
+                    <a href={auction.documents[0]} target="_blank" rel="noreferrer" className="mt-2 inline-block">
+                      <img src={auction.documents[0]} alt="Rodowód" className="h-40 w-auto max-w-full rounded-lg border border-white/15 object-contain bg-black/20" />
+                    </a>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-muted-foreground">Witalność</p>
                   <p className="font-medium text-foreground">{auction.pigeon.vitality}</p>
@@ -414,11 +318,21 @@ const AuctionDetail = (props) => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                        {bid.bidder.firstName[0]}{bid.bidder.lastName[0]}
+                        {(() => {
+                          const dn = String((bid as any)?.bidder?.displayName || '').trim();
+                          const first = String((bid as any)?.bidder?.firstName || '').trim();
+                          const last = String((bid as any)?.bidder?.lastName || '').trim();
+                          const source = dn || `${first} ${last}`.trim();
+                          const parts = source.split(/\s+/).filter(Boolean);
+                          const a = (parts[0]?.[0] || '').toUpperCase();
+                          const b = (parts[1]?.[0] || parts[0]?.[1] || '').toUpperCase();
+                          return `${a}${b}` || '?';
+                        })()}
                       </div>
                       <div>
                         <p className="font-medium text-foreground">
-                          {bid.bidder.firstName} {bid.bidder.lastName}
+                          {String((bid as any)?.bidder?.displayName || '').trim() ||
+                            `${bid.bidder.firstName} ${bid.bidder.lastName}`.trim()}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(bid.createdAt).toLocaleString('pl-PL')}

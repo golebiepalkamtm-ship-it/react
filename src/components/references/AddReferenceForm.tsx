@@ -1,8 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Camera, MapPin, MessageSquare, Plus, Star, Trophy, User, X } from 'lucide-react';
+import { AlertCircle, Calendar, Camera, MapPin, MessageSquare, Plus, Star, Trophy, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { referencesService } from '@/services/referencesService';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProfileVerification } from '@/hooks/useProfileVerification';
 
 interface Achievement {
   pigeon: string;
@@ -20,6 +23,11 @@ interface AddReferenceFormProps {
 }
 
 export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps) {
+  const { user, loading } = useAuth();
+  const { canBid, missingFields } = useProfileVerification();
+  const canAddReference = !!canBid;
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     breederName: '',
     location: '',
@@ -41,17 +49,32 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  // Maintain a single object URL for the selected image and revoke it when
+  // the image changes or the component unmounts to avoid leaking blob URLs.
   useEffect(() => {
+    if (!image) {
+      setImagePreview(null);
+      return;
+    }
+
+    let url: string | null = null;
+    try {
+      url = URL.createObjectURL(image);
+      setImagePreview(url);
+    } catch (err) {
+      setImagePreview(null);
+    }
+
     return () => {
-      if (imagePreview) {
+      if (url) {
         try {
-          URL.revokeObjectURL(imagePreview);
+          URL.revokeObjectURL(url);
         } catch (err) {
-          // ignore parse errors from optional fields
+          // ignore
         }
       }
     };
-  }, [imagePreview]);
+  }, [image]);
 
   // Sprawdź czy przeglądarka obsługuje input[type=date]
   useEffect(() => {
@@ -150,6 +173,20 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      const msg = 'Aby dodać referencję, musisz być zalogowany.';
+      setError(msg);
+      toast.error(msg);
+      navigate('/register?callbackUrl=/references');
+      return;
+    }
+    if (!canAddReference) {
+      const msg = 'Aby dodać referencję, musisz uzupełnić dane profilu.';
+      setError(msg);
+      toast.error(msg);
+      navigate('/complete-profile');
+      return;
+    }
     // simple client-side validation
     if ((formData.testimonial ?? '').trim().length < 20) {
       const msg = 'Opinia jest za krótka — podaj co najmniej 20 znaków.';
@@ -245,164 +282,200 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
         )}
       </AnimatePresence>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Podstawowe informacje */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-3"
-        >
-          <div>
-            <label className="block text-xs font-medium text-white mb-1">
-              <User className="w-3 h-3 inline mr-1" />
-              Imię i nazwisko
-            </label>
-            <input
-              type="text"
-              value={formData.breederName}
-              onChange={e => handleInputChange('breederName', e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
-              placeholder="Imię Nazwisko"
-              required
-            />
+      {loading ? (
+        <div className="min-h-[200px] flex items-center justify-center">
+          <div className="bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-2xl p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4" />
+            <p className="text-lg text-foreground">Sprawdzanie autoryzacji...</p>
           </div>
-
-          <div>
-            <label className="block text-xs font-medium text-white mb-1">
-              <MapPin className="w-3 h-3 inline mr-1" />
-              Lokalizacja
-            </label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={e => handleInputChange('location', e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
-              placeholder="Miasto"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-white mb-1">
-              <Calendar className="w-3 h-3 inline mr-1" />
-              Doświadczenie
-            </label>
-            <input
-              type="text"
-              value={formData.experience}
-              onChange={e => handleInputChange('experience', e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
-              placeholder="np. 10 lat"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-white mb-1">
-              <Star className="w-3 h-3 inline mr-1" />
-              Ocena
-            </label>
-            <select
-              value={formData.rating}
-              onChange={e => handleInputChange('rating', parseInt(e.target.value))}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
-              aria-label="Ocena hodowcy od 1 do 5"
-              title="Wybierz ocenę od 1 do 5"
-            >
-              {[1, 2, 3, 4, 5].map(rating => (
-                <option key={rating} value={rating}>
-                  {rating} {rating === 1 ? 'gwiazdka' : 'gwiazdki'}
-                </option>
-              ))}
-            </select>
-          </div>
-        </motion.div>
-
-        {/* Testimonial */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <label className="block text-xs font-medium text-white mb-1">
-            <MessageSquare className="w-4 h-4 inline mr-2" />
-            Opinia hodowcy
-          </label>
-          <textarea
-            value={formData.testimonial}
-            onChange={e => handleInputChange('testimonial', e.target.value)}
-            rows={2}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30 resize-none"
-            placeholder="Opisz swoje doświadczenia z gołębiami..."
-            required
-          />
-          <div className="flex items-center justify-between mt-1">
-            <div className="text-xs text-muted-foreground">{formData.testimonial.length} znaków</div>
-            <div className="text-xs text-muted-foreground">min. 20</div>
-          </div>
-        </motion.div>
-
-        {/* File Upload */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="hidden"
-        >
-          <label className="block text-xs font-medium text-white mb-1">
-            <Camera className="w-4 h-4 inline mr-2" />
-            Zdjęcie gołębia (opcjonalnie)
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => {
-              const f = e.target.files && e.target.files[0];
-              if (f) {
-                setImage(f);
-                try {
-                  const url = URL.createObjectURL(f);
-                  setImagePreview(url);
-                } catch {
-                  setImagePreview(null);
-                }
-              } else {
-                setImage(null);
-                setImagePreview(null);
-              }
-            }}
-            className="w-full text-sm text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
-            aria-label="Wybierz zdjęcie gołębia"
-            title="Wybierz zdjęcie gołębia (opcjonalnie)"
-            placeholder="Brak wybranego pliku"
-          />
-          <AnimatePresence>
-            {image && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="mt-4"
-              >
-                <div className="w-48 h-48 rounded-lg overflow-hidden border border-white/20 shadow-xl hover:border-gold/40 transition-all duration-300 hover:shadow-gold/20">
-                  <img
-                    src={imagePreview ?? URL.createObjectURL(image)}
-                    alt="Podgląd zdjęcia"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
+        </div>
+      ) : user ? (
+        !canAddReference ? (
+          <div className="mb-6 p-4 bg-gold/10 border border-gold/25 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-gold" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-foreground">
+                  <strong>Weryfikacja profilu wymagana</strong>
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Aby dodać referencję, musisz uzupełnić dane w profilu i zweryfikować numer telefonu.
+                </p>
+                {missingFields.length > 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Brakujące pola: {missingFields.join(', ')}
+                  </p>
+                )}
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/complete-profile')}
+                    className="font-medium underline text-gold hover:text-gold-light"
+                  >
+                    Uzupełnij profil
+                  </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Podstawowe informacje */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-4 gap-3"
+            >
+              <div>
+                <label className="block text-xs font-medium text-white mb-1">
+                  <User className="w-3 h-3 inline mr-1" />
+                  Imię i nazwisko
+                </label>
+                <input
+                  type="text"
+                  value={formData.breederName}
+                  onChange={e => handleInputChange('breederName', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
+                  placeholder="Imię Nazwisko"
+                  required
+                />
+              </div>
 
-        {/* Osiągnięcia */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
+              <div>
+                <label className="block text-xs font-medium text-white mb-1">
+                  <MapPin className="w-3 h-3 inline mr-1" />
+                  Lokalizacja
+                </label>
+                <input
+                  type="text"
+                  value={formData.location}
+                  onChange={e => handleInputChange('location', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
+                  placeholder="Miasto"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white mb-1">
+                  <Calendar className="w-3 h-3 inline mr-1" />
+                  Doświadczenie
+                </label>
+                <input
+                  type="text"
+                  value={formData.experience}
+                  onChange={e => handleInputChange('experience', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
+                  placeholder="np. 10 lat"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white mb-1">
+                  <Star className="w-3 h-3 inline mr-1" />
+                  Ocena
+                </label>
+                <select
+                  value={formData.rating}
+                  onChange={e => handleInputChange('rating', parseInt(e.target.value))}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30"
+                  aria-label="Ocena hodowcy od 1 do 5"
+                  title="Wybierz ocenę od 1 do 5"
+                >
+                  {[1, 2, 3, 4, 5].map(rating => (
+                    <option key={rating} value={rating}>
+                      {rating} {rating === 1 ? 'gwiazdka' : 'gwiazdki'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </motion.div>
+
+            {/* Testimonial */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <label className="block text-xs font-medium text-white mb-1">
+                <MessageSquare className="w-4 h-4 inline mr-2" />
+                Opinia hodowcy
+              </label>
+              <textarea
+                value={formData.testimonial}
+                onChange={e => handleInputChange('testimonial', e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15 hover:border-white/30 resize-none"
+                placeholder="Opisz swoje doświadczenia z gołębiami..."
+                required
+              />
+              <div className="flex items-center justify-between mt-1">
+                <div className="text-xs text-muted-foreground">{formData.testimonial.length} znaków</div>
+                <div className="text-xs text-muted-foreground">min. 20</div>
+              </div>
+            </motion.div>
+
+            {/* File Upload */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="hidden"
+            >
+              <label className="block text-xs font-medium text-white mb-1">
+                <Camera className="w-4 h-4 inline mr-2" />
+                Zdjęcie gołębia (opcjonalnie)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => {
+                  const f = e.target.files && e.target.files[0];
+                  if (f) {
+                    setImage(f);
+                  } else {
+                    setImage(null);
+                  }
+                }}
+                className="w-full text-sm text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
+                aria-label="Wybierz zdjęcie gołębia"
+                title="Wybierz zdjęcie gołębia (opcjonalnie)"
+                placeholder="Brak wybranego pliku"
+              />
+              <AnimatePresence>
+                {image && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="mt-4"
+                  >
+                    <div className="w-48 h-48 rounded-lg overflow-hidden border border-white/20 shadow-xl hover:border-gold/40 transition-all duration-300 hover:shadow-gold/20">
+                      {imagePreview ? (
+                        <img
+                          src={imagePreview}
+                          alt="Podgląd zdjęcia"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">Brak podglądu</div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Osiągnięcia */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-display font-bold text-sm md:text-base text-white">
               <Trophy className="w-5 h-5 inline mr-2 text-gold" />
@@ -639,8 +712,24 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
               </>
             )}
           </motion.button>
-        </motion.div>
-      </form>
+            </motion.div>
+          </form>
+        )
+      ) : (
+        <div className="text-center py-8">
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Dołącz do naszej społeczności!</h2>
+          <p className="text-muted-foreground text-lg mb-6 max-w-md mx-auto">
+            Aby dodać referencję, musisz być zalogowanym użytkownikiem.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/register?callbackUrl=/references')}
+            className="px-6 py-4 bg-linear-to-r from-gold to-gold-light text-navy font-semibold rounded-xl transition-opacity duration-200 hover:opacity-90"
+          >
+            Zaloguj się lub Zarejestruj
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 }

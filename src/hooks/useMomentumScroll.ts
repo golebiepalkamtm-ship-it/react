@@ -30,6 +30,7 @@ export const useMomentumScroll = (options: UseMomentumScrollOptions = {}) => {
   const lastPosRef = useRef(0);
   const isDraggingRef = useRef(false);
   const rafRef = useRef<number>();
+  const animateRef = useRef<() => void>(() => {});
 
   // Funkcja clamp dla ograniczenia pozycji
   const clamp = (value: number, min: number, max: number) =>
@@ -60,7 +61,7 @@ export const useMomentumScroll = (options: UseMomentumScrollOptions = {}) => {
       isDragging: isDraggingRef.current,
     });
 
-    rafRef.current = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(() => animateRef.current());
   }, [friction, bounds]);
 
   // Event handlers
@@ -95,7 +96,8 @@ export const useMomentumScroll = (options: UseMomentumScrollOptions = {}) => {
   }, []);
 
   useEffect(() => {
-    rafRef.current = requestAnimationFrame(animate);
+    animateRef.current = animate;
+    rafRef.current = requestAnimationFrame(() => animateRef.current());
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };

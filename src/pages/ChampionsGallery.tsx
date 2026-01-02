@@ -28,49 +28,44 @@ const ChampionModal = ({ champion, onClose }: ChampionModalProps) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-black flex"
       onClick={onClose}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/90 backdrop-blur-md" />
+      {/* Image Area - takes remaining space */}
+      <div className="flex-1 relative h-full bg-black/90 flex items-center justify-center overflow-hidden">
+        <img
+          src={champion.image}
+          alt={champion.name}
+          className="max-w-full max-h-full object-contain"
+        />
+        
+        {/* Badge */}
+        <div className="absolute top-8 left-8 flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-gold/40">
+          <Trophy className="w-5 h-5 text-gold" />
+          <span className="text-base font-medium text-gold">Champion</span>
+        </div>
+      </div>
 
-      {/* Modal */}
+      {/* Sidebar - fixed width */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl border border-border shadow-2xl"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        className="w-full md:w-[450px] h-full bg-card border-l border-border overflow-y-auto relative shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-muted/80 hover:bg-muted transition-colors"
+          className="absolute top-6 right-6 z-10 p-2 rounded-full bg-muted/80 hover:bg-muted transition-colors"
           aria-label="Zamknij"
         >
           <X className="w-5 h-5 text-muted-foreground" />
         </button>
 
-        <div className="grid md:grid-cols-2 gap-0">
-          {/* Image */}
-          <div className="relative h-64 md:h-auto md:min-h-[500px]">
-            <img
-              src={champion.image}
-              alt={champion.name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent md:bg-gradient-to-r" />
-
-            {/* Badge */}
-            <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-card/80 backdrop-blur-sm rounded-full border border-gold/40">
-              <Trophy className="w-4 h-4 text-gold" />
-              <span className="text-sm font-medium text-gold">Champion</span>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="p-8">
+        {/* Content */}
+        <div className="p-8 pt-16">
             <h2 className="text-3xl font-bold font-display text-foreground mb-2">{champion.name}</h2>
             <p className="text-primary text-lg mb-6">{champion.title}</p>
 
@@ -142,7 +137,6 @@ const ChampionModal = ({ champion, onClose }: ChampionModalProps) => {
               </div>
             </div>
           </div>
-        </div>
       </motion.div>
     </motion.div>
   );
