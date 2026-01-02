@@ -80,7 +80,7 @@ export async function supabaseRpc<T>(
     throw new SupabaseRestError({ status: response.status, body: parseErrorBody(rawText), rawText });
   }
 
-  const data = rawText ? JSON.parse(rawText) : null;
+  const data = rawText && rawText.trim() ? JSON.parse(rawText) : null;
   return schema.parse(data);
 }
 

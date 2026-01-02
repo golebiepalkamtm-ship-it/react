@@ -77,7 +77,10 @@ export default function Auth(props) {
     setIsOAuthSubmitting(true);
     setError(null);
     try {
-      if (!supabase) throw new Error("Supabase not configured");
+      if (!supabase) {
+        console.error("Supabase not configured");
+        throw new Error("Supabase not configured");
+      }
 
       const redirectTo = `${window.location.origin.replace(/\/$/, '')}/auth`;
       const { error } = await supabase.auth.signInWithOAuth({

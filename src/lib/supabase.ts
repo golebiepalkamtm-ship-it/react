@@ -5,61 +5,74 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Walidacja zmiennych środowiskowych
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase environment variables are missing: VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY');
-}
-
-// Logowanie debugowania w trybie deweloperskim, aby pomóc w weryfikacji zmiennych środowiskowych
-if (import.meta.env.DEV) {
-  console.log('Supabase Initialized:', {
-    url: supabaseUrl,
-    storage: 'Cookies with SameSite=Lax (for better third-party support)',
-    siteUrl: import.meta.env.VITE_SITE_URL || 'window.location.origin',
+  console.error('Supabase environment variables are missing:', {
+    VITE_SUPABASE_URL: supabaseUrl ? 'present' : 'MISSING',
+    VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? 'present' : 'MISSING'
   });
+  // Instead of throwing, create a mock client to prevent crashes
+  const mockSupabase = {
+    auth: { getUser: () => Promise.resolve({ data: { user: null }, error: null }) },
+    from: () => ({ select: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }) }),
+    channel: () => ({ on: () => ({ subscribe: () => {} }), removeChannel: () => {} }),
+  };
+  export { mockSupabase as supabase };
+} else {
+
+export { mockSupabase as supabase };
+} else {
+  // Logowanie debugowania w trybie deweloperskim, aby pomóc w weryfikacji zmiennych środowiskowych
+  if (import.meta.env.DEV) {
+    console.log('Supabase Initialized:', {
+      url: supabaseUrl,
+      storage: 'Cookies with SameSite=Lax (for better third-party support)',
+      siteUrl: import.meta.env.VITE_SITE_URL || 'window.location.origin',
+    });
+  }
+
+  // Custom storage używający cookies zamiast localStorage dla lepszej obsługi third-party
+  const cookieStorage = {
+    getItem: (key: string): string | null => {
+      try {
+        const value = document.cookie
+          .split('; ')
+          .find(row => row.startsWith(`${key}=`))
+          ?.split('=')[1];
+        return value ? decodeURIComponent(value) : null;
+      } catch {
+        return null;
+      }
+    },
+    setItem: (key: string, value: string): void => {
+      try {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 dni
+        document.cookie = `${key}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax; Secure`;
+      } catch {
+        // fallback do localStorage jeśli cookies nie działają
+        localStorage.setItem(key, value);
+      }
+    },
+    removeItem: (key: string): void => {
+      try {
+        document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax; Secure`;
+      } catch {
+        localStorage.removeItem(key);
+      }
+    },
+  };
+
+  // Klient Supabase z włączoną trwałością sesji
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true, // Trwałość sesji
+      autoRefreshToken: true, // Automatyczne odświeżanie tokenów
+      detectSessionInUrl: true, // Obsługa przekierowań OAuth
+      storage: cookieStorage, // Używaj cookies zamiast localStorage
+    },
+  });
+
+  export { supabase };
 }
-
-// Custom storage używający cookies zamiast localStorage dla lepszej obsługi third-party
-const cookieStorage = {
-  getItem: (key: string): string | null => {
-    try {
-      const value = document.cookie
-        .split('; ')
-        .find(row => row.startsWith(`${key}=`))
-        ?.split('=')[1];
-      return value ? decodeURIComponent(value) : null;
-    } catch {
-      return null;
-    }
-  },
-  setItem: (key: string, value: string): void => {
-    try {
-      const expires = new Date();
-      expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 dni
-      document.cookie = `${key}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax; Secure`;
-    } catch {
-      // fallback do localStorage jeśli cookies nie działają
-      localStorage.setItem(key, value);
-    }
-  },
-  removeItem: (key: string): void => {
-    try {
-      document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax; Secure`;
-    } catch {
-      localStorage.removeItem(key);
-    }
-  },
-};
-
-// Klient Supabase z włączoną trwałością sesji
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true, // Trwałość sesji
-    autoRefreshToken: true, // Automatyczne odświeżanie tokenów
-    detectSessionInUrl: true, // Obsługa przekierowań OAuth
-    storage: cookieStorage, // Używaj cookies zamiast localStorage
-  },
-});
-
-export { supabase };
 
 // Database types
 export interface Auction {
