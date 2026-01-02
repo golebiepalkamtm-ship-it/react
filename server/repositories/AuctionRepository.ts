@@ -91,7 +91,38 @@ export class AuctionRepository {
     // Limit
     if (filter.limit) url.searchParams.set('limit', String(filter.limit));
 
-    const dbAuctions = await this.supabaseJson<any[]>(url.toString(), { method: 'GET' }) || [];
+    let dbAuctions: any[] = [];
+    try {
+      dbAuctions = await this.supabaseJson<any[]>(url.toString(), { method: 'GET' }) || [];
+    } catch (err: any) {
+      // If the view doesn't exist in Supabase (PGRST205), fall back to the base auctions table.
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes("pgrst205") || msg.includes('could not find the table') || msg.includes('active_auctions_summary')) {
+        const fallbackUrl = new URL(`${this.supabaseUrl}/rest/v1/auctions`);
+        // select overlapping fields (summary-specific fields like bids_count may be missing)
+        const fallbackFields = [
+          'id', 'title', 'description', 'owner_id', 'starting_price', 'current_price',
+          'buy_now_price', 'reserve_price', 'reserve_met', 'ends_at', 'status',
+          'category', 'pigeon', 'age', 'sex', 'location', 'images', 'videos', 'documents',
+          'snipe_threshold_minutes', 'snipe_extension_minutes', 'min_bid_increment',
+          'created_at', 'updated_at'
+        ];
+        fallbackUrl.searchParams.set('select', fallbackFields.join(','));
+        // preserve filters from original URL
+        for (const [k, v] of url.searchParams) {
+          if (!fallbackUrl.searchParams.has(k)) fallbackUrl.searchParams.set(k, v);
+        }
+        try {
+          dbAuctions = await this.supabaseJson<any[]>(fallbackUrl.toString(), { method: 'GET' }) || [];
+        } catch (innerErr) {
+          // If fallback also fails, log and continue with empty list
+          console.error('AuctionRepository: fallback fetch failed', innerErr);
+          dbAuctions = [];
+        }
+      } else {
+        throw err;
+      }
+    }
 
     // Fetch owners
     const ownerIds = Array.from(new Set(dbAuctions.map((a) => a?.owner_id).filter(Boolean)));

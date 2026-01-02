@@ -22,6 +22,9 @@ const __dirname = path.dirname(__filename);
 
 // Security & middleware
 app.use(helmet());
+// Trust proxy (Render/Heroku/etc)
+app.set('trust proxy', 1);
+
 // Allow requests from configured client URL, plus any local dev host used by the developer.
 const allowedOrigins = [
   'http://localhost:5173',

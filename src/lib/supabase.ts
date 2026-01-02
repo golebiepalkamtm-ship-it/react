@@ -3,13 +3,19 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-let supabase: any = null;
-
-if (supabaseUrl && supabaseAnonKey) {
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
-} else {
-  console.warn('Missing Supabase environment variables - Supabase features will be disabled');
+// Walidacja zmiennych środowiskowych
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase environment variables are missing: VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY');
 }
+
+// Klient Supabase z włączoną trwałością sesji
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true, // Trwałość sesji
+    autoRefreshToken: true, // Automatyczne odświeżanie tokenów
+    detectSessionInUrl: true, // Obsługa przekierowań OAuth
+  },
+});
 
 export { supabase };
 

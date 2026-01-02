@@ -1,0 +1,19 @@
+HTTP/1.1 404 Not Found
+Date: Fri, 02 Jan 2026 13:13:50 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 19
+Connection: keep-alive
+Server: cloudflare
+CF-Ray: 9b7a841c88b8e5d6-WAW
+CF-Cache-Status: DYNAMIC
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Vary: Origin
+sb-gateway-version: 1
+sb-project-ref: nctvwxiqzbedgcmetyal
+sb-request-id: 019b7ed7-cde0-7a9b-9768-80b5aace1f28
+x-content-type-options: nosniff
+x-envoy-attempt-count: 1
+x-envoy-upstream-service-time: 57
+Set-Cookie: __cf_bm=PIWKg.l12wiiBbs.MicGZSJX1.Xvyupl1Lc6Go29jRw-1767359630-1.0.1.1-M1FTCekqnvQW9wyqNw6ShNnD_coE6bke7uwMYnHv31JnCgbmzQ88oZ6ldSbEI0Kf3tbvXxu1iKIkJ1ThrzJlrSkzU6GIY15cBlVQNLHEsMA; path=/; expires=Fri, 02-Jan-26 13:43:50 GMT; domain=.supabase.co; HttpOnly; Secure; SameSite=None
+alt-svc: h3=":443"; ma=86400
+
