@@ -31,15 +31,9 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: champion-pigeon-api
-          property: url
+        value: https://champion-pigeon-api.onrender.com/api
       - key: VITE_WS_URL
-        fromService:
-          type: web
-          name: champion-pigeon-api
-          property: url
+        value: https://champion-pigeon-api.onrender.com
     routes:
       - type: rewrite
         source: "/*"
