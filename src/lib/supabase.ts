@@ -4,18 +4,42 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Walidacja zmiennych środowiskowych
+let supabase: any;
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Supabase environment variables are missing:', {
     VITE_SUPABASE_URL: supabaseUrl ? 'present' : 'MISSING',
     VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? 'present' : 'MISSING'
   });
   // Instead of throwing, create a mock client to prevent crashes
-  const mockSupabase = {
-    auth: { getUser: () => Promise.resolve({ data: { user: null }, error: null }) },
-    from: () => ({ select: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }) }),
-    channel: () => ({ on: () => ({ subscribe: () => {} }), removeChannel: () => {} }),
+  supabase = {
+    auth: {
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      signUp: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      signInWithPassword: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      signInWithOAuth: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      signOut: () => Promise.resolve({ error: null }),
+      signInWithOtp: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+      verifyOtp: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      resend: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+    },
+    from: () => ({
+      select: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      insert: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      update: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      delete: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      eq: function() { return this; },
+      order: function() { return this; },
+      single: function() { return this; },
+    }),
+    channel: () => ({
+      on: () => ({
+        subscribe: () => {},
+      }),
+      removeChannel: () => {},
+    }),
   };
-  export { mockSupabase as supabase };
 } else {
 
 export { mockSupabase as supabase };
@@ -62,7 +86,7 @@ export { mockSupabase as supabase };
   };
 
   // Klient Supabase z włączoną trwałością sesji
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true, // Trwałość sesji
       autoRefreshToken: true, // Automatyczne odświeżanie tokenów
@@ -70,9 +94,9 @@ export { mockSupabase as supabase };
       storage: cookieStorage, // Używaj cookies zamiast localStorage
     },
   });
-
-  export { supabase };
 }
+
+export { supabase };
 
 // Database types
 export interface Auction {
