@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon --watch . --ext ts --exec \"tsx\" index.ts",
     "create-admin": "node ./scripts/create-admin.js",
-    "build": "npx prisma generate && tsc",
+    "build": "npx prisma generate --schema=../prisma/schema.prisma && tsc",
     "start": "node dist/server/index.js",
     "type-check": "tsc --noEmit"
   },
