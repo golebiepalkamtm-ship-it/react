@@ -10,21 +10,13 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://champion-pigeon-auctions-backend.onrender.com/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_SUPABASE_URL": "@supabase-url",
-    "VITE_SUPABASE_ANON_KEY": "@supabase-anon-key",
-    "VITE_API_URL": "https://champion-pigeon-auctions-backend.onrender.com"
-  },
+  ]
+}
   "functions": {
     "src/pages/api/**/*.js": {
       "runtime": "nodejs20.x"
