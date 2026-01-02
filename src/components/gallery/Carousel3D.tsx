@@ -407,6 +407,26 @@ export const Carousel3D = () => {
           onError={(error) => {
             console.error('Canvas error:', error);
           }}
+          onCreated={({ gl }) => {
+            // Obsługa utraty kontekstu WebGL
+            const canvas = gl.domElement;
+            const handleContextLoss = (event: Event) => {
+              event.preventDefault();
+              console.warn('WebGL context lost, attempting to restore...');
+              // Tutaj można dodać logikę odtworzenia sceny
+            };
+            const handleContextRestore = () => {
+              console.log('WebGL context restored');
+              // Tutaj można odświeżyć scenę
+            };
+            canvas.addEventListener('webglcontextlost', handleContextLoss);
+            canvas.addEventListener('webglcontextrestored', handleContextRestore);
+            
+            return () => {
+              canvas.removeEventListener('webglcontextlost', handleContextLoss);
+              canvas.removeEventListener('webglcontextrestored', handleContextRestore);
+            };
+          }}
         >
           <ambientLight intensity={0.6} />
           <pointLight position={[10, 10, 10]} intensity={0.8} />

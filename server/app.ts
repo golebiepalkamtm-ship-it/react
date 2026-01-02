@@ -14,6 +14,7 @@ import adminRoutes from './routes/admin.js';
 import twilioRoutes from './routes/twilio.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { authMiddleware } from './middleware/auth.js';
+import { cspMiddleware } from './middleware/csp.js';
 
 const app = express();
 
@@ -22,6 +23,7 @@ const __dirname = path.dirname(__filename);
 
 // Security & middleware
 app.use(helmet());
+app.use(cspMiddleware);
 // Trust proxy (Render/Heroku/etc)
 app.set('trust proxy', 1);
 

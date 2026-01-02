@@ -15,11 +15,16 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
-}
-  "functions": {
-    "src/pages/api/**/*.js": {
-      "runtime": "nodejs20.x"
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://nctvwxiqzbedgcmetyal.supabase.co https://*.supabase.co wss://*.supabase.co; frame-src 'self' https://www.google.com https://accounts.google.com;"
+        }
+      ]
     }
-  }
+  ]
 }
