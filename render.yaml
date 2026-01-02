@@ -40,6 +40,10 @@ services:
           type: web
           name: champion-pigeon-api
           property: url
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
 
 databases:
   - name: champion-pigeon-db
