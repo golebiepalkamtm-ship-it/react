@@ -1,19 +1,50 @@
 services:
   - type: web
-    name: champion-pigeon-backend
+    name: champion-pigeon-api
     env: node
-    root: server
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    region: oregon
+    rootDir: .
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && npm run start
     envVars:
-      - key: NODE_VERSION
-        value: 20
+      - key: NODE_ENV
+        value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: champion-pigeon-db
+          property: connectionString
       - key: SUPABASE_URL
         sync: false
-      - key: SUPABASE_SERVICE_KEY
+      - key: SUPABASE_ANON_KEY
         sync: false
-      - key: CLIENT_URL
+      - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: PORT
+        value: 10000
+
+  - type: static
+    name: champion-pigeon-web
+    env: static
+    rootDir: .
+    buildCommand: npm install && npm run build:client
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: champion-pigeon-api
+          property: url
+      - key: VITE_WS_URL
+        fromService:
+          type: web
+          name: champion-pigeon-api
+          property: url
+
+databases:
+  - name: champion-pigeon-db
+    databaseName: champion_pigeon
+    user: champion_pigeon
+    plan: free
+    region: oregon
+    ipAllowList: [] # Allow all IPs for simplicity, or restrict if needed
