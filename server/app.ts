@@ -23,7 +23,16 @@ const __dirname = path.dirname(__filename);
 // Security & middleware
 app.use(helmet());
 // Allow requests from configured client URL, plus any local dev host used by the developer.
-const allowedOrigins = [process.env.CLIENT_URL || 'http://localhost:5173', 'http://169.254.253.118:8080'];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000',
+  'http://localhost:10000',
+  'https://champion-pigeon-auctions.vercel.app',
+  'https://champion-pigeon-web.onrender.com',
+  'https://palkamtm.pl',
+  'https://www.palkamtm.pl'
+];
 app.use(cors({ 
   origin: (origin, callback) => {
     // allow requests with no origin (e.g. curl, mobile)
@@ -164,6 +173,9 @@ app.use('/api/twilio', twilioRoutes);
 // Breeder meetings endpoint (Supabase REST with JSON fallback)
 app.get('/api/breeder-meetings', async (req: Request, res: Response) => {
   try {
+    const allMeetings: any[] = [];
+    
+    // 1. Try to fetch from Supabase
     const admin = getSupabaseAdminConfig();
     if (admin) {
       const headers = {
@@ -174,32 +186,55 @@ app.get('/api/breeder-meetings', async (req: Request, res: Response) => {
       const rows = await supabaseJson<any[]>(
         `${admin.supabaseUrl}/rest/v1/meetings?select=*`,
         { method: 'GET', headers }
-      ).catch(() => []);
-      return res.json(rows || []);
-    }
-    const publicDir = resolveRepoPublicDir();
-    const baseDir = path.join(publicDir, 'meetings-with-breeders');
-    const dirents = await fs.promises.readdir(baseDir, { withFileTypes: true }).catch(() => []);
-    const meetings = [];
-    for (const d of dirents) {
-      if (!d.isDirectory()) continue;
-      const folderName = d.name;
-      const folderFs = path.join(baseDir, folderName);
-      const files = await fs.promises.readdir(folderFs).catch(() => []);
-      const images = files
-        .filter((f) => /\.(jpe?g|png|webp)$/i.test(f))
-        .map((f) => `/meetings-with-breeders/${folderName}/${f}`);
-      if (images.length === 0) continue;
-      meetings.push({
-        id: `static-${encodeURIComponent(folderName)}`,
-        name: folderName,
-        location: null,
-        date: null,
-        description: null,
-        images,
+      ).catch((err) => {
+        console.error('Supabase fetch error:', err);
+        return [];
       });
+      if (Array.isArray(rows)) {
+        allMeetings.push(...rows);
+      }
     }
-    res.json(meetings);
+
+    // 2. Always fetch from file system (static meetings)
+    try {
+      const publicDir = resolveRepoPublicDir();
+      const baseDir = path.join(publicDir, 'meetings-with-breeders');
+      const dirents = await fs.promises.readdir(baseDir, { withFileTypes: true }).catch(() => []);
+      
+      for (const d of dirents) {
+        if (!d.isDirectory()) continue;
+        const folderName = d.name;
+        const folderFs = path.join(baseDir, folderName);
+        const files = await fs.promises.readdir(folderFs).catch(() => []);
+        const images = files
+          .filter((f) => /\.(jpe?g|png|webp)$/i.test(f))
+          .map((f) => `/meetings-with-breeders/${folderName}/${f}`);
+        
+        if (images.length === 0) continue;
+        
+        // Check if this meeting already exists in DB results (by name fuzzy match or ID)
+        // Ideally we assume static ones are unique or legacy. 
+        // We'll add them with a distinct ID prefix.
+        const staticId = `static-${encodeURIComponent(folderName)}`;
+        
+        // Optional: Avoid duplicates if name matches? 
+        // For now, let's just append. The frontend handles display.
+        
+        allMeetings.push({
+          id: staticId,
+          name: folderName,
+          location: null, // Static folders don't have metadata easily accessible unless we parse something
+          date: null,
+          description: null,
+          images,
+          isStatic: true 
+        });
+      }
+    } catch (fsError) {
+      console.warn('File system scan failed:', fsError);
+    }
+
+    return res.json(allMeetings);
   } catch (error) {
     console.error('Error reading meetings data:', error);
     res.status(500).json({ error: 'Failed to load meetings data' });
