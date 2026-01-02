@@ -17,7 +17,7 @@
 - **Backend**: REST API w Node.js/Express
 - **Baza danych**: Supabase (PostgreSQL)
 - **Autoryzacja**: Supabase Auth
-- **Hosting**: Vercel (frontend), osobny serwer (backend)
+- **Hosting**: Render (frontend + backend)
 
 ## 2. Struktura katalogów i plików
 
@@ -187,24 +187,19 @@ VITE_API_URL=http://localhost:8000/api
 - Chunkowanie: react, three, framer-motion
 - Aliasy: @ → src, @shared → shared
 
-### Vercel config (vercel.json):
-```json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
-}
+### Render config (render.yaml):
+```yaml
+services:
+  - type: web
+    name: champion-pigeon-web
+    env: static
+    buildCommand: npm install && npm run build:client
+    staticPublishPath: ./dist
+  - type: web
+    name: champion-pigeon-api
+    env: node
+    buildCommand: npm install && cd server && npm install && npm run build
+    startCommand: cd server && npm run start
 ```
 
 ## 8. Technologie i biblioteki
@@ -256,7 +251,7 @@ npm start                      # produkcja
 ## 10. Deployment i konfiguracja produkcyjna
 
 ### Architektura deploymentu:
-- **Frontend**: Vercel (CDN, static hosting)
+- **Frontend**: Render (static hosting)
 - **Backend**: Render (Web Service z Node.js)
 - **Baza danych**: Supabase (PostgreSQL)
 - **Storage**: Supabase Storage (zdjęcia aukcji)
@@ -270,17 +265,20 @@ cp .env.production.example .env.production
 # Wypełnij rzeczywiste wartości w .env.production
 ```
 
-#### 2. Konfiguracja Vercel (Frontend):
-```bash
-npm i -g vercel
-vercel login
-vercel --prod
-```
+#### 2. Konfiguracja Render (Frontend):
+1. Przejdź do [render.com](https://render.com)
+2. Połącz repozytorium GitHub
+3. Utwórz nowy **Static Site**
+4. Skonfiguruj:
+   - **Build Command**: `npm install && npm run build:client`
+   - **Publish Directory**: `dist`
 
-**Zmienne środowiskowe Vercel:**
+**Zmienne środowiskowe Render (Frontend):**
 - `VITE_SUPABASE_URL` - URL projektu Supabase
 - `VITE_SUPABASE_ANON_KEY` - Klucz anonimowy Supabase
-- `VITE_API_URL` - URL backendu (https://champion-pigeon-auctions-backend.onrender.com)
+- `VITE_API_URL` - URL backendu (https://champion-pigeon-api.onrender.com/api)
+- `VITE_WS_URL` - URL WebSocket (https://champion-pigeon-api.onrender.com)
+- `VITE_SITE_URL` - URL strony (https://palkamtm.pl)
 
 #### 3. Konfiguracja Render (Backend):
 1. Przejdź do [render.com](https://render.com)
@@ -302,7 +300,7 @@ JWT_SECRET=...
 TWILIO_ACCOUNT_SID=...
 TWILIO_AUTH_TOKEN=...
 TWILIO_PHONE_NUMBER=+48...
-FRONTEND_URL=https://champion-pigeon-auctions.vercel.app
+FRONTEND_URL=https://palkamtm.pl
 ```
 
 #### 4. Konfiguracja Supabase:
@@ -327,11 +325,11 @@ FRONTEND_URL=https://champion-pigeon-auctions.vercel.app
 
 ### CI/CD Pipeline (GitHub Actions):
 
-#### Workflow dla frontendu (deploy-vercel.yml):
+#### Workflow dla frontendu (deploy-render.yml):
 - Uruchamia się na push do `main`
 - Sprawdza linting i typy
 - Buduje aplikację
-- Deployuje na Vercel
+- Deployuje automatycznie na Render
 
 #### Workflow dla backendu (ręczne):
 - Backend wymaga ręcznego setupu na Render
@@ -343,7 +341,7 @@ FRONTEND_URL=https://champion-pigeon-auctions.vercel.app
 - [ ] `npm run typecheck` przechodzi bez błędów
 - [ ] `npm run lint` bez błędów
 - [ ] `npm run build` tworzy katalog `dist`
-- [ ] Wszystkie zmienne środowiskowe skonfigurowane w Vercel
+- [ ] Wszystkie zmienne środowiskowe skonfigurowane w Render
 
 #### Backend:
 - [ ] `npm run build` w katalogu server/ przechodzi
@@ -353,13 +351,13 @@ FRONTEND_URL=https://champion-pigeon-auctions.vercel.app
 
 #### Ogólne:
 - [ ] Domena skonfigurowana (opcjonalnie)
-- [ ] SSL certyfikaty (Vercel automatycznie)
+- [ ] SSL certyfikaty (Render automatycznie)
 - [ ] Backup bazy danych skonfigurowany
 - [ ] Monitoring błędów (np. Sentry)
 
 ### Troubleshooting deploymentu:
 
-#### Problem: Build Vercel nie przechodzi
+#### Problem: Build Render nie przechodzi
 ```bash
 # Sprawdź lokalnie
 npm run build
@@ -388,7 +386,7 @@ npm run lint
 - Code splitting automatycznie skonfigurowany w `vite.config.ts`
 - Chunky: react, three, framer-motion
 - Lazy loading komponentów
-- Optymalizacja obrazów przez Vercel
+- Optymalizacja obrazów przez Vite Image Tools
 
 #### Backend:
 - Rate limiting skonfigurowane
@@ -397,7 +395,7 @@ npm run lint
 - Redis cache (opcjonalnie)
 
 ### Monitoring i logowanie:
-- **Frontend**: Vercel Analytics
+- **Frontend**: Google Analytics lub podobny
 - **Backend**: Render logs + własne logowanie do pliku
 - **Baza**: Supabase dashboard
 - **Errors**: Można dodać Sentry dla błędów produkcyjnych
