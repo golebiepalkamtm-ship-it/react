@@ -171,23 +171,6 @@ const AuctionsPage = () => {
     };
   }, [user, profile, navigate, roleActions]);
 
-  if (isLoading) {
-    return (
-      <section className="pt-16 pb-6">
-        <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
-              Wszystkie <span className="text-gradient-gold">Aukcje</span>
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Ładowanie aukcji...
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <>
       <section className="relative overflow-hidden text-center">
@@ -362,7 +345,15 @@ const AuctionsPage = () => {
             )}
           </div>
 
-          {filteredAuctions.length > 0 && (
+          {isLoading && (
+            <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
+              {Array.from({ length: gridCols * 2 }).map((_, idx) => (
+                <div key={idx} className="h-64 rounded-2xl bg-black/50 border border-white/10 animate-pulse" />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && filteredAuctions.length > 0 && (
             <div className="grid gap-8" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
               {filteredAuctions.map((auction, index) => (
                 <LuxuryAuctionCard
@@ -381,7 +372,7 @@ const AuctionsPage = () => {
             </div>
           )}
 
-          {filteredAuctions.length === 0 && (
+          {!isLoading && filteredAuctions.length === 0 && (
             <div className="py-16">
               <div className="text-center">
                 <p className="text-muted-foreground text-lg mb-4">

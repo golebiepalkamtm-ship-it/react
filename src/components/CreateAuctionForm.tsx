@@ -539,8 +539,8 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
 
       {/* Step 3: Media Upload */}
       {currentStep === 3 && (
-        <div className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4 border-t border-border pt-6">
+        <div className="space-y-4 border-t border-border pt-6">
+          <div className="grid md:grid-cols-3 gap-4">
             <div>
               <h3 className="font-semibold text-foreground mb-4">Zdjęcia gołębia</h3>
               <FileUpload
@@ -562,20 +562,20 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
                 accept="video/*"
               />
             </div>
-          </div>
 
-          <div className="border-t border-border pt-6">
-            <h3 className="font-semibold text-foreground mb-4">Rodowód</h3>
-            <FileUpload
-              files={pedigreeFile ? [pedigreeFile] : []}
-              onFilesChange={(files) => setPedigreeFile(files[0] || null)}
-              maxFiles={1}
-              maxSize={10}
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            />
-            <p className="text-sm text-muted-foreground mt-2">
-              Dodaj rodowód gołębia (PDF, DOC, DOCX, JPG, PNG - max 10MB)
-            </p>
+            <div>
+              <h3 className="font-semibold text-foreground mb-4">Rodowód</h3>
+              <FileUpload
+                files={pedigreeFile ? [pedigreeFile] : []}
+                onFilesChange={(files) => setPedigreeFile(files[0] || null)}
+                maxFiles={1}
+                maxSize={10}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Dodaj rodowód gołębia (PDF, DOC, DOCX, JPG, PNG - max 10MB)
+              </p>
+            </div>
           </div>
         </div>
       )}

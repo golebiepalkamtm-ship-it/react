@@ -3,16 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { auctionService } from '@/services/auctionService';
 import { useSocket } from '@/hooks/useSocket';
 import { useOptimizedToast } from '@/hooks/use-optimized-toast';
-import { AuctionDTO as Auction, BidDTO as Bid } from '../../shared/auctionSerializer';
+import { type Auction, type Bid, type AuctionFilters as ApiAuctionFilters, type AuctionStatus, type AuctionSortBy } from '@/types/auction';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface AuctionFilters {
+type AuctionFilters = Pick<ApiAuctionFilters,
+  'status' | 'sortBy' | 'category' | 'gender' | 'priceMin' | 'priceMax'
+> & {
   searchTerm?: string;
-  priceMin?: number;
-  priceMax?: number;
-  category?: string;
-  gender?: string;
-}
+};
 
 interface UseAuctionsResult {
   auctions: Auction[];
@@ -26,6 +24,10 @@ export function useAuctions(filters: AuctionFilters = {}): UseAuctionsResult {
     queryKey: ['auctions', filters],
     queryFn: () => auctionService.getAuctions(filters),
     staleTime: 30000,
+    retry: false, // brak aukcji == szybka odpowiedź; 500 nie blokuje UI retry'ami
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    placeholderData: [],
   });
 
   return {
