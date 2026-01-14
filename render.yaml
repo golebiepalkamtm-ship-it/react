@@ -10,7 +10,7 @@ services:
       - key: VITE_WS_URL
         value: https://champion-pigeon-api.onrender.com
       - key: VITE_SITE_URL
-        value: https://champion-pigeon-web.onrender.com
+        value: https://www.palkamtm.pl
       - key: VITE_SUPABASE_URL
         value: https://nctvwxiqzbedgcmetyal.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
@@ -40,7 +40,7 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: CLIENT_URL
-        value: https://champion-pigeon-web.onrender.com
+        value: https://www.palkamtm.pl
       - key: JWT_SECRET
         sync: false
       - key: TWILIO_ACCOUNT_SID
