@@ -30,7 +30,6 @@ export const baseAuctionInclude = {
   seller: {
     select: {
       id: true,
-      username: true,
       first_name: true,
       last_name: true,
       email: true,
@@ -57,7 +56,6 @@ export const listAuctionInclude = {
       bidder: {
         select: {
           id: true,
-          username: true,
           first_name: true,
           last_name: true,
           email: true,
@@ -84,7 +82,6 @@ export const detailAuctionInclude = {
       bidder: {
         select: {
           id: true,
-          username: true,
           first_name: true,
           last_name: true,
           email: true,
@@ -157,9 +154,10 @@ function canViewContact(auction: AuctionEntity | AuctionListEntity, userId?: str
 
 export function serializePublicUser(user: Record<string, unknown> | null, showContact = false) {
   if (!user) return null;
+  const displayName = (user.first_name as string | undefined) || (user.email as string | undefined)?.split('@')[0] || 'Użytkownik';
   return {
     id: String(user.id),
-    username: (user.username as string | undefined) ?? 'Użytkownik',
+    username: displayName,
     firstName: showContact ? ((user.first_name as string | undefined) ?? (user.firstName as string | undefined) ?? 'Użytkownik') : undefined,
     lastName: showContact ? ((user.last_name as string | undefined) ?? (user.lastName as string | undefined) ?? '') : undefined,
     // PII removed - email and phone only visible to owner/admin
