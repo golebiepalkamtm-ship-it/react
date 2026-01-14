@@ -14,7 +14,10 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body as string, sig, endpointSecret);
+    if (!req.body) {
+      throw new Error('Request body is missing');
+    }
+    event = stripe.webhooks.constructEvent(req.body as Buffer, sig, endpointSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
