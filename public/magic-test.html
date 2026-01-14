@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Animacji Magic</title>
+    <link rel="stylesheet" href="http://localhost:3001/magic.css">
+    <style>
+        body {
+            background: #1a1a2e;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 50px;
+            text-align: center;
+        }
+        .test-box {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            margin: 20px auto;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .button-group {
+            margin: 30px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎭 Test Animacji Magic Master</h1>
+    
+    <div class="button-group">
+        <button onclick="testAnimation('puffIn')">Puff In</button>
+        <button onclick="testAnimation('puffOut')">Puff Out</button>
+        <button onclick="testAnimation('vanishIn')">Vanish In</button>
+        <button onclick="testAnimation('vanishOut')">Vanish Out</button>
+        <button onclick="testAnimation('boingInUp')">Boing In Up</button>
+        <button onclick="testAnimation('magic')">Magic</button>
+        <button onclick="testAnimation('twisterInDown')">Twister In Down</button>
+        <button onclick="testAnimation('slideUp')">Slide Up</button>
+        <button onclick="testAnimation('rotateLeft')">Rotate Left</button>
+        <button onclick="testAnimation('perspectiveUp')">Perspective Up</button>
+    </div>
+
+    <div id="testElement" class="test-box">
+        Test Element
+    </div>
+
+    <div class="button-group">
+        <button onclick="resetAnimation()">Reset</button>
+        <button onclick="testAllAnimations()">Test All Sequentially</button>
+    </div>
+
+    <p id="status">Kliknij przycisk, aby przetestować animację!</p>
+
+    <script>
+        const animations = [
+            'puffIn', 'puffOut', 'vanishIn', 'vanishOut', 
+            'boingInUp', 'magic', 'twisterInDown', 'slideUp', 
+            'rotateLeft', 'perspectiveUp'
+        ];
+
+        function testAnimation(animationName) {
+            const element = document.getElementById('testElement');
+            const status = document.getElementById('status');
+            
+            // Reset classes
+            element.className = 'test-box magictime';
+            
+            // Force reflow
+            void element.offsetWidth;
+            
+            // Add animation
+            element.classList.add(animationName);
+            
+            status.textContent = `Testuję animację: ${animationName}`;
+            
+            // Reset after animation completes
+            setTimeout(() => {
+                element.className = 'test-box magictime';
+                status.textContent = `Animacja ${animationName} zakończona!`;
+            }, 2000);
+        }
+
+        function resetAnimation() {
+            const element = document.getElementById('testElement');
+            const status = document.getElementById('status');
+            element.className = 'test-box magictime';
+            status.textContent = 'Animacja zresetowana!';
+        }
+
+        async function testAllAnimations() {
+            const status = document.getElementById('status');
+            status.textContent = 'Testuję wszystkie animacje sekwencyjnie...';
+            
+            for (let i = 0; i < animations.length; i++) {
+                await new Promise(resolve => {
+                    testAnimation(animations[i]);
+                    setTimeout(resolve, 2500);
+                });
+            }
+            
+            status.textContent = 'Wszystkie animacje przetestowane!';
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testAnimation('puffIn');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

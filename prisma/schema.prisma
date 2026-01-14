@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuctionStatus {
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum AuctionCategory {
+  RACING
+  BREEDING
+  SHOW
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum UserRole {
+  USER_REGISTERED
+  USER_EMAIL_VERIFIED
+  USER_FULL_VERIFIED
+  ADMIN
+}
+
+model SavedSearch {
+  @@map("saved_searches")
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id")
+  name      String
+  filters   Json     // Store search filters as JSON
+  isActive  Boolean  @map("is_active") @default(true)
+  createdAt DateTime @map("created_at") @default(now())
+  updatedAt DateTime @map("updated_at") @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model User {
+  /// Map to existing Supabase table "users"
+  @@map("users")
+  id          String   @id @db.Uuid
+  email       String?  @unique
+  phone       String?
+  name        String?
+  first_name  String?
+  last_name   String?
+  street      String?
+  postal_code String?
+  city        String?
+  country     String?
+  isBlocked     Boolean  @map("is_blocked") @default(false)
+  isBanned      Boolean  @map("is_banned") @default(false)
+  blockedUntil  DateTime? @map("blocked_until")
+  bannedUntil   DateTime? @map("banned_until")
+  trustScore    Decimal  @map("trust_score") @default(0.00) @db.Decimal(3,2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  auctions    Auction[] @relation("SellerAuctions")
+  wonAuctions Auction[] @relation("WinnerAuctions")
+  bids        Bid[]
+  watchlist   Watchlist[]
+  notifications Notification[]
+  reviewsGiven Review[] @relation("ReviewerReviews")
+  reviewsReceived Review[] @relation("RevieweeReviews")
+  savedSearches SavedSearch[]
+}
+
+model Auction {
+  /// Map to existing Supabase table "auctions"
+  @@map("auctions")
+  id                    String   @id @default(uuid()) @db.Uuid
+  title                 String
+  description           String?
+  startingPrice         Decimal? @map("starting_price") @db.Decimal(12, 2)
+  currentPrice          Decimal  @map("current_price") @db.Decimal(12, 2)
+  buyNowPrice           Decimal? @map("buy_now_price") @db.Decimal(12, 2)
+  reservePrice          Decimal? @map("reserve_price") @db.Decimal(12, 2)
+  endTime               DateTime? @map("ends_at") @db.Timestamptz
+  startsAt              DateTime? @map("starts_at")
+  snipeThresholdMinutes Int      @map("snipe_threshold_minutes") @default(5)
+  snipeExtensionMinutes Int      @map("snipe_extension_minutes") @default(5)
+  minBidIncrement       Int      @map("min_bid_increment") @default(100)
+  status                AuctionStatus   @default(ACTIVE)
+  reserveMet            Boolean         @map("reserve_met") @default(false)
+  category              AuctionCategory @default(RACING)
+  sex                   Sex             @default(MALE)
+  location              String?
+  age                   Int?
+  createdAt             DateTime @map("created_at") @default(now())
+  updatedAt             DateTime @map("updated_at") @updatedAt
+  winnerId              String?  @map("winner_id")
+
+  sellerId              String   @map("owner_id")
+  seller                User     @relation("SellerAuctions", fields: [sellerId], references: [id])
+  winner                User?    @relation("WinnerAuctions", fields: [winnerId], references: [id])
+
+  pigeon                PigeonProfile?
+
+  bids                  Bid[]
+  images                AuctionImage[]
+  videos                AuctionVideo[]
+  documents             AuctionDocument[]
+  watchlist             Watchlist[]
+  notifications         Notification[]
+  reviews               Review[]
+
+  @@index([status])
+  @@index([endTime])
+  @@index([category])
+  @@index([sellerId])
+  @@index([winnerId])
+}
+
+model PigeonProfile {
+  @@map("pigeon_profiles")
+  id            String   @id @default(uuid()) @db.Uuid
+  auctionId     String   @unique @map("auction_id")
+  ringNumber    String   @map("ringnumber")
+  eyeColor      String?  @map("eye_color")
+  featherColor  String?  @map("feather_color")
+  construction  String?
+  vitality      String?
+  length        String?
+  endurance     String?
+  forkStrength  String?  @map("fork_strength")
+  forkAlignment String?  @map("fork_alignment")
+  muscles       String?
+  balance       String?
+  back          String?
+  purpose       String?
+  gender        String   @db.Text
+  createdAt     DateTime @map("created_at") @default(now())
+  updatedAt     DateTime @map("updated_at") @updatedAt
+
+  auction       Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+}
+
+model AuctionImage {
+  @@map("auction_images")
+  id         String   @id @default(uuid()) @db.Uuid
+  auctionId  String   @map("auction_id")
+  url        String
+  ordering   Int?
+  createdAt  DateTime @map("created_at") @default(now())
+
+  auction    Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+}
+
+model AuctionVideo {
+  @@map("auction_videos")
+  id         String   @id @default(uuid()) @db.Uuid
+  auctionId  String   @map("auction_id")
+  url        String
+  createdAt  DateTime @map("created_at") @default(now())
+
+  auction    Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+}
+
+model AuctionDocument {
+  @@map("auction_documents")
+  id         String   @id @default(uuid()) @db.Uuid
+  auctionId  String   @map("auction_id")
+  url        String
+  createdAt  DateTime @map("created_at") @default(now())
+
+  auction    Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+}
+
+model Bid {
+  @@map("bids")
+  id         String   @id @default(uuid()) @db.Uuid
+  auctionId  String   @map("auction_id")
+  bidderId   String   @map("bidder_id")
+  displayName String?  @map("display_name")
+  amount     Decimal  @db.Decimal(12, 2)
+  isProxy    Boolean  @map("is_proxy") @default(false)
+  maxBid     Decimal? @map("max_bid") @db.Decimal(12, 2)
+  createdAt  DateTime @map("created_at") @default(now())
+
+  auction    Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder     User     @relation(fields: [bidderId], references: [id], onDelete: SetNull)
+
+  @@index([auctionId, createdAt])
+  @@index([bidderId])
+}
+
+model Watchlist {
+  @@map("watchlists")
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id")
+  auctionId  String   @map("auction_id")
+  createdAt  DateTime @map("created_at") @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction    Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, auctionId])
+  @@index([userId])
+  @@index([auctionId])
+}
+
+enum NotificationType {
+  OUTBID
+  AUCTION_WON
+  AUCTION_ENDING
+  BID_PLACED
+}
+
+model Notification {
+  @@map("notifications")
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id")
+  auctionId String?  @map("auction_id")
+  type      String   @db.Text
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @map("created_at") @default(now())
+  updatedAt DateTime @map("updated_at") @updatedAt @db.Timestamp
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction   Auction? @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([auctionId])
+  @@index([read])
+  @@index([type])
+}
+
+model Review {
+  @@map("reviews")
+  id         String   @id @default(uuid()) @db.Uuid
+  auctionId  String   @map("auction_id")
+  reviewerId String   @map("reviewer_id")
+  revieweeId String   @map("reviewee_id")
+  rating     Int
+  createdAt DateTime @map("created_at") @default(now()) @db.Timestamp
+  updatedAt DateTime @map("updated_at") @updatedAt @db.Timestamp
+
+  auction    Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  reviewer   User     @relation("ReviewerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee   User     @relation("RevieweeReviews", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  @@unique([auctionId, reviewerId])
+  @@index([auctionId])
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([rating])
+}
+
+model Meeting {
+  @@map("meetings")
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  location   String?
+  date       DateTime?
+  description String?
+  images     Json     @default("[]")
+  authorId   String   @map("author_id")
+  createdAt  DateTime @map("created_at") @default(now())
+  updatedAt  DateTime @map("updated_at") @updatedAt
+}
+
+model Reference {
+  @@map("references")
+  id            String   @id @default(uuid()) @db.Uuid
+  breederName String   @map("breederName")
+  location    String
+  rating        Int      @default(5)
+  opinion       String?
+  experience    String?
+  achievements  String?
+  pigeonName    String?
+  images        Json     @default("[]")
+  isApproved    Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+}

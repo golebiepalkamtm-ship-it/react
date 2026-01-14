@@ -1,0 +1,170 @@
+/**
+ * Smooth Scroll & Performance Optimization Styles
+ * 
+ * These styles ensure 60fps+ performance on all devices
+ * by leveraging GPU acceleration and proper CSS properties.
+ */
+
+/* Lenis smooth scroll container */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+html.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+html.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+html.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+html.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Performance optimization for parallax elements */
+[data-speed] {
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Apply GPU acceleration only during animation */
+[data-speed].animating {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+[data-speed]:not(.animating) {
+  will-change: auto;
+  transform: none;
+}
+
+/* Performance optimization for reveal elements */
+[data-reveal] {
+  backface-visibility: hidden;
+}
+
+/* Apply GPU acceleration only during animation */
+[data-reveal].animating {
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+[data-reveal]:not(.animating) {
+  will-change: auto;
+  transform: none;
+}
+
+/* Performance optimization for stagger items */
+[data-stagger-item] {
+  backface-visibility: hidden;
+}
+
+/* Apply GPU acceleration only during animation */
+[data-stagger-item].animating {
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+[data-stagger-item]:not(.animating) {
+  will-change: auto;
+  transform: none;
+}
+
+/* Hero image parallax optimization */
+.hero-image {
+  backface-visibility: hidden;
+}
+
+.hero-image.animating {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.hero-image:not(.animating) {
+  will-change: auto;
+  transform: none;
+}
+
+/* Heading reveal optimization */
+h1, h2 {
+  .word {
+    overflow: hidden;
+    display: inline-block;
+    
+    > span {
+      display: inline-block;
+      backface-visibility: hidden;
+    }
+  }
+}
+
+/* Apply GPU acceleration only during animation */
+h1 .word span.animating,
+h2 .word span.animating {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+h1 .word span:not(.animating),
+h2 .word span:not(.animating) {
+  will-change: auto;
+  transform: none;
+}
+
+/* Smooth scroll indicator */
+.scroll-indicator {
+  backface-visibility: hidden;
+  animation: scroll-bounce 2s ease-in-out infinite; /* Zwiększone z 1.5s */
+}
+
+.scroll-indicator:hover {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.scroll-indicator:not(:hover) {
+  will-change: auto;
+  transform: none;
+}
+
+@keyframes scroll-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+/* Remove will-change after animation completes (performance) */
+.animation-complete {
+  will-change: auto !important;
+}
+
+/* Disable smooth scroll on reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html.lenis {
+    scroll-behavior: auto;
+  }
+  
+  [data-speed],
+  [data-reveal],
+  [data-stagger-item],
+  .hero-image {
+    will-change: auto;
+    transform: none;
+  }
+}
+
+/* Mobile optimization - disable parallax on small screens for performance */
+@media (max-width: 768px) {
+  [data-speed] {
+    transform: none !important;
+  }
+}

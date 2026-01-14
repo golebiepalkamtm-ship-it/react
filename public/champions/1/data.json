@@ -1,0 +1,25 @@
+{
+  "name": "OLIMPIJCZYK BUDAPESZT",
+  "ringNumber": "DV-02906-11-98",
+  "bloodline": "Janssen",
+  "gender": "MALE",
+  "birthDate": "2015-01-01T00:00:00.000Z",
+  "color": "Blue",
+  "weight": 480,
+  "breeder": "MTM Pałka",
+  "description": "Wybitny champion, mistrz olimpijski z doskonałymi wynikami w lotach długodystansowych.",
+  "achievements": [
+    "3. miejsce Mistrzostwa Polski Kat. A",
+    "6. miejsce - 1343 gołębi",
+    "11. miejsce - 2710 gołębi",
+    "14. miejsce - 4419 gołębi",
+    "15. miejsce - 3535 gołębi",
+    "15. miejsce - 1513 gołębi",
+    "16. miejsce - 3753 gołębi",
+    "17. miejsce - 2679 gołębi",
+    "19. miejsce - 3641 gołębi",
+    "21. miejsce - 3650 gołębi",
+    "Kat.A - 12,84 coeff. 2013",
+    "Kat.A - 22,08 coeff. 2014"
+  ]
+}

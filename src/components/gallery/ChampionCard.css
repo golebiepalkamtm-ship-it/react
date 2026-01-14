@@ -1,0 +1,21 @@
+.gallery-card-perspective {
+  perspective: 1000px;
+}
+
+.gallery-card-content {
+  transform: translateZ(20px);
+}
+
+.gallery-card-title {
+  transform: translateZ(30px);
+}
+
+.gallery-scanline-pattern {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.03) 2px,
+    rgba(255, 255, 255, 0.03) 4px
+  );
+}

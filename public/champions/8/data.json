@@ -1,0 +1,27 @@
+{
+  "name": "Super Lotnik Syn 2228",
+  "ringNumber": "PL-0446-13-5015",
+  "bloodline": "Janssen",
+  "gender": "MALE",
+  "birthDate": "2014-01-01T00:00:00.000Z",
+  "color": "Blue",
+  "weight": 475,
+  "breeder": "MTM Pałka",
+  "description": "Super Lotnik - syn 2228 z doskonałymi wynikami w zawodach.",
+  "achievements": [
+    "1 kon - 1809 gołębi",
+    "2 kon - 3592 gołębi",
+    "2 kon - 2679 gołębi",
+    "5 kon - 3753 gołębi",
+    "6 kon - 2246 gołębi",
+    "7 kon - 3385 gołębi",
+    "7 kon - 1809 gołębi",
+    "8 kon - 2536 gołębi",
+    "13 kon - 4105 gołębi",
+    "16 kon - 2710 gołębi",
+    "23 kon - 2503 gołębi",
+    "47 kon - 3268 gołębi",
+    "Kat B 2014r. 10,05 coeff.",
+    "Kat B 2015r. 6,93 coeff."
+  ]
+}

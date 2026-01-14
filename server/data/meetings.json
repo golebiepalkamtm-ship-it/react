@@ -1,0 +1,78 @@
+{
+  "meetings": [
+    {
+      "id": "1",
+      "name": "Geert Munnik",
+      "location": "Holandia",
+      "date": "2023",
+      "description": "Spotkanie z legendarnym hodowcą Geertem Munnikiem.",
+      "images": [
+        "/meetings-with-breeders/Geert Munnik/DSC_0031.jpg",
+        "/meetings-with-breeders/Geert Munnik/DSC_0038.jpg",
+        "/meetings-with-breeders/Geert Munnik/DSC_0044.jpg",
+        "/meetings-with-breeders/Geert Munnik/DSC_0399.jpg",
+        "/meetings-with-breeders/Geert Munnik/DSC_03991.jpg",
+        "/meetings-with-breeders/Geert Munnik/DSC_0409.jpg"
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Jan Oost",
+      "location": "Holandia",
+      "date": "2023",
+      "description": "Wizyta u Jana Oosta, wybitnego specjalisty od lotów dalekodystansowych.",
+      "images": [
+        "/meetings-with-breeders/Jan Oost/DSC_0002.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0004.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0006.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0011.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0017.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0018.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0422.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0423.jpg",
+        "/meetings-with-breeders/Jan Oost/DSC_0426.jpg"
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Marginus Oostenbrink",
+      "location": "Holandia",
+      "date": "2023",
+      "description": "Spotkanie z Marginusem Oostenbrinkiem.",
+      "images": [
+        "/meetings-with-breeders/Marginus Oostenbrink/DSC_0431.jpg",
+        "/meetings-with-breeders/Marginus Oostenbrink/DSC_0433.jpg",
+        "/meetings-with-breeders/Marginus Oostenbrink/DSC_0435.jpg"
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Theo Lehnen",
+      "location": "Niemcy",
+      "date": "2023",
+      "description": "Wizyta u Theo Lehnena.",
+      "images": [
+        "/meetings-with-breeders/Theo Lehnen/Theo-1.jpg",
+        "/meetings-with-breeders/Theo Lehnen/Theo-2.jpg",
+        "/meetings-with-breeders/Theo Lehnen/Theo-3.jpg",
+        "/meetings-with-breeders/Theo Lehnen/Theo.jpg"
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Toni van Ravenstein",
+      "location": "Niemcy",
+      "date": "2023",
+      "description": "Spotkanie z Tonim van Ravensteinem.",
+      "images": [
+        "/meetings-with-breeders/Toni van Ravenstein/DSCF2556.jpg",
+        "/meetings-with-breeders/Toni van Ravenstein/DSCF2559.jpg",
+        "/meetings-with-breeders/Toni van Ravenstein/DSCF2578.jpg",
+        "/meetings-with-breeders/Toni van Ravenstein/DSC_0001.jpg",
+        "/meetings-with-breeders/Toni van Ravenstein/DSC_0003.jpg",
+        "/meetings-with-breeders/Toni van Ravenstein/TONI-1.jpg",
+        "/meetings-with-breeders/Toni van Ravenstein/TONI-2.jpg"
+      ]
+    }
+  ]
+}

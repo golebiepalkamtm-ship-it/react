@@ -1,0 +1,21 @@
+{
+  "name": "Champion 14",
+  "ringNumber": "PL-0446-14-7158",
+  "bloodline": "Janssen",
+  "gender": "MALE",
+  "birthDate": "2018-01-01T00:00:00.000Z",
+  "color": "Blue",
+  "weight": 475,
+  "breeder": "MTM Pałka",
+  "description": "Wybitny champion z doskonałymi wynikami w zawodach.",
+  "achievements": [
+    "1 kon - 3626 gołębi",
+    "1 kon - 2495 gołębi",
+    "3 kon - 4161 gołębi",
+    "4 kon - 1258 gołębi",
+    "5 kon - 3421 gołębi",
+    "8 kon - 4042 gołębi",
+    "16 kon - 4105 gołębi",
+    "Kat A 2018r 2.14 coeff."
+  ]
+}

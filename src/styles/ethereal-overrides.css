@@ -1,0 +1,122 @@
+/* Overrides & additional visual tokens from ethereal-canvas (non-invasive)
+   NOTE: global CSS variables were moved to `src/index.css` to be processed with
+   Tailwind's base layer and avoid PostCSS errors. */
+
+@layer components {
+  .gold-border {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--gradient-card)) padding-box,
+                var(--gradient-gold) border-box;
+  }
+
+  .ethereal-orb {
+    background: radial-gradient(circle, hsla(45, 38%, 52%, 0.08) 0%, transparent 70%);
+    filter: blur(60px);
+  }
+
+  .ethereal-orb-2 {
+    background: radial-gradient(circle, hsla(42, 34%, 44%, 0.08) 0%, transparent 70%);
+    filter: blur(60px);
+  }
+
+  .glow-effect {
+    box-shadow: var(--glow-gold);
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: hsl(45 38% 52% / 0.6);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .aurora-bg {
+    background: linear-gradient(
+      -45deg,
+      hsl(45 38% 52% / 0.06),
+      hsl(48 40% 56% / 0.06),
+      hsl(42 34% 44% / 0.06),
+      hsl(45 38% 52% / 0.06)
+    );
+    /* The animation was removed for performance reasons. */
+  }
+
+  .ethereal-canvas {
+    opacity: 0.6;
+  }
+
+  .neon-border {
+    box-shadow:
+      0 0 5px hsl(45 38% 52% / 0.5),
+      0 0 10px hsl(45 38% 52% / 0.3),
+      0 0 20px hsl(45 38% 52% / 0.2),
+      inset 0 0 5px hsla(45, 56%, 59%, 0.582)3);
+  }
+
+  .magnetic-hover {
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+}
+
+@keyframes glitch {
+  0%, 100% {
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+    filter: hue-rotate(10deg);
+  }
+  40% {
+    transform: translate(2px, -2px);
+    filter: hue-rotate(-10deg);
+  }
+  60% {
+    transform: translate(-2px, -2px);
+  }
+  80% {
+    transform: translate(2px, 2px);
+  }
+}
+
+@keyframes morph {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+}
+
+@keyframes text-flicker {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 4px hsla(45, 60%, 62%, 0.836), 0 0 11px hsla(45, 83%, 60%, 0.76), 0 0 40px hsla(45, 59%, 54%, 0.507);
+  }
+  33% {
+    opacity: 0.9;
+    text-shadow: 0 0 4px hsla(45, 63%, 52%, 0.733)1), 0 0 11px hsl(45 38% 52% / 0.2);
+  }
+  66% {
+    opacity: 1;
+    text-shadow: 0 0 4px hsla(45, 44%, 55%, 0.6), 0 0 15px hsla(45, 64%, 55%, 0.74), 0 0 50px hsl(45 38% 52% / 0.3);
+  }
+}
+
+@keyframes electric-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 5px hsla(45, 76%, 59%, 0.685));
+  }
+  50% {
+    opacity: 0.8;
+    filter: brightness(1.3) drop-shadow(0 0 20px hsla(49, 85%, 51%, 0.8));
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
