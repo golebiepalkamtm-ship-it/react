@@ -48,8 +48,8 @@ const AdminPage: React.FC = () => {
 
   async function updateRole(id: string, role: string) {
     try {
-      const r = await fetch(`/api/admin/users/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }) });
-      if (!r.ok) throw new Error('Failed');
+      if (!session?.access_token) return;
+      await apiClient.put(`/admin/users/${id}/role`, { role }, session.access_token);
       await fetchData();
     } catch (e) {
       logger.error(e);
@@ -77,8 +77,10 @@ const AdminPage: React.FC = () => {
       <section className="mb-6">
         <h2 className="font-medium">Statystyki</h2>
         <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-          <div>Auctions: {stats?.auctionsCount ?? 'n/a'}</div>
-          <div>Users: {stats?.usersCount ?? 'service key not configured'}</div>
+          <div>Aukcje: {stats?.totalAuctions ?? 'n/a'}</div>
+          <div>Użytkownicy: {stats?.totalUsers ?? 'n/a'}</div>
+          <div>Aukcje aktywne: {stats?.activeAuctions ?? 'n/a'}</div>
+          <div>Wolumen: {stats?.totalVolume ?? 'n/a'} PLN</div>
         </div>
       </section>
 

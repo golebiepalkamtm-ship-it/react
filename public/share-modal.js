@@ -1,12 +1,13 @@
 (function () {
-  // Share modal v20250113-v6 - event delegation approach
+  // Share modal v20250113-v7 - wzmocnione guardy na document/null
   function init() {
     try {
-      if (typeof document === 'undefined' || !document) return;
+      const doc = typeof document !== 'undefined' ? document : null;
+      if (!doc || typeof doc.addEventListener !== 'function' || typeof doc.querySelector !== 'function') return;
 
       // Funkcja do otwierania modala
       function openModal() {
-        var modal = document.querySelector('[data-share-modal]');
+        var modal = doc.querySelector('[data-share-modal]');
         if (modal && modal instanceof Element) {
           modal.classList.remove('hidden');
           modal.classList.add('flex');
@@ -25,7 +26,7 @@
 
       // Funkcja do zamykania modala
       function closeModal() {
-        var modal = document.querySelector('[data-share-modal]');
+        var modal = doc.querySelector('[data-share-modal]');
         if (modal && modal instanceof Element) {
           modal.classList.add('opacity-0');
           const modalContent = modal.querySelector('[data-share-modal] > div');
@@ -43,8 +44,8 @@
       }
 
       // Event delegation dla przycisków
-      if (document && document.addEventListener && typeof document.addEventListener === 'function') {
-        document.addEventListener('click', function (e) {
+      if (doc && typeof doc.addEventListener === 'function') {
+        doc.addEventListener('click', function (e) {
           var target = e.target;
 
           // Sprawdź czy kliknięto przycisk otwierający
@@ -69,9 +70,9 @@
         });
 
         // Obsługa klawisza Escape
-        document.addEventListener('keydown', function (e) {
+        doc.addEventListener('keydown', function (e) {
           if (e.key === 'Escape') {
-            var modal = document.querySelector('[data-share-modal]');
+            var modal = doc.querySelector('[data-share-modal]');
             if (modal && modal instanceof Element && !modal.classList.contains('hidden')) {
               closeModal();
             }
@@ -84,9 +85,10 @@
   }
 
   // Uruchom po pełnym załadowaniu DOM
-  if (typeof document !== 'undefined' && document) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
+  const doc = typeof document !== 'undefined' ? document : null;
+  if (doc) {
+    if (doc.readyState === 'loading') {
+      doc.addEventListener('DOMContentLoaded', init);
     } else {
       // DOM już załadowany, uruchom teraz
       setTimeout(init, 100);
