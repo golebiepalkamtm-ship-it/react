@@ -146,7 +146,7 @@ export const setupWebSocketEvents = (io: Server) => {
           }
 
           const now = Date.now();
-          const endsAt = auction.endTime.getTime();
+          const endsAt = auction.endTime ? auction.endTime.getTime() : 0;
           const status = auction.status;
 
           if (status !== 'ACTIVE' || endsAt <= now) {

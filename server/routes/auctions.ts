@@ -184,27 +184,6 @@ router.post('/', authMiddleware, validate(createAuctionSchema), async (req: Auth
         sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
         location: location || 'Lubań, Polska',
         sellerId: userId,
-        images: images ? { create: images.map((url: string) => ({ url })) } : undefined,
-        videos: videos ? { create: videos.map((url: string) => ({ url })) } : undefined,
-        documents: documents ? { create: documents.map((url: string) => ({ url })) } : undefined,
-        pigeon: pigeon ? {
-          create: {
-            ringNumber: pigeon.ringNumber,
-            eyeColor: pigeon.eyeColor || null,
-            featherColor: pigeon.pigeonColor || null,
-            construction: pigeon.construction || null,
-            vitality: pigeon.vitality || null,
-            length: pigeon.length || null,
-            endurance: pigeon.endurance || null,
-            forkStrength: pigeon.forkStrength || null,
-            forkAlignment: pigeon.forkAlignment || null,
-            muscles: pigeon.muscles || null,
-            balance: pigeon.balance || null,
-            back: pigeon.back || null,
-            purpose: pigeon.purpose || null,
-            gender: String(pigeon.gender || 'MALE'),
-          }
-        } : undefined,
       },
       include: detailAuctionInclude,
     });
@@ -290,7 +269,7 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
       }
 
       const now = Date.now();
-      const endsAt = new Date(auction.endTime).getTime();
+      const endsAt = auction.endTime ? new Date(auction.endTime).getTime() : 0;
       if (auction.status !== 'ACTIVE' || endsAt <= now) {
         throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_ACTIVE, 'Aukcja nie jest aktywna');
       }

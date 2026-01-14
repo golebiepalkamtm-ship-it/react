@@ -8,10 +8,7 @@ const toNumber = (value: Prisma.Decimal | number | null | undefined) => {
 };
 
 export const baseAuctionInclude = {
-  pigeon: true,
-  images: true,
-  videos: true,
-  documents: true,
+  pigeonProfile: true,
   seller: true,
   _count: {
     select: {
@@ -62,7 +59,7 @@ export type BidEntity = Prisma.BidGetPayload<{
   include: { bidder: true };
 }>;
 
-export function serializePigeon(pigeon?: AuctionEntity['pigeon']) {
+export function serializePigeon(pigeon: Prisma.PigeonProfileGetPayload<{}> | null | undefined) {
   if (!pigeon) return undefined;
   return {
     ringNumber: pigeon.ringNumber ?? '',
@@ -79,7 +76,7 @@ export function serializePigeon(pigeon?: AuctionEntity['pigeon']) {
     back: pigeon.back ?? '',
     purpose: pigeon.purpose ?? '',
     gender: toLowerEnum(pigeon.gender) as 'male' | 'female' | undefined,
-    achievements: '', // achievements column was renamed to construction
+    achievements: '', // legacy field
   };
 }
 
@@ -147,13 +144,13 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(au
     status: toLowerEnum(auction.status) as 'active' | 'ended' | 'cancelled' | undefined,
     reserveMet: !!auction.reserveMet,
     category: toLowerEnum(auction.category) ?? 'ogólna',
-    pigeon: serializePigeon(auction.pigeon),
+    pigeon: serializePigeon(auction.pigeonProfile as any),
     sex: toLowerEnum(auction.sex) as 'male' | 'female' | undefined,
     location: auction.location ?? '',
     seller: serializePublicUser(sellerAny, showContact),
-    images: Array.isArray(auction.images) ? auction.images.map((i) => i.url) : [],
-    videos: Array.isArray(auction.videos) ? auction.videos.map((v) => v.url) : [],
-    documents: Array.isArray(auction.documents) ? auction.documents.map((d) => d.url) : [],
+    images: Array.isArray((auction as any).auctionImages) ? (auction as any).auctionImages.map((i: any) => i.url) : [],
+    videos: Array.isArray((auction as any).auctionVideos) ? (auction as any).auctionVideos.map((v: any) => v.url) : [],
+    documents: Array.isArray((auction as any).auctionDocuments) ? (auction as any).auctionDocuments.map((d: any) => d.url) : [],
     bids: Array.isArray(auction.bids) ? auction.bids.map((b) => serializeBid(b as BidEntity, showContact)) : [],
     _count: auction._count ?? { bids: 0, watchlist: 0 },
     canViewContact,

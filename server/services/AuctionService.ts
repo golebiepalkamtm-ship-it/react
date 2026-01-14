@@ -46,7 +46,7 @@ export class AuctionService {
         where: { id: auctionId },
         data: {
           status: 'ENDED',
-          winnerId: highestBid.bidderId
+          winnerId: highestBid.bidderId!
         } as any
       });
 
@@ -71,14 +71,14 @@ export class AuctionService {
 
       // Powiadomienie w systemie
       await NotificationManager.notifyAuctionWon(
-        highestBid.bidderId,
+        highestBid.bidderId!,
         auctionId,
         auction?.title || 'Aukcja',
         Number(highestBid.amount)
       );
 
       return {
-        winnerId: highestBid.bidderId,
+        winnerId: highestBid.bidderId!,
         finalPrice: Number(highestBid.amount)
       };
     } else {
@@ -109,7 +109,7 @@ export class AuctionService {
       }
 
       const now = Date.now();
-      const endsAt = new Date(auction.endTime).getTime();
+      const endsAt = auction.endTime ? new Date(auction.endTime).getTime() : 0;
       const status = (auction.status as string)?.toUpperCase();
       
       if (status !== 'ACTIVE' || endsAt <= now) {
@@ -156,7 +156,7 @@ export class AuctionService {
       const highestBid = auction.bids[0];
       if (highestBid && highestBid.bidderId !== userId) {
         await NotificationManager.notifyOutbid(
-          highestBid.bidderId,
+          highestBid.bidderId!,
           auctionId,
           auction.title,
           amount
@@ -182,7 +182,7 @@ export class AuctionService {
         where: { id: auctionId },
         data: {
           currentPrice: amount,
-          endTime: wasExtended ? new Date(newEndTime!) : new Date(auction.endTime),
+          endTime: wasExtended ? new Date(newEndTime!) : (auction.endTime ? new Date(auction.endTime) : new Date()),
           reserveMet
         }
       });

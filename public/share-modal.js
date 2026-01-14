@@ -1,14 +1,15 @@
 (function () {
   // Share modal v20250113-v8 - twardsze guardy na window/document
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const doc = typeof globalThis !== 'undefined' && globalThis.document ? globalThis.document : null;
+  if (!doc || typeof doc.addEventListener !== 'function' || typeof doc.querySelector !== 'function') return;
   function init() {
     try {
-      const doc = typeof document !== 'undefined' ? document : null;
-      if (!doc || typeof doc.addEventListener !== 'function' || typeof doc.querySelector !== 'function') return;
+      const localDoc = doc;
+      if (!localDoc || typeof localDoc.addEventListener !== 'function' || typeof localDoc.querySelector !== 'function') return;
 
       // Funkcja do otwierania modala
       function openModal() {
-        var modal = doc.querySelector('[data-share-modal]');
+        var modal = localDoc.querySelector('[data-share-modal]');
         if (modal && modal instanceof Element) {
           modal.classList.remove('hidden');
           modal.classList.add('flex');
@@ -45,8 +46,8 @@
       }
 
       // Event delegation dla przycisków
-      if (doc && typeof doc.addEventListener === 'function') {
-        doc.addEventListener('click', function (e) {
+      if (localDoc && typeof localDoc.addEventListener === 'function') {
+        localDoc.addEventListener('click', function (e) {
           var target = e.target;
 
           // Sprawdź czy kliknięto przycisk otwierający
@@ -71,9 +72,9 @@
         });
 
         // Obsługa klawisza Escape
-        doc.addEventListener('keydown', function (e) {
+        localDoc.addEventListener('keydown', function (e) {
           if (e.key === 'Escape') {
-            var modal = doc.querySelector('[data-share-modal]');
+            var modal = localDoc.querySelector('[data-share-modal]');
             if (modal && modal instanceof Element && !modal.classList.contains('hidden')) {
               closeModal();
             }
@@ -86,10 +87,10 @@
   }
 
   // Uruchom po pełnym załadowaniu DOM
-  const doc = typeof document !== 'undefined' ? document : null;
-  if (doc) {
-    if (doc.readyState === 'loading') {
-      doc.addEventListener('DOMContentLoaded', init);
+  const docReady = doc;
+  if (docReady) {
+    if (docReady.readyState === 'loading') {
+      docReady.addEventListener('DOMContentLoaded', init);
     } else {
       // DOM już załadowany, uruchom teraz
       setTimeout(init, 100);
