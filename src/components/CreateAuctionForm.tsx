@@ -8,7 +8,7 @@ import type { CreateAuctionRequest } from '@/types/auction';
 import { X, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import FileUpload from '@/components/FileUpload';
-import { paymentService } from '@/services/paymentService';
+// import { paymentService } from '@/services/paymentService'; // Disabled - payments not configured
 
 interface CreateAuctionFormProps {
   onSuccess?: () => void;
@@ -229,22 +229,9 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
         },
       };
 
-      const createdAuction = await auctionService.createAuction(auctionData, token);
+      await auctionService.createAuction(auctionData, token);
       
-      toast.loading('Inicjuję opłatę za wystawienie...', { id: toastId });
-      
-      const listingFeeSession = await paymentService.createListingFeeCheckout(
-        createdAuction.id,
-        token,
-        window.location.origin + '/auctions/success',
-        window.location.origin + '/auctions/cancel'
-      );
-      
-      if (listingFeeSession.url) {
-        window.location.href = listingFeeSession.url;
-        return;
-      }
-      
+      // Listing fee disabled - payments not configured
       toast.success('Aukcja została utworzona pomyślnie!', { id: toastId });
       onSuccess?.();
     } catch (err) {
