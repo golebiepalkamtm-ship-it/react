@@ -1,16 +1,13 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
 import { validatedEnv } from './env.js'
 
 // Global interface for Prisma to prevent multiple instances in dev
 declare global {
   var prisma: PrismaClient | undefined;
-  var prismaPool: Pool | undefined;
 }
 
-// Use standard PrismaClient with better error reporting
+// Use standard PrismaClient without adapter to avoid DATABASE_URL issues
 let prisma: PrismaClient;
 
 const hasDbUrl = !!process.env.DATABASE_URL;
@@ -22,15 +19,6 @@ try {
 
   if (!hasDbUrl && process.env.NODE_ENV === 'production') {
     console.error('❌ CRITICAL: DATABASE_URL is not set in environment variables!');
-  }
-
-  const shouldUseAdapter = hasDbUrl;
-
-  if (shouldUseAdapter) {
-    if (!global.prismaPool) {
-      global.prismaPool = new Pool({ connectionString: validatedEnv.DATABASE_URL });
-    }
-    prismaOptions.adapter = new PrismaPg(global.prismaPool);
   }
 
   if (process.env.NODE_ENV === 'production') {
@@ -53,6 +41,8 @@ try {
 
 console.log('📡 Database Connection Check:', {
   hasDatabaseUrl: !!validatedEnv.DATABASE_URL,
+  databaseUrlLength: validatedEnv.DATABASE_URL?.length || 0,
+  databaseUrlPreview: validatedEnv.DATABASE_URL?.substring(0, 30) + '...',
   nodeEnv: process.env.NODE_ENV,
   prismaInitialized: !!prisma
 });

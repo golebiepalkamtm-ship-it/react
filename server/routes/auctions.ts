@@ -67,12 +67,14 @@ router.get('/', async (req, res) => {
 
     const take = limit ? parseInt(String(limit)) : undefined;
 
+    console.log('🔍 Fetching auctions with params:', { where, orderBy, take });
     const auctions = await prisma.auction.findMany({
       where,
       orderBy,
       take,
       include: listAuctionInclude,
     });
+    console.log('✅ Fetched auctions count:', auctions.length);
 
     const serialized = auctions.map(a => serializePublicAuction(a));
     const result = { auctions: serialized };
@@ -80,15 +82,17 @@ router.get('/', async (req, res) => {
     res.json(result);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      console.error('Error fetching auctions:', {
+      console.error('❌ Prisma Error fetching auctions:', {
         message: error.message,
         code: error.code,
         meta: error.meta,
+        stack: error.stack,
       });
       res.status(500).json({ error: 'Failed to fetch auctions', code: error.code });
       return;
     }
-    console.error('Error fetching auctions:', error);
+    console.error('❌ Error fetching auctions:', error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack');
     res.status(500).json({ error: 'Failed to fetch auctions' });
   }
 });
