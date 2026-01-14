@@ -41,7 +41,6 @@ model User {
   reviewsGiven Review[] @relation("ReviewerReviews")
   reviewsReceived Review[] @relation("RevieweeReviews")
   savedSearches SavedSearch[]
-  payments     Payment[]
 }
 
 model Auction {
@@ -82,7 +81,6 @@ model Auction {
   watchlist             Watchlist[]
   notifications         Notification[]
   reviews               Review[]
-  payments              Payment[]
 
   @@index([status])
   @@index([endTime])
@@ -233,50 +231,6 @@ model Review {
   @@index([rating])
 }
 
-enum PaymentStatus {
-  INITIATED
-  PENDING
-  SUCCEEDED
-  FAILED
-  CANCELLED
-}
-
-enum PaymentProvider {
-  PAYPAL
-  P24
-  STRIPE
-}
-
-enum PaymentType {
-  BUY_NOW
-  LISTING_FEE
-  COMMISSION
-}
-
-model Payment {
-  @@map("payments")
-  id             String          @id @default(uuid()) @db.Uuid
-  auctionId      String          @map("auction_id")
-  userId         String          @map("user_id")
-  amount         Decimal         @db.Decimal(12, 2)
-  currency       String          @default("PLN")
-  provider       PaymentProvider
-  type           PaymentType
-  status         PaymentStatus   @default(INITIATED)
-  externalId     String?         @map("external_id")
-  approvalUrl    String?         @map("approval_url")
-  rawResponse    Json?           @map("raw_response")
-  createdAt      DateTime        @map("created_at") @default(now())
-  updatedAt      DateTime        @map("updated_at") @updatedAt
-
-  auction        Auction         @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([auctionId])
-  @@index([userId])
-  @@index([status])
-  @@index([provider])
-}
 
 model SavedSearch {
   @@map("saved_searches")

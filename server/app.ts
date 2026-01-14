@@ -20,7 +20,8 @@ import adminRoutes from './routes/admin.js';
 import notificationRoutes from './routes/notifications.js';
 import reviewRoutes from './routes/reviews.js';
 import searchRoutes from './routes/search.js';
-import paymentRoutes, { stripeWebhookHandler } from './routes/payments.js';
+// Payment routes disabled - table doesn't exist in DB
+// import paymentRoutes, { stripeWebhookHandler } from './routes/payments.js';
 import webhooks from './routes/webhooks.js';
 import { testCSRFEndpoint } from './routes/testCSRF.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -78,16 +79,16 @@ app.use(cors({
   maxAge: validatedEnv.CORS_MAX_AGE
 }));
 
-// Stripe webhook wymaga raw body – rejestrujemy osobny handler przed json parserem
-app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  try {
-    const { stripeWebhookHandler } = await import('./routes/payments.js');
-    return stripeWebhookHandler(req, res);
-  } catch (error) {
-    console.error('Stripe webhook handler error:', error);
-    return res.status(500).send('Internal server error');
-  }
-});
+// Stripe webhook disabled - payments table doesn't exist
+// app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+//   try {
+//     const { stripeWebhookHandler } = await import('./routes/payments.js');
+//     return stripeWebhookHandler(req, res);
+//   } catch (error) {
+//     console.error('Stripe webhook handler error:', error);
+//     return res.status(500).json({ error: 'Webhook handler error' });
+//   }
+// });
 
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
@@ -115,7 +116,7 @@ app.use('/api/admin', authMiddleware, validateCSRFToken, adminRoutes);
 app.use('/api/notifications', authMiddleware, validateCSRFToken, notificationRoutes);
 app.use('/api/reviews', validateCSRFToken, reviewRoutes);
 app.use('/api/search', searchRoutes);
-app.use('/api/payments', authMiddleware, validateCSRFToken, paymentRoutes);
+// app.use('/api/payments', authMiddleware, validateCSRFToken, paymentRoutes);
 app.use('/api/webhooks', webhooks);
 
 // Test CSRF endpoint
