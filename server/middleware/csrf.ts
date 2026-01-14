@@ -60,24 +60,10 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
     return res.status(403).json({ error: 'CSRF: Missing X-Requested-With header' });
   }
 
-  // Double submit cookie pattern
-  const csrfToken = req.get('X-CSRF-Token');
-  const cookieToken = req.cookies?.['csrf-token'];
-
-  if (!csrfToken) {
-    return res.status(403).json({ error: 'CSRF: Missing X-CSRF-Token header' });
-  }
-
-  if (!cookieToken) {
-    return res.status(403).json({ error: 'CSRF: Missing CSRF cookie' });
-  }
-
-  // Use constant-time comparison to prevent timing attacks
-  if (!crypto.timingSafeEqual(Buffer.from(csrfToken, 'hex'), Buffer.from(cookieToken, 'hex'))) {
-    console.warn(`CSRF: Token mismatch from IP ${req.ip}`);
-    return res.status(403).json({ error: 'CSRF: Invalid token' });
-  }
-
+  // Origin + X-Requested-With validation is sufficient for cross-origin API protection
+  // Double-submit cookie pattern disabled for cross-origin Render deployment
+  // (different subdomains can't share cookies reliably)
+  
   next();
 }
 
