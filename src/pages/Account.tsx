@@ -101,7 +101,7 @@ const EmailVerifiedProfileCard = ({
   };
 
   return (
-    <div className="rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+    <div className="rounded-2xl border border-white/25 bg-white/90 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
       <h2 className="font-display text-2xl font-semibold text-foreground">{t("account.profile.title")}</h2>
 
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -112,7 +112,7 @@ const EmailVerifiedProfileCard = ({
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             placeholder="Imię"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             required
           />
         </div>
@@ -123,7 +123,7 @@ const EmailVerifiedProfileCard = ({
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             placeholder="Nazwisko"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             required
           />
         </div>
@@ -134,7 +134,7 @@ const EmailVerifiedProfileCard = ({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder={t("phone.placeholder")}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             required
           />
         </div>
@@ -145,7 +145,7 @@ const EmailVerifiedProfileCard = ({
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Miasto"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             required
           />
         </div>
@@ -159,7 +159,7 @@ const EmailVerifiedProfileCard = ({
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
             placeholder={t("profile.postal_code")}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             required
           />
         </div>
@@ -170,7 +170,7 @@ const EmailVerifiedProfileCard = ({
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             placeholder={t("profile.country")}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             required
           />
         </div>
@@ -183,7 +183,7 @@ const EmailVerifiedProfileCard = ({
             value={street}
             onChange={(e) => setStreet(e.target.value)}
             placeholder={t("profile.street")}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             required
           />
         </div>
@@ -278,28 +278,42 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">{t("account.title")}</h1>
+            <div className="rounded-2xl border border-white/25 bg-white/90 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                {/* Left side - Image */}
+                <div className="order-2 lg:order-1">
+                  <img 
+                    src="/golden-pair(1).png" 
+                    alt="Golden Pair" 
+                    className="w-full h-auto rounded-lg shadow-lg"
+                  />
+                </div>
+                
+                {/* Right side - Content */}
+                <div className="order-1 lg:order-2">
+                  <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">{t("account.title")}</h1>
 
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                  <div className="text-muted-foreground">{t("account.status.email")}</div>
-                  <div className="mt-1 text-foreground break-all">{user.email}</div>
-                </div>
-                <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                  <div className="text-muted-foreground">{t("account.status.role")}</div>
-                  <div className="mt-1 text-foreground">{profile?.role ?? "-"}</div>
-                </div>
-                <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                  <div className="text-muted-foreground">{t("account.status.next")}</div>
-                  <div className="mt-1 text-foreground">
-                    {profile?.role === "USER_REGISTERED"
-                      ? t("account.next.verify_email")
-                      : profile?.role === "USER_EMAIL_VERIFIED"
-                        ? t("account.next.profile_sms")
-                        : profile?.role === "USER_FULL_VERIFIED" || profile?.role === "ADMIN"
-                          ? t("account.next.done")
-                          : "-"}
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="rounded-xl border border-white/15 bg-white/40 p-4">
+                      <div className="text-muted-foreground">{t("account.status.email")}</div>
+                      <div className="mt-1 text-foreground break-all">{user.email}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/15 bg-white/40 p-4">
+                      <div className="text-muted-foreground">{t("account.status.role")}</div>
+                      <div className="mt-1 text-foreground">{profile?.role ?? "-"}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/15 bg-white/40 p-4">
+                      <div className="text-muted-foreground">{t("account.status.next")}</div>
+                      <div className="mt-1 text-foreground">
+                        {profile?.role === "USER_REGISTERED"
+                          ? t("account.next.verify_email")
+                          : profile?.role === "USER_EMAIL_VERIFIED"
+                            ? t("account.next.profile_sms")
+                            : profile?.role === "USER_FULL_VERIFIED" || profile?.role === "ADMIN"
+                              ? t("account.next.done")
+                              : "-"}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -312,7 +326,7 @@ export default function Account() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+              <div className="rounded-2xl border border-white/25 bg-white/90 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
                 <h2 className="font-display text-2xl font-semibold text-foreground">{t("verify_email.title")}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">{t("verify_email.p", { email: user.email ?? "" })}</p>
                 <div className="mt-4">
@@ -338,7 +352,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <div className="rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+            <div className="rounded-2xl border border-white/25 bg-white/90 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
               <h2 className="font-display text-2xl font-semibold text-foreground">{t("account.auctions.title")}</h2>
               <p className="mt-2 text-sm text-muted-foreground">{t("account.auctions.placeholder")}</p>
             </div>
@@ -349,7 +363,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <div className="rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+            <div className="rounded-2xl border border-white/25 bg-white/90 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
               <h2 className="font-display text-2xl font-semibold text-foreground">{t("account.settings.title")}</h2>
               <div className="mt-4">
                 <Button variant="outline" onClick={() => signOut()}>{t("account.settings.signout")}</Button>
