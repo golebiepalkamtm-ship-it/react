@@ -7,7 +7,7 @@ import Stripe from 'stripe';
 const router = express.Router();
 const stripe = new Stripe(validatedEnv.STRIPE_SECRET_KEY);
 
-router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+router.post('/stripe', express.raw({ type: 'application/json' }), async (req: any, res) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = validatedEnv.STRIPE_WEBHOOK_SECRET;
 
@@ -17,7 +17,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
     if (!req.body) {
       throw new Error('Request body is missing');
     }
-    event = stripe.webhooks.constructEvent(req.body as Buffer, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
