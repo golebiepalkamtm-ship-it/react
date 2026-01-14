@@ -45,16 +45,18 @@ class ApiClient {
       return undefined;
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(fetchConfig.headers as Record<string, string> | undefined || {}),
+    };
+    const csrf = fetchConfig.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(fetchConfig.method) ? getCSRFToken() : undefined;
+    if (csrf) headers['X-CSRF-Token'] = csrf;
+
     const response = await fetch(url, {
       ...fetchConfig,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        ...(fetchConfig.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(fetchConfig.method) && {
-          'X-CSRF-Token': getCSRFToken()
-        }),
-        ...fetchConfig.headers,
-      },
+      headers,
+      credentials: 'include',
       signal: fetchConfig.signal,
     });
     
@@ -129,14 +131,18 @@ class ApiClient {
       return undefined;
     };
 
+    const headers: Record<string, string> = {
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+    const csrf = getCSRFToken();
+    if (csrf) headers['X-CSRF-Token'] = csrf;
+
     const response = await fetch(url, {
       method: 'POST',
       body: formData,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': getCSRFToken(),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers,
+      credentials: 'include',
     });
 
     if (!response.ok) {

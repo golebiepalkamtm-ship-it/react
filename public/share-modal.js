@@ -1,5 +1,6 @@
 (function () {
-  // Share modal v20250113-v7 - wzmocnione guardy na document/null
+  // Share modal v20250113-v8 - twardsze guardy na window/document
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
   function init() {
     try {
       const doc = typeof document !== 'undefined' ? document : null;
