@@ -54,7 +54,7 @@ services:
       - key: TWILIO_VERIFY_SERVICE_SID
         sync: false
       - key: TWILIO_PHONE_NUMBER
-        value: "+48732071591"
+        sync: false
       - key: SUPABASE_BUCKET
         value: auction-images
       - key: SUPABASE_BUCKET_PUBLIC

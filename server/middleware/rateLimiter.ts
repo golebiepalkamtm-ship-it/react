@@ -62,10 +62,10 @@ export const authLimiter = rateLimit({
   // }),
 });
 
-// Auction bidding limiter - 30 requests per minute per user
+// Auction bidding limiter - 10 requests per minute per user (tightened for security)
 export const biddingLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 30, // limit each user to 30 bids per minute
+  max: 10, // limit each user to 10 bids per minute
   keyGenerator: (req: Request) => {
     // Use user ID if authenticated, otherwise IP
     return (req as any).user?.id || req.ip;

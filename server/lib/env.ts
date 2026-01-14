@@ -13,7 +13,7 @@ const envSchema = z.object({
   // Supabase
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
   SUPABASE_ANON_KEY: z.string().min(1, 'SUPABASE_ANON_KEY is required'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required').default('dev-service-role-key-change-me'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   SUPABASE_BUCKET: z.string().min(1, 'SUPABASE_BUCKET is required'),
   SUPABASE_BUCKET_PUBLIC: z.string().min(1, 'SUPABASE_BUCKET_PUBLIC is required'),
   
@@ -57,9 +57,64 @@ const env = envSchema.safeParse(process.env);
 if (!env.success) {
   console.error('❌ Environment validation failed:');
   env.error.errors.forEach(err => {
-    console.error(`- ${err.message}`);
+    console.error(`- ${err.path.join('.')}: ${err.message}`);
   });
   process.exit(1);
+}
+
+// CRITICAL: Additional production security checks
+if (env.data.NODE_ENV === 'production') {
+  const criticalSecrets = [
+    'JWT_SECRET',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'TWILIO_AUTH_TOKEN',
+    'STRIPE_SECRET_KEY',
+    'DATABASE_URL'
+  ] as const;
+
+  const missingSecrets: string[] = [];
+  
+  for (const secret of criticalSecrets) {
+    const value = env.data[secret];
+    if (!value || value.length < 10) {
+      missingSecrets.push(secret);
+    }
+  }
+
+  if (missingSecrets.length > 0) {
+    console.error('❌ CRITICAL SECURITY ERROR: Missing or invalid secrets in production:');
+    missingSecrets.forEach(secret => {
+      console.error(`  - ${secret}`);
+    });
+    console.error('\n🔒 All secrets must be properly configured in production environment.');
+    process.exit(1);
+  }
+
+  // Verify no default/weak values
+  const weakPatterns = [
+    /^(test|dev|demo|example|change[-_]?me|secret|password|12345)/i,
+    /^.{1,15}$/  // Too short for production
+  ];
+
+  const weakSecrets: string[] = [];
+  
+  for (const secret of criticalSecrets) {
+    const value = env.data[secret] as string;
+    if (weakPatterns.some(pattern => pattern.test(value))) {
+      weakSecrets.push(secret);
+    }
+  }
+
+  if (weakSecrets.length > 0) {
+    console.error('❌ CRITICAL SECURITY ERROR: Weak or default secrets detected in production:');
+    weakSecrets.forEach(secret => {
+      console.error(`  - ${secret} appears to use a weak or default value`);
+    });
+    console.error('\n🔒 All secrets must be strong and unique in production.');
+    process.exit(1);
+  }
+
+  console.log('✅ Production security validation passed');
 }
 
 export const validatedEnv = env.data;

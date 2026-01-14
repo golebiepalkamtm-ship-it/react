@@ -46,6 +46,17 @@ export const useSocket = ({
     const socket = websocketService.socket;
     if (!socket) return;
 
+    // Event-driven state updates zamiast polling
+    const handleConnectionStateChange = () => {
+      setConnectionState(websocketService.getConnectionState());
+      setReconnectAttempts(websocketService.getConnectionState().reconnectAttempts);
+    };
+
+    // Nasłuchuj na zmiany stanu połączenia
+    socket.on('connect', handleConnectionStateChange);
+    socket.on('disconnect', handleConnectionStateChange);
+    socket.on('connect_error', handleConnectionStateChange);
+
     websocketService.onReconnect(handleConnect);
     websocketService.onDisconnect(handleDisconnect);
     
@@ -75,16 +86,8 @@ export const useSocket = ({
     websocketService.onBidUpdated(bidUpdatedHandler);
     websocketService.onAuctionStatusChanged(auctionStatusHandler);
 
-    const updateConnectionState = () => {
-      setConnectionState(websocketService.getConnectionState());
-      setReconnectAttempts(websocketService.getConnectionState().reconnectAttempts);
-    };
-
-    const stateInterval = setInterval(updateConnectionState, 1000);
-
     return () => {
-      clearInterval(stateInterval);
-      
+      // Cleanup wszystkich listenerów
       websocketService.offBidPlaced(bidHandler);
       websocketService.offBidUpdated(bidUpdatedHandler);
       websocketService.offAuctionStatusChanged(auctionStatusHandler);
@@ -95,6 +98,9 @@ export const useSocket = ({
       
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
+      socket.off('connect', handleConnectionStateChange);
+      socket.off('disconnect', handleConnectionStateChange);
+      socket.off('connect_error', handleConnectionStateChange);
     };
   }, [auctionId, session, onBidPlaced, onBidUpdated, onAuctionUpdate, handleConnect, handleDisconnect]);
 

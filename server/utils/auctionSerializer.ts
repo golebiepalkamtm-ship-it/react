@@ -7,9 +7,38 @@ const toNumber = (value: Prisma.Decimal | number | null | undefined) => {
   return Number(value);
 };
 
+// Optymalizacja: SELECT tylko potrzebnych pól zamiast całych obiektów
 export const baseAuctionInclude = {
-  pigeonProfile: true,
-  seller: true,
+  pigeonProfile: {
+    select: {
+      ringNumber: true,
+      eyeColor: true,
+      featherColor: true,
+      construction: true,
+      vitality: true,
+      length: true,
+      endurance: true,
+      forkStrength: true,
+      forkAlignment: true,
+      muscles: true,
+      balance: true,
+      back: true,
+      purpose: true,
+      gender: true,
+    }
+  },
+  seller: {
+    select: {
+      id: true,
+      username: true,
+      first_name: true,
+      last_name: true,
+      email: true,
+      phone: true,
+      avatar_url: true,
+      role: true,
+    }
+  },
   _count: {
     select: {
       bids: true,
@@ -21,11 +50,25 @@ export const baseAuctionInclude = {
 export const listAuctionInclude = {
   ...baseAuctionInclude,
   bids: {
-    include: {
-      bidder: true,
+    select: {
+      id: true,
+      amount: true,
+      createdAt: true,
+      bidder: {
+        select: {
+          id: true,
+          username: true,
+          first_name: true,
+          last_name: true,
+          email: true,
+          phone: true,
+          avatar_url: true,
+          role: true,
+        }
+      }
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: 'desc' as const,
     },
     take: 5,
   },
@@ -34,11 +77,25 @@ export const listAuctionInclude = {
 export const detailAuctionInclude = {
   ...baseAuctionInclude,
   bids: {
-    include: {
-      bidder: true,
+    select: {
+      id: true,
+      amount: true,
+      createdAt: true,
+      bidder: {
+        select: {
+          id: true,
+          username: true,
+          first_name: true,
+          last_name: true,
+          email: true,
+          phone: true,
+          avatar_url: true,
+          role: true,
+        }
+      }
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: 'desc' as const,
     },
   },
 } satisfies Prisma.AuctionInclude;
@@ -59,23 +116,23 @@ export type BidEntity = Prisma.BidGetPayload<{
   include: { bidder: true };
 }>;
 
-export function serializePigeon(pigeon: Prisma.PigeonProfileGetPayload<{}> | null | undefined) {
+export function serializePigeon(pigeon: Record<string, unknown> | null | undefined) {
   if (!pigeon) return undefined;
   return {
-    ringNumber: pigeon.ringNumber ?? '',
-    eyeColor: pigeon.eyeColor ?? '',
-    pigeonColor: pigeon.featherColor ?? '',
-    construction: pigeon.construction ?? '',
-    vitality: pigeon.vitality ?? '',
-    length: pigeon.length ?? '',
-    endurance: pigeon.endurance ?? '',
-    forkStrength: pigeon.forkStrength ?? '',
-    forkAlignment: pigeon.forkAlignment ?? '',
-    muscles: pigeon.muscles ?? '',
-    balance: pigeon.balance ?? '',
-    back: pigeon.back ?? '',
-    purpose: pigeon.purpose ?? '',
-    gender: toLowerEnum(pigeon.gender) as 'male' | 'female' | undefined,
+    ringNumber: (pigeon.ringNumber as string) ?? '',
+    eyeColor: (pigeon.eyeColor as string) ?? '',
+    pigeonColor: (pigeon.featherColor as string) ?? '',
+    construction: (pigeon.construction as string) ?? '',
+    vitality: (pigeon.vitality as string) ?? '',
+    length: (pigeon.length as string) ?? '',
+    endurance: (pigeon.endurance as string) ?? '',
+    forkStrength: (pigeon.forkStrength as string) ?? '',
+    forkAlignment: (pigeon.forkAlignment as string) ?? '',
+    muscles: (pigeon.muscles as string) ?? '',
+    balance: (pigeon.balance as string) ?? '',
+    back: (pigeon.back as string) ?? '',
+    purpose: (pigeon.purpose as string) ?? '',
+    gender: toLowerEnum(pigeon.gender as string) as 'male' | 'female' | undefined,
     achievements: '', // legacy field
   };
 }

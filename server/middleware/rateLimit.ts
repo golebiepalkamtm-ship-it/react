@@ -30,7 +30,7 @@ class RateLimiter {
   }
 }
 
-// Rate limiter for bids: 10 bids per 60 seconds per user per auction
+// Rate limiter for bids: 10 bids per 60 seconds per user per auction (synchronized with HTTP endpoint)
 export const bidRateLimiter = new RateLimiter(60 * 1000, 10);
 
 // Rate limiter for general WebSocket: 100 messages per 60 seconds per user

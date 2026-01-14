@@ -2,16 +2,10 @@ import { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 import logger from '../lib/logger.js';
 import { bidRateLimiter } from '../middleware/rateLimit.js';
-import { prisma } from '../lib/db.js';
-import { cache } from '../lib/cache.js';
-import { Prisma } from '@prisma/client';
-import {
-  AuctionErrorCodes,
-  createAuctionError
-} from '../utils/auctionErrors.js';
-import { serializePublicAuction, detailAuctionInclude } from '../utils/auctionSerializer.js';
-import { serializeBid, bidInclude } from '../utils/auctionSerializer.js';
-import { verifyJWTTokenWithRole, getTokenVerifier } from '../utils/tokenVerifier.js';
+import { verifyJWTTokenWithRole } from '../utils/tokenVerifier.js';
+import { validatedEnv } from '../lib/env.js';
+import { wsTicketService } from '../services/WebSocketTicketService.js';
+import { auctionService } from '../services/AuctionService.js';
 
 // UUID v4 validation regex
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -41,17 +35,80 @@ const wsBidSchema = z.object({
   path: ['maxBid']
 });
 
+// CSRF/Origin Protection Helper
+function verifyOrigin(origin: string | undefined): boolean {
+  if (!origin) return false;
+  
+  const allowedOrigins = validatedEnv.ALLOWED_ORIGINS
+    ? validatedEnv.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : [validatedEnv.CLIENT_URL];
+  
+  // In development, allow localhost with any port
+  if (validatedEnv.NODE_ENV === 'development') {
+    const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+    if (localhostPattern.test(origin)) {
+      return true;
+    }
+  }
+  
+  return allowedOrigins.some(allowed => {
+    if (allowed === '*') return validatedEnv.NODE_ENV === 'development';
+    return origin === allowed || origin.startsWith(allowed);
+  });
+}
+
 export const setupWebSocketEvents = (io: Server) => {
   io.use(async (socket, next) => {
     try {
+      // CRITICAL SECURITY #1: Strict Origin/CSRF Protection
+      const origin = socket.handshake.headers.origin || socket.handshake.headers.referer;
+      if (!verifyOrigin(origin)) {
+        logger.warn(`WebSocket connection rejected - invalid origin: ${origin}`, {
+          ip: socket.handshake.address,
+          headers: socket.handshake.headers
+        });
+        return next(new Error('Origin not allowed'));
+      }
+
+      // CRITICAL SECURITY #2: Ticket-Based Authentication (CSWSH Prevention)
+      // Preferred method: Single-use ticket from authenticated HTTP endpoint
+      const ticket = socket.handshake.auth.ticket || socket.handshake.query.ticket;
+      
+      if (ticket) {
+        // Ticket-based authentication (recommended)
+        try {
+          const ticketData = wsTicketService.validateAndConsumeTicket(ticket as string);
+          
+          if (!ticketData) {
+            logger.warn('WebSocket connection rejected - invalid ticket', {
+              ip: socket.handshake.address
+            });
+            return next(new Error('Invalid or expired ticket'));
+          }
+
+          socket.data.userId = ticketData.userId;
+          socket.data.user = {
+            id: ticketData.userId,
+            email: ticketData.email,
+            role: ticketData.role
+          };
+          
+          logger.info(`WebSocket authenticated via ticket: ${ticketData.userId}`);
+          return next();
+        } catch (error) {
+          logger.error('Ticket validation error:', error);
+          return next(new Error(error instanceof Error ? error.message : 'Ticket validation failed'));
+        }
+      }
+
+      // Fallback: JWT Token authentication (legacy support)
       const token = socket.handshake.auth.token;
       if (!token) {
-        return next(new Error('No token provided'));
+        return next(new Error('No authentication credentials provided'));
       }
 
       // Verify SUPABASE_URL before proceeding
-      const supabaseUrl = process.env.SUPABASE_URL;
-      if (!supabaseUrl) {
+      if (!validatedEnv.SUPABASE_URL) {
         return next(new Error('Supabase not configured on server'));
       }
 
@@ -69,6 +126,7 @@ export const setupWebSocketEvents = (io: Server) => {
           role: verificationResult.role
         };
         
+        logger.info(`WebSocket authenticated via JWT: ${verificationResult.userId}`);
         next();
       } catch (error) {
         if (error instanceof Error && error.message === 'Rate limit exceeded') {
@@ -126,143 +184,20 @@ export const setupWebSocketEvents = (io: Server) => {
           });
         }
 
-        // Place bid with transaction and row-level locking
-        const result = await prisma.$transaction(async (tx) => {
-          // Row-level locking to prevent race conditions
-          await tx.$queryRaw`SELECT * FROM auctions WHERE id = ${auctionId} FOR UPDATE`;
-
-          const auction = await tx.auction.findUnique({
-            where: { id: auctionId },
-            include: detailAuctionInclude,
-          });
-
-          if (!auction) {
-            throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_FOUND, 'Auction not found');
-          }
-
-          // Verify bidder != owner
-          if (auction.sellerId === userId) {
-            throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Cannot bid on your own auction');
-          }
-
-          const now = Date.now();
-          const endsAt = auction.endTime ? auction.endTime.getTime() : 0;
-          const status = auction.status;
-
-          if (status !== 'ACTIVE' || endsAt <= now) {
-            if (endsAt <= now && status !== 'ENDED') {
-              await tx.auction.update({ where: { id: auctionId }, data: { status: 'ENDED' } });
-            }
-            throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_ACTIVE, 'Aukcja nie jest aktywna');
-          }
-
-          if (!Number.isFinite(amount) || amount <= 0) {
-            throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Nieprawidłowa kwota oferty');
-          }
-
-          const increment = auction.minBidIncrement || 100;
-          const minimumAllowed = Number(auction.currentPrice ?? auction.startingPrice ?? 0) + increment;
-
-          if (amount < minimumAllowed) {
-            throw createAuctionError(
-              AuctionErrorCodes.BID_TOO_LOW,
-              `Minimalna oferta to ${minimumAllowed}`
-            );
-          }
-
-          if (isProxy && (!maxBid || maxBid <= amount)) {
-            throw createAuctionError(
-              AuctionErrorCodes.INVALID_BID_AMOUNT,
-              'Nieprawidłowa kwota maksymalna dla proxy bid'
-            );
-          }
-
-          const thresholdMs = (auction.snipeThresholdMinutes || 5) * 60 * 1000;
-          const extensionMs = (auction.snipeExtensionMinutes || 5) * 60 * 1000;
-          const timeLeft = endsAt - now;
-          let wasExtended = false;
-          let newEndTime: string | null = null;
-          let targetEndDate = auction.endTime;
-
-          if (timeLeft > 0 && timeLeft <= thresholdMs) {
-            targetEndDate = new Date(endsAt + extensionMs);
-            newEndTime = targetEndDate.toISOString();
-            wasExtended = true;
-          }
-
-          let reserveMet = auction.reserveMet || false;
-          if (auction.reservePrice != null && amount >= Number(auction.reservePrice)) {
-            reserveMet = true;
-          }
-
-          const bidRecord = await tx.bid.create({
-            data: {
-              amount: new Prisma.Decimal(amount),
-              bidderId: userId,
-              auctionId,
-              isProxy: Boolean(isProxy),
-              maxBid: maxBid ? new Prisma.Decimal(maxBid) : null,
-            },
-            include: bidInclude,
-          });
-
-          const concurrencyGuard = await tx.auction.updateMany({
-            where: {
-              id: auctionId,
-              currentPrice: auction.currentPrice,
-            },
-            data: {
-              currentPrice: new Prisma.Decimal(amount),
-              endTime: targetEndDate,
-              reserveMet,
-            },
-          });
-
-          if (concurrencyGuard.count === 0) {
-            throw createAuctionError(
-              AuctionErrorCodes.CONCURRENT_BID_CONFLICT,
-              'Aukcja została już przebita. Spróbuj ponownie.'
-            );
-          }
-
-          const updatedAuction = await tx.auction.findUnique({
-            where: { id: auctionId },
-            include: detailAuctionInclude,
-          });
-
-          if (!updatedAuction) {
-            throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_FOUND, 'Auction not found');
-          }
-
-          return {
-            bid: serializeBid(bidRecord),
-            auction: serializePublicAuction(updatedAuction),
-            wasExtended,
-            newEndTime,
-            auctionEnded: false,
-            winnerInfo: null,
-          };
-        });
-
-        // Notify all users in auction room
-        io.to(`auction-${auctionId}`).emit('bid-placed', {
-          bid: result.bid,
-          auction: result.auction,
-          newPrice: Number(result.bid.amount),
+        // Delegacja do zunifikowanej metody AuctionService.placeBid
+        // Cała logika walidacji, transakcji, locking i cache jest tam
+        const result = await auctionService.placeBid(
           auctionId,
-          meta: {
-            wasExtended: result.wasExtended,
-            newEndTime: result.newEndTime,
-            auctionEnded: result.auctionEnded,
-            winnerInfo: result.winnerInfo,
-          }
-        });
+          userId,
+          amount,
+          Boolean(isProxy),
+          maxBid || null
+        );
 
-        // Invalidate specific cache entries
-        cache.delete(`auction:${auctionId}`);
-        cache.delete(`auction:${auctionId}:bids`);
-        cache.delete(`user:${userId}:auctions`);
         logger.info(`Bid placed via WS: ${amount} by ${userId} on auction ${auctionId}`);
+
+        // Sukces - Socket.IO event już został wysłany przez AuctionService
+        // Nie trzeba duplikować emit('bid-placed') tutaj
 
       } catch (error: any) {
         logger.error('WS Bid error:', error);

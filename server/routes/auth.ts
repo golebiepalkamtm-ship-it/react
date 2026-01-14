@@ -5,7 +5,7 @@ import { supabase } from '../lib/db.js';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
 import { calculateRole, UserWithVerifications } from '../types/roles.js';
-
+import { wsTicketService } from '../services/WebSocketTicketService.js';
 import { smsService } from '../lib/sms.js';
 
 const router = express.Router();
@@ -156,6 +156,32 @@ router.get('/me', authMiddleware, async (req: AuthenticatedRequest, res) => {
   } catch (error: any) {
     console.error('Error in /me endpoint:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Generuje jednorazowy ticket do połączenia WebSocket (CSRF/CSWSH protection)
+ * SECURITY: Ticket jest ważny tylko 30 sekund i może być użyty tylko raz
+ */
+router.post('/ws-ticket', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const ticket = wsTicketService.generateTicket(
+      req.user.id,
+      req.user.email,
+      req.user.role
+    );
+
+    res.json({ 
+      ticket,
+      expiresIn: 30 // seconds
+    });
+  } catch (error: any) {
+    console.error('Error generating WebSocket ticket:', error);
+    res.status(500).json({ error: 'Failed to generate ticket' });
   }
 });
 
