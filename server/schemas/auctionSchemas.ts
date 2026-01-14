@@ -18,7 +18,7 @@ export const createAuctionSchema = z.object({
   category: z.string().max(100).optional(),
   pigeon: z.object({
     gender: z.enum(['male', 'female']).optional(),
-    ringNumber: z.string().trim().min(1, 'Ring number is required').max(100),
+    ringNumber: z.string().trim().max(100).optional(),
     eyeColor: z.string().max(50).optional(),
     pigeonColor: z.string().max(100).optional(),
     construction: z.string().max(200).optional(),
