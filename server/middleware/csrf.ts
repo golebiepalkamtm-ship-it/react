@@ -88,7 +88,7 @@ export function setCSRFToken(req: Request, res: Response): string {
   res.cookie('csrf-token', token, {
     httpOnly: false, // Frontend needs to read this for X-CSRF-Token header
     secure: validatedEnv.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: validatedEnv.NODE_ENV === 'production' ? 'none' : 'strict',
     maxAge: 2 * 60 * 60 * 1000, // 2 hours
     path: '/'
   });
