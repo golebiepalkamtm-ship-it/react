@@ -30,9 +30,9 @@ const envSchema = z.object({
   TWILIO_VERIFY_SERVICE_SID: z.string().min(1, 'TWILIO_VERIFY_SERVICE_SID is required'),
   TWILIO_PHONE_NUMBER: z.string().min(1, 'TWILIO_PHONE_NUMBER is required'),
   
-  // Stripe
-  STRIPE_SECRET_KEY: z.string().min(1, 'STRIPE_SECRET_KEY is required'),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1, 'STRIPE_WEBHOOK_SECRET is required'),
+  // Stripe (opcjonalne - do płatności)
+  STRIPE_SECRET_KEY: z.string().optional().default(''),
+  STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),
   STRIPE_CURRENCY: z.string().default('pln'),
   
   // Security
@@ -68,7 +68,6 @@ if (env.data.NODE_ENV === 'production') {
     'JWT_SECRET',
     'SUPABASE_SERVICE_ROLE_KEY',
     'TWILIO_AUTH_TOKEN',
-    'STRIPE_SECRET_KEY',
     'DATABASE_URL'
   ] as const;
 

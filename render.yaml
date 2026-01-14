@@ -26,6 +26,14 @@ services:
 
     routes:
       - type: redirect
+        source: /share-modal.js
+        destination: /share-modal.v4.js
+        statusCode: 301
+      - type: redirect
+        source: /share-modal.v3.js
+        destination: /share-modal.v4.js
+        statusCode: 301
+      - type: redirect
         source: /api/(.*)
         destination: https://champion-pigeon-api.onrender.com/api/$1
 
