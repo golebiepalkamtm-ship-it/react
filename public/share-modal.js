@@ -87,10 +87,9 @@
   }
 
   // Uruchom po pełnym załadowaniu DOM
-  const docReady = doc;
-  if (docReady) {
-    if (docReady.readyState === 'loading') {
-      docReady.addEventListener('DOMContentLoaded', init);
+  if (doc && typeof doc.addEventListener === 'function') {
+    if (doc.readyState === 'loading') {
+      doc.addEventListener('DOMContentLoaded', init);
     } else {
       // DOM już załadowany, uruchom teraz
       setTimeout(init, 100);

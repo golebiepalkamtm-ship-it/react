@@ -199,7 +199,7 @@ app.get('/api/csrf-token', (req, res) => {
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/auctions', validateCSRFToken, auctionRoutes);
 app.use('/api/users', authMiddleware, validateCSRFToken, userRoutes);
-app.use('/api/upload', uploadLimiter, authMiddleware, validateCSRFToken, uploadRoutes);
+app.use('/api/upload', uploadLimiter, authMiddleware, uploadRoutes);
 app.use('/api/messages', authMiddleware, validateCSRFToken, messageRoutes);
 app.use('/api/admin', authMiddleware, validateCSRFToken, adminRoutes);
 app.use('/api/notifications', authMiddleware, validateCSRFToken, notificationRoutes);
