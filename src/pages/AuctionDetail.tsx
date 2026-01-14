@@ -15,12 +15,13 @@ import ReviewForm from "@/components/ReviewForm";
 import SellerReviews from "@/components/SellerReviews";
 import UnifiedModal from "@/components/ui/UnifiedModal";
 import AccountModal from "@/components/AccountModal";
+import EditAuctionModal from "@/components/auction/EditAuctionModal";
 
 const AuctionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { session, user, profile } = useAuth();
-  const { auction, isLoading: loading, error } = useAuction({ auctionId: id || '' });
+  const { auction, isLoading: loading, error, refetch: refetchAuction } = useAuction({ auctionId: id || '' });
   const { timeLeft, isEnded } = useAuctionTimer(auction?.endTime);
   const [bidAmount, setBidAmount] = useState<string>('');
   const [isWatched, setIsWatched] = useState<boolean>(false);
@@ -28,6 +29,7 @@ const AuctionDetail: React.FC = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Verification modal state
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -85,6 +87,28 @@ const AuctionDetail: React.FC = () => {
     }
   };
   
+  const handleAdminUpdate = async (data: { currentPrice?: number; buyNowPrice?: number; endTime?: string }) => {
+    if (!token || !id) return;
+    try {
+      await auctionService.adminUpdateAuction(id, data, token);
+      refetchAuction();
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Failed to update auction:', error);
+    }
+  };
+
+  const handleAdminCancel = async () => {
+    if (!token || !id) return;
+    try {
+      await auctionService.adminCancelAuction(id, token);
+      refetchAuction();
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Failed to cancel auction:', error);
+    }
+  };
+
   const handleBuyNow = async () => {
     if (!checkAccess()) return;
     if (!token || !auction || !auction.buyNowPrice) return;
@@ -223,6 +247,7 @@ const AuctionDetail: React.FC = () => {
               onPlaceBid={handleBid}
               onBuyNow={handleBuyNow}
               onToggleWatch={toggleWatch}
+              onEdit={() => setIsEditModalOpen(true)}
             />
             
             {/* Sekcja recenzji - tylko dla zakończonych aukcji */}
@@ -279,6 +304,16 @@ const AuctionDetail: React.FC = () => {
         }}
       />
       
+      {auction && (
+        <EditAuctionModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          auction={auction}
+          onSave={handleAdminUpdate}
+          onCancel={handleAdminCancel}
+        />
+      )}
+
       <Footer />
     </div>
   );

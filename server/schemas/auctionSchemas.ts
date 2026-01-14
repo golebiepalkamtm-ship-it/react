@@ -101,6 +101,12 @@ export const auctionIdParamSchema = z.object({
   id: z.string().regex(uuidRegex, 'Invalid auction ID format'),
 });
 
+export const adminUpdateAuctionSchema = z.object({
+  currentPrice: z.number().positive('Current price must be positive').optional(),
+  buyNowPrice: z.number().positive('Buy now price must be positive').optional(),
+  endTime: z.string().datetime('Invalid date format for end time').optional(),
+});
+
 export const paginationSchema = z.object({
   page: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1)).default('1'),
   limit: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(100)).default('20'),

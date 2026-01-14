@@ -5,6 +5,9 @@ import { cache } from '../lib/cache.js';
 import { validate } from '../middleware/validation.js';
 import { z } from 'zod';
 
+// Import types from Prisma client
+import type { Payment, PaymentStatus, PaymentProvider, PaymentType } from '@prisma/client';
+
 const router = express.Router();
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;

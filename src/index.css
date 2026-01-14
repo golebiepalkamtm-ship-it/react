@@ -20,31 +20,31 @@
   --color-card-foreground: oklch(11% 0.1 222);
   --color-popover: oklch(100% 0 0);
   --color-popover-foreground: oklch(11% 0.1 222);
-  
+
   /* Deep Navy Primary */
   --color-primary: oklch(15% 0.08 222);
   --color-primary-foreground: oklch(96% 0.03 45);
-  
+
   /* Champagne Gold Secondary */
   --color-secondary: oklch(70% 0.06 45);
   --color-secondary-foreground: oklch(11% 0.1 222);
-  
+
   --color-muted: oklch(91% 0.01 220);
   --color-muted-foreground: oklch(40% 0.02 220);
-  
+
   /* Gold Accent */
   --color-accent: oklch(55% 0.12 45);
   --color-accent-foreground: oklch(11% 0.1 222);
-  
+
   --color-destructive: oklch(60% 0.15 0);
   --color-destructive-foreground: oklch(100% 0 0);
-  
+
   --color-border: oklch(85% 0.01 220);
   --color-input: oklch(85% 0.01 220);
   --color-ring: oklch(55% 0.12 45);
-  
+
   --radius: 0.75rem;
-  
+
   /* Custom Colors */
   --color-gold: oklch(55% 0.12 45);
   --color-gold-light: oklch(75% 0.08 45);
@@ -270,6 +270,9 @@
     --tunnel-depth: 222 47% 3%;
     --glow-primary: 45 80% 55%;
     --glow-secondary: 35 90% 55%;
+  }
+  .theme {
+    --animate-shiny-text: shiny-text 8s infinite;
   }
 
   }
@@ -1227,5 +1230,25 @@
   65%,
   69.9% {
     opacity: 0.4;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@theme inline {
+  @keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+  30%, 60% {
+    background-position: calc(100% + var(--shiny-width)) 0;
+    }
   }
 }

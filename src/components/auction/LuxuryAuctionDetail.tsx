@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from
 import { 
   Clock, Gavel, Trophy, MapPin, User, Phone, Mail, Heart, 
   Share2, Eye, ChevronLeft, ChevronRight, AlertCircle, Check, 
-  ArrowLeft, Info, AlertTriangle, FileText, CreditCard
+  ArrowLeft, Info, AlertTriangle, FileText, CreditCard, Pencil
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -11,7 +11,7 @@ import { MagneticButton } from '@/components/effects/MagneticButton';
 import { LuxuryAuctionTimer } from '@/components/auction/LuxuryAuctionTimer';
 import { paymentService } from '@/services/paymentService';
 import { useAuth } from '@/contexts/AuthContext';
-import type { AuctionDTO as Auction } from '../../../shared/auctionSerializer';
+import type { Auction } from '@/types/auction';
 
 interface LuxuryAuctionDetailProps {
   auction: Auction;
@@ -26,6 +26,7 @@ interface LuxuryAuctionDetailProps {
   onPlaceBid: () => Promise<void>;
   onBuyNow: () => Promise<void>;
   onToggleWatch: () => Promise<void>;
+  onEdit?: () => void;
 }
 
 export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
@@ -40,7 +41,8 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
   onBidAmountChange,
   onPlaceBid,
   onBuyNow,
-  onToggleWatch
+  onToggleWatch,
+  onEdit
 }) => {
   const { user, session, profile } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -211,7 +213,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             
             {/* Miniatury */}
             <div className="flex gap-2 p-4 overflow-x-auto">
-              {auction?.images.map((img, index) => (
+              {auction?.images.map((img: string, index: number) => (
                 <motion.div
                   key={index}
                   className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer border-2 ${
@@ -297,6 +299,20 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                 >
                   <Share2 className="w-5 h-5" />
                 </motion.button>
+
+                {profile?.role === 'ADMIN' && onEdit && (
+                  <motion.button
+                    variants={buttonVariants}
+                    initial="rest"
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={onEdit}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-muted-foreground hover:text-white"
+                    title="Edytuj Aukcję (Admin)"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </motion.button>
+                )}
               </div>
             </div>
             
@@ -538,7 +554,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
               <h3 className="font-display text-xl font-semibold mb-4">Historia licytacji</h3>
               {auction?.bids && auction.bids.length > 0 ? (
                 <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
-                  {auction.bids.map((bid) => (
+                  {auction.bids.map((bid: any) => (
                     <motion.div
                       key={bid.id}
                       initial={{ opacity: 0, x: -10 }}

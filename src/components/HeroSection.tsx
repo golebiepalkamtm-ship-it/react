@@ -9,8 +9,10 @@ import {
   useAnimationFrame,
 } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { Reveal, fadeInUp, scaleIn, buttonMicro } from '@/components/motion';
 import { MagneticButton } from '@/components/effects/MagneticButton';
+import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 
 function HeroSection() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -177,236 +179,27 @@ function HeroSection() {
                   textShadow: prefersReducedMotion ? undefined : '0 0 60px rgba(212,175,55,0.4), 0 0 30px rgba(212,175,55,0.2)',
                 }}
               >
-                {/* Pałka with 3D kinetic reveal */}
-                <span className="inline-flex" aria-label="Pałka">
-                  {titleChars.map((ch, i) => (
-                    <motion.span
-                      key={`t-${i}`}
-                      className="inline-block relative"
-                      initial={prefersReducedMotion ? false : { 
-                        y: 100, 
-                        opacity: 0, 
-                        rotateX: 120,
-                        scale: 0.2,
-                        filter: 'blur(10px)',
-                      }}
-                      animate={prefersReducedMotion ? undefined : { 
-                        y: 0, 
-                        opacity: 1, 
-                        rotateX: 0,
-                        scale: 1,
-                        filter: 'blur(0px)',
-                      }}
-                      whileHover={prefersReducedMotion ? undefined : {
-                        y: -10,
-                        scale: 1.15,
-                        rotateZ: [0, -5, 5, 0],
-                        textShadow: '0 0 30px rgba(212,175,55,0.8)',
-                        transition: { 
-                          duration: 0.3,
-                          rotateZ: { duration: 0.5, repeat: 2 },
-                        },
-                      }}
-                      transition={prefersReducedMotion ? undefined : { 
-                        duration: 1.4, 
-                        delay: i * 0.12,
-                        type: 'spring',
-                        stiffness: 100,
-                        damping: 12,
-                      }}
-                      style={{
-                        transformStyle: 'preserve-3d',
-                      }}
-                    >
-                      {/* Character glow */}
-                      {!prefersReducedMotion && (
-                        <motion.span
-                          className="absolute inset-0"
-                          style={{
-                            color: 'rgba(255,223,128,0.5)',
-                            filter: 'blur(8px)',
-                          }}
-                          animate={{
-                            opacity: [0.3, 0.6, 0.3],
-                          }}
-                          transition={{
-                            duration: 2,
-                            delay: i * 0.1,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                          }}
-                        >
-                          {ch}
-                        </motion.span>
-                      )}
-                      <span className="relative z-10">{ch}</span>
-                    </motion.span>
-                  ))}
-                </span>
-                {' '}
-                {/* MTM with advanced shimmer & glow */}
-                <motion.span
-                  className="relative inline-block"
-                  initial={prefersReducedMotion ? false : { 
-                    opacity: 0, 
-                    scale: 0.3,
-                    rotateY: 180,
-                    filter: 'blur(30px)',
-                  }}
-                  animate={prefersReducedMotion ? undefined : { 
-                    opacity: 1, 
-                    scale: 1,
-                    rotateY: 0,
-                    filter: 'blur(0px)',
-                  }}
-                  transition={prefersReducedMotion ? undefined : { 
-                    duration: 1.8, 
-                    delay: 0.7,
-                    type: 'spring',
-                    stiffness: 80,
-                  }}
-                >
-                  {/* Multi-layer glow */}
-                  <motion.span
-                    className="absolute -inset-12 rounded-full"
-                    style={{
-                      background: 'radial-gradient(closest-side, rgba(255,223,128,0.6), rgba(212,175,55,0.3) 40%, transparent 70%)',
-                      filter: 'blur(30px)',
-                    }}
-                    animate={prefersReducedMotion ? undefined : {
-                      scale: [1, 1.4, 1.2, 1],
-                      opacity: [0.4, 0.8, 0.6, 0.4],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                    aria-hidden="true"
-                  />
-                  <motion.span
-                    className="absolute -inset-8 rounded-full"
-                    style={{
-                      background: 'radial-gradient(closest-side, rgba(212,175,55,0.5), transparent 60%)',
-                      filter: 'blur(20px)',
-                    }}
-                    animate={prefersReducedMotion ? undefined : {
-                      scale: [1.2, 1, 1.3, 1.2],
-                      rotate: [0, 180, 360],
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: 'linear',
-                    }}
-                    aria-hidden="true"
-                  />
-                  
-                  {/* Animated shimmer overlay */}
-                  <motion.span
-                    className="absolute inset-0 rounded-lg overflow-hidden"
-                    style={{
-                      background: prefersReducedMotion ? undefined : shimmerGradient,
-                      mixBlendMode: 'normal',
-                    }}
-                    aria-hidden="true"
-                  />
-                  
-                  {/* MTM text with gradient */}
-                  <span
-                    className="relative inline-flex z-10"
-                    aria-label="MTM"
-                  >
-                    {mtmChars.map((ch, i) => (
-                      <motion.span
-                        key={`m-${i}`}
-                        className="inline-block"
-                        initial={prefersReducedMotion ? false : { 
-                          y: 80, 
-                          opacity: 0,
-                          rotateY: 180,
-                          scale: 0.3,
-                        }}
-                        animate={prefersReducedMotion ? undefined : { 
-                          y: 0, 
-                          opacity: 1,
-                          rotateY: 0,
-                          scale: 1,
-                        }}
-                        whileHover={prefersReducedMotion ? undefined : {
-                          scale: 1.3,
-                          rotateZ: [0, -10, 10, -10, 10, 0],
-                          y: [-5, -15, -5],
-                          transition: { 
-                            duration: 0.6,
-                            rotateZ: {
-                              repeat: 2,
-                              duration: 0.4,
-                            },
-                          },
-                        }}
-                        transition={prefersReducedMotion ? undefined : { 
-                          duration: 1.2, 
-                          delay: 0.9 + i * 0.15,
-                          type: 'spring',
-                          stiffness: 100,
-                          damping: 10,
-                        }}
-                        style={{
-                          transformStyle: 'preserve-3d',
-                        }}
-                      >
-                        {/* Character shimmer */}
-                        {!prefersReducedMotion && (
-                          <motion.span
-                            className="absolute inset-0"
-                            style={{
-                              background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%)',
-                              backgroundSize: '200% 100%',
-                              WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent',
-                              backgroundClip: 'text',
-                            }}
-                            animate={{
-                              backgroundPositionX: ['0%', '200%'],
-                            }}
-                            transition={{
-                              duration: 2,
-                              delay: i * 0.3,
-                              repeat: Infinity,
-                              ease: 'linear',
-                            }}
-                          >
-                            {ch}
-                          </motion.span>
-                        )}
-                        <span className="relative z-10" style={{
-                          background: 'linear-gradient(135deg, #d4af37 0%, #ffd700 30%, #ffed4e 50%, #ffd700 70%, #d4af37 100%)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          backgroundClip: 'text',
-                          color: 'transparent',
-                        }}>{ch}</span>
-                      </motion.span>
-                    ))}
-                  </span>
-                </motion.span>
+                <AnimatedShinyText className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-2 relative" shimmerWidth={200}>
+                  Pałka MTM
+                </AnimatedShinyText>
               </motion.h1>
             </motion.div>
           </Reveal>
           <Reveal variants={fadeInUp} delay={0.1}>
-            <p className="text-lg text-muted-foreground">Mistrzowie sprintu.</p>
+            <AnimatedShinyText className="text-lg" shimmerWidth={150}>
+              Mistrzowie sprintu.
+            </AnimatedShinyText>
           </Reveal>
           <Reveal variants={scaleIn} delay={0.2}>
             <div className="mt-6 flex items-center justify-center gap-3">
               <MagneticButton strength={0.4}>
-                <Button className="bg-gold text-navy shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:shadow-[0_0_50px_rgba(212,175,55,0.8)]">
-                  Przejdź do aukcji
+                <Button asChild className="bg-gold text-navy shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:shadow-[0_0_50px_rgba(212,175,55,0.8)]">
+                  <Link to="/auctions">Przejdź do aukcji</Link>
                 </Button>
               </MagneticButton>
               <MagneticButton strength={0.4}>
-                <Button variant="outline" className="border-gold/40 hover:border-gold hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-                  Poznaj hodowlę
+                <Button variant="outline" asChild className="border-gold/40 hover:border-gold hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+                   <a href="#press-section">Poznaj hodowlę</a>
                 </Button>
               </MagneticButton>
             </div>

@@ -28,7 +28,7 @@ const AuthMessageModal: React.FC<AuthMessageModalProps> = ({
       message={message}
       showCloseButton={false}
       closeOnBackdrop={false}
-      closeOnEscape={false}
+      closeOnEscape={true}
       confirmButton={{
         text: buttonText,
         onClick: onConfirm,

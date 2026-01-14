@@ -215,7 +215,7 @@ const PressSection = () => {
   return (
     <section
       ref={sectionRef}
-      id="press"
+      id="press-section"
       className="py-20 relative overflow-hidden"
     >
       <div className="container mx-auto px-4 relative z-10">

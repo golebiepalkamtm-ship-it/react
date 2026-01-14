@@ -9,6 +9,15 @@ import type {
 } from '@/types/auction';
 
 export const auctionService = {
+  async adminUpdateAuction(auctionId: string, data: { currentPrice?: number; buyNowPrice?: number; endTime?: string }, token: string | null): Promise<Auction> {
+    if (!token) throw new Error('Authentication required');
+    return apiClient.put<Auction>(`/auctions/${auctionId}/admin`, data, token);
+  },
+
+  async adminCancelAuction(auctionId: string, token: string | null): Promise<Auction> {
+    if (!token) throw new Error('Authentication required');
+    return apiClient.delete<Auction>(`/auctions/${auctionId}/admin`, token);
+  },
   /**
    * Pobierz listę aukcji z filtrami
    */
@@ -24,23 +33,8 @@ export const auctionService = {
     if (filters.priceMin) params.priceMin = filters.priceMin;
     if (filters.priceMax) params.priceMax = filters.priceMax;
     
-    // Dodaj timeout 10 sekund
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    
-    try {
-      const response = await apiClient.get<AuctionsResponse>('/auctions', params, {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      return response.auctions;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Przekroczono czas ładowania aukcji. Spróbuj ponownie.');
-      }
-      throw error;
-    }
+    const response = await apiClient.get<AuctionsResponse>('/auctions', params);
+    return response.auctions;
   },
 
   /**

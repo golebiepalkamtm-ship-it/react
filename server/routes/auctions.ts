@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
 import { validate, validateParams, validateQuery } from '../middleware/validation.js';
-import { createAuctionSchema, placeBidSchema, queryParamsSchema, auctionIdParamSchema, buyNowSchema, paginationSchema } from '../schemas/auctionSchemas.js';
+import { createAuctionSchema, placeBidSchema, queryParamsSchema, auctionIdParamSchema, buyNowSchema, paginationSchema, adminUpdateAuctionSchema } from '../schemas/auctionSchemas.js';
 import { cache } from '../lib/cache.js';
 import { prisma, supabase } from '../lib/db.js';
 import { auctionService } from '../services/AuctionService.js';
@@ -302,6 +302,57 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
   } catch (error: any) {
     res.status(error.statusCode || 500).json({
       error: error.message || 'Błąd Kup teraz',
+      code: error.code || 'UNKNOWN_ERROR'
+    });
+  }
+});
+
+// Admin update auction
+router.put('/:id/admin', authMiddleware, validate(adminUpdateAuctionSchema), async (req: AuthenticatedRequest, res) => {
+  try {
+    const idValidation = auctionIdParamSchema.safeParse(req.params);
+    if (!idValidation.success) {
+      return res.status(400).json({ error: 'Invalid auction id' });
+    }
+
+    const role = req.user?.role;
+    if (role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden: Admins only' });
+    }
+
+    const updatedAuction = await auctionService.adminUpdateAuction(req.params.id, req.body);
+
+    res.json(serializeAuction(updatedAuction as any));
+
+  } catch (error: any) {
+    console.error('Error updating auction (admin):', error);
+    res.status(error.statusCode || 500).json({
+      error: error.message || 'Błąd aktualizacji aukcji',
+      code: error.code || 'UNKNOWN_ERROR'
+    });
+  }
+});
+
+router.delete('/:id/admin', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const idValidation = auctionIdParamSchema.safeParse(req.params);
+    if (!idValidation.success) {
+      return res.status(400).json({ error: 'Invalid auction id' });
+    }
+
+    const role = req.user?.role;
+    if (role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden: Admins only' });
+    }
+
+    const cancelledAuction = await auctionService.adminCancelAuction(req.params.id);
+
+    res.json(serializeAuction(cancelledAuction as any));
+
+  } catch (error: any) {
+    console.error('Error cancelling auction (admin):', error);
+    res.status(error.statusCode || 500).json({
+      error: error.message || 'Błąd anulowania aukcji',
       code: error.code || 'UNKNOWN_ERROR'
     });
   }

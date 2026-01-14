@@ -13,10 +13,10 @@ async function ensureAdmin(req: any, res: any, next: any) {
 
     const user = await prisma!.user.findUnique({
       where: { id: userId },
-      select: { role: true }
+      select: { role: true } as any
     });
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || (user as any).role !== 'ADMIN') {
       return res.status(403).json({ error: 'Admin access required' });
     }
     next();
@@ -73,7 +73,7 @@ router.get('/users', ensureAdmin, async (req, res) => {
         last_name: true,
         role: true,
         createdAt: true
-      }
+      } as any
     });
 
     const total = await prisma!.user.count();
@@ -143,7 +143,7 @@ router.put('/users/:id/role', ensureAdmin, async (req, res) => {
 
     const updated = await prisma!.user.update({
       where: { id },
-      data: { role }
+      data: { role: role } as any
     });
 
     res.json(updated);

@@ -46,7 +46,7 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
   const queryClient = useQueryClient();
   const { success: showSuccess, info: showInfo } = useOptimizedToast();
 
-  const { data: auction, isLoading, error } = useQuery({
+  const { data: auction, isLoading, error, refetch } = useQuery({
     queryKey: ['auction', auctionId],
     queryFn: () => auctionService.getAuctionById(auctionId),
     staleTime: 30000,
@@ -75,7 +75,7 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
     },
   });
 
-  return { auction, isLoading, error: error as Error | null };
+  return { auction, isLoading, error: error as Error | null, refetch };
 };
 
 export function useBid(auctionId: string) {

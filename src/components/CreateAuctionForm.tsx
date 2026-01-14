@@ -13,18 +13,19 @@ import FileUpload from '@/components/FileUpload';
 interface CreateAuctionFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialCategory?: 'pigeons' | 'supplements' | 'accessories' | '';
 }
 
-const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
+const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }: CreateAuctionFormProps) => {
   const { user, session, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState<Partial<CreateAuctionRequest>>({
+    const [formData, setFormData] = useState<Partial<CreateAuctionRequest>>({
     title: '',
     description: '',
     startingPrice: 1000,
-    category: '',
+    category: initialCategory,
     sex: 'male',
     location: 'Lubań, Polska',
     images: [],
@@ -49,12 +50,13 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
   const [pigeonFiles, setPigeonFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+    const isPigeonCategory = formData.category === 'pigeons';
+  const totalSteps = isPigeonCategory ? 3 : 2;
 
   // Debug currentStep
   useEffect(() => {
     console.log('🔍 CreateAuctionForm currentStep:', currentStep, 'totalSteps:', totalSteps);
-  }, [currentStep]);
+  }, [currentStep, totalSteps]);
 
   // Pobierz CSRF token przy montowaniu komponentu
   useEffect(() => {
@@ -138,13 +140,15 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
       return;
     }
 
-    const ringNumber = formData.pigeon?.ringNumber?.trim();
-    if (!ringNumber) {
-      setError('Podaj numer obrączki gołębia.');
-      toast('Brakuje numeru obrączki.', {
-        description: 'Uzupełnij numer obrączki (ringNumber), aby utworzyć aukcję.',
-      });
-      return;
+        if (isPigeonCategory) {
+      const ringNumber = formData.pigeon?.ringNumber?.trim();
+      if (!ringNumber) {
+        setError('Podaj numer obrączki gołębia.');
+        toast('Brakuje numeru obrączki.', {
+          description: 'Uzupełnij numer obrączki (ringNumber), aby utworzyć aukcję.',
+        });
+        return;
+      }
     }
 
     if (!session?.access_token) {
@@ -211,6 +215,8 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
       const endTime = new Date();
       endTime.setDate(endTime.getDate() + 7);
 
+      const ringNumber = formData.pigeon?.ringNumber?.trim();
+
       const auctionData: CreateAuctionRequest = {
         title: formData.title || '',
         description: formData.description || '',
@@ -224,7 +230,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
         endTime: endTime.toISOString(),
         pigeon: {
           ...formData.pigeon,
-          ringNumber,
+          ringNumber: ringNumber,
           gender: formData.sex as 'male' | 'female',
         },
       };
@@ -290,6 +296,26 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
 
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">Opis *</label>
+                      </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">Kategoria *</label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-foreground"
+            >
+              <option value="" disabled>Wybierz kategorię</option>
+              <option value="pigeons">Gołębie</option>
+              <option value="supplements">Suplementy</option>
+              <option value="accessories">Akcesoria</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">Opis *</label>
             <textarea
               name="description"
               value={formData.description}
@@ -301,7 +327,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
             />
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 border-t border-border pt-6">
+          <div className="grid md:grid-cols-4 gap-4 border-t border-border pt-6">
             <div className="md:col-span-3 flex gap-6 py-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -375,7 +401,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
       )}
 
       {/* Step 2: Pigeon Characteristics */}
-      {currentStep === 2 && (
+      {currentStep === 2 && isPigeonCategory && (
         <div className="space-y-4">
           <div className="border-t border-border pt-6">
             <h3 className="font-semibold text-foreground mb-4">Cechy gołębia</h3>
@@ -525,9 +551,9 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
       )}
 
       {/* Step 3: Media Upload */}
-      {currentStep === 3 && (
+      {currentStep === (isPigeonCategory ? 3 : 2) && (
         <div className="space-y-4 border-t border-border pt-6">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <h3 className="font-semibold text-foreground mb-4">Zdjęcia gołębia</h3>
               <FileUpload

@@ -421,6 +421,7 @@ const AuctionsPage = () => {
                   <p className="text-muted-foreground">Wypełnij podstawowe informacje o gołębiu.</p>
                 </div>
                 <CreateAuctionForm
+                  initialCategory={selectedCategory}
                   onCancel={handleCloseModal}
                   onSuccess={() => {
                     handleCloseModal();

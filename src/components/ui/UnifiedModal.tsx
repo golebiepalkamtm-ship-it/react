@@ -87,7 +87,7 @@ const UnifiedModal: React.FC<UnifiedModalProps> = ({
   message,
   icon,
   showCloseButton = true,
-  closeOnBackdrop = true,
+  closeOnBackdrop = false,
   closeOnEscape = true,
   confirmButton,
   cancelButton,
@@ -127,7 +127,7 @@ const UnifiedModal: React.FC<UnifiedModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-start justify-center p-4 md:p-8 bg-black/60 backdrop-blur-sm min-h-screen"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-black/60 backdrop-blur-sm overflow-y-auto"
           onClick={closeOnBackdrop ? onClose : undefined}
         >
           <motion.div

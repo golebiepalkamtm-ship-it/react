@@ -9,7 +9,7 @@ const toNumber = (value: Prisma.Decimal | number | null | undefined) => {
 
 // Optymalizacja: SELECT tylko potrzebnych pól zamiast całych obiektów
 export const baseAuctionInclude = {
-  pigeonProfile: {
+  pigeon: {
     select: {
       ringNumber: true,
       eyeColor: true,
@@ -26,7 +26,7 @@ export const baseAuctionInclude = {
       purpose: true,
       gender: true,
     }
-  },
+  } as any,
   seller: {
     select: {
       id: true,
@@ -37,7 +37,7 @@ export const baseAuctionInclude = {
       avatar_url: true,
       role: true,
     }
-  },
+  } as any,
   _count: {
     select: {
       bids: true,
@@ -63,7 +63,7 @@ export const listAuctionInclude = {
           avatar_url: true,
           role: true,
         }
-      }
+      } as any
     },
     orderBy: {
       createdAt: 'desc' as const,
@@ -89,7 +89,7 @@ export const detailAuctionInclude = {
           avatar_url: true,
           role: true,
         }
-      }
+      } as any
     },
     orderBy: {
       createdAt: 'desc' as const,
@@ -199,7 +199,7 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(au
     status: toLowerEnum(auction.status) as 'active' | 'ended' | 'cancelled' | undefined,
     reserveMet: !!auction.reserveMet,
     category: toLowerEnum(auction.category) ?? 'ogólna',
-    pigeon: serializePigeon(auction.pigeonProfile as any),
+    pigeon: serializePigeon((auction as any).pigeon),
     sex: toLowerEnum(auction.sex) as 'male' | 'female' | undefined,
     location: auction.location ?? '',
     seller: serializePublicUser(sellerAny, showContact),

@@ -413,6 +413,50 @@ export class AuctionService {
    * Selektywna invalidacja cache po złożeniu oferty
    * Invaliduje TYLKO konkretne klucze związane z aukcją i użytkownikiem
    */
+  async adminUpdateAuction(auctionId: string, data: { currentPrice?: number; buyNowPrice?: number; endTime?: string }): Promise<Auction> {
+    if (!prisma) {
+      throw new Error('Database connection is not available');
+    }
+
+    const updateData: any = {};
+    if (data.currentPrice) {
+      updateData.currentPrice = new Prisma.Decimal(data.currentPrice);
+    }
+    if (data.buyNowPrice) {
+      updateData.buyNowPrice = new Prisma.Decimal(data.buyNowPrice);
+    }
+    if (data.endTime) {
+      updateData.endTime = new Date(data.endTime);
+    }
+
+    const updatedAuction = await prisma.auction.update({
+      where: { id: auctionId },
+      data: updateData,
+    });
+
+    this.invalidateBidCache(auctionId, 'admin');
+
+    return updatedAuction;
+  }
+
+  async adminCancelAuction(auctionId: string): Promise<Auction> {
+    if (!prisma) {
+      throw new Error('Database connection is not available');
+    }
+
+    const updatedAuction = await prisma.auction.update({
+      where: { id: auctionId },
+      data: {
+        status: 'CANCELLED',
+        endTime: new Date(), // Set end time to now
+      },
+    });
+
+    this.invalidateBidCache(auctionId, 'admin');
+
+    return updatedAuction;
+  }
+
   private invalidateBidCache(auctionId: string, userId: string): void {
     // Konkretna aukcja
     cache.delete(`auction:${auctionId}`);
