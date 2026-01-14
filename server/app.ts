@@ -57,7 +57,6 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        "'unsafe-eval'",
         "blob:",
         "https://*.supabase.co",
         "https://accounts.google.com",
@@ -67,7 +66,6 @@ app.use(helmet({
       ],
       scriptSrcElem: [
         "'self'",
-        "'unsafe-eval'",
         "blob:",
         "https://*.supabase.co",
         "https://accounts.google.com",
@@ -95,7 +93,8 @@ app.use(helmet({
       ],
       connectSrc: [
         "'self'",
-        validatedEnv.CLIENT_URL,
+        `ws://${new URL(validatedEnv.CLIENT_URL).host}`,
+        `wss://${new URL(validatedEnv.CLIENT_URL).host}`,
         'https://champion-pigeon-api.onrender.com',
         "https://*.supabase.co",
         "wss://*.supabase.co",
@@ -132,6 +131,7 @@ app.use(helmet({
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
+      upgradeInsecureRequests: [],
     },
   },
 }));
