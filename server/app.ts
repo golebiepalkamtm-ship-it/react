@@ -25,6 +25,7 @@ import webhooks from './routes/webhooks.js';
 import { testCSRFEndpoint } from './routes/testCSRF.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { authMiddleware } from './middleware/auth.js';
+import { cspMiddleware } from './middleware/csp.js';
 import { validateCSRFToken, setCSRFToken } from './middleware/csrf.js';
 import { validatedEnv } from './lib/env.js';
 import AuctionCronService from './services/AuctionCronService.js';
@@ -51,113 +52,11 @@ const isAllowedOrigin = (origin?: string) => {
   return false;
 };
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "blob:",
-        "https://*.supabase.co",
-        "https://accounts.google.com",
-        "https://www.google.com",
-        "https://www.gstatic.com",
-        "https://js.stripe.com"
-      ],
-      scriptSrcElem: [
-        "'self'",
-        "blob:",
-        "https://*.supabase.co",
-        "https://accounts.google.com",
-        "https://www.google.com",
-        "https://www.gstatic.com",
-        "https://js.stripe.com"
-      ],
-      workerSrc: [
-        "'self'",
-        "blob:",
-        "data:",
-        "https://*.supabase.co"
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com",
-        "https://fonts.gstatic.com"
-      ],
-      styleSrcElem: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com",
-        "https://fonts.gstatic.com"
-      ],
-      connectSrc: [
-        "'self'",
-        `ws://${new URL(validatedEnv.CLIENT_URL).host}`,
-        `wss://${new URL(validatedEnv.CLIENT_URL).host}`,
-        'https://champion-pigeon-api.onrender.com',
-        "https://*.supabase.co",
-        "wss://*.supabase.co",
-        "https://accounts.google.com",
-        "https://www.google.com",
-        "https://fonts.googleapis.com",
-        "https://fonts.gstatic.com",
-        "https://api.stripe.com",
-        "https://js.stripe.com"
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        "https:",
-        "blob:",
-        "https://*.supabase.co"
-      ],
-      frameSrc: [
-        "'self'",
-        "https://www.youtube.com",
-        "https://www.youtube-nocookie.com",
-        "https://maps.google.com",
-        "https://www.google.com",
-        "https://accounts.google.com",
-        "https://js.stripe.com"
-      ],
-      fontSrc: [
-        "'self'",
-        "data:",
-        "https:",
-        "https://fonts.gstatic.com",
-        "https://fonts.googleapis.com"
-      ],
-      objectSrc: ["'none'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
-      upgradeInsecureRequests: [],
-    },
-  },
-}));
+app.use(helmet());
+app.use(cspMiddleware);
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    // In development, allow localhost origins
-    if (validatedEnv.NODE_ENV === 'development') {
-      const localhostRegex = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/;
-      if (localhostRegex.test(origin)) {
-        return callback(null, true);
-      }
-    }
-    
-    // Check against allowed origins
-    if (isAllowedOrigin(origin)) {
-      return callback(null, true);
-    }
-    
-    // Log blocked origins for security monitoring
-    console.warn(`CORS blocked origin: ${origin} from IP: ${origin}`);
-    return callback(new Error('CORS policy: origin not allowed'), false);
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
