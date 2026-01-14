@@ -2,9 +2,10 @@ import express from 'express';
 import { prisma } from '../lib/db.js';
 import { validatedEnv } from '../lib/env.js';
 import { createAuctionError, AuctionErrorCodes } from '../utils/auctionErrors.js';
+import Stripe from 'stripe';
 
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(validatedEnv.STRIPE_SECRET_KEY);
 
 router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -13,7 +14,7 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(req.body as string, sig, endpointSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
