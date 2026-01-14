@@ -111,7 +111,7 @@
         if (document && document.body) {
           init();
         }
-      }, 0);
+      }, 100); // Zwiększono opóźnienie dla React app
     }
   }
 })();
