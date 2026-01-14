@@ -20,4 +20,25 @@ if (import.meta.env.PROD) {
   }
 }
 
+// Add global error handler for production debugging
+if (import.meta.env.PROD) {
+  window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+  });
+  
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+  });
+  
+  // Ignore Chrome extension errors
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    const message = args.join(' ');
+    if (message.includes('runtime.lastError') || message.includes('message channel closed')) {
+      return; // Ignore Chrome extension errors
+    }
+    originalConsoleError.apply(console, args);
+  };
+}
+
 createRoot(document.getElementById("root")!).render(<App />);
