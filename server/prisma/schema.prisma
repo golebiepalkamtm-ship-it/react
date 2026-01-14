@@ -50,33 +50,39 @@ model Auction {
   id                    String   @id @default(uuid()) @db.Uuid
   title                 String
   description           String?
-  startingPrice         Decimal? @map("starting_price") @db.Decimal(12, 2)
-  currentPrice          Decimal  @map("current_price") @db.Decimal(12, 2)
+  startingPrice         Decimal? @map("starting_price") @default(0) @db.Decimal(12, 2)
+  currentPrice          Decimal  @map("current_price") @default(0) @db.Decimal(12, 2)
   buyNowPrice           Decimal? @map("buy_now_price") @db.Decimal(12, 2)
   reservePrice          Decimal? @map("reserve_price") @db.Decimal(12, 2)
-  endTime               DateTime @map("ends_at") @db.Timestamptz
-  snipeThresholdMinutes Int      @map("snipe_threshold_minutes") @default(5)
-  snipeExtensionMinutes Int      @map("snipe_extension_minutes") @default(5)
+  startTime             DateTime? @map("starts_at") @db.Timestamptz
+  endTime               DateTime? @map("ends_at") @db.Timestamptz
+  snipeThresholdMinutes Int      @map("snipe_threshold_minutes") @default(2)
+  snipeExtensionMinutes Int      @map("snipe_extension_minutes") @default(2)
   minBidIncrement       Int      @map("min_bid_increment") @default(100)
-  status                String   @default("ACTIVE") @db.Text
-  reserveMet            Boolean  @map("reserve_met") @default(false)
-  category              String   @default("RACING") @db.Text
-  sex                   String   @default("MALE") @db.Text
-  location              String
-  createdAt             DateTime @map("created_at") @default(now())
+  status                String   @default("draft") @db.Text
+  reserveMet            Boolean  @map("reserve_met") @default(true)
+  category              String   @default("racing") @db.Text
+  sex                   String   @default("male") @db.Text
+  age                   Int      @default(0)
+  location              String   @default("")
+  pigeon                Json     @default("{}") @db.JsonB
+  images                Json     @default("[]") @db.JsonB
+  videos                Json     @default("[]") @db.JsonB
+  documents             Json     @default("[]") @db.JsonB
+  createdAt             DateTime @map("created_at") @default(now()) @db.Timestamptz
   updatedAt             DateTime @map("updated_at") @updatedAt
   winnerId              String?  @map("winner_id")
 
-  sellerId              String   @map("owner_id")
+  sellerId              String?  @map("owner_id")
   seller                User     @relation("SellerAuctions", fields: [sellerId], references: [id])
   winner                User?    @relation("WinnerAuctions", fields: [winnerId], references: [id])
 
-  pigeon                PigeonProfile?
+  pigeonProfile         PigeonProfile?
 
   bids                  Bid[]
-  images                AuctionImage[]
-  videos                AuctionVideo[]
-  documents             AuctionDocument[]
+  auctionImages         AuctionImage[]
+  auctionVideos         AuctionVideo[]
+  auctionDocuments      AuctionDocument[]
   watchlist             Watchlist[]
   notifications         Notification[]
   reviews               Review[]
@@ -125,8 +131,8 @@ model PigeonProfile {
   @@map("pigeon_profiles")
   id            String   @id @default(uuid()) @db.Uuid
   auctionId     String   @unique @map("auction_id")
-  ringNumber   String   @map("ringnumber")
-  construction  String?  @map("construction")
+  bloodline     String
+  achievements  String?
   eyeColor      String?  @map("eye_color")
   featherColor  String?  @map("feather_color")
   vitality      String?
