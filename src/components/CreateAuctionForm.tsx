@@ -410,8 +410,8 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
               <p className="text-xs text-muted-foreground mt-1">Wprowadź pełny numer obrączki gołębia</p>
             </div>
             
-            {/* Reszta pól w grid */}
-            <div className="grid md:grid-cols-3 gap-4">
+            {/* Reszta pól w grid 4 kolumny */}
+            <div className="grid md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Kolor</label>
                 <input
@@ -562,6 +562,20 @@ const CreateAuctionForm = ({ onSuccess, onCancel }: CreateAuctionFormProps) => {
                 accept="video/*"
               />
             </div>
+          </div>
+
+          <div className="border-t border-border pt-6">
+            <h3 className="font-semibold text-foreground mb-4">Rodowód</h3>
+            <FileUpload
+              files={pedigreeFile ? [pedigreeFile] : []}
+              onFilesChange={(files) => setPedigreeFile(files[0] || null)}
+              maxFiles={1}
+              maxSize={10}
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            />
+            <p className="text-sm text-muted-foreground mt-2">
+              Dodaj rodowód gołębia (PDF, DOC, DOCX, JPG, PNG - max 10MB)
+            </p>
           </div>
         </div>
       )}
