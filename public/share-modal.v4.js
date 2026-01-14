@@ -3,16 +3,10 @@
   
   if (typeof document === 'undefined') return;
 
-  var modal = null;
-  var modalContent = null;
   var isInitialized = false;
 
-  function cacheElements() {
-    modal = document.querySelector('[data-share-modal]');
-    modalContent = modal ? modal.querySelector('[data-share-modal] > div') : null;
-  }
-
   function openModal() {
+    var modal = document.querySelector('[data-share-modal]');
     if (!modal) return;
     
     modal.classList.remove('hidden');
@@ -20,6 +14,7 @@
     
     requestAnimationFrame(function() {
       modal.classList.remove('opacity-0');
+      var modalContent = modal.querySelector('[data-share-modal] > div');
       if (modalContent) {
         modalContent.classList.remove('scale-95');
         modalContent.classList.add('scale-100');
@@ -28,9 +23,11 @@
   }
 
   function closeModal() {
+    var modal = document.querySelector('[data-share-modal]');
     if (!modal) return;
     
     modal.classList.add('opacity-0');
+    var modalContent = modal.querySelector('[data-share-modal] > div');
     if (modalContent) {
       modalContent.classList.add('scale-95');
       modalContent.classList.remove('scale-100');
@@ -58,6 +55,7 @@
   }
 
   function handleKeydown(e) {
+    var modal = document.querySelector('[data-share-modal]');
     if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
       closeModal();
     }
@@ -67,7 +65,6 @@
     if (isInitialized) return;
     isInitialized = true;
 
-    cacheElements();
     document.addEventListener('click', handleClick);
     document.addEventListener('keydown', handleKeydown);
   }
