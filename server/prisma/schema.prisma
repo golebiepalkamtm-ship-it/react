@@ -7,23 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum AuctionStatus {
-  ACTIVE
-  ENDED
-  CANCELLED
-}
-
-enum AuctionCategory {
-  RACING
-  BREEDING
-  SHOW
-}
-
-enum Sex {
-  MALE
-  FEMALE
-}
-
 enum UserRole {
   USER_REGISTERED
   USER_EMAIL_VERIFIED
@@ -75,10 +58,10 @@ model Auction {
   snipeThresholdMinutes Int      @map("snipe_threshold_minutes") @default(5)
   snipeExtensionMinutes Int      @map("snipe_extension_minutes") @default(5)
   minBidIncrement       Int      @map("min_bid_increment") @default(100)
-  status                AuctionStatus   @default(ACTIVE)
-  reserveMet            Boolean         @map("reserve_met") @default(false)
-  category              AuctionCategory @default(RACING)
-  sex                   Sex             @default(MALE)
+  status                String   @default("ACTIVE") @db.Text
+  reserveMet            Boolean  @map("reserve_met") @default(false)
+  category              String   @default("RACING") @db.Text
+  sex                   String   @default("MALE") @db.Text
   location              String
   createdAt             DateTime @map("created_at") @default(now())
   updatedAt             DateTime @map("updated_at") @updatedAt

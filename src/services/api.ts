@@ -30,10 +30,10 @@ class ApiClient {
   private async request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
     const { params, ...fetchConfig } = config;
     const url = this.buildUrl(endpoint, params);
-    
+
     logger.debug('API Request:', url);
 
-    // Pobierz CSRF token z cookie
+    // Pobierz CSRF token z cookie; jeśli brak, spróbuj ustawić go przez wywołanie /csrf-token
     const getCSRFToken = (): string | undefined => {
       const cookies = document.cookie.split(';');
       for (const cookie of cookies) {
@@ -45,13 +45,25 @@ class ApiClient {
       return undefined;
     };
 
+    const ensureCsrfCookie = async () => {
+      if (getCSRFToken()) return;
+      try {
+        await fetch(this.buildUrl('/csrf-token'), { credentials: 'include' });
+      } catch (e) {
+        logger.warn('CSRF cookie fetch failed', e);
+      }
+    };
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
       ...(fetchConfig.headers as Record<string, string> | undefined || {}),
     };
-    const csrf = fetchConfig.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(fetchConfig.method) ? getCSRFToken() : undefined;
-    if (csrf) headers['X-CSRF-Token'] = csrf;
+    if (fetchConfig.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(fetchConfig.method)) {
+      await ensureCsrfCookie();
+      const csrf = getCSRFToken();
+      if (csrf) headers['X-CSRF-Token'] = csrf;
+    }
 
     const response = await fetch(url, {
       ...fetchConfig,
@@ -118,8 +130,7 @@ class ApiClient {
 
   async postFormData<T>(endpoint: string, formData: FormData, token?: string): Promise<T> {
     const url = this.buildUrl(endpoint);
-    
-    // Pobierz CSRF token z cookie
+
     const getCSRFToken = (): string | undefined => {
       const cookies = document.cookie.split(';');
       for (const cookie of cookies) {
@@ -131,10 +142,20 @@ class ApiClient {
       return undefined;
     };
 
+    const ensureCsrfCookie = async () => {
+      if (getCSRFToken()) return;
+      try {
+        await fetch(this.buildUrl('/csrf-token'), { credentials: 'include' });
+      } catch (e) {
+        logger.warn('CSRF cookie fetch failed', e);
+      }
+    };
+
     const headers: Record<string, string> = {
       'X-Requested-With': 'XMLHttpRequest',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
+    await ensureCsrfCookie();
     const csrf = getCSRFToken();
     if (csrf) headers['X-CSRF-Token'] = csrf;
 
