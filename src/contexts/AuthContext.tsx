@@ -8,6 +8,26 @@ import { calculateRole, UserWithVerifications } from '../types/roles.js';
 
 export type UserRole = 'USER_REGISTERED' | 'USER_EMAIL_VERIFIED' | 'USER_FULL_VERIFIED' | 'ADMIN';
 
+const USERNAME_MAX_LENGTH = 32;
+
+const sanitizeUsername = (input: string) => {
+  if (!input) return '';
+  const normalized = input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+  return normalized.slice(0, USERNAME_MAX_LENGTH);
+};
+
+const generateUsername = (authUser: User) => {
+  const emailBase = authUser.email?.split('@')[0] ?? '';
+  const sanitizedBase = sanitizeUsername(emailBase) || `user-${authUser.id.slice(0, 6)}`;
+  const suffix = authUser.id.replace(/-/g, '').slice(0, 4);
+  const combined = `${sanitizedBase}-${suffix}`;
+  return sanitizeUsername(combined) || `user-${suffix}`;
+};
+
 export interface Profile {
   id: string;
   email?: string;
@@ -100,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!existingProfile) {
       payload.role = desiredRole;
       if (authUser.email) payload.email = authUser.email;
+      payload.username = generateUsername(authUser);
     } else {
       // Check for drift
       if (existingProfile.email !== authUser.email && authUser.email) {
@@ -116,12 +137,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (desiredRole === 'ADMIN' && existingProfile.role !== 'ADMIN') {
          payload.role = desiredRole;
       }
+      if (!existingProfile.username) {
+        payload.username = generateUsername(authUser);
+      }
     }
 
     const needsUpsert =
       !existingProfile ||
       (payload.email && payload.email !== existingProfile.email) ||
-      (payload.role && payload.role !== existingProfile.role);
+      (payload.role && payload.role !== existingProfile.role) ||
+      (payload.username && payload.username !== existingProfile.username);
 
     if (!needsUpsert) return existingProfile;
 
@@ -527,6 +552,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const payload: Partial<Profile> & { id: string } = { id: user.id, ...updates };
+    if (payload.username) {
+      payload.username = sanitizeUsername(payload.username);
+      if (!payload.username || payload.username.length < 3) {
+        throw new Error('Nazwa użytkownika jest nieprawidłowa (min. 3 znaki, tylko litery/cyfry i myślniki).');
+      }
+    }
     if (user.email && payload.email == null) payload.email = user.email;
 
     const { data, error } = await client

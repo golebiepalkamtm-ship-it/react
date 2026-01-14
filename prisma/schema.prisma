@@ -67,8 +67,8 @@ model User {
   trustScore    Decimal  @map("trust_score") @default(0.00) @db.Decimal(3,2)
   role          String   @default("USER_REGISTERED")
   avatarUrl     String?  @map("avatar_url")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @map("created_at") @default(now())
+  updatedAt     DateTime @map("updated_at") @updatedAt
   auctions    Auction[] @relation("SellerAuctions")
   wonAuctions Auction[] @relation("WinnerAuctions")
   bids        Bid[]

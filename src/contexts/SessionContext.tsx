@@ -20,10 +20,12 @@ interface SessionContextType {
 
 const SessionContext = createContext<SessionContextType | null>(null);
 
+const hasSupabaseClient = Boolean(supabase);
+
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(() => hasSupabaseClient);
   const [pendingEmailVerification, setPendingEmailVerification] = useState<string | null>(() => {
     try {
       return localStorage.getItem('pendingEmailVerification');
@@ -62,10 +64,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     const client = supabase;
-    if (!client) {
-      setLoading(false);
-      return;
-    }
+    if (!client) return;
     
     let isInitialized = false;
     

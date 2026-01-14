@@ -21,6 +21,7 @@ const EmailVerifiedProfileCard = ({
   profileSaving: boolean;
   profileError: string;
   updateUserProfile: (updates: {
+    username?: string;
     name?: string;
     first_name?: string;
     last_name?: string;
@@ -31,6 +32,7 @@ const EmailVerifiedProfileCard = ({
     country?: string;
   }) => Promise<void>;
 }) => {
+  const [username, setUsername] = useState(profile.username ?? "");
   const [name, setName] = useState(profile.name ?? "");
   const [firstName, setFirstName] = useState(profile.first_name ?? "");
   const [lastName, setLastName] = useState(profile.last_name ?? "");
@@ -62,6 +64,7 @@ const EmailVerifiedProfileCard = ({
 
   const missingFields = useMemo(() => {
     const fields: string[] = [];
+    if (!username.trim()) fields.push('Nazwa użytkownika');
     if (!firstName.trim()) fields.push('Imię');
     if (!lastName.trim()) fields.push('Nazwisko');
     if (!street.trim()) fields.push('Ulica');
@@ -70,11 +73,12 @@ const EmailVerifiedProfileCard = ({
     if (!country.trim()) fields.push('Kraj');
     if (!phone.trim()) fields.push('Telefon');
     return fields;
-  }, [firstName, lastName, street, postalCode, city, country, phone]);
+  }, [username, firstName, lastName, street, postalCode, city, country, phone]);
 
   const onSaveProfile = async () => {
     try {
       await updateUserProfile({
+        username: username.trim(),
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         name: name.trim() || `${firstName.trim()} ${lastName.trim()}`.trim(),
@@ -105,6 +109,17 @@ const EmailVerifiedProfileCard = ({
       <h2 className="font-display text-2xl font-semibold text-foreground">{t("account.profile.title")}</h2>
 
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Nazwa użytkownika</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="np. champion-123"
+            className="w-full px-4 py-3 bg-white/90 border border-white/20 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+            required
+          />
+        </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Imię</label>
           <input

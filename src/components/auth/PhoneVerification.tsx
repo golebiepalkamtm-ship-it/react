@@ -1,5 +1,5 @@
 // src/components/auth/PhoneVerification.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Send, Shield, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +24,10 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
   const [error, setError] = useState('');
   const { updateProfile, profile, user, session } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    setPhone(initialPhone ?? '');
+  }, [initialPhone]);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
