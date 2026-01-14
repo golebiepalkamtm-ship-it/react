@@ -4,6 +4,12 @@ services:
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    buildFilter:
+      ignoredPaths: []
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
     envVars:
       - key: VITE_API_URL
         value: https://champion-pigeon-api.onrender.com/api
