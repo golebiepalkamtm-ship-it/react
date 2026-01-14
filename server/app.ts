@@ -37,10 +37,19 @@ const __dirname = path.dirname(__filename);
 const allowedOrigins = [
   validatedEnv.CLIENT_URL,
   'https://champion-pigeon-web.onrender.com',
+  'https://champion-pigeon-auctions.vercel.app',
   'https://palkamtm.pl',
   'https://www.palkamtm.pl',
   ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [])
 ].filter(Boolean);
+
+const isAllowedOrigin = (origin?: string) => {
+  if (!origin) return false;
+  if (allowedOrigins.includes(origin)) return true;
+  // Allow any *.onrender.com frontend hitting the api
+  if (/^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin)) return true;
+  return false;
+};
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -86,6 +95,8 @@ app.use(helmet({
       ],
       connectSrc: [
         "'self'",
+        validatedEnv.CLIENT_URL,
+        'https://champion-pigeon-api.onrender.com',
         "https://*.supabase.co",
         "wss://*.supabase.co",
         "https://accounts.google.com",
@@ -139,7 +150,7 @@ app.use(cors({
     }
     
     // Check against allowed origins
-    if (allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
     

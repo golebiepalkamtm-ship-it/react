@@ -1,10 +1,10 @@
 (function () {
-  // Share modal v20250113-v7 - enhanced null checks
+  // Share modal v20250113-v8 - enhanced null checks with body guard
   function init() {
     try {
       // Sprawdź czy jesteśmy w przeglądarce
-      if (typeof window === 'undefined' || typeof document === 'undefined' || !document) {
-        console.log('Share modal: Not in browser environment');
+      if (typeof window === 'undefined' || typeof document === 'undefined' || !document || !document.body) {
+        console.log('Share modal: Not in browser environment or DOM not ready');
         return;
       }
 
@@ -61,8 +61,8 @@
       }
 
       // Event delegation dla przycisków
-      if (document && document.addEventListener && typeof document.addEventListener === 'function') {
-        document.addEventListener('click', function (e) {
+      if (document && document.addEventListener && typeof document.addEventListener === 'function' && document.body) {
+        document.body.addEventListener('click', function (e) {
           var target = e.target;
 
           // Sprawdź czy kliknięto przycisk otwierający
@@ -87,7 +87,7 @@
         });
 
         // Obsługa klawisza Escape
-        document.addEventListener('keydown', function (e) {
+        document.body.addEventListener('keydown', function (e) {
           if (e.key === 'Escape') {
             var modal = document.querySelector('[data-share-modal]');
             if (modal && modal instanceof Element && !modal.classList.contains('hidden')) {
@@ -106,8 +106,12 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {
-      // DOM już załadowany, uruchom teraz
-      setTimeout(init, 100);
+      // DOM już załadowany, uruchom teraz z bezpiecznym opóźnieniem
+      setTimeout(function() {
+        if (document && document.body) {
+          init();
+        }
+      }, 0);
     }
   }
 })();

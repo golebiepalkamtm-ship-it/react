@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: champion_pigeon_db_prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-champion_pigeon}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - champion_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      target: production
+    container_name: champion_frontend_prod
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - champion_network
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.production
+      target: production
+    container_name: champion_backend_prod
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./server/.env.production
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_started
+    networks:
+      - champion_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Database migration service (runs once)
+  db-migrate:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.production
+      target: production
+    container_name: champion_db_migrate_prod
+    env_file:
+      - ./server/.env.production
+    environment:
+      - NODE_ENV=production
+    command: >
+      sh -c "
+        echo 'Running migrations...' &&
+        npx prisma migrate deploy &&
+        echo 'Migrations completed successfully!'
+      "
+    depends_on:
+      postgres:
+        condition: service_started
+    networks:
+      - champion_network
+    restart: "no"
+
+volumes:
+  pgdata_prod:
+    driver: local
+
+networks:
+  champion_network:
+    driver: bridge

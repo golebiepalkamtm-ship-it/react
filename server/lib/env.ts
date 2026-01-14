@@ -4,7 +4,7 @@ const envSchema = z.object({
   // Środowisko
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().regex(/^\d+$/, 'PORT must be a number').transform(Number).pipe(z.number().min(1).max(65535)).default('8001'),
-  CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL'),
+  CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL').default('http://localhost:5173'),
   
   // Baza Danych
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
@@ -13,7 +13,7 @@ const envSchema = z.object({
   // Supabase
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
   SUPABASE_ANON_KEY: z.string().min(1, 'SUPABASE_ANON_KEY is required'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(200, 'SUPABASE_SERVICE_ROLE_KEY must be a valid service role key'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required').default('dev-service-role-key-change-me'),
   SUPABASE_BUCKET: z.string().min(1, 'SUPABASE_BUCKET is required'),
   SUPABASE_BUCKET_PUBLIC: z.string().min(1, 'SUPABASE_BUCKET_PUBLIC is required'),
   

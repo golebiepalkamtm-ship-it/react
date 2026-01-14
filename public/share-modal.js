@@ -28,7 +28,7 @@
 
       // Funkcja do zamykania modala
       function closeModal() {
-        var modal = doc.querySelector('[data-share-modal]');
+        var modal = localDoc.querySelector('[data-share-modal]');
         if (modal && modal instanceof Element) {
           modal.classList.add('opacity-0');
           const modalContent = modal.querySelector('[data-share-modal] > div');
