@@ -50,8 +50,9 @@ model SavedSearch {
 model User {
   id              String         @id @db.Uuid
   email           String?        @unique
-  username        String?        @unique 
-  phone           String? 
+  username        String?        @unique
+  phone           String?
+  name            String?
   first_name      String?
   last_name       String?
   street          String?

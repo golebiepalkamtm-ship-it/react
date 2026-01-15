@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   
-  if (typeof document === 'undefined') return;
+ if (typeof document === 'undefined' || !document) return;
 
   var isInitialized = false;
 
