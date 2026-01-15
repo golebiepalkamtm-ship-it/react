@@ -64,6 +64,8 @@ model User {
   blockedUntil    DateTime?      @map("blocked_until")
   bannedUntil     DateTime?      @map("banned_until")
   trustScore      Decimal        @default(0.00) @map("trust_score") @db.Decimal(3, 2)
+  role            String         @default("USER_REGISTERED")
+  avatarUrl       String?        @map("avatar_url")
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   auctions        Auction[]      @relation("SellerAuctions")

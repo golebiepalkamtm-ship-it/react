@@ -30,6 +30,7 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
   const allowedOrigins = [
     validatedEnv.CLIENT_URL,
     'https://champion-pigeon-web.onrender.com',
+    'https://champion-pigeon-auctions.vercel.app',
     'https://palkamtm.pl',
     'https://www.palkamtm.pl',
     ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [])
@@ -44,14 +45,24 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
     return res.status(403).json({ error: 'CSRF: Missing Origin header for API request' });
   }
 
-  if (origin && !allowedOrigins.includes(origin)) {
-    console.warn(`CSRF: Invalid origin ${origin} from IP ${req.ip}`);
-    return res.status(403).json({ error: 'CSRF: Invalid origin' });
+  if (origin) {
+    const isDevOrigin = validatedEnv.NODE_ENV === 'development'
+      && /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?$/.test(origin);
+
+    if (!isDevOrigin && !allowedOrigins.includes(origin)) {
+      console.warn(`CSRF: Invalid origin ${origin} from IP ${req.ip}`);
+      return res.status(403).json({ error: 'CSRF: Invalid origin' });
+    }
   }
 
-  if (referer && !allowedOrigins.some(allowed => referer.startsWith(allowed))) {
-    console.warn(`CSRF: Invalid referer ${referer} from IP ${req.ip}`);
-    return res.status(403).json({ error: 'CSRF: Invalid referer' });
+  if (referer) {
+    const isDevReferer = validatedEnv.NODE_ENV === 'development'
+      && /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?/.test(referer);
+
+    if (!isDevReferer && !allowedOrigins.some(allowed => referer.startsWith(allowed))) {
+      console.warn(`CSRF: Invalid referer ${referer} from IP ${req.ip}`);
+      return res.status(403).json({ error: 'CSRF: Invalid referer' });
+    }
   }
 
   // Check X-Requested-With header (traditional CSRF protection)

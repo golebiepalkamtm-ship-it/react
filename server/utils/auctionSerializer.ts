@@ -34,7 +34,7 @@ export const baseAuctionInclude = {
       last_name: true,
       email: true,
       phone: true,
-      avatar_url: true,
+      avatarUrl: true,
       role: true,
     }
   } as any,
@@ -60,7 +60,7 @@ export const listAuctionInclude = {
           last_name: true,
           email: true,
           phone: true,
-          avatar_url: true,
+          avatarUrl: true,
           role: true,
         }
       } as any
@@ -86,7 +86,7 @@ export const detailAuctionInclude = {
           last_name: true,
           email: true,
           phone: true,
-          avatar_url: true,
+          avatarUrl: true,
           role: true,
         }
       } as any
@@ -163,7 +163,7 @@ export function serializePublicUser(user: Record<string, unknown> | null, showCo
     // PII removed - email and phone only visible to owner/admin
     email: showContact && (user.role === 'ADMIN' || user.isOwner) ? ((user.email as string | undefined) ?? '') : undefined,
     phoneNumber: showContact && (user.role === 'ADMIN' || user.isOwner) ? ((user.phone as string | undefined) ?? '') : undefined,
-    image: (user.avatar_url as string | undefined) ?? null,
+    image: (user.avatarUrl as string | undefined) ?? (user.avatar_url as string | undefined) ?? null,
     rating: 5.0,
     salesCount: 0,
   };

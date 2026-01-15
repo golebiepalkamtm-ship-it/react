@@ -87,7 +87,7 @@ const AuctionsSection = () => {
             data-stagger-container
           >
             {auctions.map((auction, index) => (
-              <div key={auction.id} data-stagger-item>
+              <div key={auction.id || `auction-${index}`} data-stagger-item>
                 <LuxuryAuctionCard
                   id={auction.id}
                   title={auction.title}

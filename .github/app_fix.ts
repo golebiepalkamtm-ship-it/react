@@ -48,16 +48,8 @@ const allowedOrigins = [
 const isAllowedOrigin = (origin?: string) => {
   if (!origin) return false;
   if (allowedOrigins.includes(origin)) return true;
-
   // Allow any *.onrender.com frontend hitting the api
   if (/^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin)) return true;
-
-  // Development convenience: allow localhost/127.x and local LAN host (e.g. 172.22.x.x) to match Vite preview
-  if (validatedEnv.NODE_ENV === 'development') {
-    const devHostPattern = /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?$/;
-    if (devHostPattern.test(origin)) return true;
-  }
-
   return false;
 };
 
@@ -66,10 +58,27 @@ app.use(cspMiddleware);
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (isAllowedOrigin(origin)) return callback(null, true);
-    console.warn(`CORS blocked origin: ${origin}`);
-    return callback(new Error('CORS: Origin not allowed'));
+    
+    // Check allowed origins list
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    
+    // Check Render subdomains
+    if (/^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin)) return callback(null, true);
+
+    // Development: Allow localhost and local network IPs
+    if (process.env.NODE_ENV !== 'production') {
+      // Allow localhost, 127.0.0.1
+      if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+      if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return callback(null, true);
+      // Allow private IP ranges
+      if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return callback(null, true);
+      if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return callback(null, true);
+      if (/^http:\/\/172\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return callback(null, true);
+    }
+    
+    callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

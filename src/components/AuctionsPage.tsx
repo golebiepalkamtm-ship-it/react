@@ -357,7 +357,7 @@ const AuctionsPage = () => {
             <div className="grid gap-8" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
               {filteredAuctions.map((auction, index) => (
                 <LuxuryAuctionCard
-                  key={auction.id}
+                  key={auction.id || `auction-${index}`}
                   id={auction.id}
                   title={auction.title}
                   image={getFirstImage(auction.images)}
