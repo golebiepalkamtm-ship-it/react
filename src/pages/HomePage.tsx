@@ -1,273 +1,307 @@
-import React, { useRef, useState, useCallback } from 'react';
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
+/**
+ * ============================================================================
+ * HOMEPAGE - Awwwards Site of the Year Level
+ * ============================================================================
+ * 
+ * Premium strona główna z zaawansowanymi animacjami GSAP:
+ * - Luxury smooth scroll (Lenis + GSAP, duration: 3.2s, wheelMultiplier: 0.35)
+ * - Video backgrounds z ScrollTrigger scrubbing
+ * - Multi-layer parallax z custom Bezier curves
+ * - Staggered text reveals (character/word level)
+ * - Magnetic cursor interactions
+ * - Seamless section transitions
+ * 
+ * PHYSICS OF MOTION:
+ * - Exponential easing: f(t) = 1 - 2^(-10t) dla naturalnego deceleration
+ * - Spring physics dla micro-interactions: decay * oscillation
+ * - Anticipation/overshoot dla dramatycznych efektów
+ * 
+ * PERFORMANCE:
+ * - 60 FPS guaranteed (gsap.ticker.fps(60))
+ * - Only transform/opacity animations (no repaints/layout shifts)
+ * - will-change optimization (applied only during animation)
+ * - GPU acceleration via translateZ(0)
+ */
+
+import React, { useRef, useEffect, useCallback, memo } from 'react';
 import { Link } from 'react-router-dom';
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
+import { registerCustomEasings, gsapEasings } from '@/lib/customEasings';
 import { ArrowRight, Trophy, Zap, Award, ChevronDown, Star } from 'lucide-react';
+import Header from '@/components/Header';
 import { Carousel3D } from '@/components/gallery/Carousel3D';
 import AboutSection from '@/components/AboutSection';
 import PressSection from '@/components/PressSection';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
+import {
+  VideoBackground,
+  DepthLayer,
+  FloatingElement,
+  MagneticElement,
+  CursorFollower,
+  PremiumTextReveal,
+  CountUp,
+  GradientText,
+  SeamlessSection,
+  ProgressIndicator,
+  RevealOnScroll,
+} from '@/components/animations';
 
-// Hero Section - czysta, elegancka animacja Framer Motion
-const HeroSection = () => {
-  const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const y = useTransform(scrollY, [0, 400], [0, 100]);
-  const scale = useTransform(scrollY, [0, 400], [1, 0.95]);
+registerCustomEasings();
+
+const HeroPremium = () => {
+  const heroRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const videoOverlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!heroRef.current || !contentRef.current) return;
+
+    const content = contentRef.current;
+    const children = content.children;
+
+    gsap.set(children, { opacity: 0, y: 60 });
+
+    const tl = gsap.timeline({
+      defaults: { ease: gsapEasings.heroReveal, duration: 1.2 },
+    });
+
+    tl.to(children, {
+      opacity: 1,
+      y: 0,
+      stagger: 0.15,
+      delay: 0.3,
+    });
+
+    const parallaxTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 1.5,
+      },
+    });
+
+    parallaxTl
+      .to(content, { y: 150, opacity: 0.3, scale: 0.95 }, 0)
+      .to(videoOverlayRef.current, { opacity: 0.8 }, 0);
+
+    return () => {
+      tl.kill();
+      parallaxTl.kill();
+    };
+  }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background/80" />
+    <section 
+      ref={heroRef}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+    >
+      <VideoBackground
+        src="/videos/hero-video.mp4"
+        className="z-0"
+        overlayClassName="bg-gradient-to-b from-black/40 via-black/50 to-black/70"
+        scrub={false}
+        fadeIn={false}
+        fadeOut={false}
+      />
       
-      {/* Animated Glow */}
-      <motion.div 
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%)',
-          filter: 'blur(60px)',
-        }}
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      <div 
+        ref={videoOverlayRef}
+        className="absolute inset-0 z-[1] bg-gradient-to-b from-transparent via-background/30 to-background/80"
+        style={{ willChange: 'opacity' }}
       />
 
-      {/* Content */}
-      <motion.div 
+      <FloatingElement amplitude={15} frequency={0.3} phase={0}>
+        <div 
+          className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold/10 blur-3xl"
+          style={{ willChange: 'transform' }}
+        />
+      </FloatingElement>
+      
+      <FloatingElement amplitude={20} frequency={0.25} phase={0.5}>
+        <div 
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl"
+          style={{ willChange: 'transform' }}
+        />
+      </FloatingElement>
+
+      <div 
+        ref={contentRef}
         className="relative z-10 max-w-6xl mx-auto px-4 text-center"
-        style={{ opacity, y, scale }}
       >
-        {/* Badge */}
-        <motion.div 
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium">
+        <MagneticElement strength={0.1} className="mb-8">
+          <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium backdrop-blur-sm">
             <Star className="w-4 h-4 fill-gold" />
             <span>Hodowla Gołębi Pocztowych od 1979</span>
           </span>
-        </motion.div>
+        </MagneticElement>
 
-        {/* Main heading */}
-        <motion.h1 
-          className="text-5xl md:text-7xl lg:text-8xl font-bold font-display mb-6"
-          data-split-text
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          <span className="block text-white mb-2">Pałka</span>
-          <span className="block gold-text">MTM</span>
-        </motion.h1>
+        <div className="mb-6">
+          <PremiumTextReveal
+            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white mb-2"
+            as="h1"
+            splitBy="chars"
+            animation="slide"
+            stagger={0.03}
+            duration={0.8}
+            scrub={false}
+          >
+            Pałka
+          </PremiumTextReveal>
+          
+          <GradientText 
+            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display block"
+            colors={['#d4af37', '#ffd700', '#ffed4e', '#ffd700', '#d4af37']}
+          >
+            <PremiumTextReveal
+              as="span"
+              splitBy="chars"
+              animation="scale"
+              stagger={0.04}
+              duration={0.6}
+              delay={0.3}
+              scrub={false}
+            >
+              MTM
+            </PremiumTextReveal>
+          </GradientText>
+        </div>
 
-        {/* Subtitle */}
-        <motion.p 
-          className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-12 leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
+        <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-12 leading-relaxed">
           Trzy pokolenia pasji. Setki mistrzostw.
           <br className="hidden md:block" />
           Elitarne gołębie pocztowe z Dolnego Śląska.
-        </motion.p>
+        </p>
 
-        {/* CTA Buttons */}
-        <motion.div 
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-        >
-          <Link
-            to="/champions"
-            className="group flex items-center gap-3 px-8 py-4 bg-gold text-navy rounded-full font-semibold text-lg hover:bg-gold-light transition-all hover:scale-105 shadow-lg shadow-gold/20"
-          >
-            <span>Zobacz Championów</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <Link
-            to="/achievements"
-            className="flex items-center gap-3 px-8 py-4 text-white rounded-full font-semibold text-lg border-2 border-white/20 hover:border-gold/50 hover:text-gold transition-all"
-          >
-            <Trophy className="w-5 h-5" />
-            <span>Nasze Osiągnięcia</span>
-          </Link>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div 
-          className="grid grid-cols-3 gap-8 max-w-3xl mx-auto"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-        >
-          {[
-            { icon: Trophy, value: '150+', label: 'Mistrzostw' },
-            { icon: Award, value: '45+', label: 'Lat Doświadczenia' },
-            { icon: Zap, value: '3', label: 'Pokolenia Hodowców' },
-          ].map((stat, i) => (
-            <motion.div 
-              key={stat.label}
-              className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10"
-              whileHover={{ scale: 1.05, borderColor: 'rgba(212,175,55,0.3)' }}
-              transition={{ type: 'spring', stiffness: 300 }}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+          <MagneticElement strength={0.15}>
+            <Link
+              to="/champions"
+              className="group flex items-center gap-3 px-8 py-4 bg-gold text-navy rounded-full font-semibold text-lg hover:bg-gold-light transition-all shadow-lg shadow-gold/20"
+              style={{ willChange: 'transform' }}
             >
-              <stat.icon className="w-6 h-6 text-gold mx-auto mb-2" />
-              <div className="text-3xl md:text-4xl font-bold text-white mb-1">{stat.value}</div>
-              <div className="text-white/50 text-sm">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </motion.div>
+              <span>Zobacz Championów</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </MagneticElement>
+        </div>
 
-      {/* Scroll indicator */}
-      <motion.div 
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-      >
-        <motion.div 
-          className="flex flex-col items-center gap-2 text-white/40"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <span className="text-xs uppercase tracking-widest">Przewiń</span>
-          <ChevronDown className="w-5 h-5" />
-        </motion.div>
-      </motion.div>
+        <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto">
+          {[
+            { icon: Trophy, value: 150, suffix: '+', label: 'Mistrzostw' },
+            { icon: Award, value: 45, suffix: '+', label: 'Lat Doświadczenia' },
+            { icon: Zap, value: 3, suffix: '', label: 'Pokolenia Hodowców' },
+          ].map((stat, i) => (
+            <MagneticElement key={stat.label} strength={0.08}>
+              <div 
+                className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/30 transition-colors"
+                style={{ willChange: 'transform' }}
+              >
+                <stat.icon className="w-6 h-6 text-gold mx-auto mb-2" />
+                <div className="text-3xl md:text-4xl font-bold text-white mb-1">
+                  <CountUp 
+                    end={stat.value} 
+                    duration={2.5} 
+                    delay={0.5 + i * 0.2}
+                    suffix={stat.suffix}
+                  />
+                </div>
+                <div className="text-white/50 text-sm">{stat.label}</div>
+              </div>
+            </MagneticElement>
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+        <FloatingElement amplitude={8} frequency={0.5}>
+          <div className="flex flex-col items-center gap-2 text-white/40">
+            <span className="text-xs uppercase tracking-widest">Przewiń</span>
+            <ChevronDown className="w-5 h-5" />
+          </div>
+        </FloatingElement>
+      </div>
     </section>
   );
 };
 
-// Feature Card Component - ZOPTYMALIZOWANY
-const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; title: string; description: string }; index: number }) => {
+interface FeatureData {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}
+
+const FeatureCardPremium = memo(({ 
+  feature, 
+  index 
+}: { 
+  feature: FeatureData; 
+  index: number 
+}) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
-    stiffness: 150,
-    damping: 20,
-  });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
-    stiffness: 150,
-    damping: 20,
-  });
-  
-  const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
-  const lightY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
-  
-  const lightBackground = useTransform(
-    [lightX, lightY],
-    ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
-  );
-  
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+  const glowRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!cardRef.current || !glowRef.current) return;
+    
     const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  }, [mouseX, mouseY]);
-  
-  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-    mouseX.set(0);
-    mouseY.set(0);
-  }, [mouseX, mouseY]);
-  
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    gsap.to(glowRef.current, {
+      '--glow-x': `${x}%`,
+      '--glow-y': `${y}%`,
+      duration: 0.3,
+      ease: 'power2.out',
+    });
+  }, []);
+
   return (
-    <motion.div
-      ref={cardRef}
-      className="relative group"
-      style={{ perspective: '1000px' }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <motion.div
-        className="relative p-8 rounded-2xl border border-border overflow-hidden"
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: 'preserve-3d',
+    <MagneticElement strength={0.05}>
+      <div
+        ref={cardRef}
+        className="relative group p-8 rounded-2xl border border-border overflow-hidden bg-card/50 backdrop-blur-sm"
+        onMouseMove={handleMouseMove}
+        style={{ 
           willChange: 'transform',
-        }}
-        whileHover={{ scale: 1.02 }}
-        transition={{ scale: { duration: 0.2 } }}
+          '--glow-x': '50%',
+          '--glow-y': '50%',
+        } as React.CSSProperties}
       >
-        {/* Dynamic light reflection - ZOPTYMALIZOWANE */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none z-10"
+        <div
+          ref={glowRef}
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
           style={{
-            background: lightBackground,
-            opacity: isHovered ? 1 : 0,
-            willChange: 'opacity',
+            background: 'radial-gradient(circle at var(--glow-x) var(--glow-y), rgba(212,175,55,0.15) 0%, transparent 50%)',
           }}
         />
         
-        {/* Glow border on hover - JASNY jak w ChampionCard */}
-        <motion.div
-          className="absolute inset-0 rounded-2xl pointer-events-none z-20"
-          initial={{ opacity: 0 }}
-          animate={{
-            opacity: isHovered ? 1 : 0,
-            boxShadow: isHovered
-              ? '0 0 30px rgba(150, 150, 200, 0.3), inset 0 0 20px rgba(150, 150, 200, 0.1)'
-              : 'none',
+        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          style={{
+            boxShadow: '0 0 30px rgba(212,175,55,0.2), inset 0 0 20px rgba(212,175,55,0.05)',
           }}
-          transition={{ duration: 0.3 }}
-          style={{ willChange: 'opacity, box-shadow' }}
         />
         
-        {/* Scanline effect */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 0.15 : 0 }}
-          style={{ willChange: 'opacity' }}
-        >
-          <div 
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 255, 255, 0.03) 2px,
-                rgba(255, 255, 255, 0.03) 4px
-              )`
-            }}
-          />
-        </motion.div>
-        
-        <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors">
-          <feature.icon className="w-7 h-7 text-gold" />
-        </div>
-        <h3 className="text-xl font-semibold font-display text-foreground mb-3">
-          {feature.title}
-        </h3>
-        <p className="text-muted-foreground">{feature.description}</p>
-      </motion.div>
-    </motion.div>
+        <DepthLayer depth={index} className="relative z-10">
+          <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-6 group-hover:bg-gold/10 transition-colors duration-500">
+            <feature.icon className="w-7 h-7 text-gold" />
+          </div>
+          <h3 className="text-xl font-semibold font-display text-foreground mb-3">
+            {feature.title}
+          </h3>
+          <p className="text-muted-foreground">{feature.description}</p>
+        </DepthLayer>
+      </div>
+    </MagneticElement>
   );
 });
 
-FeatureCard.displayName = 'FeatureCard';
+FeatureCardPremium.displayName = 'FeatureCardPremium';
 
-// Features Section - z GSAP batch reveal
-const FeaturesSection = () => {
-  const features = [
+const FeaturesSectionPremium = () => {
+  const features: FeatureData[] = [
     {
       icon: Trophy,
       title: 'Elitarne Rodowody',
@@ -286,94 +320,120 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="py-24 px-4 relative overflow-hidden" data-fade-in>
+    <SeamlessSection 
+      className="py-24 px-4 relative overflow-hidden"
+      transitionIn="fade"
+    >
       <div className="max-w-6xl mx-auto">
-        {/* Nagłówek z GSAP word reveal */}
-        <div className="text-center mb-16">
-          <span className="inline-block px-4 py-1 border border-primary/30 rounded-full text-xs tracking-[0.2em] text-primary/70 uppercase mb-4">
+        <RevealOnScroll direction="up" className="text-center mb-16">
+          <span className="inline-block px-4 py-1 border border-gold/30 rounded-full text-xs tracking-[0.2em] text-gold/70 uppercase mb-4">
             Dlaczego my
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold font-display gold-text mb-4" data-word-reveal data-split-text>
+          <h2 className="text-3xl md:text-4xl font-bold font-display mb-4 text-gold">
             Najwyższa Jakość Hodowli
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             Od ponad 50 lat dostarczamy championów hodowcom na całym świecie.
           </p>
-        </div>
+        </RevealOnScroll>
 
-        {/* Karty z GSAP batch stagger reveal (0.2s) */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <RevealOnScroll 
+          direction="up" 
+          stagger={0.15}
+          className="grid md:grid-cols-3 gap-8"
+        >
           {features.map((feature, index) => (
-            <div key={index} data-reveal-item>
-              <FeatureCard feature={feature} index={index} />
+            <div key={index}>
+              <FeatureCardPremium feature={feature} index={index} />
             </div>
           ))}
-        </div>
+        </RevealOnScroll>
       </div>
-    </section>
+    </SeamlessSection>
   );
 };
 
-// CTA Section z GSAP fade-in
-const CTASection = () => {
+const CTASectionPremium = () => {
   return (
-    <section className="py-24 px-4" data-fade-in>
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-4xl md:text-5xl font-bold font-display gold-text mb-6" data-word-reveal data-split-text>
+    <SeamlessSection className="py-24 px-4" transitionIn="fade">
+      <RevealOnScroll direction="up" className="max-w-4xl mx-auto text-center">
+        <PremiumTextReveal
+          className="text-3xl md:text-4xl font-bold font-display gold-text mb-6"
+          as="h2"
+          splitBy="words"
+          animation="slide"
+          stagger={0.1}
+          scrub={false}
+        >
           Gotowy na swojego Championa?
-        </h2>
+        </PremiumTextReveal>
+        
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
           Przeglądaj naszą ekskluzywną kolekcję i znajdź idealnego gołębia
           dla swojej hodowli.
         </p>
-        <Link
-          to="/champions"
-          className="group inline-flex items-center gap-2 px-8 py-4 bg-gold text-background rounded-full font-semibold hover:bg-gold-light transition-colors"
-        >
-          <span>Eksploruj Galerię</span>
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </Link>
-      </div>
-    </section>
+        
+        <MagneticElement strength={0.2}>
+          <Link
+            to="/champions"
+            className="group inline-flex items-center gap-2 px-8 py-4 bg-gold text-background rounded-full font-semibold hover:bg-gold-light transition-colors shadow-lg shadow-gold/20"
+          >
+            <span>Eksploruj Galerię</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </MagneticElement>
+      </RevealOnScroll>
+    </SeamlessSection>
   );
 };
 
 export const HomePage = () => {
+  useEffect(() => {
+    document.body.classList.add('home-page');
+    ScrollTrigger.refresh();
+    
+    return () => {
+      document.body.classList.remove('home-page');
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  }, []);
+
   return (
     <div className="min-h-screen relative isolate overflow-hidden">
-      {/* Parallax background elements */}
-      <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
+      <Header />
+      <ProgressIndicator color="rgba(212, 175, 55, 0.8)" height={2} />
+      
+      <CursorFollower size={24} color="rgba(212, 175, 55, 0.4)" />
+
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gold/5 rounded-full blur-2xl" data-speed="0.3" />
-        <div className="absolute top-1/3 right-20 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl" data-speed="0.5" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" data-speed="0.2" />
+        <DepthLayer depth={1}>
+          <div className="absolute top-20 left-10 w-32 h-32 bg-gold/5 rounded-full blur-2xl" />
+        </DepthLayer>
+        <DepthLayer depth={2}>
+          <div className="absolute top-1/3 right-20 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl" />
+        </DepthLayer>
+        <DepthLayer depth={3}>
+          <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
+        </DepthLayer>
       </div>
 
-      {/* Content */}
       <div className="relative z-10">
-        {/* Hero */}
-        <HeroSection />
-
-        {/* About Section - moved above Carousel3D */}
+        <HeroPremium />
+        
         <AboutSection />
-
+        
         <div id="champions" data-reveal>
           <Carousel3D />
         </div>
-
-        {/* Features */}
-        <FeaturesSection />
-
-        {/* Press / W mediach */}
+        
+        <FeaturesSectionPremium />
+        
         <PressSection />
-
-        {/* CTA */}
-        <CTASection />
-
-        {/* Contact */}
+        
+        <CTASectionPremium />
+        
         <ContactSection />
-
-        {/* Footer */}
+        
         <Footer />
       </div>
     </div>

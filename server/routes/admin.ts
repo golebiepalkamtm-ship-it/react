@@ -1,7 +1,13 @@
 import express from 'express';
 import { prisma } from '../lib/db.js';
+import { createClient } from '@supabase/supabase-js';
 
 const router = express.Router();
+
+// Initialize Supabase Admin Client if credentials exist
+const supabaseAdmin = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  : null;
 
 /**
  * Middleware: ensure authenticated user is admin
@@ -174,6 +180,183 @@ router.post('/auctions/:id/:action', ensureAdmin, async (req, res) => {
 
     res.status(400).json({ error: 'Invalid action' });
   } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Update user details (Full Admin Access)
+ */
+router.patch('/users/:id', ensureAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, first_name, last_name, role, isBlocked, isBanned } = req.body;
+
+    // Optional: Add validation logic here
+
+    const updated = await prisma!.user.update({
+      where: { id },
+      data: {
+        email,
+        first_name,
+        last_name,
+        role,
+        isBlocked,
+        isBanned
+      }
+    });
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Delete user (Full Admin Access)
+ */
+router.delete('/users/:id', ensureAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma!.user.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Update auction (Full Admin Access)
+ */
+router.patch('/auctions/:id', ensureAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, startingPrice, buyNowPrice, reservePrice, status, endTime } = req.body;
+
+    const updated = await prisma!.auction.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        startingPrice,
+        buyNowPrice: buyNowPrice || null,
+        reservePrice,
+        status,
+        endTime
+      }
+    });
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Delete auction (Standard DELETE)
+ */
+router.delete('/auctions/:id', ensureAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma!.auction.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Create new user
+ */
+router.post('/users', ensureAdmin, async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Supabase Admin not configured on server' });
+    }
+    const { email, password, first_name, last_name, role, phone } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // 1. Create in Supabase Auth
+    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { first_name, last_name }
+    });
+
+    if (authError || !authUser.user) {
+        throw new Error(`Auth creation failed: ${authError?.message}`);
+    }
+
+    // 2. Create/Update in Public Schema
+    const newUser = await prisma!.user.upsert({
+        where: { id: authUser.user.id },
+        update: {
+            email,
+            first_name,
+            last_name,
+            role: role || 'USER_REGISTERED',
+            phone,
+            name: `${first_name} ${last_name}`.trim()
+        },
+        create: {
+            id: authUser.user.id,
+            email,
+            first_name,
+            last_name,
+            role: role || 'USER_REGISTERED',
+            phone,
+            trustScore: 0,
+            name: `${first_name} ${last_name}`.trim()
+        }
+    });
+
+    res.json(newUser);
+
+  } catch (error: any) {
+    console.error('Create User Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Create new auction
+ */
+router.post('/auctions', ensureAdmin, async (req, res) => {
+  try {
+    const { title, description, startingPrice, buyNowPrice, reservePrice, status, endTime, sellerId, category, sex, minBidIncrement } = req.body;
+    
+    // Validate seller exists
+    let finalSellerId = sellerId;
+    if (finalSellerId) {
+       const userExists = await prisma!.user.findUnique({ where: { id: finalSellerId } });
+       if (!userExists) return res.status(400).json({ error: 'Provided sellerId does not exist' });
+    } else {
+       finalSellerId = (req as any).user?.id;
+    }
+
+    const newAuction = await prisma!.auction.create({
+        data: {
+            title,
+            description,
+            startingPrice: startingPrice || 0,
+            currentPrice: startingPrice || 0,
+            buyNowPrice: buyNowPrice || null,
+            reservePrice,
+            status: status || 'ACTIVE',
+            endTime: endTime ? new Date(endTime) : null,
+            category: category || 'RACING',
+            sex: sex || 'MALE',
+            sellerId: finalSellerId,
+            minBidIncrement: minBidIncrement || 100
+        }
+    });
+    res.json(newAuction);
+  } catch (error: any) {
+    console.error('Create Auction Error:', error);
     res.status(500).json({ error: error.message });
   }
 });

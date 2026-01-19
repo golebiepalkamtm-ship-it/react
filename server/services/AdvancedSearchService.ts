@@ -81,7 +81,7 @@ export class AdvancedSearchService {
           EXISTS (
             SELECT 1 FROM pigeon_profiles pp 
             WHERE pp.auction_id = auctions.id 
-            AND (pp.ring_number ILIKE $${paramIndex} OR pp.pigeon_color ILIKE $${paramIndex})
+            AND (pp.ringnumber ILIKE $${paramIndex} OR pp.feather_color ILIKE $${paramIndex})
           )
         )`);
         const searchTerm = `%${filters.search}%`;
@@ -94,7 +94,7 @@ export class AdvancedSearchService {
         whereConditions.push(`EXISTS (
           SELECT 1 FROM pigeon_profiles pp 
           WHERE pp.auction_id = auctions.id 
-          AND pp.ring_number ILIKE $${paramIndex++}
+          AND pp.ringnumber ILIKE $${paramIndex++}
         )`);
         queryParams.push(`%${filters.ringNumber}%`);
       }
@@ -114,7 +114,7 @@ export class AdvancedSearchService {
         whereConditions.push(`EXISTS (
           SELECT 1 FROM pigeon_profiles pp 
           WHERE pp.auction_id = auctions.id 
-          AND pp.pigeon_color ILIKE $${paramIndex++}
+          AND pp.feather_color ILIKE $${paramIndex++}
         )`);
         queryParams.push(`%${filters.pigeonColor}%`);
       }
@@ -123,7 +123,7 @@ export class AdvancedSearchService {
       if (filters.breeder) {
         whereConditions.push(`EXISTS (
           SELECT 1 FROM users u 
-          WHERE u.id = auctions.seller_id 
+          WHERE u.id = auctions.owner_id 
           AND (
             u.first_name ILIKE $${paramIndex++} OR
             u.last_name ILIKE $${paramIndex++} OR
@@ -170,13 +170,19 @@ export class AdvancedSearchService {
       // Wykonanie zapytania
       const result = await (prisma as any).$queryRawUnsafe(query, ...queryParams);
       
-      const auctions = result.map((row: any) => ({
-        ...row,
-        startingPrice: Number(row.starting_price),
-        currentPrice: Number(row.current_price),
-        buyNowPrice: row.buy_now_price ? Number(row.buy_now_price) : null,
-        reservePrice: row.reserve_price ? Number(row.reserve_price) : null,
-      }));
+      const auctions = result.map((row: any) => {
+        const processedRow: any = {};
+        for (const [key, value] of Object.entries(row)) {
+          processedRow[key] = typeof value === 'bigint' ? Number(value) : value;
+        }
+        return {
+          ...processedRow,
+          startingPrice: Number(row.starting_price),
+          currentPrice: Number(row.current_price),
+          buyNowPrice: row.buy_now_price ? Number(row.buy_now_price) : null,
+          reservePrice: row.reserve_price ? Number(row.reserve_price) : null,
+        };
+      });
 
       const total = result.length > 0 ? Number(result[0].total_count) : 0;
       const totalPages = Math.ceil(total / limit);
@@ -343,7 +349,7 @@ export class AdvancedSearchService {
         SELECT DISTINCT 
           title,
           description,
-          (SELECT ring_number FROM pigeon_profiles pp WHERE pp.auction_id = auctions.id LIMIT 1) as ring_number
+          (SELECT ringnumber FROM pigeon_profiles pp WHERE pp.auction_id = auctions.id LIMIT 1) as ringnumber
         FROM auctions 
         WHERE 
           title ILIKE $1 OR 
@@ -351,7 +357,7 @@ export class AdvancedSearchService {
           EXISTS (
             SELECT 1 FROM pigeon_profiles pp 
             WHERE pp.auction_id = auctions.id 
-            AND pp.ring_number ILIKE $1
+            AND pp.ringnumber ILIKE $1
           )
         LIMIT 10
       `, `%${query}%`);
@@ -359,7 +365,7 @@ export class AdvancedSearchService {
       return suggestions
         .map((row: any) => [
           row.title,
-          row.ring_number,
+          row.ringnumber,
         ])
         .flat()
         .filter(Boolean)

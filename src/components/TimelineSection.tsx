@@ -75,7 +75,7 @@ function TimeTunnelCard({
 
             <div className="mt-6 space-y-2">
               {yearData.achievements.map((achievement, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
+                <div key={`timeline-achievement-${i}`} className="flex items-start gap-2 text-sm">
                   <div className="mt-0.5">{getPositionIcon(achievement.position)}</div>
                   <div className="flex-1">
                     <span className="text-foreground font-medium">

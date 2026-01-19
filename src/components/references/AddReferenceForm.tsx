@@ -423,7 +423,7 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
             <AnimatePresence mode="popLayout">
               {achievements.map((achievement, achievementIndex) => (
                 <motion.div
-                  key={achievementIndex}
+                  key={`achievement-${achievementIndex}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20, height: 0 }}

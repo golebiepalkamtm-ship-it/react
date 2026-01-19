@@ -85,8 +85,8 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                 type="button"
                 onClick={() => setRating(star)}
                 className={`text-3xl transition-colors ${
-                  star <= rating ? 'text-yellow-400' : 'text-gray-300'
-                } hover:text-yellow-400 focus:outline-none`}
+                  star <= rating ? 'text-gold' : 'text-gray-300'
+                } hover:text-gold focus:outline-none`}
               >
                 ★
               </button>

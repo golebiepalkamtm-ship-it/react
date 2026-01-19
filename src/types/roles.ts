@@ -22,6 +22,10 @@ export interface UserWithVerifications {
 export function calculateRole(user: UserWithVerifications): LegacyRole {
   // If DB indicates ADMIN, respect it (no heuristics)
   if (user.role === 'ADMIN') return 'ADMIN';
+  
+  // NOTE: We do NOT promote to ADMIN based on email here.
+  // Admin role must be granted explicitly in the database.
+
   if (user.role === 'USER_FULL_VERIFIED') return 'USER_FULL_VERIFIED';
 
   const isEmailConfirmed = Boolean(user.email_confirmed_at);

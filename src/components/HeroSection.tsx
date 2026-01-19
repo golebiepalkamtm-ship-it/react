@@ -13,9 +13,13 @@ import { Link } from 'react-router-dom';
 import { Reveal, fadeInUp, scaleIn, buttonMicro } from '@/components/motion';
 import { MagneticButton } from '@/components/effects/MagneticButton';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 function HeroSection() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const heroSectionRef = useRef<HTMLElement | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement | null>(null);
+  const animRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -64,6 +68,30 @@ function HeroSection() {
 
   useEffect(() => {
     attemptVideoPlay();
+    
+    // Scroll Depth Effect - Video shrinks and fades as user scrolls (3D depth illusion)
+    // IMPORTANT: GSAP animations ignore useReducedMotion - they're controlled manually
+    if (videoContainerRef.current && heroSectionRef.current) {
+      const ctx = gsap.context(() => {
+        gsap.to(videoContainerRef.current, {
+          scale: 0.2,          // Shrinks to 20% of original size
+          opacity: 0,          // Fades away completely
+          y: 100,              // Slight downward drift for depth effect
+          ease: 'none',        // No easing, controlled purely by scroll position
+          scrollTrigger: {
+            trigger: videoContainerRef.current,  // Trigger na samym wideo
+            start: 'top center',                  // Start gdy top wideo dotknie center viewportu
+            end: 'bottom top',                    // End gdy bottom wideo opuści viewport
+            scrub: true,                          // Smoothly sync animation with scroll
+            markers: false,                       // Set to true for debugging
+            invalidateOnRefresh: true,            // Recalculate on window resize
+          },
+        });
+      }, heroSectionRef);
+
+      // Clean up on unmount
+      return () => ctx.revert();
+    }
   }, [attemptVideoPlay]);
 
   const onPointerMove = useCallback(
@@ -100,111 +128,115 @@ function HeroSection() {
 
   return (
     <section
+      ref={heroSectionRef}
       id="home"
       className="relative min-h-screen overflow-hidden"
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
     >
-      <div className="absolute top-80 left-1/2 -translate-x-1/2 z-40 max-w-4xl h-[65vh] mb-2">
-        {/* Video w środku - bez oświetlenia */}
-        <div className="relative w-full h-full">
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="relative z-0 w-full h-full object-contain"
-            src="/pigeon-tlo-Picsart-BackgroundRemover.mp4"
-          />
-        </div>
-      </div>
-
-      {/* Text content */}
-      <div className="relative z-60 w-full p-0 mt-20">
-        <div className="container mx-auto px-4 text-center">
-          <Reveal variants={fadeInUp}>
-            <motion.div
-              ref={titleRef}
-              className="relative inline-block"
-              style={prefersReducedMotion ? undefined : ({
-                rotateX,
-                rotateY,
-                x: translateX,
-                y: translateY,
-                transformStyle: 'preserve-3d',
-              } as never)}
-            >
-              {/* Floating particles with physics */}
-              {!prefersReducedMotion && particles.map((particle, idx) => (
-                <motion.div
-                  key={`particle-${idx}`}
-                  className="absolute w-3 h-3 rounded-full"
-                  style={{
-                    left: `calc(50% + ${particle.x}px)`,
-                    top: `calc(50% + ${particle.y}px)`,
-                    background: 'radial-gradient(circle, rgba(255,223,128,0.8) 0%, rgba(212,175,55,0.4) 50%, transparent 100%)',
-                    boxShadow: '0 0 20px rgba(255,223,128,0.6)',
-                  }}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{
-                    opacity: [0, 0.8, 0.6, 0],
-                    scale: [0, particle.scale, particle.scale * 1.2, 0],
-                    y: [0, -30, -60, -90],
-                    x: [0, Math.sin(idx) * 20, Math.sin(idx + 1) * 30, Math.sin(idx + 2) * 20],
-                  }}
-                  transition={{
-                    duration: particle.duration,
-                    delay: particle.delay,
-                    repeat: Infinity,
-                    ease: 'easeOut',
-                  }}
-                />
-              ))}
-
-              {/* Magnetic field effect */}
-              {!prefersReducedMotion && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, rgba(212,175,55,0.15) 0%, transparent 50%)`,
-                    filter: 'blur(40px)',
-                  }}
-                />
-              )}
-
-              <motion.h1 
-                className="font-display text-4xl md:text-6xl lg:text-7xl text-foreground font-bold leading-tight mb-2 relative"
-                style={{
-                  textShadow: prefersReducedMotion ? undefined : '0 0 60px rgba(212,175,55,0.4), 0 0 30px rgba(212,175,55,0.2)',
-                }}
+      {/* Container wrapper dla layoutu */}
+      <div className="relative min-h-screen flex flex-col items-center justify-center">
+        
+        {/* Nagłówek na górze */}
+        <div className="relative z-50 w-full text-center mb-8 mt-20">
+          <div className="container mx-auto px-4">
+            <Reveal variants={fadeInUp}>
+              <motion.div
+                ref={titleRef}
+                className="relative inline-block"
+                style={prefersReducedMotion ? undefined : ({
+                  rotateX,
+                  rotateY,
+                  transformStyle: 'preserve-3d',
+                } as never)}
               >
-                <AnimatedShinyText className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-2 relative" shimmerWidth={200}>
-                  Pałka MTM
-                </AnimatedShinyText>
-              </motion.h1>
-            </motion.div>
-          </Reveal>
-          <Reveal variants={fadeInUp} delay={0.1}>
-            <AnimatedShinyText className="text-lg" shimmerWidth={150}>
-              Mistrzowie sprintu.
-            </AnimatedShinyText>
-          </Reveal>
-          <Reveal variants={scaleIn} delay={0.2}>
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <MagneticButton strength={0.4}>
-                <Button asChild className="bg-gold text-navy shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:shadow-[0_0_50px_rgba(212,175,55,0.8)]">
-                  <Link to="/auctions">Przejdź do aukcji</Link>
-                </Button>
-              </MagneticButton>
-              <MagneticButton strength={0.4}>
-                <Button variant="outline" asChild className="border-gold/40 hover:border-gold hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-                   <a href="#press-section">Poznaj hodowlę</a>
-                </Button>
-              </MagneticButton>
-            </div>
-          </Reveal>
+                {/* Floating particles with physics */}
+                {!prefersReducedMotion && particles.map((particle, idx) => (
+                  <motion.div
+                    key={`particle-${idx}`}
+                    className="absolute w-3 h-3 rounded-full"
+                    style={{
+                      left: `calc(50% + ${particle.x}px)`,
+                      top: `calc(50% + ${particle.y}px)`,
+                      background: 'radial-gradient(circle, rgba(255,223,128,0.8) 0%, rgba(212,175,55,0.4) 50%, transparent 100%)',
+                      boxShadow: '0 0 20px rgba(255,223,128,0.6)',
+                    }}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{
+                      opacity: [0, 0.8, 0.6, 0],
+                      scale: [0, particle.scale, particle.scale * 1.2, 0],
+                      y: [0, -30, -60, -90],
+                      x: [0, Math.sin(idx) * 20, Math.sin(idx + 1) * 30, Math.sin(idx + 2) * 20],
+                    }}
+                    transition={{
+                      duration: particle.duration,
+                      delay: particle.delay,
+                      repeat: Infinity,
+                      ease: 'easeOut',
+                    }}
+                  />
+                ))}
+
+                {/* Magnetic field effect */}
+                {!prefersReducedMotion && (
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, rgba(212,175,55,0.15) 0%, transparent 50%)`,
+                      filter: 'blur(40px)',
+                    }}
+                  />
+                )}
+
+                <motion.h1 
+                  className="font-display text-4xl md:text-5xl lg:text-6xl text-gold font-bold leading-tight mb-2 relative"
+                  style={{
+                    textShadow: prefersReducedMotion ? undefined : '0 0 60px rgba(212,175,55,0.4), 0 0 30px rgba(212,175,55,0.2)',
+                  }}
+                >
+                  <AnimatedShinyText className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2 relative" shimmerWidth={200}>
+                    Pałka MTM
+                  </AnimatedShinyText>
+                </motion.h1>
+              </motion.div>
+            </Reveal>
+            <Reveal variants={fadeInUp} delay={0.1}>
+              <AnimatedShinyText className="text-lg" shimmerWidth={150}>
+                Mistrzowie sprintu.
+              </AnimatedShinyText>
+            </Reveal>
+            <Reveal variants={scaleIn} delay={0.2}>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <MagneticButton strength={0.4}>
+                  <Button asChild className="bg-gold text-navy shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:shadow-[0_0_50px_rgba(212,175,55,0.8)]">
+                    <Link to="/auctions">Przejdź do aukcji</Link>
+                  </Button>
+                </MagneticButton>
+                <MagneticButton strength={0.4}>
+                  <Button variant="outline" asChild className="border-gold/40 hover:border-gold hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+                     <a href="#press-section">Poznaj hodowlę</a>
+                  </Button>
+                </MagneticButton>
+              </div>
+            </Reveal>
+          </div>
         </div>
+
+        {/* Kontener wideo poniżej nagłówka */}
+        <div ref={videoContainerRef} className="relative w-[90%] max-w-6xl h-[70vh] will-change-transform overflow-hidden" style={{ perspective: '1000px' }}>
+          <div ref={animRef} className="relative w-full h-full">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-full object-contain"
+              src="/pigeon-tlo-Picsart-BackgroundRemover.mp4"
+            />
+          </div>
+        </div>
+        
       </div>
     </section>
   );

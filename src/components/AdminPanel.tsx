@@ -14,7 +14,11 @@ import {
   TrendingUp,
   DollarSign,
   Clock,
-  UserCheck
+  UserCheck,
+  Edit,
+  Save,
+  XCircle,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,14 +38,20 @@ interface UserData {
   role: string;
   createdAt: string;
   phone?: string;
+  isBlocked?: boolean;
+  isBanned?: boolean;
 }
 
 interface AuctionData {
   id: string;
   title: string;
+  description?: string;
   currentPrice: number;
+  startingPrice?: number;
+  buyNowPrice?: number;
   status: string;
   createdAt: string;
+  endTime?: string;
   seller: {
     first_name: string;
     last_name: string;
@@ -73,11 +83,38 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Editing States
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [editingAuction, setEditingAuction] = useState<AuctionData | null>(null);
+
+  // Creation States
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [newUser, setNewUser] = useState({
+    email: '',
+    password: '',
+    first_name: '',
+    last_name: '',
+    role: 'USER_REGISTERED',
+    phone: ''
+  });
+
+  const [isCreatingAuction, setIsCreatingAuction] = useState(false);
+  const [newAuction, setNewAuction] = useState({
+    title: '',
+    description: '',
+    startingPrice: 0,
+    buyNowPrice: 0,
+    reservePrice: 0,
+    status: 'ACTIVE',
+    category: 'RACING',
+    sex: 'MALE',
+    endTime: ''
+  });
+
   const fetchData = React.useCallback(async () => {
     if (!session?.access_token) return;
     setLoading(true);
     try {
-      // Używaj klienta API z bazowym URL (eliminuje pobieranie index.html przy hostingu statycznym)
       const statsData = await apiClient.getWithToken<Stats>('/admin/stats', undefined, session.access_token);
       setStats(statsData);
 
@@ -89,7 +126,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
     } catch (error) {
       console.error("Error fetching admin data:", error);
-      // Użyj ładnego toast zamiast alert z bardziej szczegółowym błędem
       const errorMessage = error instanceof Error ? error.message : 'Nieznany błąd';
       toast.error(`Błąd pobierania danych administratora: ${errorMessage}`);
     } finally {
@@ -107,27 +143,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'delete' | 'verify') => {
     if (!session?.access_token) return;
     try {
-      let role = '';
-      if (action === 'ban') role = 'BANNED';
-      if (action === 'unban') role = 'USER_REGISTERED';
-      if (action === 'verify') role = 'USER_FULL_VERIFIED';
-
-      const headers = {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
-      };
-
       if (action === 'delete') {
-        // Implementacja usuwania po stronie backendu
-        // await fetch(`/api/admin/users/${userId}`, { method: 'DELETE', headers });
-        toast.info('Usuwanie użytkowników jest obecnie wyłączone w tym demo.');
+         if (!confirm('Czy na pewno chcesz usunąć tego użytkownika? To operacja nieodwracalna.')) return;
+         await apiClient.delete(`/admin/users/${userId}`, session.access_token);
+         toast.success('Użytkownik usunięty');
       } else {
-        const res = await fetch(`/api/admin/users/${userId}/role`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ role })
-        });
-        if (!res.ok) throw new Error('Failed to update user');
+        let role = '';
+        if (action === 'ban') role = 'BANNED';
+        if (action === 'unban') role = 'USER_REGISTERED';
+        if (action === 'verify') role = 'USER_FULL_VERIFIED';
+        
+        // Use PATCH for updating
+        await apiClient.patch(`/admin/users/${userId}`, { role }, session.access_token);
         toast.success('Rola użytkownika zaktualizowana');
       }
       
@@ -138,19 +165,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleSaveUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser || !session?.access_token) return;
+
+    try {
+      await apiClient.patch(`/admin/users/${editingUser.id}`, editingUser, session.access_token);
+      toast.success('Użytkownik zaktualizowany');
+      setEditingUser(null);
+      fetchData();
+    } catch (error) {
+      toast.error('Błąd aktualizacji użytkownika');
+    }
+  };
+
   const handleAuctionAction = async (auctionId: string, action: 'end' | 'delete') => {
     if (!session?.access_token) return;
     try {
-      const res = await fetch(`/api/admin/auctions/${auctionId}/${action}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
-      });
-      
-      if (!res.ok) throw new Error('Failed to perform auction action');
-      
-      toast.success(action === 'end' ? 'Aukcja zakończona' : 'Aukcja usunięta');
+      if (action === 'delete') {
+        if (!confirm('Czy na pewno chcesz usunąć tę aukcję?')) return;
+        await apiClient.delete(`/admin/auctions/${auctionId}`, session.access_token);
+        toast.success('Aukcja usunięta');
+      } else if (action === 'end') {
+        await apiClient.patch(`/admin/auctions/${auctionId}`, { status: 'ENDED' }, session.access_token);
+        toast.success('Aukcja zakończona');
+      }
       fetchData();
     } catch (error) {
       console.error('Error performing auction action:', error);
@@ -158,6 +197,51 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleSaveAuction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAuction || !session?.access_token) return;
+
+    try {
+      await apiClient.patch(`/admin/auctions/${editingAuction.id}`, editingAuction, session.access_token);
+      toast.success('Aukcja zaktualizowana');
+      setEditingAuction(null);
+      fetchData();
+    } catch (error) {
+      toast.error('Błąd aktualizacji aukcji');
+    }
+  };
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.access_token) return;
+    try {
+      await apiClient.post('/admin/users', newUser, session.access_token);
+      toast.success('Użytkownik utworzony pomyślnie');
+      setIsCreatingUser(false);
+      setNewUser({ email: '', password: '', first_name: '', last_name: '', role: 'USER_REGISTERED', phone: '' });
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      toast.error('Błąd tworzenia użytkownika');
+    }
+  };
+
+  const handleCreateAuction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.access_token) return;
+    try {
+      await apiClient.post('/admin/auctions', newAuction, session.access_token);
+      toast.success('Aukcja utworzona pomyślnie');
+      setIsCreatingAuction(false);
+      setNewAuction({ 
+        title: '', description: '', startingPrice: 0, buyNowPrice: 0, 
+        reservePrice: 0, status: 'ACTIVE', category: 'RACING', sex: 'MALE', endTime: '' 
+      });
+      fetchData();
+    } catch (error) {
+       console.error(error);
+       toast.error('Błąd tworzenia aukcji');
+    }
+  };
   const filteredUsers = users.filter(user => 
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -214,8 +298,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   <Shield className="w-6 h-6 text-gold" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">Panel Administratora</h2>
-                  <p className="text-sm text-muted-foreground">Zarządzaj platformą</p>
+                  <h2 className="text-xl font-bold text-foreground">Panel Administratora (Pełna Kontrola)</h2>
+                  <p className="text-sm text-muted-foreground">Zarządzaj aukcjami, użytkownikami i systemem</p>
                 </div>
               </div>
               <Button
@@ -228,28 +312,63 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               </Button>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-white/10">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                    activeTab === tab.id
-                      ? 'text-gold'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+            {/* Stats Grid - Najwyżej jak się da */}
+            <div className="px-6 pt-2 pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-6 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20"
                 >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-gold"
-                    />
-                  )}
-                </button>
-              ))}
+                  <div className="flex items-center justify-between mb-4">
+                    <Users className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-foreground">{stats.totalUsers}</p>
+                  <p className="text-sm text-muted-foreground">Użytkowników</p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="p-6 rounded-xl bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/20"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <Gavel className="w-8 h-8 text-gold" />
+                    <TrendingUp className="w-4 h-4 text-green-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-foreground">{stats.activeAuctions}</p>
+                  <p className="text-sm text-muted-foreground">Aktywnych aukcji</p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="p-6 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/10 border border-green-500/20"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <DollarSign className="w-8 h-8 text-green-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-foreground">
+                    {stats.totalVolume.toLocaleString('pl-PL')} zł
+                  </p>
+                  <p className="text-sm text-muted-foreground">Łączny obrót</p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="p-6 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/20"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <Clock className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-foreground">{stats.totalAuctions}</p>
+                  <p className="text-sm text-muted-foreground">Wszystkich aukcji</p>
+                </motion.div>
+              </div>
             </div>
 
             {/* Content */}
@@ -276,66 +395,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 </div>
               ) : (
                 <>
+                  {/* Tabs */}
+                  <div className="flex space-x-1 mb-6">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                          activeTab === tab.id
+                            ? 'bg-gold text-black font-medium'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                        }`}
+                      >
+                        <tab.icon className="w-4 h-4" />
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
                   {/* Dashboard Tab */}
                   {activeTab === 'dashboard' && (
                     <div className="space-y-6">
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="p-6 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <Users className="w-8 h-8 text-blue-400" />
-                          </div>
-                          <p className="text-3xl font-bold text-foreground">{stats.totalUsers}</p>
-                          <p className="text-sm text-muted-foreground">Użytkowników</p>
-                        </motion.div>
-
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.1 }}
-                          className="p-6 rounded-xl bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/20"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <Gavel className="w-8 h-8 text-gold" />
-                            <TrendingUp className="w-4 h-4 text-green-400" />
-                          </div>
-                          <p className="text-3xl font-bold text-foreground">{stats.activeAuctions}</p>
-                          <p className="text-sm text-muted-foreground">Aktywnych aukcji</p>
-                        </motion.div>
-
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                          className="p-6 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/10 border border-green-500/20"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <DollarSign className="w-8 h-8 text-green-400" />
-                          </div>
-                          <p className="text-3xl font-bold text-foreground">
-                            {stats.totalVolume.toLocaleString('pl-PL')} zł
-                          </p>
-                          <p className="text-sm text-muted-foreground">Łączny obrót</p>
-                        </motion.div>
-
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 }}
-                          className="p-6 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/20"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <Clock className="w-8 h-8 text-purple-400" />
-                          </div>
-                          <p className="text-3xl font-bold text-foreground">{stats.totalAuctions}</p>
-                          <p className="text-sm text-muted-foreground">Wszystkich aukcji</p>
-                        </motion.div>
-                      </div>
-
                       {/* Recent Activity */}
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="p-6 rounded-xl bg-black/30 border border-white/10">
@@ -402,6 +482,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   {/* Users Tab */}
                   {activeTab === 'users' && (
                     <div className="space-y-4">
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={() => setIsCreatingUser(true)} 
+                          className="bg-gold text-black hover:bg-gold/80 gap-2"
+                        >
+                          <Plus className="w-4 h-4" /> Dodaj Użytkownika
+                        </Button>
+                      </div>
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
@@ -444,6 +532,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                                 </td>
                                 <td className="py-3 px-4">
                                   <div className="flex items-center justify-end gap-2">
+                                      {/* Edit Button for All Users */}
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => setEditingUser(user)}
+                                        title="Edytuj"
+                                      >
+                                        <Edit className="w-4 h-4 text-blue-400" />
+                                      </Button>
+
                                     {user.role !== 'ADMIN' && (
                                       <>
                                         <Button
@@ -500,6 +599,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   {/* Auctions Tab */}
                   {activeTab === 'auctions' && (
                     <div className="space-y-4">
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={() => setIsCreatingAuction(true)} 
+                          className="bg-gold text-black hover:bg-gold/80 gap-2"
+                        >
+                          <Plus className="w-4 h-4" /> Dodaj Aukcję
+                        </Button>
+                      </div>
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
@@ -536,6 +643,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                                 </td>
                                 <td className="py-3 px-4">
                                   <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => setEditingAuction(auction)}
+                                      title="Edytuj"
+                                    >
+                                      <Edit className="w-4 h-4 text-blue-400" />
+                                    </Button>
+
                                     {auction.status === 'ACTIVE' && (
                                       <Button
                                         variant="ghost"
@@ -626,6 +743,299 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 </>
               )}
             </div>
+
+            {/* Edit User Modal */}
+            {editingUser && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onPointerDownCapture={e => e.stopPropagation()}>
+                <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-white">Edytuj Użytkownika</h3>
+                    <button onClick={() => setEditingUser(null)}><X className="w-5 h-5 text-gray-400" /></button>
+                  </div>
+                  <form onSubmit={handleSaveUser} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                      <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={editingUser.email}
+                        onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Imię</label>
+                        <input 
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={editingUser.first_name || ''}
+                          onChange={e => setEditingUser({...editingUser, first_name: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Nazwisko</label>
+                        <input 
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={editingUser.last_name || ''}
+                          onChange={e => setEditingUser({...editingUser, last_name: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Rola</label>
+                      <select 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={editingUser.role}
+                        onChange={e => setEditingUser({...editingUser, role: e.target.value})}
+                      >
+                        <option value="USER_REGISTERED">Registered</option>
+                        <option value="USER_EMAIL_VERIFIED">Email Verified</option>
+                        <option value="USER_FULL_VERIFIED">Full Verified</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="BANNED">Banned</option>
+                      </select>
+                    </div>
+                     <div className="flex items-center gap-2 mt-4">
+                      <input 
+                        type="checkbox"
+                        checked={editingUser.isBanned || false}
+                        onChange={e => setEditingUser({...editingUser, isBanned: e.target.checked})}
+                        className="w-4 h-4 rounded-sm border-gray-600 bg-black/40 text-gold focus:ring-gold/50"
+                      />
+                      <label className="text-sm text-gray-300">Zbanowany</label>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                      <Button type="button" variant="outline" onClick={() => setEditingUser(null)}>Anuluj</Button>
+                      <Button type="submit" className="bg-gold hover:bg-gold/80 text-black">Zapisz</Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Auction Modal */}
+            {editingAuction && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onPointerDownCapture={e => e.stopPropagation()}>
+                <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+                 <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-white">Edytuj Aukcję</h3>
+                    <button onClick={() => setEditingAuction(null)}><X className="w-5 h-5 text-gray-400" /></button>
+                  </div>
+                  <form onSubmit={handleSaveAuction} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Tytuł</label>
+                      <input 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={editingAuction.title}
+                        onChange={e => setEditingAuction({...editingAuction, title: e.target.value})}
+                      />
+                    </div>
+                     <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Opis (opcjonalne)</label>
+                      <textarea 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white h-20"
+                        value={editingAuction.description || ''}
+                        onChange={e => setEditingAuction({...editingAuction, description: e.target.value})}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Cena Startowa</label>
+                        <input 
+                          type="number"
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={editingAuction.startingPrice || 0}
+                          onChange={e => setEditingAuction({...editingAuction, startingPrice: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Kup Teraz</label>
+                        <input 
+                          type="number"
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={editingAuction.buyNowPrice || 0}
+                          onChange={e => setEditingAuction({...editingAuction, buyNowPrice: Number(e.target.value)})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
+                      <select 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={editingAuction.status}
+                        onChange={e => setEditingAuction({...editingAuction, status: e.target.value})}
+                      >
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="ENDED">ENDED</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                      <Button type="button" variant="outline" onClick={() => setEditingAuction(null)}>Anuluj</Button>
+                      <Button type="submit" className="bg-gold hover:bg-gold/80 text-black">Zapisz</Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Create User Modal */}
+            {isCreatingUser && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onPointerDownCapture={e => e.stopPropagation()}>
+                <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-white">Dodaj Nowego Użytkownika</h3>
+                    <button onClick={() => setIsCreatingUser(false)}><X className="w-5 h-5 text-gray-400" /></button>
+                  </div>
+                  <form onSubmit={handleCreateUser} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                      <input 
+                        type="email"
+                        required
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={newUser.email}
+                        onChange={e => setNewUser({...newUser, email: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Hasło</label>
+                      <input 
+                        type="password"
+                        required
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={newUser.password}
+                        onChange={e => setNewUser({...newUser, password: e.target.value})}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Imię</label>
+                        <input 
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={newUser.first_name || ''}
+                          onChange={e => setNewUser({...newUser, first_name: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Nazwisko</label>
+                        <input 
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={newUser.last_name || ''}
+                          onChange={e => setNewUser({...newUser, last_name: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Rola</label>
+                      <select 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={newUser.role}
+                        onChange={e => setNewUser({...newUser, role: e.target.value})}
+                      >
+                        <option value="USER_REGISTERED">Zarejestrowany</option>
+                        <option value="USER_FULL_VERIFIED">Zweryfikowany</option>
+                        <option value="ADMIN">Administrator</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                      <Button type="button" variant="outline" onClick={() => setIsCreatingUser(false)}>Anuluj</Button>
+                      <Button type="submit" className="bg-gold hover:bg-gold/80 text-black">Utwórz</Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Create Auction Modal */}
+            {isCreatingAuction && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onPointerDownCapture={e => e.stopPropagation()}>
+                <div className="bg-[#1a1a1a] border border-white/10 p-6 rounded-xl w-full max-w-lg shadow-2xl overflow-y-auto max-h-[80vh]" onClick={e => e.stopPropagation()}>
+                 <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-white">Dodaj Nową Aukcję</h3>
+                    <button onClick={() => setIsCreatingAuction(false)}><X className="w-5 h-5 text-gray-400" /></button>
+                  </div>
+                  <form onSubmit={handleCreateAuction} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Tytuł *</label>
+                      <input 
+                        required
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                        value={newAuction.title}
+                        onChange={e => setNewAuction({...newAuction, title: e.target.value})}
+                      />
+                    </div>
+                     <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Opis</label>
+                      <textarea 
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white h-20"
+                        value={newAuction.description || ''}
+                        onChange={e => setNewAuction({...newAuction, description: e.target.value})}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Cena Startowa (PLN)</label>
+                        <input 
+                          type="number"
+                          min="0"
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={newAuction.startingPrice}
+                          onChange={e => setNewAuction({...newAuction, startingPrice: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Kup Teraz (PLN)</label>
+                        <input 
+                          type="number"
+                          min="0"
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={newAuction.buyNowPrice}
+                          onChange={e => setNewAuction({...newAuction, buyNowPrice: Number(e.target.value)})}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Kategoria</label>
+                        <select 
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={newAuction.category}
+                          onChange={e => setNewAuction({...newAuction, category: e.target.value})}
+                        >
+                           <option value="RACING">Wyścigowy</option>
+                           <option value="BREEDING">Rozpłodowy</option>
+                           <option value="SHOW">Wystawowy</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">Płeć</label>
+                        <select 
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={newAuction.sex}
+                          onChange={e => setNewAuction({...newAuction, sex: e.target.value})}
+                        >
+                           <option value="MALE">Samiec</option>
+                           <option value="FEMALE">Samica</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                       <label className="block text-sm font-medium text-gray-400 mb-1">Data Zakończenia (opcjonalnie)</label>
+                        <input 
+                          type="datetime-local"
+                          className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white"
+                          value={newAuction.endTime}
+                          onChange={e => setNewAuction({...newAuction, endTime: e.target.value})}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6">
+                      <Button type="button" variant="outline" onClick={() => setIsCreatingAuction(false)}>Anuluj</Button>
+                      <Button type="submit" className="bg-gold hover:bg-gold/80 text-black">Utwórz Aukcję</Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
           </motion.div>
         </motion.div>
       )}

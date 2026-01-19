@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Trophy, Facebook, Instagram, Youtube, Twitter, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Reveal, StaggeredList, fadeInUp, iconMicro } from "@/components/motion";
 import { motion } from "framer-motion";
+import { iconMicro } from "@/components/motion";
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 const Footer = () => {
+  const footerRef = useRef<HTMLElement>(null);
 
   const socialLinks = [
     { icon: Facebook, href: "https://www.facebook.com/PalkaGolebiepl/?locale=pl_PL", label: "Facebook" },
@@ -16,7 +18,6 @@ const Footer = () => {
   const footerLinks = {
     company: [
       { name: 'O nas', href: '/#about' },
-      { name: 'Nasze Osiągnięcia', href: '/achievements' },
       { name: 'Kontakt', href: '/#contact' },
     ],
     services: [
@@ -30,21 +31,124 @@ const Footer = () => {
     ],
   };
 
+  // GSAP WOW animations
+  useEffect(() => {
+    if (!footerRef.current) return;
+    
+    const footer = footerRef.current;
+    const brand = footer.querySelector('.footer-brand');
+    const columns = footer.querySelectorAll('.footer-column');
+    const socialIcons = footer.querySelectorAll('.social-icon');
+    const bottomBar = footer.querySelector('.footer-bottom');
+    
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: footer,
+          start: 'top 90%',
+          toggleActions: 'play none none reverse',
+          invalidateOnRefresh: true,
+          refreshPriority: -4,
+        }
+      });
+
+      // Brand section - dramatic entrance from left
+      if (brand) {
+        tl.fromTo(brand,
+          { 
+            x: -200, 
+            opacity: 0, 
+            rotateY: 30,
+            scale: 0.8
+          },
+          { 
+            x: 0, 
+            opacity: 1, 
+            rotateY: 0,
+            scale: 1,
+            duration: 1, 
+            ease: 'power3.out'
+          }
+        );
+      }
+
+      // Columns - cascade in from bottom with stagger
+      if (columns.length > 0) {
+        columns.forEach((col, index) => {
+          tl.fromTo(col,
+            { 
+              y: 80, 
+              opacity: 0, 
+              scale: 0.9
+            },
+            { 
+              y: 0, 
+              opacity: 1, 
+              scale: 1,
+              duration: 0.7, 
+              ease: 'back.out(1.5)'
+            },
+            index === 0 ? '-=0.6' : '-=0.5'
+          );
+        });
+      }
+
+      // Social icons - explode from center
+      if (socialIcons.length > 0) {
+        tl.fromTo(socialIcons,
+          { 
+            scale: 0, 
+            opacity: 0, 
+            rotateZ: -180
+          },
+          { 
+            scale: 1, 
+            opacity: 1, 
+            rotateZ: 0,
+            duration: 0.5, 
+            ease: 'back.out(2)',
+            stagger: 0.1
+          },
+          '-=0.3'
+        );
+      }
+
+      // Bottom bar - slide up with fade
+      if (bottomBar) {
+        tl.fromTo(bottomBar,
+          { 
+            y: 40, 
+            opacity: 0 
+          },
+          { 
+            y: 0, 
+            opacity: 1, 
+            duration: 0.6, 
+            ease: 'power2.out'
+          },
+          '-=0.2'
+        );
+      }
+      
+    }, footer);
+    
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <footer className="relative isolate overflow-hidden py-6 border-t border-white/15 text-white bg-black/60 backdrop-blur-sm">
+    <footer 
+      ref={footerRef}
+      className="relative isolate overflow-hidden py-6 border-t border-white/15 text-white bg-black/60 backdrop-blur-sm"
+      style={{ perspective: '1200px' }}
+    >
       <div className="container mx-auto px-4 relative z-10">
-        <Reveal variants={fadeInUp}>
-          <StaggeredList 
-            staggerDelay={0.1}
-            delayChildren={0.1}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
-          >
-            {/* Brand */}
-            <div className="lg:col-span-2">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {/* Brand */}
+          <div className="footer-brand lg:col-span-2 opacity-0" style={{ transformStyle: 'preserve-3d' }}>
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-white" />
-                </div>
+                <Trophy className="w-5 h-5 text-white" />
+              </div>
               <div>
                 <span className="font-display text-lg text-white font-semibold">
                   MTM Pałka
@@ -66,104 +170,95 @@ const Footer = () => {
                 <span>kontakt@palkamtm.pl</span>
               </div>
             </div>
-              <div className="flex items-center gap-3">
-                {socialLinks.map((social) => (
-                  <motion.a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-full bg-white/8 backdrop-blur-sm flex items-center justify-center text-white/85 hover:text-gold hover:bg-gold/10 transition-all duration-300"
-                    aria-label={social.label}
-                    variants={iconMicro}
-                    initial="rest"
-                    whileHover="hover"
-                    whileTap="tap"
-                  >
-                    <social.icon className="w-5 h-5" />
-                  </motion.a>
-                ))}
-              </div>
+            <div className="flex items-center gap-3">
+              {socialLinks.map((social) => (
+                <motion.a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-icon w-10 h-10 rounded-full bg-white/8 backdrop-blur-sm flex items-center justify-center text-white/85 hover:text-gold hover:bg-gold/10 transition-all duration-300 opacity-0"
+                  aria-label={social.label}
+                  variants={iconMicro}
+                  initial="rest"
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <social.icon className="w-5 h-5" />
+                </motion.a>
+              ))}
             </div>
+          </div>
 
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-display text-white font-semibold mb-3">
-                Firma
-              </h4>
-              <ul className="space-y-3">
-                {footerLinks.company.map((link) => (
-                  <li key={link.name}>
-                    <motion.div
-                      whileHover={{ x: 4 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      {link.href.startsWith('/#') ? (
-                        <a href={link.href} className="text-white/85 hover:text-gold transition-colors text-sm">{link.name}</a>
-                      ) : (
-                        <Link to={link.href} className="text-white/85 hover:text-gold transition-colors text-sm">{link.name}</Link>
-                      )}
-                    </motion.div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Services */}
-            <div>
-              <h4 className="font-display text-white font-semibold mb-3">
-                Usługi
-              </h4>
-              <ul className="space-y-3">
-                {footerLinks.services.map((link) => (
-                  <li key={link.name}>
-                    <motion.div
-                      whileHover={{ x: 4 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <Link
-                        to={link.href}
-                        className="text-white/85 hover:text-gold transition-colors text-sm"
-                      >
-                        {link.name}
-                      </Link>
-                    </motion.div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </StaggeredList>
-        </Reveal>
-
-        <Reveal variants={fadeInUp} delay={0.2}>
-          <div className="pt-4 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <motion.p 
-              className="text-white/75 text-xs"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
-            </motion.p>
-            <div className="flex gap-6">
-              {footerLinks.legal.map((link) => (
-                <div key={link.name}>
+          {/* Quick Links */}
+          <div className="footer-column opacity-0">
+            <h4 className="font-display text-white font-semibold mb-3">
+              Firma
+            </h4>
+            <ul className="space-y-3">
+              {footerLinks.company.map((link) => (
+                <li key={link.name}>
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ x: 4 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    {link.href.startsWith('/#') ? (
+                      <a href={link.href} className="text-white/85 hover:text-gold transition-colors text-sm">{link.name}</a>
+                    ) : (
+                      <Link to={link.href} className="text-white/85 hover:text-gold transition-colors text-sm">{link.name}</Link>
+                    )}
+                  </motion.div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Services */}
+          <div className="footer-column opacity-0">
+            <h4 className="font-display text-white font-semibold mb-3">
+              Usługi
+            </h4>
+            <ul className="space-y-3">
+              {footerLinks.services.map((link) => (
+                <li key={link.name}>
+                  <motion.div
+                    whileHover={{ x: 4 }}
+                    transition={{ type: "spring", stiffness: 300 }}
                   >
                     <Link
                       to={link.href}
-                      className="text-white/75 hover:text-gold transition-colors text-xs"
+                      className="text-white/85 hover:text-gold transition-colors text-sm"
                     >
                       {link.name}
                     </Link>
                   </motion.div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
-        </Reveal>
+        </div>
+
+        <div className="footer-bottom pt-4 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 opacity-0">
+          <p className="text-white/75 text-xs">
+            © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
+          </p>
+          <div className="flex gap-6">
+            {footerLinks.legal.map((link) => (
+              <motion.div
+                key={link.name}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link
+                  to={link.href}
+                  className="text-white/75 hover:text-gold transition-colors text-xs"
+                >
+                  {link.name}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
     </footer>
   );

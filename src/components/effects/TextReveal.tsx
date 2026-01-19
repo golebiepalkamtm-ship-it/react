@@ -29,7 +29,7 @@ const TextReveal: React.FC<TextRevealProps> = ({
           const end = start + 1 / words.length;
           return (
             <Word 
-              key={i} 
+              key={`word-${i}`} 
               progress={scrollYProgress} 
               range={[start, end]}
               highlightColor={highlightColor}

@@ -4,14 +4,22 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Newspaper, Calendar, Filter, ArrowRight } from 'lucide-react';
+import { Newspaper, Calendar, Filter, ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 import { PressService, PressArticle } from '@/services/pressService';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
 
-// Press Article Card z efektami ChampionCard
 const PressArticleCard = ({ article, index }: { article: PressArticle; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]);
+  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.9, 1, 1, 0.9]);
   
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -24,9 +32,6 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
     stiffness: 150,
     damping: 20,
   });
-  
-  const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
-  const lightY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
   
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -47,13 +52,13 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
     <motion.div
       ref={cardRef}
       className="relative group h-full"
-      style={{ perspective: '1000px' }}
+      style={{ perspective: '1000px', opacity, y, scale }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="bg-black/90 rounded-2xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] overflow-hidden h-full flex flex-col"
+        className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] h-full flex flex-col"
         style={{
           rotateX,
           rotateY,
@@ -62,76 +67,53 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        {/* Dynamic light reflection */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none z-10"
+        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
+        
+        <motion.div 
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
-            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(255,255,255,0.15) 0%, transparent 50%)`,
-            opacity: isHovered ? 1 : 0,
+            background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)',
           }}
-        />
-        
-        {/* Glow border on hover - JASNY */}
-        <motion.div
-          className="absolute inset-0 rounded-2xl pointer-events-none z-20"
-          initial={{ opacity: 0 }}
           animate={{
-            opacity: isHovered ? 1 : 0,
-            boxShadow: isHovered
-              ? '0 0 30px rgba(150, 150, 200, 0.3), inset 0 0 20px rgba(150, 150, 200, 0.1)'
-              : 'none',
+            opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3,
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
         
-        {/* Scanline effect */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 0.15 : 0 }}
-        >
-          <div 
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 255, 255, 0.03) 2px,
-                rgba(255, 255, 255, 0.03) 4px
-              )`
-            }}
-          />
-        </motion.div>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
         
-        <div className="relative aspect-[16/10] overflow-hidden bg-linear-to-b from-black/15 via-transparent to-black/20">
+        <div className="relative aspect-[16/10] overflow-hidden">
           <img 
             src={article.images.main} 
             alt={article.title}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-[1.02] transition-transform duration-300"
+            className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop';
             }}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
         
-        <div className="p-6 flex-grow flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <Newspaper className="w-4 h-4" />
-            <span>{article.publication}</span>
-            <span>•</span>
-            <Calendar className="w-4 h-4" />
-            <time>{new Date(article.date).toLocaleDateString('pl-PL')}</time>
+        <div className="relative p-6 flex-grow flex flex-col justify-between">
+          <div className="flex items-center gap-2 text-sm text-white/60 mb-3 flex-wrap">
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/80 border border-gold/20">
+              <Newspaper className="w-3 h-3" />
+              {article.publication}
+            </span>
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10">
+              <Calendar className="w-3 h-3" />
+              {new Date(article.date).toLocaleDateString('pl-PL')}
+            </span>
           </div>
           
-          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 group-hover:text-gold transition-colors">
+          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
             {article.title}
           </h3>
           
-          <p className="text-muted-foreground text-sm line-clamp-4 mb-4">
+          <p className="text-white/60 text-sm line-clamp-4 mb-4">
             {article.excerpt}
           </p>
           
@@ -139,16 +121,24 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
             <Button 
               variant="outline" 
               size="sm" 
-              className="w-full group/btn border-gold/30 hover:bg-gold hover:text-navy"
+              className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300"
               asChild
             >
               <Link to={`/press/${article.id}`}>
                 Czytaj więcej
-                <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
           </div>
         </div>
+        
+        <motion.div 
+          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          transition={{ duration: 1, delay: index * 0.1 }}
+          viewport={{ once: true }}
+        />
       </motion.article>
     </motion.div>
   );
@@ -158,6 +148,17 @@ const PressPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [pressArticles, setPressArticles] = useState<PressArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const heroRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -185,47 +186,159 @@ const PressPage = () => {
     ? pressArticles 
     : pressArticles.filter(article => article.category === selectedCategory);
 
-  return (
-    <div className="min-h-screen relative overflow-hidden">
-      <Header />
-      
-      <main className="relative z-10">
-        {/* Hero Section */}
-        <section className="relative min-h-[30vh] flex items-center justify-center overflow-hidden text-center">
-          <div className="relative z-10 container mx-auto px-4">
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="relative w-16 h-16 mx-auto mb-6">
             <motion.div 
-              className="flex items-center justify-center gap-2 mb-6"
+              className="absolute inset-0 rounded-full border-2 border-gold/30"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.div 
+              className="absolute inset-2 rounded-full border-2 border-t-gold border-r-transparent border-b-transparent border-l-transparent"
+              animate={{ rotate: -360 }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            />
+            <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-gold" />
+          </div>
+          <p className="text-white/60 text-lg">Ładowanie artykułów...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-black to-black" />
+        <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-gold/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-gold-dark/5 rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gold/3 rounded-full blur-[80px]" />
+      </div>
+
+      <Header />
+
+      <motion.section 
+        ref={heroRef}
+        className="relative min-h-[50vh] flex items-center justify-center z-10 pt-20"
+        style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-gold/10"
+              style={{
+                width: `${80 + i * 80}px`,
+                height: `${80 + i * 80}px`,
+                left: `${10 + i * 15}%`,
+                top: `${15 + i * 12}%`,
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: 3 + i,
+                repeat: Infinity,
+                delay: i * 0.3,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.div 
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
+              animate={{ 
+                boxShadow: ['0 0 30px rgba(250,204,21,0.2)', '0 0 60px rgba(250,204,21,0.4)', '0 0 30px rgba(250,204,21,0.2)']
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <Newspaper className="w-10 h-10 text-gold" />
+            </motion.div>
+
+            <motion.h1 
+              className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6"
+              style={{
+                background: 'linear-gradient(135deg, #fff 0%, #d4af37 50%, #fff 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                textShadow: '0 0 60px rgba(212,175,55,0.5)',
+              }}
+            >
+              PRASA I MEDIA
+            </motion.h1>
+
+            <motion.p 
+              className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Przeczytaj co piszą o nas media branżowe i ogólnopolskie
+            </motion.p>
+
+            <motion.div 
+              className="flex flex-wrap justify-center gap-6 md:gap-12 mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ delay: 0.5 }}
             >
-              <Newspaper className="w-8 h-8 text-gold" />
+              <motion.div 
+                className="text-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.6, type: "spring" }}
+              >
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2 bg-gradient-to-br from-gold-light to-gold shadow-lg">
+                  <Newspaper className="w-7 h-7 text-black/80" />
+                </div>
+                <div className="font-display text-3xl md:text-4xl font-bold text-white">
+                  {pressArticles.length}
+                </div>
+                <div className="text-white/50 text-sm uppercase tracking-wider">
+                  Artykułów
+                </div>
+              </motion.div>
             </motion.div>
-            <motion.div 
-              className="mx-auto max-w-4xl"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Media <span className="text-gradient-gold">o nas</span></h1>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Przeczytaj co piszą o nas media branżowe i ogólnopolskie
-              </p>
-            </motion.div>
-          </div>
-        </section>
 
-        {/* Featured Video */}
-        <section className="py-2 section-surface-alt">
-          <div className="container mx-auto px-4">
-            <motion.div
-              className="max-w-4xl mx-auto"
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+            <motion.div 
+              className="mt-12 flex flex-col items-center gap-2"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
             >
-              <div className="relative pb-[56.25%] h-0 rounded-2xl overflow-hidden border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+              <span className="text-white/40 text-sm uppercase tracking-widest">Przewijaj</span>
+              <ChevronDown className="w-6 h-6 text-gold/60" />
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      <section className="relative z-10 py-8">
+        <div className="container mx-auto px-4">
+          <motion.div
+            className="max-w-4xl mx-auto"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
+              <div className="relative pb-[56.25%] h-0">
                 <iframe
                   className="absolute inset-0 w-full h-full"
                   src="https://www.youtube.com/embed/utXkaMWyZfk"
@@ -235,79 +348,73 @@ const PressPage = () => {
                   allowFullScreen
                 />
               </div>
-            </motion.div>
-          </div>
-        </section>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-        {/* Content Section */}
-        <section className="py-20 section-surface-alt">
-          <div className="container mx-auto px-4">
-
-            {/* Filter */}
-            <motion.div 
-              className="flex flex-wrap items-center gap-4 mb-12 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-4 md:p-5"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <Filter className="w-4 h-4" />
-                Kategoria:
-              </div>
-              {categories.map((category, index) => (
-                <motion.div
-                  key={category.value}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
+      <section className="relative z-10 py-20">
+        <div className="container mx-auto px-4">
+          <motion.div 
+            className="flex flex-wrap items-center gap-4 mb-12 p-4 md:p-5 rounded-2xl border border-gold/20 bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 backdrop-blur-xl"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="flex items-center gap-2 text-white font-medium">
+              <Filter className="w-4 h-4 text-gold" />
+              <span>Kategoria:</span>
+            </div>
+            {categories.map((category, index) => (
+              <motion.div
+                key={category.value}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+              >
+                <Button
+                  variant={selectedCategory === category.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.value)}
+                  className={selectedCategory === category.value 
+                    ? "bg-gradient-to-r from-gold to-gold text-black font-bold border-none" 
+                    : "border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold"
+                  }
                 >
-                  <Button
-                    variant={selectedCategory === category.value ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(category.value)}
-                    className={selectedCategory === category.value ? "bg-gold text-navy" : "border-gold/30 hover:bg-gold hover:text-navy"}
-                  >
-                    {category.label}
-                  </Button>
-                </motion.div>
+                  {category.label}
+                </Button>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {filteredArticles.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredArticles.map((article, index) => (
+                <PressArticleCard key={article.id} article={article} index={index} />
               ))}
+            </div>
+          ) : (
+            <motion.div 
+              className="max-w-2xl mx-auto text-center"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl p-12">
+                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
+                <Newspaper className="w-16 h-16 text-gold/50 mx-auto mb-6" />
+                <h2 className="text-2xl font-bold text-white mb-4">Brak artykułów</h2>
+                <p className="text-white/60 mb-4">
+                  Brak artykułów w tej kategorii
+                </p>
+                <p className="text-white/40 text-sm">
+                  Spróbuj wybrać inną kategorię lub zobacz wszystkie artykuły
+                </p>
+              </div>
             </motion.div>
-            {/* Articles Grid */}
-            {!loading && (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 h-full">
-                {filteredArticles.map((article, index) => (
-                  <motion.div
-                    key={article.id}
-                    className="h-full"
-                    initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
-                    whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                  >
-                    <PressArticleCard article={article} index={index} />
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {loading && (
-              <div className="text-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Ładowanie artykułów...</p>
-              </div>
-            )}
-
-            {!loading && filteredArticles.length === 0 && (
-              <div className="text-center py-16">
-                <Newspaper className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-muted-foreground text-lg mb-2">Brak artykułów w tej kategorii</p>
-                <p className="text-muted-foreground text-sm">Spróbuj wybrać inną kategorię lub zobacz wszystkie artykuły</p>
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
+          )}
+        </div>
+      </section>
 
       <div className="relative z-10">
         <Footer />

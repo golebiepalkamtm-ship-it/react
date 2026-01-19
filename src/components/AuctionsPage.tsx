@@ -175,8 +175,8 @@ const AuctionsPage = () => {
     <>
       <section className="relative overflow-hidden text-center">
         <div className="relative z-10 container mx-auto px-4 pt-12 pb-6 md:pt-16 md:pb-8">
-          <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
-            Wszystkie <span className="text-gradient-gold">Aukcje</span>
+          <h1 className="font-display text-3xl md:text-4xl text-gold font-bold leading-tight mb-4">
+            Wszystkie <span className="text-white">Aukcje</span>
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Przeglądaj i licytuj ekskluzywne gołębie pocztowe

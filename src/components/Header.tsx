@@ -65,18 +65,17 @@ const Header = () => {
   const isHomePage = location.pathname === "/";
   const isBreederPage = location.pathname.startsWith('/breeder-meetings');
   const isAuctionsPage = location.pathname.startsWith('/auctions');
-  const isAchievementsPage = location.pathname.startsWith('/achievements');
   const isContactPage = location.pathname.startsWith('/contact');
   const isReferencesPage = location.pathname.startsWith('/references');
-  const isOverlay = useMemo(() => !isScrolled && (isHomePage || isBreederPage || isAuctionsPage || isAchievementsPage || isContactPage || isReferencesPage), [isScrolled, isHomePage, isBreederPage, isAuctionsPage, isAchievementsPage, isContactPage, isReferencesPage]);
+  const isOverlay = useMemo(() => !isScrolled && (isHomePage || isBreederPage || isAuctionsPage || isContactPage || isReferencesPage), [isScrolled, isHomePage, isBreederPage, isAuctionsPage, isContactPage, isReferencesPage]);
   const accountHref = user ? "/account" : "/auth";
 
   const navLinks = useMemo(() => {
     const baseLinks = [
       { label: "Start", href: "/#home" },
       { label: "Aukcje", href: "/auctions" },
-      { label: "Osiągnięcia", href: "/achievements" },
       { label: "Championy", href: "/champions" },
+      { label: "Historia", href: "/historia" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
       { label: "Referencje", href: "/references" },
       { label: "Prasa i media", href: "/press" },
@@ -162,7 +161,7 @@ const Header = () => {
       variants={fadeInDown}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
         isOverlay
           ? "bg-transparent py-0"
           : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-0"

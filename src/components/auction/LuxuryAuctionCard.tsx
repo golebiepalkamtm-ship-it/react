@@ -37,14 +37,14 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  // Transformacje dla efektu 3D
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
-    stiffness: 250,
-    damping: 25
+  // Transformacje dla efektu 3D - wzmocnione
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
+    stiffness: 150,
+    damping: 20
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), {
-    stiffness: 250,
-    damping: 25
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
+    stiffness: 150,
+    damping: 20
   });
 
   // Obsługa ruchu myszy dla efektu 3D
@@ -117,7 +117,8 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
       whileHover="hover"
       whileTap="tap"
     >
-      {/* Efekt gradientu na krawędziach */}
+      {/* Efekt gradientu na krawędziach - wzmocnione oświetlenie */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/30 via-transparent to-gold/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <motion.div 
         className="absolute inset-0 rounded-2xl opacity-0 pointer-events-none"
         animate={{ 

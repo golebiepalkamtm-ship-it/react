@@ -47,107 +47,56 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return Boolean(u?.phone_confirmed_at);
   }, []);
 
-  const computeRole = useCallback((authUser: User, existingProfile?: Profile | null) => {
+  const ensureProfile = useCallback(async (authUser: User, existingProfile: Profile | null) => {
+    // Completely rely on DB triggers. Do not write to DB from client on load.
+    if (existingProfile) return existingProfile;
+
+    // If profile is missing (race condition), return a temporary read-only object
+    // derived from Auth User to allow UI to render.
     const userWithVerifications: UserWithVerifications = {
       id: authUser.id,
       email: authUser.email,
       email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
       phone: authUser.phone,
       phone_confirmed_at: (authUser as any).phone_confirmed_at,
-      role: existingProfile?.role
+      role: 'USER_REGISTERED'
     };
     
-    return calculateRole(userWithVerifications);
-  }, []);
+    const role = calculateRole(userWithVerifications);
 
-  const ensureProfile = useCallback(async (authUser: User, existingProfile: Profile | null) => {
-    const client = supabase;
-    if (!client) return existingProfile;
-    
-    const desiredRole = computeRole(authUser, existingProfile);
-    
-    const payload: Partial<Profile> & { id: string } = {
+    return {
       id: authUser.id,
-    };
-
-    if (!existingProfile) {
-      payload.role = desiredRole;
-      if (authUser.email) payload.email = authUser.email;
-    } else {
-      if (existingProfile.email !== authUser.email && authUser.email) {
-        payload.email = authUser.email;
-      }
-      
-      if (desiredRole === 'ADMIN' && existingProfile.role !== 'ADMIN') {
-         payload.role = desiredRole;
-      }
-    }
-
-    const needsUpsert =
-      !existingProfile ||
-      (payload.email && payload.email !== existingProfile.email) ||
-      (payload.role && payload.role !== existingProfile.role);
-
-    if (!needsUpsert) return existingProfile;
-
-    const { data, error } = await client
-      .from('users')
-      .upsert(payload, { onConflict: 'id' })
-      .select('*')
-      .single();
-
-    if (error) {
-      logger.error('Error ensuring profile:', error);
-      return existingProfile;
-    }
-    return data as Profile;
-  }, [computeRole]);
+      email: authUser.email,
+      phone: authUser.phone,
+      username: authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'User',
+      role: role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      name: authUser.user_metadata?.full_name,
+      avatar_url: authUser.user_metadata?.avatar_url
+    } as Profile;
+  }, []);
 
   const fetchProfile = useCallback(async (authUser: User) => {
     const client = supabase;
-    if (!client) {
-      return;
-    }
+    if (!client) return;
+
     try {
-      const queryPromise = client
+      const { data, error } = await client
         .from('users')
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
 
-      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
-        setTimeout(() => resolve({ data: null, error: { message: 'Profile fetch timeout' } }), 30000);
-      });
-
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
-
       if (error) {
         logger.error('Error fetching profile:', error);
-        try {
-          const ensured = await ensureProfile(authUser, null);
-          setProfile(ensured);
-        } catch (ensureError) {
-          logger.error('Error ensuring profile after fetch error:', ensureError);
-          setProfile(null);
-        }
+        setProfile(await ensureProfile(authUser, null));
       } else {
-        try {
-          const ensured = await ensureProfile(authUser, (data as Profile | null) ?? null);
-          setProfile(ensured);
-        } catch (ensureError) {
-          logger.error('Error ensuring profile after successful fetch:', ensureError);
-          setProfile(null);
-        }
+        setProfile(await ensureProfile(authUser, (data as Profile | null) ?? null));
       }
     } catch (error) {
       logger.error('Error fetching profile:', error);
-      try {
-        const ensured = await ensureProfile(authUser, null);
-        setProfile(ensured);
-      } catch (ensureError) {
-        logger.error('Error ensuring profile after catch error:', ensureError);
-        setProfile(null);
-      }
+      setProfile(await ensureProfile(authUser, null));
     }
   }, [ensureProfile]);
 
@@ -178,22 +127,27 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Brak połączenia z bazą danych');
     }
 
-    const payload: Partial<Profile> & { id: string } = { id: user.id, ...updates };
-    if (user.email && payload.email == null) payload.email = user.email;
-
+    // Strip protected fields
+    const safeUpdates = { ...updates };
+    delete (safeUpdates as any).role;
+    delete (safeUpdates as any).id;
+    delete (safeUpdates as any).email;
+    
+    // Perform update
     const { data, error } = await client
       .from('users')
-      .upsert(payload, { onConflict: 'id' })
+      .update(safeUpdates)
+      .eq('id', user.id)
       .select('*')
       .single();
 
     if (error) {
-      logger.error('Error upserting profile:', { error, payload });
+      logger.error('Error updating profile:', { error, updates: safeUpdates });
       throw error;
     }
 
     if (!data) {
-      throw new Error('Nie udało się zapisać profilu');
+      throw new Error('Nie udało się zaktualizować profilu');
     }
 
     await refreshSession();

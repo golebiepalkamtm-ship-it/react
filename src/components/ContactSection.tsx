@@ -1,12 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MapPin, Phone, Mail, Clock, Send, Navigation, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { contactService } from "@/services/contactService";
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Reveal, StaggeredList, fadeInUp, fadeInLeft, fadeInRight, cardMicro, buttonMicro } from "@/components/motion";
-import { SmoothScrollReveal } from "@/components/effects/SmoothScrollReveal";
 import { MagneticButton } from "@/components/effects/MagneticButton";
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 // Contact Form Card z efektami ChampionCard
 const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: any) => {
@@ -16,11 +15,11 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
     damping: 20,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
     stiffness: 150,
     damping: 20,
   });
@@ -37,6 +36,8 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
     mouseY.set(y);
   };
   
+  const handleMouseEnter = () => setIsHovered(true);
+  
   const handleMouseLeave = () => {
     setIsHovered(false);
     mouseX.set(0);
@@ -47,9 +48,9 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
     <motion.div
       ref={cardRef}
       className="relative group"
-      style={{ perspective: '1000px' }}
+      style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
@@ -62,12 +63,22 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        {/* Dynamic light reflection */}
+        {/* Dynamic light reflection - wzmocnione */}
         <motion.div
           className="absolute inset-0 pointer-events-none z-10"
           style={{
-            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(255,255,255,0.15) 0%, transparent 50%)`,
+            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(212,175,55,0.5) 0%, rgba(255,255,255,0.25) 30%, transparent 60%)`,
             opacity: isHovered ? 1 : 0,
+          }}
+        />
+        
+        {/* Dodatkowa górna poświata */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 0.5 : 0 }}
+          style={{
+            background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212,175,55,0.35) 0%, transparent 60%)',
           }}
         />
         
@@ -195,11 +206,11 @@ const GoogleMapCard = () => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
     damping: 20,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
     stiffness: 150,
     damping: 20,
   });
@@ -216,6 +227,8 @@ const GoogleMapCard = () => {
     mouseY.set(y);
   };
   
+  const handleMouseEnter = () => setIsHovered(true);
+  
   const handleMouseLeave = () => {
     setIsHovered(false);
     mouseX.set(0);
@@ -226,9 +239,9 @@ const GoogleMapCard = () => {
     <motion.div
       ref={cardRef}
       className="relative group"
-      style={{ perspective: '1000px' }}
+      style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
@@ -241,12 +254,22 @@ const GoogleMapCard = () => {
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        {/* Dynamic light reflection */}
+        {/* Dynamic light reflection - wzmocnione */}
         <motion.div
           className="absolute inset-0 pointer-events-none z-10"
           style={{
-            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(255,255,255,0.15) 0%, transparent 50%)`,
+            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(212,175,55,0.5) 0%, rgba(255,255,255,0.25) 30%, transparent 60%)`,
             opacity: isHovered ? 1 : 0,
+          }}
+        />
+        
+        {/* Dodatkowa górna poświata */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 0.5 : 0 }}
+          style={{
+            background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212,175,55,0.35) 0%, transparent 60%)',
           }}
         />
         
@@ -330,11 +353,11 @@ const ContactInfoCard = ({ info, index }: { info: any; index: number }) => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
     damping: 20,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
     stiffness: 150,
     damping: 20,
   });
@@ -351,6 +374,8 @@ const ContactInfoCard = ({ info, index }: { info: any; index: number }) => {
     mouseY.set(y);
   };
   
+  const handleMouseEnter = () => setIsHovered(true);
+  
   const handleMouseLeave = () => {
     setIsHovered(false);
     mouseX.set(0);
@@ -361,9 +386,9 @@ const ContactInfoCard = ({ info, index }: { info: any; index: number }) => {
     <motion.div
       ref={cardRef}
       className="relative group"
-      style={{ perspective: '1000px' }}
+      style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
@@ -376,12 +401,22 @@ const ContactInfoCard = ({ info, index }: { info: any; index: number }) => {
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        {/* Dynamic light reflection */}
+        {/* Dynamic light reflection - wzmocnione */}
         <motion.div
           className="absolute inset-0 pointer-events-none z-10"
           style={{
-            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(255,255,255,0.15) 0%, transparent 50%)`,
+            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(212,175,55,0.5) 0%, rgba(255,255,255,0.25) 30%, transparent 60%)`,
             opacity: isHovered ? 1 : 0,
+          }}
+        />
+        
+        {/* Dodatkowa górna poświata */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 0.5 : 0 }}
+          style={{
+            background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212,175,55,0.35) 0%, transparent 60%)',
           }}
         />
         
@@ -451,6 +486,137 @@ const ContactSection = () => {
     subject: "",
     message: "",
   });
+  
+  const sectionRef = useRef<HTMLElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+  const infoCardsRef = useRef<HTMLDivElement>(null);
+
+  // GSAP WOW animations
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    
+    const section = sectionRef.current;
+    const headerBadge = section.querySelector('.contact-badge');
+    const headerTitle = section.querySelector('.contact-title');
+    const headerDesc = section.querySelector('.contact-desc');
+    const formCard = formRef.current;
+    const infoCards = infoCardsRef.current?.querySelectorAll('.info-card');
+    const mapCard = section.querySelector('.map-card');
+    
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 70%',
+          toggleActions: 'play none none reverse',
+          invalidateOnRefresh: true,
+          refreshPriority: -3,
+        }
+      });
+
+      // Header - dramatic entrance
+      if (headerBadge) {
+        tl.fromTo(headerBadge,
+          { y: -60, opacity: 0, scale: 0.3, rotateZ: -10 },
+          { y: 0, opacity: 1, scale: 1, rotateZ: 0, duration: 0.7, ease: 'elastic.out(1, 0.5)' }
+        );
+      }
+      
+      if (headerTitle) {
+        tl.fromTo(headerTitle,
+          { y: 100, opacity: 0, clipPath: 'inset(100% 0 0 0)' },
+          { y: 0, opacity: 1, clipPath: 'inset(0% 0 0 0)', duration: 1, ease: 'power4.out' },
+          '-=0.4'
+        );
+      }
+      
+      if (headerDesc) {
+        tl.fromTo(headerDesc,
+          { y: 50, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.7, ease: 'power2.out' },
+          '-=0.5'
+        );
+      }
+
+      // Form card - sweeping entrance from left with 3D rotation
+      if (formCard) {
+        tl.fromTo(formCard,
+          { 
+            x: -400, 
+            opacity: 0, 
+            rotateY: 45,
+            scale: 0.7
+          },
+          { 
+            x: 0, 
+            opacity: 1, 
+            rotateY: 0,
+            scale: 1,
+            duration: 1.2, 
+            ease: 'power3.out'
+          },
+          '-=0.3'
+        );
+      }
+
+      // Info cards - cascade from right with different rotations
+      if (infoCards && infoCards.length > 0) {
+        infoCards.forEach((card, index) => {
+          const directions = [
+            { x: 200, rotateY: -30, rotateZ: 5 },
+            { x: 250, rotateY: -45, rotateZ: -5 },
+            { x: 200, rotateY: -30, rotateZ: 5 },
+            { x: 250, rotateY: -45, rotateZ: -5 }
+          ];
+          const dir = directions[index % directions.length];
+          
+          tl.fromTo(card,
+            { 
+              x: dir.x, 
+              opacity: 0, 
+              rotateY: dir.rotateY,
+              rotateZ: dir.rotateZ,
+              scale: 0.6
+            },
+            { 
+              x: 0, 
+              opacity: 1, 
+              rotateY: 0,
+              rotateZ: 0,
+              scale: 1,
+              duration: 0.8, 
+              ease: 'back.out(1.2)'
+            },
+            index === 0 ? '-=0.8' : '-=0.6'
+          );
+        });
+      }
+
+      // Map card - rise from below with scale
+      if (mapCard) {
+        tl.fromTo(mapCard,
+          { 
+            y: 150, 
+            opacity: 0, 
+            scale: 0.8,
+            rotateX: 20
+          },
+          { 
+            y: 0, 
+            opacity: 1, 
+            scale: 1,
+            rotateX: 0,
+            duration: 1, 
+            ease: 'power3.out'
+          },
+          '-=0.4'
+        );
+      }
+      
+    }, section);
+    
+    return () => ctx.revert();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -508,50 +674,49 @@ const ContactSection = () => {
 
   return (
     <section
+      ref={sectionRef}
       id="contact"
       className="pt-20 pb-24 section-surface-alt"
+      style={{ perspective: '1500px' }}
     >
       <div className="container mx-auto px-4">
         {/* Header */}
-        <Reveal variants={fadeInUp} delay={0.1}>
-          <div className="text-center mb-16">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6">
+        <div className="text-center mb-16">
+          <span className="contact-badge inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6 opacity-0">
             Kontakt
           </span>
-          <h2 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
+          <h2 className="contact-title font-display text-3xl md:text-4xl text-gold font-bold leading-tight mb-4 opacity-0">
             Skontaktuj się
-            <span className="text-gradient-gold"> z nami</span>
+            <span className="text-white"> z nami</span>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="contact-desc text-muted-foreground max-w-2xl mx-auto opacity-0">
             Chcesz nabyć gołębie z mistrzowskich linii? Masz pytania dotyczące naszej hodowli?
             Jesteśmy tutaj, aby pomóc Ci znaleźć idealne ptaki do Twojego gołębnika.
           </p>
         </div>
-        </Reveal>
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           {/* Contact Form */}
-          <Reveal variants={fadeInLeft} delay={0.2}>
+          <div ref={formRef} className="opacity-0" style={{ transformStyle: 'preserve-3d' }}>
             <ContactFormCard handleSubmit={handleSubmit} formData={formData} setFormData={setFormData} isSubmitting={isSubmitting} />
-          </Reveal>
+          </div>
 
           {/* Contact Info */}
-          <div className="space-y-6">
+          <div ref={infoCardsRef} className="space-y-6" style={{ perspective: '1200px' }}>
             {contactInfo.map((info, index) => (
-              <SmoothScrollReveal 
+              <div 
                 key={info.label}
-                delay={index * 0.1 + 0.3}
-                y={40}
-                scale={0.95}
+                className="info-card opacity-0"
+                style={{ transformStyle: 'preserve-3d' }}
               >
                 <ContactInfoCard info={info} index={index} />
-              </SmoothScrollReveal>
+              </div>
             ))}
 
             {/* Google Maps */}
-            <SmoothScrollReveal delay={0.7} y={40}>
+            <div className="map-card opacity-0" style={{ transformStyle: 'preserve-3d' }}>
               <GoogleMapCard />
-            </SmoothScrollReveal>
+            </div>
           </div>
         </div>
       </div>

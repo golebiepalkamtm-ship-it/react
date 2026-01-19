@@ -69,7 +69,7 @@ export default function ImageSlider({ slides, repeat = false, noArrows = false, 
     <div className="slider-container" ref={containerRef}>
       <div className="slider-content">
         {slides.map((s, i) => (
-          <div key={i} className={`slider-single`} data-hidden={i !== slideCurrent}>
+          <div key={`slide-${i}`} className={`slider-single`} data-hidden={i !== slideCurrent}>
             <img className="slider-single-image" src={s.src} alt={s.title ?? `Slide ${i + 1}`} />
             {s.title && <h1 className="slider-single-title">{s.title}</h1>}
             {showLikes ? (
@@ -95,7 +95,7 @@ export default function ImageSlider({ slides, repeat = false, noArrows = false, 
       {!noBullets && (
         <div className="bullet-container">
           {slides.map((_, i) => (
-            <div key={i} id={`bullet-index-${i}`} className={`bullet ${i === slideCurrent ? 'active' : ''}`} onClick={() => goTo(i)} />
+            <div key={`bullet-${i}`} id={`bullet-index-${i}`} className={`bullet ${i === slideCurrent ? 'active' : ''}`} onClick={() => goTo(i)} />
           ))}
         </div>
       )}

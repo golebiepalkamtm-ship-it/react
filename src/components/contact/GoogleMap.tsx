@@ -19,7 +19,7 @@ function GoldenCard({ children, className = '' }: GoldenCardProps) {
 
         return (
           <div
-            key={i}
+            key={`map-layer-${i}`}
             className="absolute inset-0 rounded-3xl border-2 backdrop-blur-sm"
             style={{
               borderColor: `rgba(0, 0, 0, ${opacity})`,

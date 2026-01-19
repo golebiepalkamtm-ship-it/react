@@ -69,7 +69,7 @@ export const SellerReviews: React.FC<SellerReviewsProps> = ({ sellerId, sellerNa
           <div className="h-6 bg-gray-200 rounded mb-4"></div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="border-b border-gray-100 pb-4">
+              <div key={`review-skeleton-${i}`} className="border-b border-gray-100 pb-4">
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-3 bg-gray-200 rounded w-3/4"></div>
               </div>

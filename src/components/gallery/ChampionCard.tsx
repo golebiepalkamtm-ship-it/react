@@ -129,15 +129,21 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
         {/* Obraz z efektami hover */}
         <div className="relative aspect-[4/3] overflow-hidden bg-zinc-950">
           {/* Obrazek championa */}
-          <img
-            src={champion.images[0]}
-            alt={champion.name}
-            className="w-full h-full object-contain object-top filter brightness-110 contrast-105"
-            onError={(e) => {
-              // Fallback do gradientu jeśli obraz nie załaduje się
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
+          {champion.images?.[0] ? (
+            <img
+              src={champion.images[0]}
+              alt={champion.name}
+              className="w-full h-full object-contain object-top filter brightness-110 contrast-105"
+              onError={(e) => {
+                // Fallback do gradientu jeśli obraz nie załaduje się
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-950">
+              {/* Placeholder */}
+            </div>
+          )}
           
           {/* Fallback gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-gold/20 -z-10" />

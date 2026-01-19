@@ -280,21 +280,52 @@
 @layer base {
   body {
     @apply text-foreground font-sans antialiased;
-    background: linear-gradient(135deg, 
-      hsl(222, 47%, 6%) 0%, 
-      hsl(222, 47%, 8%) 20%,
-      hsl(42, 34%, 12%) 40%,
-      hsl(45, 38%, 15%) 60%,
-      hsl(222, 47%, 8%) 80%,
-      hsl(222, 47%, 6%) 100%
-    );
+    background: 
+      /* Główna złota poświata - góra środek */
+      radial-gradient(ellipse 140% 70% at 50% -5%, rgba(255, 215, 0, 0.3) 0%, rgba(212, 175, 55, 0.15) 25%, transparent 55%),
+      /* Rozproszona złota poświata - lewa góra */
+      radial-gradient(ellipse 80% 60% at 5% 20%, rgba(255, 193, 37, 0.2) 0%, rgba(218, 165, 32, 0.08) 40%, transparent 70%),
+      /* Rozproszona złota poświata - prawa góra */
+      radial-gradient(ellipse 70% 55% at 95% 15%, rgba(255, 215, 0, 0.15) 0%, transparent 60%),
+      /* Rozproszona złota poświata - lewa strona */
+      radial-gradient(ellipse 50% 90% at 0% 50%, rgba(218, 165, 32, 0.12) 0%, transparent 65%),
+      /* Rozproszona złota poświata - prawa strona */
+      radial-gradient(ellipse 50% 90% at 100% 55%, rgba(205, 133, 63, 0.1) 0%, transparent 65%),
+      /* Ciepła złota poświata - dolny środek */
+      radial-gradient(ellipse 120% 50% at 50% 105%, rgba(184, 134, 11, 0.22) 0%, rgba(139, 90, 43, 0.08) 35%, transparent 60%),
+      /* Rozproszone złote cząsteczki */
+      radial-gradient(circle 250px at 20% 35%, rgba(255, 215, 0, 0.1) 0%, transparent 100%),
+      radial-gradient(circle 200px at 80% 25%, rgba(218, 165, 32, 0.08) 0%, transparent 100%),
+      radial-gradient(circle 180px at 65% 70%, rgba(255, 193, 37, 0.06) 0%, transparent 100%),
+      radial-gradient(circle 220px at 30% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 100%),
+      radial-gradient(circle 150px at 90% 60%, rgba(205, 133, 63, 0.05) 0%, transparent 100%),
+      radial-gradient(circle 170px at 10% 75%, rgba(184, 134, 11, 0.07) 0%, transparent 100%),
+      /* Bazowy granatowy gradient */
+      linear-gradient(175deg, 
+        hsl(230, 50%, 8%) 0%, 
+        hsl(225, 55%, 6%) 30%,
+        hsl(220, 60%, 5%) 60%,
+        hsl(225, 55%, 4%) 100%
+      );
     background-attachment: fixed;
-    background-size: cover;
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
     margin: 0;
     padding: 0;
+  }
+
+  @keyframes floatOrbs {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(30px, -40px); }
+    50% { transform: translate(-20px, 30px); }
+    75% { transform: translate(-30px, -20px); }
+  }
+
+  /* Ensure content is above background effects */
+  body > * {
+    position: relative;
+    z-index: 1;
   }
 
   /* header overlay helper (used to force transparent header over hero) */
@@ -553,6 +584,35 @@
   50% {
     opacity: 0.7;
   }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.gradient-conic {
+  background: conic-gradient(from 0deg, var(--tw-gradient-stops));
+}
+
+.bg-gradient-conic {
+  background-image: conic-gradient(var(--tw-gradient-stops));
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
 }
 
 /* Hero title & subtitle styles */
@@ -1052,14 +1112,15 @@
       0 0 30px hsl(var(--glow-primary) / 0.3);
   }
 
-  /* Background gradient */
+  /* Background gradient (brighter, subtle radial glow) */
   .bg-tunnel {
     background: 
       radial-gradient(
         ellipse at center,
-        hsl(var(--background)) 0%,
-        hsl(var(--tunnel-depth)) 100%
-      );
+        hsl(var(--background) / 0.95) 0%,
+        hsl(var(--background)) 100%
+      ),
+      linear-gradient(180deg, hsl(220 20% 12%) 0%, hsl(220 15% 8%) 100%);
   }
 
   .tunnel-gold-glow {

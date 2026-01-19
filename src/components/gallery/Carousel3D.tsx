@@ -1,16 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, FileText, Loader2, Medal, Trophy } from "lucide-react";
 import { useChampions } from "@/hooks/useChampions";
 import { PedigreeModal } from "./PedigreeModal";
 import { SmoothScrollReveal } from "@/components/effects/SmoothScrollReveal";
 import { MagneticButton } from "@/components/effects/MagneticButton";
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 export const Carousel3D = () => {
+  const animationRef = useRef<gsap.core.Timeline | null>(null);
+  const wrapperRef = useRef<HTMLElement | null>(null);
+  const zoomTargetRef = useRef<HTMLDivElement | null>(null);
+  const resumeTimeoutRef = useRef<number | null>(null);
+  const firstChangeTriggeredRef = useRef(false);
   const { champions, loading, error } = useChampions();
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
   const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -31,6 +37,114 @@ export const Carousel3D = () => {
     },
     [items.length],
   );
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    const target = zoomTargetRef.current;
+    if (!wrapper || !target) return;
+    if (animationRef.current) {
+      animationRef.current.kill();
+      animationRef.current = null;
+    }
+    firstChangeTriggeredRef.current = false;
+    gsap.set(target, {
+      scale: 0.15,
+      opacity: 0,
+      z: -1000,
+      transformPerspective: 1000,
+      transformStyle: 'preserve-3d',
+      force3D: true,
+    });
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: wrapper,
+        start: 'top top',
+        end: '+=250%',        // Jeszcze dłuższy pin dla pauzy
+        pin: true,
+        scrub: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        id: 'carousel-zoom-pin',
+        onEnter: () => {
+          setIsAutoPlaying(false);
+          firstChangeTriggeredRef.current = false;
+        },
+        onEnterBack: () => setIsAutoPlaying(false),
+        onUpdate: (self) => {
+          // Zmiana zdjęcia dopiero po pauzie (progress ~60%)
+          // 0-40% = dolot karuzeli
+          // 40-60% = PAUZA (karuzela stoi w pełnym rozmiarze)
+          // 60% = zmiana zdjęcia
+          if (self.progress >= 0.6 && !firstChangeTriggeredRef.current) {
+            firstChangeTriggeredRef.current = true;
+            navigate(1);  // Zmiana na następne zdjęcie
+          }
+        },
+      },
+    });
+    
+    // 0-40%: Dolot karuzeli (zoom in)
+    tl.to(target, {
+      scale: 1,
+      opacity: 1,
+      z: 0,
+      ease: 'none',
+      duration: 1,
+    });
+    
+    // 40-60%: PAUZA - karuzela stoi w pełnym rozmiarze (przed zmianą zdjęcia)
+    tl.to(target, { duration: 0.5 });
+    
+    // 60-100%: Po zmianie zdjęcia - trzyma jeszcze przez chwilę
+    tl.to(target, { duration: 1 });
+    animationRef.current = tl;
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
+    return () => {
+      if (tl.scrollTrigger) {
+        tl.scrollTrigger.kill(true);
+      }
+      tl.kill();
+    };
+  }, [navigate]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        animationRef.current.kill();
+      }
+      if (resumeTimeoutRef.current) {
+        window.clearTimeout(resumeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Funkcja do zatrzymania auto-play z automatycznym wznowieniem
+  const pauseAutoPlay = useCallback(() => {
+    setIsAutoPlaying(false);
+    
+    // Wyczyść poprzedni timeout jeśli istnieje
+    if (resumeTimeoutRef.current) {
+      window.clearTimeout(resumeTimeoutRef.current);
+    }
+    
+    // Wznów auto-play po 3 sekundach bezczynności
+    resumeTimeoutRef.current = window.setTimeout(() => {
+      setIsAutoPlaying(true);
+    }, 3000);
+  }, []);
+
+  // Throttled version of pauseAutoPlay
+  const throttledPauseRef = useRef<number>(0);
+  const handleUserInteraction = useCallback(() => {
+    const now = Date.now();
+    if (now - throttledPauseRef.current > 500) {
+      throttledPauseRef.current = now;
+      pauseAutoPlay();
+    }
+  }, [pauseAutoPlay]);
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -87,9 +201,12 @@ export const Carousel3D = () => {
 
   return (
     <section
+      ref={wrapperRef as any}
+      data-section="carousel"
       className="relative min-h-screen overflow-hidden section-surface"
-      onMouseEnter={() => setIsAutoPlaying(false)}
-      onMouseLeave={() => setIsAutoPlaying(true)}
+      onMouseEnter={pauseAutoPlay}
+      onMouseMove={handleUserInteraction}
+      style={{ perspective: 1000 }}
     >
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -118,15 +235,15 @@ export const Carousel3D = () => {
             Pałka M.T.M
             <Trophy className="w-4 h-4" />
           </span>
-          <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-light">
-            <span className="text-foreground">Galeria </span>
-            <span className="text-gradient-gold">Mistrzów</span>
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-light">
+            <span className="text-gold">Galeria </span>
+            <span className="text-white">Mistrzów</span>
           </h2>
         </motion.div>
       </div>
 
       <div className="relative z-10 flex items-center justify-center px-4 md:px-8 lg:px-16 pb-32">
-        <div className="relative w-full max-w-7xl">
+        <div ref={zoomTargetRef} className="relative w-full max-w-7xl will-change-transform">
           <button
             onClick={() => navigate(-1)}
             className="absolute left-0 md:-left-4 lg:-left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full border border-primary/30 bg-background/50 backdrop-blur-sm flex items-center justify-center text-foreground hover:border-primary hover:bg-primary/10 transition-all duration-300 group"

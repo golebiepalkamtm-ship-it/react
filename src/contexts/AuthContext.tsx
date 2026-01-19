@@ -101,67 +101,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const ensureProfile = useCallback(async (authUser: User, existingProfile: Profile | null) => {
-    const client = supabase;
-    if (!client) return existingProfile;
-    
-    const desiredRole = computeRole(authUser, existingProfile);
-    
-    // Payload for upsert
-    const payload: Partial<Profile> & { id: string } = {
+    // Rely on DB triggers for profile creation.
+    // Return existing profile if found.
+    if (existingProfile) return existingProfile;
+
+    // If missing (race condition), return temp read-only object
+    const userWithVerifications: UserWithVerifications = {
       id: authUser.id,
+      email: authUser.email,
+      email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
+      phone: authUser.phone,
+      phone_confirmed_at: (authUser as any).phone_confirmed_at,
+      role: 'USER_REGISTERED'
     };
-
-    // We only set role if we think it needs to be updated.
-    // However, since DB protects the role column, we should be careful.
-    // We'll send it if it differs, but DB trigger 'protect_user_role' will reject it 
-    // if not allowed (e.g. client trying to set ADMIN or FULL_VERIFIED without bypass).
-    // EXCEPT for the initial creation where we default to USER_REGISTERED (or desiredRole).
     
-    if (!existingProfile) {
-      payload.role = desiredRole;
-      if (authUser.email) payload.email = authUser.email;
-      payload.username = generateUsername(authUser);
-    } else {
-      // Check for drift
-      if (existingProfile.email !== authUser.email && authUser.email) {
-        payload.email = authUser.email;
-      }
-      // We generally do NOT send role for existing users from client side
-      // unless we are sure. But since DB protects it, we can omit it to save write/trigger overhead
-      // unless we really think it's wrong (e.g. sync issue).
-      // Let's rely on DB triggers for role progression (email/phone confirmation).
-      // The only exception is if we detect ADMIN based on email pattern which isn't in DB yet?
-      // But ADMIN is sensitive. Let's leave role management to DB triggers primarily.
-      
-      // If we are ADMIN by email but DB says otherwise, we might want to try (DB will reject if not allowed)
-      if (desiredRole === 'ADMIN' && existingProfile.role !== 'ADMIN') {
-         payload.role = desiredRole;
-      }
-      if (!existingProfile.username) {
-        payload.username = generateUsername(authUser);
-      }
-    }
+    const role = calculateRole(userWithVerifications);
 
-    const needsUpsert =
-      !existingProfile ||
-      (payload.email && payload.email !== existingProfile.email) ||
-      (payload.role && payload.role !== existingProfile.role) ||
-      (payload.username && payload.username !== existingProfile.username);
-
-    if (!needsUpsert) return existingProfile;
-
-    const { data, error } = await client
-      .from('users')
-      .upsert(payload, { onConflict: 'id' })
-      .select('*')
-      .single();
-
-    if (error) {
-      logger.error('Error ensuring profile:', error);
-      return existingProfile;
-    }
-    return data as Profile;
-  }, [computeRole]);
+    return {
+      id: authUser.id,
+      email: authUser.email,
+      phone: authUser.phone,
+      username: generateUsername(authUser),
+      role: role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      name: authUser.user_metadata?.full_name,
+      avatar_url: authUser.user_metadata?.avatar_url
+    } as Profile;
+  }, []);
 
   const clearPendingEmailVerification = useCallback(() => {
     setPendingEmailVerification(null);
@@ -551,23 +518,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Brak połączenia z bazą danych');
     }
 
-    const payload: Partial<Profile> & { id: string } = { id: user.id, ...updates };
+    // Strip protected fields to avoid trigger rejection
+    const safeUpdates = { ...updates };
+    delete (safeUpdates as any).role;
+    delete (safeUpdates as any).id;
+    delete (safeUpdates as any).email;
+
+    const payload: Partial<Profile> & { id: string } = { id: user.id, ...safeUpdates };
+    
     if (payload.username) {
       payload.username = sanitizeUsername(payload.username);
       if (!payload.username || payload.username.length < 3) {
         throw new Error('Nazwa użytkownika jest nieprawidłowa (min. 3 znaki, tylko litery/cyfry i myślniki).');
       }
     }
-    if (user.email && payload.email == null) payload.email = user.email;
 
     const { data, error } = await client
       .from('users')
-      .upsert(payload, { onConflict: 'id' })
+      .update(safeUpdates) // Use update, not upsert
+      .eq('id', user.id)
       .select('*')
       .single();
 
     if (error) {
-      logger.error('Error upserting profile:', { error, payload });
+      logger.error('Error updating profile:', { error, payload });
       // Re-throw so callers can show a friendly message
       throw error;
     }

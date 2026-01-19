@@ -1,17 +1,18 @@
 /**
- * Strona Galerii Championów
- * - Grid z kartami championów z efektami wejścia
- * - Modal ze szczegółami
- * - ParticleBackground z kolorystyką projektu
+ * Strona Galerii Championów - God-Tier Premium Version
+ * - WebGL-inspired visual effects
+ * - Awwwards-level animations
+ * - Premium text reveals and hover effects
  */
-import { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trophy, MapPin, Zap, Calendar, Award, Sparkles, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { X, Trophy, MapPin, Zap, Calendar, Award, Sparkles, Loader2, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { ChampionCard } from '@/components/gallery/ChampionCard';
 import { PedigreeModal } from '@/components/gallery/PedigreeModal';
 import { useChampions, type Champion } from '@/hooks/useChampions';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { ScrollReveal, CountUp, StaggerContainer, staggerItemVariants } from '@/components/premium';
 
 // Modal ze szczegółami championa
 interface ChampionModalProps {
@@ -117,21 +118,27 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
             ) : (
               <>
                 {console.log('Loading image:', champion.images[currentPhotoIndex], 'for champion:', champion.name)}
-                <img
-                  src={champion.images[currentPhotoIndex]}
-                  alt={champion.name}
-                  className={`w-full h-full object-contain ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                  onError={(e) => {
-                    console.error('Failed to load image:', champion.images[currentPhotoIndex]);
-                    setImageError(true);
-                    setImageLoading(false);
-                  }}
-                  onLoad={() => {
-                    console.log('Successfully loaded image:', champion.images[currentPhotoIndex]);
-                    setImageLoading(false);
-                    setImageError(false);
-                  }}
-                />
+                {champion.images?.[currentPhotoIndex] ? (
+                  <img
+                    src={champion.images[currentPhotoIndex]}
+                    alt={champion.name}
+                    className={`w-full h-full object-contain ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                    onError={(e) => {
+                      console.error('Failed to load image:', champion.images[currentPhotoIndex]);
+                      setImageError(true);
+                      setImageLoading(false);
+                    }}
+                    onLoad={() => {
+                      console.log('Successfully loaded image:', champion.images[currentPhotoIndex]);
+                      setImageLoading(false);
+                      setImageError(false);
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-950">
+                    <Trophy className="w-24 h-24 text-gold/30" />
+                  </div>
+                )}
               </>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-card/50 via-transparent to-transparent lg:bg-gradient-to-r" />
@@ -172,7 +179,7 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
                 <div className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
                   {champion.images.map((_, index) => (
                     <button
-                      key={index}
+                      key={`photo-${index}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCurrentPhotoIndex(index);
@@ -218,7 +225,7 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
               <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
                 {champion.achievements.map((achievement, i) => (
                   <div
-                    key={i}
+                    key={`achievement-${i}`}
                     className="px-3 py-2 text-sm rounded-lg bg-gold/10 text-gold border border-gold/20"
                   >
                     {achievement}
@@ -251,6 +258,16 @@ export const ChampionsGallery = () => {
   const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
   const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
   const { champions, loading, error } = useChampions();
+  const heroRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
 
   const handleSelect = useCallback((champion: Champion) => {
     setSelectedChampion(champion);
@@ -270,111 +287,132 @@ export const ChampionsGallery = () => {
     setPedigreeUrl(null);
   }, []);
 
-  return (
-    <div className="flex flex-col min-h-screen relative bg-transparent">
+  const totalAchievements = champions.reduce((acc, c) => acc + c.achievements.length, 0);
 
-      {/* Główny nagłówek strony */}
+  return (
+    <div className="flex flex-col min-h-screen relative bg-transparent overflow-hidden">
+
       <Header />
 
-      {/* Content */}
       <main className="relative z-10 flex-grow">
 
-        {/* Hero Section - nagłówek dopasowany do reszty strony */}
-        <section className="pt-4 pb-8 px-4 relative overflow-hidden">
-          <div className="container mx-auto text-center">
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
-            >
-              Ekskluzywna Kolekcja
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4"
-            >
-              Galeria
-              <span className="text-gradient-gold block">Championy</span>
-            </motion.h2>
-            <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="font-display text-2xl md:text-3xl text-primary font-medium leading-tight mb-6"
-            >
-              MTM Pałka – Zwycięstwo mamy w genach
-            </motion.h3>
+        <motion.section 
+          ref={heroRef}
+          className="relative pt-8 pb-20 px-4 overflow-hidden"
+          style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
+        >
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gold/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-gold/10 rounded-full" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-gold/5 rounded-full" />
           </div>
-        </section>
 
-        {/* Gallery Grid with staggered entrance */}
-        <section className="py-12 px-4">
+          <div className="container mx-auto text-center relative z-10">
+            <ScrollReveal delay={0}>
+              <motion.span
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-gold/20 to-gold-dark/20 border border-gold/30 text-gold text-sm font-medium tracking-widest uppercase mb-8"
+                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(212,175,55,0.3)" }}
+              >
+                <Star className="w-4 h-4" />
+                Ekskluzywna Kolekcja
+                <Star className="w-4 h-4" />
+              </motion.span>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.1}>
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6">
+                <span className="text-gold">Galeria</span>
+                <br />
+                <span className="text-white">Championów</span>
+              </h1>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.2}>
+              <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12">
+                MTM Pałka – Ponad 20 lat dominacji w hodowli gołębi pocztowych.
+                <br />
+                <span className="text-gold/80">Zwycięstwo mamy w genach.</span>
+              </p>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.3}>
+              <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+                {[
+                  { label: "Championów", value: champions.length, icon: Trophy },
+                  { label: "Osiągnięć", value: totalAchievements, icon: Award },
+                  { label: "Lat Doświadczenia", value: 23, icon: Calendar },
+                ].map((stat, i) => (
+                  <motion.div 
+                    key={stat.label}
+                    className="text-center group"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-gold-dark/10 border border-gold/30 mb-3 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-shadow">
+                      <stat.icon className="w-7 h-7 text-gold" />
+                    </div>
+                    <div className="font-display text-4xl md:text-5xl font-bold text-white mb-1">
+                      <CountUp end={stat.value} duration={2} suffix="+" />
+                    </div>
+                    <div className="text-white/50 text-sm uppercase tracking-wider">
+                      {stat.label}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </ScrollReveal>
+          </div>
+        </motion.section>
+
+        <section className="py-16 px-4 relative">
+          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
+          
           <div className="max-w-7xl mx-auto">
-            {/* Loading state */}
             {loading && (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                <span className="ml-3 text-muted-foreground">Ładowanie championów...</span>
+              <div className="flex flex-col items-center justify-center py-32">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-gold/20 rounded-full" />
+                  <div className="absolute inset-0 w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+                </div>
+                <span className="mt-6 text-white/60">Ładowanie championów...</span>
               </div>
             )}
 
-            {/* Error state */}
             {error && (
-              <div className="text-center py-20">
-                <p className="text-red-500">{error}</p>
+              <div className="text-center py-32">
+                <p className="text-red-400">{error}</p>
               </div>
             )}
 
-            {/* Grid */}
             {!loading && !error && (
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={{
-                hidden: {},
-                visible: {
-                  transition: {
-                    staggerChildren: 0.15,
-                  },
-                },
-              }}
-            >
-              {champions.map((champion, index) => (
-                <motion.div
-                  key={champion.id}
-                  variants={{
-                    hidden: { opacity: 0, y: 50, scale: 0.9 },
-                    visible: { 
-                      opacity: 1, 
-                      y: 0, 
-                      scale: 1,
-                      transition: {
-                        type: "spring",
-                        stiffness: 100,
-                        damping: 15,
-                      }
-                    },
-                  }}
-                >
-                  <ChampionCard
-                    champion={champion}
-                    index={index}
-                    onSelect={handleSelect}
-                    onViewPedigree={handleViewPedigree}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
+              <StaggerContainer 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                staggerDelay={0.1}
+              >
+                {champions.map((champion, index) => (
+                  <motion.div
+                    key={champion.id}
+                    variants={staggerItemVariants}
+                    whileHover={{ 
+                      y: -10,
+                      transition: { duration: 0.3 }
+                    }}
+                  >
+                    <ChampionCard
+                      champion={champion}
+                      index={index}
+                      onSelect={handleSelect}
+                      onViewPedigree={handleViewPedigree}
+                    />
+                  </motion.div>
+                ))}
+              </StaggerContainer>
             )}
           </div>
         </section>
       </main>
 
-      {/* Footer */}
       <Footer />
 
       {/* Modal */}

@@ -21,6 +21,13 @@ try {
     console.error('❌ CRITICAL: DATABASE_URL is not set in environment variables!');
   }
 
+  // Force pgbouncer=true for Supabase Transaction Pooler stability
+  if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('pgbouncer=true')) {
+    const separator = process.env.DATABASE_URL.includes('?') ? '&' : '?';
+    process.env.DATABASE_URL = `${process.env.DATABASE_URL}${separator}pgbouncer=true`;
+    console.log('🔧 Auto-patched DATABASE_URL with pgbouncer=true');
+  }
+
   if (process.env.NODE_ENV === 'production') {
     prisma = new PrismaClient(prismaOptions);
   } else {

@@ -26,7 +26,7 @@ function GoldenCard({ children, className = '' }: GoldenCardProps) {
 
         return (
           <div
-            key={i}
+            key={`contact-layer-${i}`}
             className="absolute inset-0 rounded-3xl border-2 backdrop-blur-sm"
             style={{
               borderColor: `rgba(0, 0, 0, ${opacity})`,
@@ -108,7 +108,7 @@ export default function ContactPageClient() {
         style={{ animationDuration: '1s', animationDelay: '0.2s' }}
       >
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Kontakt</h1>
+          <h1 className="font-display text-3xl md:text-4xl text-gold font-bold leading-tight mb-4">Kontakt</h1>
           <p className="text-muted-foreground text-lg max-w-3xl mx-auto mb-8">Skontaktuj się z nami, aby dowiedzieć się więcej o naszych gołębiach i hodowli</p>
         </div>
       </section>

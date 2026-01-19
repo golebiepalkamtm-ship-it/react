@@ -294,33 +294,9 @@ router.post('/stripe/commission', validate(z.object({
   }
 });
 
-export const stripeWebhookHandler = async (req: any, res: any) => {
-  if (!stripe || !stripeWebhookSecret) {
-    console.error('Stripe webhook: Missing configuration');
-    return res.status(500).send('Stripe not configured');
-  }
-
-  const sig = req.headers['stripe-signature'];
-  if (!sig) {
-    console.error('Stripe webhook: Missing stripe-signature header');
-    return res.status(400).send('Missing signature');
-  }
-
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, stripeWebhookSecret);
-    console.log(`Stripe webhook: Verified event ${event.type}`);
-  } catch (err: any) {
-    console.error('Stripe webhook signature verification failed:', {
-      error: err.message,
-      signature: sig.substring(0, 20) + '...',
-      bodyLength: req.body ? req.body.length : 0
-    });
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  try {
-    switch (event.type) {
+export const processStripeEvent = async (event: Stripe.Event, dbClient?: any) => {
+  const db = dbClient || prisma; // Use injected client or default
+  switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const paymentId = session.metadata?.paymentId;
@@ -336,7 +312,7 @@ export const stripeWebhookHandler = async (req: any, res: any) => {
           sessionId: session.id
         });
 
-        if (paymentId && auctionId && buyerId && prisma) {
+        if (paymentId && auctionId && buyerId && db) {
           const amountTotal = session.amount_total ? session.amount_total / 100 : undefined;
           await db.$transaction(async (tx: any) => {
             await tx.payment.update({
@@ -387,12 +363,12 @@ export const stripeWebhookHandler = async (req: any, res: any) => {
       case 'checkout.session.expired': {
         const session = event.data.object as Stripe.Checkout.Session;
         const paymentId = session.metadata?.paymentId;
-        if (paymentId && prisma) {
+        if (paymentId && db) {
           await db.payment.update({
             where: { id: paymentId },
-            data: { status: 'EXPIRED', rawResponse: session as any }
+            data: { status: 'CANCELLED', rawResponse: session as any }
           });
-          console.log(`Payment ${paymentId} expired`);
+          console.log(`Payment ${paymentId} expired (marked as CANCELLED)`);
         }
         break;
       }
@@ -400,7 +376,7 @@ export const stripeWebhookHandler = async (req: any, res: any) => {
       case 'payment_intent.payment_failed': {
         const pi = event.data.object as Stripe.PaymentIntent;
         const paymentId = pi.metadata?.paymentId;
-        if (paymentId && prisma) {
+        if (paymentId && db) {
           await db.payment.update({
             where: { id: paymentId },
             data: { status: 'FAILED', rawResponse: pi as any }
@@ -413,7 +389,7 @@ export const stripeWebhookHandler = async (req: any, res: any) => {
       case 'payment_intent.succeeded': {
         const pi = event.data.object as Stripe.PaymentIntent;
         const paymentId = pi.metadata?.paymentId;
-        if (paymentId && prisma) {
+        if (paymentId && db) {
           await db.payment.update({
             where: { id: paymentId },
             data: { 
@@ -431,7 +407,35 @@ export const stripeWebhookHandler = async (req: any, res: any) => {
         console.log(`Unhandled Stripe event type: ${event.type}`);
         break;
     }
-    
+};
+
+export const stripeWebhookHandler = async (req: any, res: any) => {
+  if (!stripe || !stripeWebhookSecret) {
+    console.error('Stripe webhook: Missing configuration');
+    return res.status(500).send('Stripe not configured');
+  }
+
+  const sig = req.headers['stripe-signature'];
+  if (!sig) {
+    console.error('Stripe webhook: Missing stripe-signature header');
+    return res.status(400).send('Missing signature');
+  }
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, stripeWebhookSecret);
+    console.log(`Stripe webhook: Verified event ${event.type}`);
+  } catch (err: any) {
+    console.error('Stripe webhook signature verification failed:', {
+      error: err.message,
+      signature: sig.substring(0, 20) + '...',
+      bodyLength: req.body ? req.body.length : 0
+    });
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  try {
+    await processStripeEvent(event);
     res.json({ received: true });
   } catch (err: any) {
     console.error('Stripe webhook processing error:', {

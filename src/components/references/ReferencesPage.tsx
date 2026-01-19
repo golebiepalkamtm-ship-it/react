@@ -1,11 +1,14 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ImageOff,
   MapPin,
+  MessageSquareQuote,
   Quote,
+  Sparkles,
   Star,
   Trophy,
   Users,
@@ -19,16 +22,140 @@ import UnifiedModal from '@/components/ui/UnifiedModal';
 import AccountModal from '@/components/AccountModal';
 import { useOptimizedToast } from '@/hooks/use-optimized-toast';
 
+
+interface ReferenceCardProps {
+  reference: Reference;
+  index: number;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [50, 0, -50]);
+
+  const getPrimaryImage = () => {
+    const img = reference?.images?.[0];
+    return typeof img === 'string' && img.length > 0 ? img : null;
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      style={{ opacity, y }}
+      className={`
+        group cursor-pointer rounded-2xl border p-6 transition-all duration-500
+        ${isActive 
+          ? 'border-gold/60 bg-gradient-to-br from-gold-dark/40 via-zinc-900/90 to-gold-dark/30 shadow-[0_0_60px_rgba(212,175,55,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] scale-[1.02]' 
+          : 'border-gold/20 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 hover:border-gold/40 hover:shadow-[0_0_30px_rgba(212,175,55,0.15)]'
+        }
+      `}
+      onClick={onClick}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      viewport={{ once: true }}
+      whileHover={{ scale: isActive ? 1.02 : 1.01 }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none rounded-2xl" />
+      
+      {isActive && (
+        <motion.div 
+          className="absolute -top-8 left-1/2 -translate-x-1/2 w-[100%] h-24 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(250,204,21,0.3) 0%, transparent 60%)',
+          }}
+          animate={{
+            opacity: [0.5, 0.8, 0.5],
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+      )}
+
+      <div className="relative flex items-center gap-4 mb-4">
+        <div className={`
+          w-14 h-14 rounded-full overflow-hidden border-2 flex-shrink-0
+          ${isActive ? 'border-gold/60 shadow-[0_0_20px_rgba(212,175,55,0.4)]' : 'border-gold/20'}
+        `}>
+          {getPrimaryImage() ? (
+            <img 
+              src={getPrimaryImage() as string} 
+              alt={reference.breederName}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-zinc-800">
+              <ImageOff className="w-5 h-5 text-white/40" />
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className={`
+            font-semibold truncate transition-colors
+            ${isActive ? 'text-gold-light' : 'text-white group-hover:text-gold'}
+          `}>
+            {reference.breederName}
+          </h3>
+          <div className="flex items-center gap-2 text-sm text-white/50">
+            <MapPin className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{reference.location}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center mb-3">
+        {[...Array(5)].map((_, i) => (
+          <Star 
+            key={i} 
+            className={`w-4 h-4 ${i < Math.max(1, Math.min(5, reference.rating)) ? 'text-gold fill-gold' : 'text-white/20'}`} 
+          />
+        ))}
+        <span className="text-xs text-white/40 ml-2">{reference.rating}/5</span>
+      </div>
+
+      <p className="text-sm text-white/70 line-clamp-3 mb-3 italic">
+        "{reference.opinion}"
+      </p>
+
+      {reference.pigeonName && (
+        <div className="flex items-center gap-2 text-xs text-gold/80 font-medium">
+          <Trophy className="w-3 h-3" />
+          {reference.pigeonName}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 export function ReferencesPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const { warning: showWarning, info: showInfo } = useOptimizedToast();
+  const { info: showInfo } = useOptimizedToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [references, setReferences] = useState<Reference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   
-  // Verification handling
+  const containerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
+  
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState({ title: '', message: '' });
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -104,10 +231,15 @@ export function ReferencesPage() {
 
   const currentRef = references[currentIndex];
 
-  const carouselCountText = useMemo(() => {
-    if (references.length === 0) return '0 / 0';
-    return `${currentIndex + 1} / ${references.length}`;
-  }, [currentIndex, references.length]);
+  const stats = useMemo(() => {
+    const avgRating = references.length > 0 
+      ? (references.reduce((acc, r) => acc + r.rating, 0) / references.length).toFixed(1)
+      : '0';
+    return {
+      total: references.length,
+      avgRating,
+    };
+  }, [references]);
 
   const getPrimaryImage = (ref: Reference | undefined) => {
     const img = ref?.images?.[0];
@@ -133,9 +265,10 @@ export function ReferencesPage() {
       if (!Array.isArray(parsed) || parsed.length === 0) return null;
 
       return (
-        <ul className="space-y-1 text-muted-foreground text-sm">
+        <ul className="space-y-1 text-white/60 text-sm">
           {parsed.slice(0, 4).map((a, i) => (
-            <li key={i}>
+            <li key={`achievement-${i}`} className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-gold/60" />
               {typeof a.place === 'number' ? `${a.place}. miejsce` : 'Wynik'}
               {a.competition ? ` — ${a.competition}` : ''}
               {a.date ? ` (${formatDatePl(a.date)})` : ''}
@@ -144,8 +277,7 @@ export function ReferencesPage() {
         </ul>
       );
     } catch {
-      // achievements may be plain text
-      return <p className="text-muted-foreground text-sm">{ref.achievements}</p>;
+      return <p className="text-white/60 text-sm">{ref.achievements}</p>;
     }
   };
 
@@ -159,99 +291,254 @@ export function ReferencesPage() {
     setCurrentIndex(prev => (prev - 1 + references.length) % references.length);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="relative w-16 h-16 mx-auto mb-6">
+            <motion.div 
+              className="absolute inset-0 rounded-full border-2 border-gold/30"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.div 
+              className="absolute inset-2 rounded-full border-2 border-t-gold border-r-transparent border-b-transparent border-l-transparent"
+              animate={{ rotate: -360 }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            />
+            <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-gold" />
+          </div>
+          <p className="text-white/60 text-lg">Ładowanie referencji...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative min-h-[40vh] flex items-center justify-center overflow-hidden text-center">
-        <div className="relative z-10 container mx-auto px-4">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Users className="w-8 h-8 text-gold" />
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
-            Referencje <span className="text-gradient-gold">hodowców</span>
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Poznaj opinie zadowolonych hodowców o naszych gołębiach
-          </p>
+    <div ref={containerRef} className="min-h-screen bg-black relative overflow-hidden">
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-black to-black" />
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-gold/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] bg-gold-dark/5 rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-gold/3 rounded-full blur-[80px]" />
+      </div>
 
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <Button
-              ref={triggerButtonRef}
-              onClick={handleAddReference}
-              className="bg-gold text-navy hover:bg-gold/90"
-            >
-              Dodaj referencję
-            </Button>
-          </div>
+      <motion.section 
+        ref={heroRef}
+        className="relative min-h-[50vh] flex items-center justify-center z-10 pt-20"
+        style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-gold/10"
+              style={{
+                width: `${80 + i * 80}px`,
+                height: `${80 + i * 80}px`,
+                right: `${5 + i * 12}%`,
+                top: `${15 + i * 12}%`,
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: 3 + i,
+                repeat: Infinity,
+                delay: i * 0.3,
+              }}
+            />
+          ))}
         </div>
-      </section>
 
-      {/* Main Reference Carousel */}
-      <section className="py-20 section-surface-alt">
-        <div className="container mx-auto px-4">
-          {isLoading ? (
-            <div className="max-w-5xl mx-auto">
-              <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-10 text-center text-muted-foreground shadow-lg">
-                Ładuję referencje…
-              </div>
-            </div>
-          ) : currentRef ? (
-            <div className="max-w-5xl mx-auto">
-              <div className="grid lg:grid-cols-2 gap-12 items-center">
-                
-                {/* Reference Content */}
+        <div className="relative z-10 container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.div 
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
+              animate={{ 
+                boxShadow: ['0 0 30px rgba(212,175,55,0.2)', '0 0 60px rgba(212,175,55,0.4)', '0 0 30px rgba(212,175,55,0.2)']
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <MessageSquareQuote className="w-10 h-10 text-gold" />
+            </motion.div>
+
+            <motion.h1 
+              className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6"
+              style={{
+                background: 'linear-gradient(135deg, #fff 0%, #d4af37 50%, #fff 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                textShadow: '0 0 60px rgba(212,175,55,0.5)',
+              }}
+            >
+              REFERENCJE
+            </motion.h1>
+
+            <motion.p 
+              className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Opinie zadowolonych hodowców o naszych gołębiach
+            </motion.p>
+
+            <motion.div 
+              className="flex flex-wrap justify-center gap-6 md:gap-12 mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              {[
+                { label: "Referencji", value: stats.total, icon: Users },
+                { label: "Średnia ocena", value: stats.avgRating, icon: Star },
+              ].map((stat, i) => (
+                <motion.div 
+                  key={stat.label}
+                  className="text-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.6 + i * 0.1, type: "spring" }}
+                >
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2 bg-gradient-to-br from-gold-light to-gold shadow-lg">
+                    <stat.icon className="w-7 h-7 text-black/80" />
+                  </div>
+                  <div className="font-display text-3xl md:text-4xl font-bold text-white">
+                    {stat.value}
+                  </div>
+                  <div className="text-white/50 text-sm uppercase tracking-wider">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button
+                ref={triggerButtonRef}
+                onClick={handleAddReference}
+                className="bg-gradient-to-r from-gold to-gold text-black font-bold px-8 py-3 rounded-full hover:from-gold-light hover:to-gold shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-300"
+              >
+                <MessageSquareQuote className="w-5 h-5 mr-2" />
+                Dodaj referencję
+              </Button>
+            </motion.div>
+
+            <motion.div 
+              className="mt-12 flex flex-col items-center gap-2"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className="text-white/40 text-sm uppercase tracking-widest">Przewijaj</span>
+              <ChevronDown className="w-6 h-6 text-gold/60" />
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {currentRef && (
+        <section className="relative z-10 py-20">
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <motion.div 
+                className="grid lg:grid-cols-2 gap-12 items-center"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
                 <div className="space-y-8">
-                  <div className="flex items-start gap-4">
-                    <Quote className="w-8 h-8 text-gold shrink-0 mt-1" />
-                    <blockquote className="text-xl text-foreground leading-relaxed italic">
+                  <div className="relative">
+                    <Quote className="absolute -top-4 -left-4 w-12 h-12 text-gold/20" />
+                    <motion.blockquote 
+                      key={currentRef.id}
+                      className="text-xl md:text-2xl text-white leading-relaxed italic pl-8"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
                       "{currentRef.opinion}"
-                    </blockquote>
+                    </motion.blockquote>
                   </div>
                   
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-5 h-5 text-gold" />
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`w-5 h-5 ${i < Math.max(1, Math.min(5, currentRef.rating)) ? 'text-gold fill-gold' : 'text-muted-foreground'}`} 
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-muted-foreground ml-2">
-                        {currentRef.rating}/5
-                      </span>
+                  <motion.div 
+                    className="flex items-center gap-2"
+                    key={`rating-${currentRef.id}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className={`w-6 h-6 ${i < Math.max(1, Math.min(5, currentRef.rating)) ? 'text-gold fill-gold' : 'text-white/20'}`} 
+                      />
+                    ))}
+                    <span className="text-white/50 ml-3">{currentRef.rating}/5</span>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="space-y-3"
+                    key={`info-${currentRef.id}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-light to-gold">
+                      {currentRef.breederName}
+                    </h3>
+                    <div className="flex items-center gap-2 text-white/60">
+                      <MapPin className="w-4 h-4 text-gold/60" />
+                      <span>{currentRef.location}</span>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-semibold text-foreground">
-                        {currentRef.breederName}
-                      </h3>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
-                        <span>{currentRef.location}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {formatDatePl(currentRef.createdAt)}
-                      </div>
+                    <div className="text-sm text-white/40">
+                      {formatDatePl(currentRef.createdAt)}
                     </div>
-                  </div>
+                  </motion.div>
 
-                  <div className="p-6 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Trophy className="w-5 h-5 text-gold" />
-                      <h4 className="font-semibold text-foreground">
+                  <motion.div 
+                    className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 p-6"
+                    key={`achievements-${currentRef.id}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
+                    <div className="relative flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
+                        <Trophy className="w-5 h-5 text-gold" />
+                      </div>
+                      <h4 className="font-semibold text-white">
                         {getReferenceTitle(currentRef)}
                       </h4>
                     </div>
                     {renderAchievements(currentRef)}
-                  </div>
+                  </motion.div>
                 </div>
 
-                {/* Pigeon Image */}
                 <div className="relative">
-                  <div className="aspect-square rounded-2xl overflow-hidden border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-2xl">
+                  <motion.div 
+                    className="aspect-square rounded-2xl overflow-hidden border border-gold/30 shadow-[0_0_60px_rgba(212,175,55,0.2)]"
+                    key={`image-${currentRef.id}`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10 pointer-events-none" />
                     {getPrimaryImage(currentRef) ? (
                       <img 
                         src={getPrimaryImage(currentRef) as string} 
@@ -260,30 +547,29 @@ export function ReferencesPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-black/60">
-                        <div className="text-center text-muted-foreground">
-                          <ImageOff className="w-10 h-10 mx-auto mb-3" />
-                          <div className="text-sm">Brak zdjęcia</div>
+                      <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                        <div className="text-center text-white/40">
+                          <ImageOff className="w-16 h-16 mx-auto mb-4" />
+                          <div>Brak zdjęcia</div>
                         </div>
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                   
-                  {/* Navigation */}
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
-                    <div className="flex items-center gap-4 bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-full p-2 shadow-lg">
+                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 z-20">
+                    <div className="flex items-center gap-4 bg-zinc-900/90 backdrop-blur-xl border border-gold/30 rounded-full p-2 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={prevSlide}
                         disabled={references.length === 0}
-                        className="rounded-full w-10 h-10 p-0"
+                        className="rounded-full w-10 h-10 p-0 text-white hover:text-gold hover:bg-gold/10"
                       >
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="w-5 h-5" />
                       </Button>
                       
-                      <span className="text-sm text-muted-foreground px-2">
-                        {carouselCountText}
+                      <span className="text-sm text-white/60 px-2 min-w-[60px] text-center">
+                        {currentIndex + 1} / {references.length}
                       </span>
                       
                       <Button 
@@ -291,97 +577,71 @@ export function ReferencesPage() {
                         size="sm" 
                         onClick={nextSlide}
                         disabled={references.length === 0}
-                        className="rounded-full w-10 h-10 p-0"
+                        className="rounded-full w-10 h-10 p-0 text-white hover:text-gold hover:bg-gold/10"
                       >
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-5 h-5" />
                       </Button>
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          ) : (
-            <div className="max-w-5xl mx-auto">
-              <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-10 text-center shadow-lg">
-                <h2 className="font-display text-2xl font-bold text-foreground">Brak referencji</h2>
-                <p className="mt-2 text-muted-foreground">
-                  Dodaj pierwszą opinię – pojawi się tutaj od razu.
-                </p>
-                {/* Use the primary "Dodaj opinię" button in the hero above to open the form */}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
-      {/* All References Grid */}
-      <section className="py-16 section-surface-alt">
+      <section className="relative z-10 py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Wszystkie <span className="text-gold">referencje</span>
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
+              <span className="text-white">Wszystkie </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-light to-gold">referencje</span>
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-white/50 max-w-2xl mx-auto">
               Zobacz pełną listę opinii zadowolonych hodowców
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {references.map((ref, index) => (
-              <div 
-                key={ref.id}
-                className={`group cursor-pointer p-6 rounded-2xl border transition-all duration-300 ${
-                  index === currentIndex 
-                    ? 'border-gold/60 bg-gold/10 shadow-lg shadow-gold/10' 
-                    : 'border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30 hover-lift'
-                }`}
-                onClick={() => setCurrentIndex(index)}
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold/20">
-                    {getPrimaryImage(ref) ? (
-                      <img 
-                        src={getPrimaryImage(ref) as string} 
-                        alt={getReferenceTitle(ref)}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted">
-                        <ImageOff className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground group-hover:text-gold transition-colors">
-                      {ref.breederName}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
-                      <span>{ref.location}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`w-4 h-4 ${i < Math.max(1, Math.min(5, ref.rating)) ? 'text-gold fill-gold' : 'text-muted-foreground'}`} 
-                    />
-                  ))}
-                </div>
-
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                  "{ref.opinion}"
+          {references.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {references.map((ref, index) => (
+                <ReferenceCard
+                  key={ref.id}
+                  reference={ref}
+                  index={index}
+                  isActive={index === currentIndex}
+                  onClick={() => setCurrentIndex(index)}
+                />
+              ))}
+            </div>
+          ) : (
+            <motion.div 
+              className="max-w-2xl mx-auto text-center"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl p-12">
+                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
+                <MessageSquareQuote className="w-16 h-16 text-gold/50 mx-auto mb-6" />
+                <h2 className="text-2xl font-bold text-white mb-4">Brak referencji</h2>
+                <p className="text-white/60 mb-8">
+                  Dodaj pierwszą opinię – pojawi się tutaj od razu.
                 </p>
-
-                <div className="text-xs text-gold font-medium">
-                  {getReferenceTitle(ref)}
-                </div>
+                <Button
+                  onClick={handleAddReference}
+                  className="bg-gradient-to-r from-gold to-gold text-black font-bold"
+                >
+                  <MessageSquareQuote className="w-4 h-4 mr-2" />
+                  Dodaj pierwszą referencję
+                </Button>
               </div>
-            ))}
-          </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -392,7 +652,7 @@ export function ReferencesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-reference-title"
@@ -407,11 +667,13 @@ export function ReferencesPage() {
               onClick={() => setIsFormOpen(false)}
             />
 
-            <div
+            <motion.div
               ref={modalRef}
               className="relative z-10 w-full max-w-3xl"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               onKeyDown={(e) => {
-                // Focus trap + ESC handling
                 if (e.key === 'Escape') {
                   e.stopPropagation();
                   setIsFormOpen(false);
@@ -434,7 +696,6 @@ export function ReferencesPage() {
 
                   const idx = focusable.indexOf(document.activeElement as HTMLElement);
                   if (e.shiftKey) {
-                    // backwards
                     const prev = idx <= 0 ? focusable.length - 1 : idx - 1;
                     focusable[prev].focus();
                     e.preventDefault();
@@ -453,7 +714,7 @@ export function ReferencesPage() {
                   void loadReferences();
                 }}
               />
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -486,7 +747,6 @@ export function ReferencesPage() {
         }}
       />
 
-      {/* Manage focus/scroll lock when modal opens */}
       {isFormOpen && (
         <ModalSideEffects
           modalRef={modalRef}
@@ -512,18 +772,12 @@ function ModalSideEffects({
   useEffect(() => {
     previouslyActive.current = document.activeElement as HTMLElement | null;
 
-    // lock scroll
-    // const prevOverflow = document.body.style.overflow;
-    // document.body.style.overflow = 'hidden';
-
-    // focus first focusable inside modal
     const container = modalRef.current;
     if (container) {
       const first = container.querySelector<HTMLElement>('input,select,textarea,button,a[href],[tabindex]:not([tabindex="-1"])');
       try {
         first?.focus();
-      } catch (err) {
-        // ignore optional parse errors
+      } catch {
       }
     }
 
@@ -538,12 +792,9 @@ function ModalSideEffects({
     const triggerEl = triggerRef.current;
     return () => {
       document.removeEventListener('keydown', onKey);
-      // document.body.style.overflow = prevOverflow;
-      // restore focus
       try {
         (triggerEl ?? previouslyActive.current)?.focus();
-      } catch (err) {
-        // ignore optional parse errors
+      } catch {
       }
     };
   }, [modalRef, onClose, triggerRef]);

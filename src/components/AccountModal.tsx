@@ -305,14 +305,14 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             <div className="mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Star className="w-5 h-5 text-yellow-400" />
+                  <Star className="w-5 h-5 text-gold" />
                   <span className="text-white font-medium">Trust Score</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-2xl font-bold ${reviewService.getRatingColor(trustScore)}`}>
                     {trustScore.toFixed(1)}
                   </span>
-                  <span className="text-yellow-400 text-lg">
+                  <span className="text-gold text-lg">
                     {reviewService.renderStars(trustScore)}
                   </span>
                 </div>

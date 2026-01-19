@@ -10,8 +10,8 @@ export interface UserWithVerifications {
 }
 
 export function calculateRole(user: UserWithVerifications): UserRole {
-  // Admin check based on email pattern or explicit role
-  if (user.role === 'ADMIN' || (user.email && user.email.includes('admin'))) {
+  // Admin check based on explicit role only - NO MAGIC EMAIL CHECK
+  if (user.role === 'ADMIN') {
     return 'ADMIN';
   }
   

@@ -133,7 +133,7 @@ const AuctionSuccess = (props) => {
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-foreground">{successData.seller.name}</span>
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <Star className="w-4 h-4 text-gold fill-current" />
                         <span className="text-sm text-muted-foreground">
                           {successData.seller.rating} ({successData.seller.salesCount} sprzedaży)
                         </span>

@@ -21,10 +21,7 @@
  *    - play, pause, resume, reset, restart, complete, reverse, none
  */
 
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 /**
  * ============================================================================

@@ -1,9 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Newspaper, Calendar, ExternalLink, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
 import { Reveal, StaggeredList, fadeInUp, fadeInLeft, cardMicro, buttonMicro } from "@/components/motion";
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 interface PressArticle {
   id: string;
@@ -23,11 +25,11 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
     damping: 20,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
     stiffness: 150,
     damping: 20,
   });
@@ -44,6 +46,10 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
     mouseY.set(y);
   };
   
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+  
   const handleMouseLeave = () => {
     setIsHovered(false);
     mouseX.set(0);
@@ -53,64 +59,36 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
   return (
     <motion.div
       ref={cardRef}
-      className="relative group"
-      style={{ perspective: '1000px' }}
+      className="group h-full"
+      style={{ 
+        perspective: 1000,
+        transformStyle: 'preserve-3d',
+      }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="bg-black/70 backdrop-blur-xl rounded-2xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] overflow-hidden flex flex-col h-full"
+        className="h-full overflow-hidden rounded-3xl border border-gold/30 bg-gradient-to-b from-black/70 via-slate-900/60 to-black/60 shadow-[0_25px_80px_rgba(212,175,55,0.15)] backdrop-blur-xl relative"
         style={{
-          rotateX,
-          rotateY,
+          rotateX: isHovered ? rotateX : 0,
+          rotateY: isHovered ? rotateY : 0,
           transformStyle: 'preserve-3d',
         }}
-        whileHover={{ scale: 1.02 }}
-        transition={{ scale: { duration: 0.2 } }}
+        whileHover={{ translateY: -8, scale: 1.02 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
       >
-        {/* Dynamic light reflection */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none z-10"
+        {/* Dynamic light reflection - wzmocnione */}
+        <motion.div 
+          className="absolute inset-0 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           style={{
-            background: `radial-gradient(circle at ${lightX.get()}% ${lightY.get()}%, rgba(255,255,255,0.15) 0%, transparent 50%)`,
-            opacity: isHovered ? 1 : 0,
+            background: useTransform(
+              [lightX, lightY],
+              ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(212,175,55,0.5) 0%, rgba(255,255,255,0.2) 25%, transparent 60%)`
+            ),
           }}
         />
-        
-        {/* Glow border on hover - JASNY */}
-        <motion.div
-          className="absolute inset-0 rounded-2xl pointer-events-none z-20"
-          initial={{ opacity: 0 }}
-          animate={{
-            opacity: isHovered ? 1 : 0,
-            boxShadow: isHovered
-              ? '0 0 30px rgba(150, 150, 200, 0.3), inset 0 0 20px rgba(150, 150, 200, 0.1)'
-              : 'none',
-          }}
-          transition={{ duration: 0.3 }}
-        />
-        
-        {/* Scanline effect */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 0.15 : 0 }}
-        >
-          <div 
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 255, 255, 0.03) 2px,
-                rgba(255, 255, 255, 0.03) 4px
-              )`
-            }}
-          />
-        </motion.div>
-        
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.18),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(255,223,128,0.14),transparent_30%)]" />
         <div className="relative aspect-[16/10] overflow-hidden bg-linear-to-b from-black/15 via-transparent to-black/20">
           <img 
             src={article.image} 
@@ -124,7 +102,6 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
             }}
           />
         </div>
-        
         <div className="p-6">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <Newspaper className="w-4 h-4" />
@@ -133,15 +110,12 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
             <Calendar className="w-4 h-4" />
             <time>{new Date(article.date).toLocaleDateString('pl-PL')}</time>
           </div>
-          
           <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 group-hover:text-gold transition-colors">
             {article.title}
           </h3>
-          
           <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
             {article.excerpt}
           </p>
-          
           <Button 
             variant="outline" 
             size="sm" 
@@ -161,6 +135,131 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
 
 const PressSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
+  
+  // GSAP 3D WOW animations
+  useEffect(() => {
+    if (!sectionRef.current || !cardsContainerRef.current) return;
+    
+    const section = sectionRef.current;
+    const headerBadge = section.querySelector('.header-badge');
+    const headerTitle = section.querySelector('.header-title');
+    const headerDesc = section.querySelector('.header-desc');
+    const cards = cardsContainerRef.current.querySelectorAll('.press-card');
+    const ctaButton = section.querySelector('.cta-button');
+    
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 70%',
+          toggleActions: 'play none none reverse',
+          invalidateOnRefresh: true,
+          refreshPriority: -2,
+        }
+      });
+
+      // Header animations - staggered entrance
+      if (headerBadge) {
+        tl.fromTo(headerBadge,
+          { y: -50, opacity: 0, scale: 0.5, rotateX: 90 },
+          { y: 0, opacity: 1, scale: 1, rotateX: 0, duration: 0.6, ease: 'back.out(1.7)' }
+        );
+      }
+      
+      if (headerTitle) {
+        tl.fromTo(headerTitle,
+          { y: 80, opacity: 0, skewY: 5 },
+          { y: 0, opacity: 1, skewY: 0, duration: 0.8, ease: 'power3.out' },
+          '-=0.3'
+        );
+      }
+      
+      if (headerDesc) {
+        tl.fromTo(headerDesc,
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
+          '-=0.4'
+        );
+      }
+
+      // Cards - WOW 3D animations with different effects
+      if (cards.length >= 3) {
+        // Left card - flip from left with spiral
+        tl.fromTo(cards[0],
+          { 
+            x: -300, 
+            opacity: 0, 
+            rotateY: 120,
+            rotateZ: -20,
+            scale: 0.5
+          },
+          { 
+            x: 0, 
+            opacity: 1, 
+            rotateY: 0,
+            rotateZ: 0,
+            scale: 1,
+            duration: 1.2, 
+            ease: 'power3.out'
+          },
+          '-=0.2'
+        );
+        
+        // Center card - dramatic zoom from depth with flip
+        tl.fromTo(cards[1],
+          { 
+            z: -800, 
+            opacity: 0, 
+            scale: 0.2,
+            rotateX: -180
+          },
+          { 
+            z: 0, 
+            opacity: 1, 
+            scale: 1,
+            rotateX: 0,
+            duration: 1.4, 
+            ease: 'back.out(1.4)'
+          },
+          '-=1.0'
+        );
+        
+        // Right card - flip from right with spiral
+        tl.fromTo(cards[2],
+          { 
+            x: 300, 
+            opacity: 0, 
+            rotateY: -120,
+            rotateZ: 20,
+            scale: 0.5
+          },
+          { 
+            x: 0, 
+            opacity: 1, 
+            rotateY: 0,
+            rotateZ: 0,
+            scale: 1,
+            duration: 1.2, 
+            ease: 'power3.out'
+          },
+          '-=1.2'
+        );
+      }
+      
+      // CTA button - bounce in
+      if (ctaButton) {
+        tl.fromTo(ctaButton,
+          { y: 60, opacity: 0, scale: 0.8 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2)' },
+          '-=0.3'
+        );
+      }
+      
+    }, section);
+    
+    return () => ctx.revert();
+  }, []);
   
   // Prosty parallax scroll
   const { scrollYProgress } = useScroll({
@@ -221,68 +320,49 @@ const PressSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         {/* Nagłówek */}
         <div className="text-center mb-16">
-          <motion.span 
-            className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+          <span 
+            className="header-badge inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6 opacity-0"
           >
             Media o nas
-          </motion.span>
-          <motion.h2 
-            className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+          </span>
+          <h2 
+            className="header-title font-display text-3xl md:text-4xl text-gold font-bold leading-tight mb-4 opacity-0"
           >
-            W <span className="text-gradient-gold">mediach</span>
-          </motion.h2>
-          <motion.p 
-            className="text-muted-foreground max-w-2xl mx-auto"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            W <span className="text-white">mediach</span>
+          </h2>
+          <p 
+            className="header-desc text-muted-foreground max-w-2xl mx-auto opacity-0"
           >
             Zobacz jak media opisują nasze sukcesy w hodowli gołębi pocztowych
-          </motion.p>
+          </p>
         </div>
 
-        {/* Karty z parallax */}
-        <motion.div 
+        {/* Karty z parallax i 3D */}
+        <div 
+          ref={cardsContainerRef}
           className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"
-          style={{ y: cardsY }}
+          style={{ perspective: '1200px' }}
         >
           {articlesToRender.map((article, index) => (
-            <motion.div
+            <div
               key={article.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="press-card opacity-0"
+              style={{ transformStyle: 'preserve-3d' }}
             >
               <PressCard article={article} index={index} />
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
         
         {/* Przycisk */}
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
+        <div className="cta-button text-center opacity-0">
           <Button variant="outline" size="lg" className="border-gold/50 hover:bg-gold hover:text-navy" asChild>
             <Link to="/press">
               Zobacz wszystkie artykuły
               <Newspaper className="w-4 h-4 ml-2" />
             </Link>
           </Button>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

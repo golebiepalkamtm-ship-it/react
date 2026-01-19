@@ -66,8 +66,8 @@ model User {
   trustScore      Decimal        @default(0.00) @map("trust_score") @db.Decimal(3, 2)
   role            String         @default("USER_REGISTERED")
   avatarUrl       String?        @map("avatar_url")
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
   auctions        Auction[]      @relation("SellerAuctions")
   wonAuctions     Auction[]      @relation("WinnerAuctions")
   bids            Bid[]
@@ -313,8 +313,8 @@ model Payment {
   auctionId   String          @map("auction_id")
   userId      String          @map("user_id")
   amount      Decimal         @db.Decimal(12, 2)
-  provider    PaymentProvider
-  type        PaymentType
+  provider    String?
+  type        PaymentType     @default(BUY_NOW)
   status      PaymentStatus   @default(INITIATED)
   externalId  String?         @map("external_id")
   approvalUrl String?         @map("approval_url")

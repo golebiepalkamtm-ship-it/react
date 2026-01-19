@@ -153,7 +153,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   }, [onClose]);
 
   return (
-    <AnimatePresence>
+    <>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -186,12 +186,12 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {/* Simple avatar */}
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center shadow-lg shadow-gold/30">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center shadow-lg shadow-gold/30">
                   <Crown className="w-8 h-8 text-navy" />
                 </div>
 
                 {/* Title - simplified without 3D effects */}
-                <div className="font-display text-3xl md:text-4xl font-bold bg-gradient-to-r from-gold via-yellow-400 to-gold bg-clip-text text-transparent">
+                <div className="font-display text-3xl md:text-4xl font-bold bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text text-transparent">
                   Panel Użytkownika
                 </div>
               </div>
@@ -216,7 +216,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           >
             {[
               { icon: Mail, label: 'Email', value: user?.email ?? '', color: 'from-blue-500 to-cyan-500' },
-              { icon: Star, label: 'Status', value: profile?.role ?? '-', color: 'from-gold to-yellow-500' },
+              { icon: Star, label: 'Status', value: profile?.role ?? '-', color: 'from-gold to-gold-dark' },
               { icon: Calendar, label: 'Następny krok', value: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : profile?.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' : profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN' ? 'Konto aktywne' : '-', color: 'from-purple-500 to-pink-500' },
               { icon: Phone, label: 'Telefon', value: profile?.phone ?? 'Nie dodano', color: 'from-green-500 to-emerald-500' },
             ].map((card, index) => (
@@ -569,7 +569,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         closeOnEscape={true}
         size="md"
       />
-    </AnimatePresence>
+    </>
   );
 };
 

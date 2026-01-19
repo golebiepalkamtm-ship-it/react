@@ -11,11 +11,7 @@
  */
 
 import Lenis from 'lenis';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-// Register ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 let lenis: Lenis | null = null;
 
@@ -69,6 +65,13 @@ export const initSmoothScroll = (lerp: number = 0.05, duration: number = 2.0) =>
 
   // Disable GSAP's default lag smoothing to prevent conflicts
   gsap.ticker.lagSmoothing(0);
+
+  // CRITICAL: Refresh ScrollTrigger after Lenis is fully initialized
+  // This ensures all trigger positions are calculated correctly with Lenis active
+  requestAnimationFrame(() => {
+    ScrollTrigger.refresh();
+    console.log('✅ [ScrollTrigger] Refreshed after Lenis init');
+  });
 
   console.log('✅ [Lenis] Smooth scroll initialized successfully');
   return lenis;

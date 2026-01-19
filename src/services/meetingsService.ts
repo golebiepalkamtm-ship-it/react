@@ -110,8 +110,10 @@ export const meetingsService = {
         return staticBreederMeetings;
       }
 
-      // If Supabase returns data, use it; otherwise use static data
-      return data && data.length > 0 ? data : staticBreederMeetings;
+      // Combine Supabase data with static historical meetings
+      // New meetings from Supabase are shown first, then static (historical) meetings
+      const supabaseMeetings = data || [];
+      return [...supabaseMeetings, ...staticBreederMeetings];
     } catch (error) {
       console.error('Error fetching breeder meetings:', error);
       console.log('Falling back to static data');
