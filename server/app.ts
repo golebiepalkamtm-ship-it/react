@@ -114,6 +114,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 // Endpoint CSRF token
 app.get('/api/csrf-token', (req, res) => {
   const token = setCSRFToken(req, res);

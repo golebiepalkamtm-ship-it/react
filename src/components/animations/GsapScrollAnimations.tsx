@@ -1,5 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // ============ KOMPONENT: Fade In Up ============
 interface FadeInUpProps {
@@ -198,7 +201,7 @@ export const GsapParallax: React.FC<ParallaxProps> = ({
       scrub: 0.5,
       onUpdate: (self) => {
         if (ref.current) {
-          ref.current.style.transform = `translateY(${self.progress * window.innerHeight * speed}px)`;
+          ref.current.style.transform = `translateY(${self.getProgress() * window.innerHeight * speed}px)`;
         }
       },
     });

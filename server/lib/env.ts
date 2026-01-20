@@ -23,12 +23,12 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   
   // Twilio
-  TWILIO_ACCOUNT_SID: z.string().min(1, 'TWILIO_ACCOUNT_SID is required'),
-  TWILIO_AUTH_TOKEN: z.string().min(1, 'TWILIO_AUTH_TOKEN is required'),
-  TWILIO_API_KEY: z.string().min(1, 'TWILIO_API_KEY is required'),
-  TWILIO_API_SECRET: z.string().min(1, 'TWILIO_API_SECRET is required'),
-  TWILIO_VERIFY_SERVICE_SID: z.string().min(1, 'TWILIO_VERIFY_SERVICE_SID is required'),
-  TWILIO_PHONE_NUMBER: z.string().min(1, 'TWILIO_PHONE_NUMBER is required'),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_API_KEY: z.string().optional(),
+  TWILIO_API_SECRET: z.string().optional(),
+  TWILIO_VERIFY_SERVICE_SID: z.string().optional(),
+  TWILIO_PHONE_NUMBER: z.string().optional(),
   
   // Stripe (opcjonalne - do płatności)
   STRIPE_SECRET_KEY: z.string().optional().default(''),
@@ -67,7 +67,6 @@ if (env.data.NODE_ENV === 'production') {
   const criticalSecrets = [
     'JWT_SECRET',
     'SUPABASE_SERVICE_ROLE_KEY',
-    'TWILIO_AUTH_TOKEN',
     'DATABASE_URL'
   ] as const;
 

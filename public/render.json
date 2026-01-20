@@ -2,7 +2,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://champion-pigeon-api.onrender.com/api/$1",
+      "dest": "https://chempion-pigeon-api.onrender.com/api/$1",
       "status": 307
     },
     {

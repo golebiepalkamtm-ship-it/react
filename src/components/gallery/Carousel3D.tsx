@@ -6,17 +6,15 @@ import { PedigreeModal } from "./PedigreeModal";
 import { SmoothScrollReveal } from "@/components/effects/SmoothScrollReveal";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
+import { useGSAP } from '@/hooks/useGSAP';
 
 export const Carousel3D = () => {
-  const animationRef = useRef<gsap.core.Timeline | null>(null);
-  const wrapperRef = useRef<HTMLElement | null>(null);
-  const zoomTargetRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<gsap.core.Tween | null>(null);
   const resumeTimeoutRef = useRef<number | null>(null);
-  const firstChangeTriggeredRef = useRef(false);
   const { champions, loading, error } = useChampions();
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
   const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -24,80 +22,48 @@ export const Carousel3D = () => {
   const items = useMemo(() => champions, [champions]);
   const activeChampion = items[activeIndex];
 
-  const navigate = useCallback(
-    (newDirection: number) => {
-      if (items.length === 0) return;
-      setDirection(newDirection);
-      setActiveIndex((prev) => {
-        if (newDirection > 0) {
-          return prev === items.length - 1 ? 0 : prev + 1;
-        }
-        return prev === 0 ? items.length - 1 : prev - 1;
-      });
-    },
-    [items.length],
-  );
-
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    const target = zoomTargetRef.current;
-    if (!wrapper || !target) return;
+  // Callback ref dla animacji zoom-in/fade-in (odwrotnie niż Hero)
+  const setCarouselRef = useCallback((node: HTMLElement | null) => {
+    // Cleanup previous animation
     if (animationRef.current) {
       animationRef.current.kill();
       animationRef.current = null;
     }
-    firstChangeTriggeredRef.current = false;
-    gsap.set(target, {
-      scale: 0.15,
-      opacity: 0,
-      z: -1000,
-      transformPerspective: 1000,
-      transformStyle: 'preserve-3d',
-      force3D: true,
-    });
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: wrapper,
-        start: 'top top',
-        end: '+=120%',        // Skrócony pin
-        pin: true,
-        scrub: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        id: 'carousel-zoom-pin',
-        onEnter: () => {
-          setIsAutoPlaying(false);
-          firstChangeTriggeredRef.current = false;
+
+    if (node) {
+      console.log('🎪 Carousel3D: Ref attached to node');
+      
+      const animation = gsap.fromTo(node,
+        {
+          scale: 0.5,
+          opacity: 0,
+          y: 250,
         },
-        onEnterBack: () => setIsAutoPlaying(false),
-      },
-    });
-    
-    // 0-40%: Dolot karuzeli (zoom in)
-    tl.to(target, {
-      scale: 1,
-      opacity: 1,
-      z: 0,
-      ease: 'none',
-      duration: 1,
-    });
-    
-    // 40-60%: PAUZA - karuzela stoi w pełnym rozmiarze (przed zmianą zdjęcia)
-    tl.to(target, { duration: 0.5 });
-    
-    // 60-100%: Po zmianie zdjęcia - trzyma jeszcze przez chwilę
-    tl.to(target, { duration: 1 });
-    animationRef.current = tl;
-    setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 100);
-    return () => {
-      if (tl.scrollTrigger) {
-        tl.scrollTrigger.kill(true);
-      }
-      tl.kill();
-    };
-  }, [navigate]);
+        {
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: node,
+            start: 'top 90%',
+            end: 'top 20%',
+            scrub: 2,
+            id: 'carousel3d-parallax',
+          }
+        }
+      );
+      
+      animationRef.current = animation;
+      
+      setTimeout(() => {
+        ScrollTrigger.refresh();
+        console.log('✅ Carousel3D: ScrollTrigger refreshed');
+      }, 100);
+      
+      console.log('✅ Carousel3D: Animation created', animation);
+    }
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -135,6 +101,20 @@ export const Carousel3D = () => {
       pauseAutoPlay();
     }
   }, [pauseAutoPlay]);
+
+  const navigate = useCallback(
+    (newDirection: number) => {
+      if (items.length === 0) return;
+      setDirection(newDirection);
+      setActiveIndex((prev) => {
+        if (newDirection > 0) {
+          return prev === items.length - 1 ? 0 : prev + 1;
+        }
+        return prev === 0 ? items.length - 1 : prev - 1;
+      });
+    },
+    [items.length],
+  );
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -191,12 +171,10 @@ export const Carousel3D = () => {
 
   return (
     <section
-      ref={wrapperRef as any}
-      data-section="carousel"
+      ref={setCarouselRef}
       className="relative min-h-screen overflow-hidden section-surface"
       onMouseEnter={pauseAutoPlay}
       onMouseMove={handleUserInteraction}
-      style={{ perspective: 1000 }}
     >
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -225,15 +203,15 @@ export const Carousel3D = () => {
             Pałka M.T.M
             <Trophy className="w-4 h-4" />
           </span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-light">
-            <span className="text-gold">Galeria </span>
-            <span className="text-white">Mistrzów</span>
+          <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-light">
+            <span className="text-foreground">Galeria </span>
+            <span className="text-gradient-gold">Mistrzów</span>
           </h2>
         </motion.div>
       </div>
 
       <div className="relative z-10 flex items-center justify-center px-4 md:px-8 lg:px-16 pb-32">
-        <div ref={zoomTargetRef} className="relative w-full max-w-7xl will-change-transform">
+        <div className="relative w-full max-w-7xl">
           <button
             onClick={() => navigate(-1)}
             className="absolute left-0 md:-left-4 lg:-left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full border border-primary/30 bg-background/50 backdrop-blur-sm flex items-center justify-center text-foreground hover:border-primary hover:bg-primary/10 transition-all duration-300 group"
@@ -287,8 +265,6 @@ export const Carousel3D = () => {
                     alt={activeChampion.name}
                     className="w-full h-full object-cover bg-gradient-to-b from-muted/20 to-background"
                     loading="lazy"
-                    width="800"
-                    height="600"
                   />
                 </motion.div>
               </AnimatePresence>

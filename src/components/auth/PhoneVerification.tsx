@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useLocale } from '@/contexts/LocaleContext';
 import { toast } from '@/components/ui/sonner';
 import UnifiedModal from '@/components/ui/UnifiedModal';
+import { apiClient } from '@/services/api';
 
 interface PhoneVerificationProps {
   onVerified: () => void;
@@ -35,19 +36,7 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
     setError('');
 
     try {
-      const response = await fetch('/api/auth/otp/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ phone }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Błąd wysyłania kodu');
-      }
+      await apiClient.post('/auth/otp/send', { phone }, session?.access_token || undefined);
 
       setStep('otp');
       toast.success(t('phone.sending_success') || 'Kod został wysłany');
@@ -65,19 +54,7 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
     setError('');
 
     try {
-      const response = await fetch('/api/auth/otp/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ phone, code: otp }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Nieprawidłowy kod');
-      }
+      await apiClient.post('/auth/otp/verify', { phone, code: otp }, session?.access_token || undefined);
 
       // Odśwież profil w AuthContext
       await updateProfile({}); 
@@ -101,19 +78,7 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
     setError('');
 
     try {
-      const response = await fetch('/api/auth/otp/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ phone }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Błąd ponownego wysyłania');
-      }
+      await apiClient.post('/auth/otp/send', { phone }, session?.access_token || undefined);
       toast.success('Kod został wysłany ponownie');
     } catch (err: any) {
       setError(err.message);

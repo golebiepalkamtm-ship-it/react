@@ -88,13 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const computeRole = useCallback((authUser: User, existingProfile?: Profile | null) => {
+    const supabaseRole = (authUser as any).app_metadata?.role || (authUser as any).user_metadata?.role;
+    const inferredRole = supabaseRole === 'ADMIN' ? 'ADMIN' : existingProfile?.role;
+
     const userWithVerifications: UserWithVerifications = {
       id: authUser.id,
       email: authUser.email,
       email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
       phone: authUser.phone,
       phone_confirmed_at: (authUser as any).phone_confirmed_at,
-      role: existingProfile?.role
+      role: inferredRole
     };
     
     return calculateRole(userWithVerifications);
@@ -105,6 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Return existing profile if found.
     if (existingProfile) return existingProfile;
 
+    const supabaseRole = (authUser as any).app_metadata?.role || (authUser as any).user_metadata?.role;
+    const roleOverride = supabaseRole === 'ADMIN' ? 'ADMIN' : undefined;
+
     // If missing (race condition), return temp read-only object
     const userWithVerifications: UserWithVerifications = {
       id: authUser.id,
@@ -112,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
       phone: authUser.phone,
       phone_confirmed_at: (authUser as any).phone_confirmed_at,
-      role: 'USER_REGISTERED'
+      role: roleOverride ?? 'USER_REGISTERED'
     };
     
     const role = calculateRole(userWithVerifications);
@@ -527,7 +533,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .update(safeUpdates) // Use update, not upsert
       .eq('id', user.id)
       .select('*')
-      .single();
+      .maybeSingle();
+
+    if (!error && !data) {
+      logger.warn('User profile missing during update, attempting to create...', { userId: user.id });
+      
+      // Prepare insert payload
+      const insertPayload = {
+        id: user.id,
+        email: user.email,
+        role: 'USER_REGISTERED',
+        ...safeUpdates
+      };
+      
+      const insertResult = await client
+        .from('users')
+        .insert(insertPayload)
+        .select('*')
+        .single();
+        
+      if (insertResult.error) {
+        logger.error('Error creating missing profile:', insertResult.error);
+        throw insertResult.error;
+      }
+      
+      // Success
+      await refreshSession();
+      return;
+    }
 
     if (error) {
       logger.error('Error updating profile:', { error, payload });
