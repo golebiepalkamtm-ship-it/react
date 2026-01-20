@@ -281,45 +281,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               hint: 'Check Google OAuth configuration in Supabase Dashboard and Google Cloud Console'
             });
           }
-        }
-        
-        if (code) {
-          logger.info('Exchanging OAuth code for session');
-          const { data, error } = await client.auth.exchangeCodeForSession(code);
-          if (error) {
-            logger.error('Error exchanging OAuth code for session:', {
-              error: error.message,
-              code: error.code,
-              status: error.status,
-              hint: 'This usually means OAuth provider configuration is incorrect'
-            });
-            
-            const authUrl = new URL('/auth', window.location.origin);
-            authUrl.searchParams.set('error', 'oauth_exchange_failed');
-            authUrl.searchParams.set('error_description', error.message || 'Failed to complete OAuth authentication. Please check OAuth configuration.');
-            window.location.href = authUrl.toString();
-            return;
-          }
           
-          logger.info('OAuth code exchanged successfully', { user: data.session?.user?.email });
-          
-          // Clean up OAuth params on success
-          currentUrl.searchParams.delete('code');
-          currentUrl.searchParams.delete('state');
+          // Clean up error params
           currentUrl.searchParams.delete('error');
           currentUrl.searchParams.delete('error_description');
           currentUrl.searchParams.delete('error_code');
           window.history.replaceState({}, document.title, currentUrl.toString());
+        }
+        
+        // If OAuth code is present, Supabase will automatically exchange it for a session
+        // due to detectSessionInUrl: true in supabase config
+        // Clean up OAuth params after Supabase processes them
+        if (code) {
+          logger.info('OAuth code detected, Supabase will handle exchange automatically');
           
-          // Set session from exchange result
-          isInitialized = true;
-          if (data.session) {
-            setSession(data.session);
-            setUser(data.session.user);
-            clearPendingEmailVerification();
-            void fetchProfile(data.session.user);
-            return;
-          }
+          // Give Supabase a moment to process the code
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Clean up OAuth params
+          currentUrl.searchParams.delete('code');
+          currentUrl.searchParams.delete('state');
+          window.history.replaceState({}, document.title, currentUrl.toString());
         }
 
         const { data: { session } } = await client.auth.getSession();
@@ -415,7 +397,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const redirectTo = configuredRedirect || `${baseUrl}/auth`;
 
     try {
-      logger.info('Initiating Google OAuth', { redirectTo, baseUrl, configuredRedirect });
+      logger.info('Initiating Google OAuth', { 
+        redirectTo, 
+        baseUrl, 
+        configuredRedirect,
+        flowType: 'pkce',
+        detectSessionInUrl: true 
+      });
       
       const { data, error } = await client.auth.signInWithOAuth({
         provider: 'google',
@@ -434,6 +422,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { user: null, error };
       }
       
+      logger.info('Google OAuth URL generated, redirecting...', { url: data.url });
       // OAuth redirect will happen, so we don't return user here
       return { user: null, error: null };
     } catch (err) {

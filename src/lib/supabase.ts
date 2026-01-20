@@ -11,16 +11,13 @@ let supabase: SupabaseClient | null = null;
 const supabaseKey = supabasePublishableKey || supabaseAnonKey;
 
 if (supabaseUrl && supabaseKey) {
-  // Use implicit flow for better compatibility in production
-  const isProduction = import.meta.env.MODE === 'production';
-  
   supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
-      flowType: isProduction ? 'implicit' : 'pkce', // Use implicit in production to avoid PKCE issues
-      debug: false, // Disable debug to reduce console noise
+      flowType: 'pkce',
+      debug: import.meta.env.DEV,
     },
   });
 } else {
