@@ -105,8 +105,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const ensureProfile = useCallback(async (authUser: User, existingProfile: Profile | null) => {
     // Rely on DB triggers for profile creation.
-    // Return existing profile if found.
-    if (existingProfile) return existingProfile;
+    // Check if existing profile needs synchronization with Auth state
+    if (existingProfile) {
+      const appMeta = (authUser as any).app_metadata;
+      const isEmailVerified = Boolean((authUser as any).email_confirmed_at || (authUser as any).confirmed_at);
+      const isPhoneVerified = Boolean((authUser as any).phone_confirmed_at);
+      
+      let newRole: UserRole | null = null;
+
+      // 1. Sync ADMIN role from Auth metadata
+      if (appMeta?.role === 'ADMIN' && existingProfile.role !== 'ADMIN') {
+        newRole = 'ADMIN';
+      }
+      // 2. Fix users stuck in USER_REGISTERED despite verification
+      else if (existingProfile.role === 'USER_REGISTERED' && isEmailVerified) {
+        newRole = isPhoneVerified ? 'USER_FULL_VERIFIED' : 'USER_EMAIL_VERIFIED';
+      }
+
+      if (newRole) {
+        logger.info(`Auto-upgrading user role from ${existingProfile.role} to ${newRole}`);
+        
+        // Return upgraded profile immediately for UI responsiveness
+        const upgradedProfile = { ...existingProfile, role: newRole };
+        
+        // Trigger DB update in background
+        supabase.from('users')
+          .update({ role: newRole })
+          .eq('id', authUser.id)
+          .then(({ error }) => {
+            if (error) logger.error('Failed to sync user role to DB:', error);
+          });
+          
+        return upgradedProfile;
+      }
+
+      return existingProfile;
+    }
 
     const supabaseRole = (authUser as any).app_metadata?.role || (authUser as any).user_metadata?.role;
     const roleOverride = supabaseRole === 'ADMIN' ? 'ADMIN' : undefined;
