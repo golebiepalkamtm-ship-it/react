@@ -59,10 +59,10 @@
   function init() {
     if (isInitialized || !document || !document.body) return;
     try {
-      if (document.removeEventListener) {
-        document.removeEventListener('click', handleClick);
-        document.removeEventListener('keydown', handleKeydown);
-      }
+      // Remove old listeners if any to prevent duplicates
+      document.removeEventListener('click', handleClick);
+      document.removeEventListener('keydown', handleKeydown);
+      
       document.addEventListener('click', handleClick);
       document.addEventListener('keydown', handleKeydown);
       isInitialized = true;

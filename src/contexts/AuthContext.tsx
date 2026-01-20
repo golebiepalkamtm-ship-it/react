@@ -336,7 +336,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           logger.info('OAuth code detected, Supabase will handle exchange automatically');
           
           // Give Supabase a moment to process the code
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 500));
           
           // Clean up OAuth params
           currentUrl.searchParams.delete('code');
@@ -344,7 +344,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           window.history.replaceState({}, document.title, currentUrl.toString());
         }
 
-        const { data: { session } } = await client.auth.getSession();
+        const { data: { session }, error: sessionError } = await client.auth.getSession();
+        
+        if (sessionError) {
+          if (sessionError.message.includes('Refresh Token Not Found')) {
+             logger.warn('Refresh token missing, clearing session');
+             await client.auth.signOut();
+             setSession(null);
+             setUser(null);
+             setProfile(null);
+             setLoading(false);
+             return;
+          }
+          throw sessionError;
+        }
+
         isInitialized = true;
         setSession(session);
         setUser(session?.user ?? null);
