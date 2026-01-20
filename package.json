@@ -96,6 +96,7 @@
     "react-router-dom": "^6.30.1",
     "react-router-hash-link": "^2.4.3",
     "react-tsparticles": "^2.12.2",
+    "serve": "^14.2.4",
     "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "splitting": "^1.1.0",

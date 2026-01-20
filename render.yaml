@@ -1,15 +1,11 @@
 services:
   - type: web
     name: champion-pigeon-web
-    runtime: static
+    runtime: node
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    startCommand: node_modules/.bin/serve -s dist -l 10000
     buildFilter:
       ignoredPaths: []
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache, no-store, must-revalidate
     envVars:
       - key: VITE_API_URL
         value: https://champion-pigeon-api.onrender.com/api
@@ -23,23 +19,6 @@ services:
         sync: false
       - key: VITE_SUPABASE_PUBLISHABLE_KEY
         sync: false
-
-    routes:
-      - type: redirect
-        source: /api/(.*)
-        destination: https://champion-pigeon-api.onrender.com/api/$1
-        statusCode: 307
-      - type: redirect
-        source: /share-modal.js
-        destination: /share-modal.v4.js
-        statusCode: 301
-      - type: redirect
-        source: /share-modal.v3.js
-        destination: /share-modal.v4.js
-        statusCode: 301
-      - type: rewrite
-        source: /*
-        destination: /index.html
 
   - type: web
     name: champion-pigeon-api
