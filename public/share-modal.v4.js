@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   
- if (typeof document === 'undefined' || !document) return;
+  if (typeof document === 'undefined' || !document || typeof window === 'undefined') return;
 
   var isInitialized = false;
 
@@ -62,7 +62,7 @@
   }
 
   function init() {
-    if (isInitialized) return;
+    if (isInitialized || !document || !document.body) return;
     isInitialized = true;
 
     document.addEventListener('click', handleClick);
