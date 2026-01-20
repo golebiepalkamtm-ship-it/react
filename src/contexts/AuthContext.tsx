@@ -538,11 +538,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!error && !data) {
       logger.warn('User profile missing during update, attempting to create...', { userId: user.id });
       
+      // Calculate correct initial role based on verification status
+      const userWithVerifications: UserWithVerifications = {
+        id: user.id,
+        email: user.email,
+        email_confirmed_at: (user as any).email_confirmed_at || (user as any).confirmed_at,
+        phone: user.phone,
+        phone_confirmed_at: (user as any).phone_confirmed_at,
+        role: 'USER_REGISTERED'
+      };
+      const calculatedRole = calculateRole(userWithVerifications);
+      
       // Prepare insert payload
       const insertPayload = {
         id: user.id,
         email: user.email,
-        role: 'USER_REGISTERED',
+        role: calculatedRole,
         ...safeUpdates
       };
       
