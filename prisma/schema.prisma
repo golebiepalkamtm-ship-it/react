@@ -51,7 +51,6 @@ model User {
   id              String         @id @db.Uuid
   email           String?        @unique
   username        String?        @unique 
-  name            String?        // Added matching DB column
   phone           String? 
   first_name      String?
   last_name       String?
@@ -77,6 +76,7 @@ model User {
   reviewsReceived Review[]       @relation("RevieweeReviews")
   savedSearches   SavedSearch[]
   payments        Payment[]
+  meetings        Meeting[]      @relation("UserMeetings")
 
   /// Map to existing Supabase table "users"
   @@map("users")
@@ -105,10 +105,7 @@ model Auction {
   updatedAt             DateTime        @updatedAt @map("updated_at")
   winnerId              String?         @map("winner_id")
   
-  // Legacy/Extra DB columns
   finalPrice            Decimal?        @map("final_price") @db.Decimal(12, 2)
-  endDate               DateTime?       @map("end_date")
-  pigeonId              String?         @map("pigeon_id")
 
   sellerId String? @map("owner_id")
   seller   User?   @relation("SellerAuctions", fields: [sellerId], references: [id])
@@ -150,7 +147,7 @@ model PigeonProfile {
   balance       String?
   back          String?
   purpose       String?
-  gender        String   @db.Text
+  gender        Sex      @default(MALE)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -240,7 +237,7 @@ model Notification {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id")
   auctionId String?  @map("auction_id")
-  type      String   @db.Text
+  type      NotificationType
   title     String
   message   String
   read      Boolean  @default(false)
@@ -288,6 +285,8 @@ model Meeting {
   authorId    String    @map("author_id")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  author      User      @relation("UserMeetings", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("meetings")
 }
@@ -347,7 +346,7 @@ model Reference {
   images       Json     @default("[]")
   isApproved   Boolean  @default(true)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
 
   @@map("references")
 }

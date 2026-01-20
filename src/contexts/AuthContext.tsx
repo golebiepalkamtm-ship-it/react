@@ -114,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let newRole: UserRole | null = null;
 
       // 1. Sync ADMIN role from Auth metadata
-      if (appMeta?.role === 'ADMIN' && existingProfile.role !== 'ADMIN') {
+      if (appMeta?.role === 'ADMIN' || existingProfile.role === 'ADMIN') {
         newRole = 'ADMIN';
       }
       // 2. Fix users stuck in USER_REGISTERED despite verification
@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         newRole = isPhoneVerified ? 'USER_FULL_VERIFIED' : 'USER_EMAIL_VERIFIED';
       }
 
-      if (newRole) {
+      if (newRole && newRole !== existingProfile.role) {
         logger.info(`Auto-upgrading user role from ${existingProfile.role} to ${newRole}`);
         
         // Return upgraded profile immediately for UI responsiveness

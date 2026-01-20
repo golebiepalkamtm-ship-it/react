@@ -367,7 +367,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
   };
 
   const pigeonCharacteristics = [
-    { name: 'pigeon.pigeonColor', label: 'Kolor', icon: Palette, placeholder: 'np. Niebieski' },
+    { name: 'pigeon.featherColor', label: 'Kolor', icon: Palette, placeholder: 'np. Niebieski' },
     { name: 'pigeon.eyeColor', label: 'Kolor oka', icon: Eye, placeholder: 'np. Pomarańczowy' },
     { name: 'pigeon.construction', label: 'Budowa', icon: Dumbbell, placeholder: 'np. Mocna, zwarta' },
     { name: 'pigeon.vitality', label: 'Witalność', icon: Heart, placeholder: 'np. Doskonała' },
