@@ -21,29 +21,23 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     sourcemap: mode !== 'production', // Disable source maps in production
-    chunkSizeWarningLimit: 600, // Zwiększ limit ostrzeżenia do 600kB
+    chunkSizeWarningLimit: 1000, // Zwiększ limit ostrzeżenia do 1000kB
     rollupOptions: {
       output: {
         manualChunks: {
-          // Tworzy osobny chunk dla react i react-dom
-          react: ["react", "react-dom"],
-          // Tworzy osobny chunk dla bibliotek do animacji
-          "framer-motion": ["framer-motion"],
-          // GSAP i animacje
-          "gsap": ["gsap", "@gsap/react"],
-          // UI i komponenty
-          "ui": ["@radix-ui/react-dialog", "@radix-ui/react-slot", "@radix-ui/react-toast", "@radix-ui/react-tooltip", "sonner"],
-          // Narzędzia i utils
-          "utils": ["clsx", "tailwind-merge", "class-variance-authority", "zod"],
-          // Ikony z lucide-react (oddzielny chunk)
-          "icons": ["lucide-react"],
-          // Routing i state management
-          "routing": ["react-router-dom", "react-router-hash-link", "zustand"],
-          // Supabase i API
-          "supabase": ["@supabase/supabase-js", "@tanstack/react-query"],
-          // Efekty wizualne
-          "effects": ["aos", "lottie-web", "vanilla-tilt", "splitting"],
-          // Carousel i galerie
+          // React core
+          "react-vendor": ["react", "react-dom", "react-router-dom", "react-router-hash-link"],
+          // Three.js i 3D - to są bardzo duże biblioteki
+          "three-vendor": ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing", "postprocessing", "cobe"],
+          // Animacje
+          "animations": ["framer-motion", "motion", "gsap", "@gsap/react", "aos", "lottie-web", "vanilla-tilt", "splitting", "canvas-confetti", "react-lottie-player", "react-tsparticles"],
+          // UI Components
+          "ui-vendor": ["@radix-ui/react-dialog", "@radix-ui/react-slot", "@radix-ui/react-toast", "@radix-ui/react-tooltip", "sonner", "lucide-react", "class-variance-authority", "clsx", "tailwind-merge"],
+          // State management & Data fetching
+          "data-vendor": ["@tanstack/react-query", "zustand", "zod", "socket.io-client"],
+          // Supabase
+          "supabase": ["@supabase/supabase-js"],
+          // Carousel
           "carousel": ["embla-carousel-react", "embla-carousel-autoplay", "@tanstack/react-virtual"],
         },
       },
@@ -53,10 +47,5 @@ export default defineConfig(({ mode }) => ({
       format: 'es',
       plugins: () => [react()],
     },
-  },
-  // Configure worker handling
-  worker: {
-    format: 'es',
-    plugins: () => [react()],
   },
 }));
