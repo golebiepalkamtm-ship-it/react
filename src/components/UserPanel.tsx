@@ -158,157 +158,364 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 z-50 flex items-start justify-center p-4 min-h-screen"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
         onClick={onClose}
-        style={{ top: window.scrollY }}
       >
-        {/* Transparent backdrop for click-to-close */}
-        <div className="absolute inset-0" />
-
-        {/* Main modal - simplified without cinematic effects */}
+        {/* Main modal */}
         <motion.div
           ref={dragConstraintsRef}
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -20 }}
-          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="relative w-full max-w-6xl max-h-[85vh] overflow-hidden bg-hero-gradient rounded-2xl border border-white/20 shadow-2xl"
+          exit={{ opacity: 0, scale: 0.9, y: 30 }}
+          transition={{ 
+            duration: 0.4, 
+            ease: [0.4, 0, 0.2, 1],
+            scale: { type: "spring", stiffness: 300, damping: 30 }
+          }}
+          className="relative w-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100 rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50"
           onClick={(e) => e.stopPropagation()}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
 
-          {/* Header - simplified without 3D effects */}
+          {/* Animated border glow */}
+          <motion.div
+            className="absolute inset-0 rounded-3xl pointer-events-none"
+            style={{
+              background: 'linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.1), transparent)',
+              backgroundSize: '200% 200%',
+            }}
+            animate={{
+              backgroundPosition: isHovered ? ['0% 0%', '100% 100%', '0% 0%'] : '0% 0%',
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="relative p-6 md:p-8 border-b border-white/20"
+            transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
+            className="relative flex-shrink-0 p-6 md:p-8 border-b border-slate-200 bg-white/80 backdrop-blur-sm"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {/* Simple avatar */}
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center shadow-lg shadow-gold/30">
-                  <Crown className="w-8 h-8 text-navy" />
-                </div>
+                <motion.div 
+                  className="relative w-16 h-16 rounded-full bg-gradient-to-br from-gold via-gold-light to-gold flex items-center justify-center shadow-lg shadow-gold/30"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 rounded-full opacity-20"
+                    style={{
+                      background: 'conic-gradient(from 0deg, transparent, rgba(255,255,255,0.8), transparent)',
+                    }}
+                  />
+                  <Crown className="w-8 h-8 text-slate-800 relative z-10" />
+                </motion.div>
 
-                {/* Title - simplified without 3D effects */}
-                <div className="font-display text-3xl md:text-4xl font-bold bg-gradient-to-r from-gold via-gold-light to-gold bg-clip-text text-transparent">
-                  Panel Użytkownika
+                <div className="space-y-1">
+                  <motion.div 
+                    className="font-display text-3xl md:text-4xl font-bold text-slate-800"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    Panel Użytkownika
+                  </motion.div>
+                  <motion.div
+                    className="text-sm text-slate-600"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    {user?.email}
+                  </motion.div>
                 </div>
               </div>
 
-              {/* Close button - simplified */}
-              <button
+              <motion.button
                 onClick={onClose}
-                className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-200"
+                className="p-3 rounded-full bg-slate-100 hover:bg-slate-200 backdrop-blur-sm border border-slate-300 transition-all duration-200 group"
                 aria-label="Zamknij panel użytkownika"
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
               >
-                <X className="w-5 h-5 text-white/80" />
-              </button>
+                <X className="w-5 h-5 text-slate-700 group-hover:text-slate-900 transition-colors" />
+              </motion.button>
             </div>
           </motion.div>
 
-          {/* Status Cards - simplified */}
+          {/* Status Cards */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="grid grid-cols-4 gap-4 p-6"
+            className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-slate-50/80"
           >
             {[
-              { icon: Mail, label: 'Email', value: user?.email ?? '', color: 'from-blue-500 to-cyan-500' },
-              { icon: Star, label: 'Status', value: profile?.role ?? '-', color: 'from-gold to-gold-dark' },
-              { icon: Calendar, label: 'Następny krok', value: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : profile?.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' : profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN' ? 'Konto aktywne' : '-', color: 'from-purple-500 to-pink-500' },
-              { icon: Phone, label: 'Telefon', value: profile?.phone ?? 'Nie dodano', color: 'from-green-500 to-emerald-500' },
+              { icon: Mail, label: 'Email', value: user?.email ?? '', color: 'from-blue-500 to-cyan-500', glow: 'shadow-blue-500/30' },
+              { icon: Star, label: 'Status', value: profile?.role ?? '-', color: 'from-gold to-gold-dark', glow: 'shadow-gold/30' },
+              { icon: Calendar, label: 'Następny krok', value: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : profile?.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' : profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN' ? 'Konto aktywne' : '-', color: 'from-purple-500 to-pink-500', glow: 'shadow-purple-500/30' },
+              { icon: Phone, label: 'Telefon', value: profile?.phone ?? 'Nie dodano', color: 'from-green-500 to-emerald-500', glow: 'shadow-green-500/30' },
             ].map((card, index) => (
-              <div
+              <motion.div
                 key={card.label}
-                className="relative bg-black/60 backdrop-blur-xl rounded-2xl border border-white/20 p-4 h-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + index * 0.05, type: "spring", stiffness: 200, damping: 20 }}
+                whileHover={{ y: -5, scale: 1.02 }}
+                className={`relative bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 p-4 overflow-hidden group hover:border-slate-300 hover:shadow-lg transition-all duration-300`}
               >
-                <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
-                  <card.icon className="w-4 h-4" />
-                  {card.label}
+                <motion.div
+                  className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+                />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.2 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <card.icon className="w-4 h-4" />
+                    </motion.div>
+                    {card.label}
+                  </div>
+                  <div className="text-slate-800 text-sm font-medium break-words line-clamp-2">{card.value}</div>
                 </div>
-                <div className="text-white text-sm font-medium break-all">{card.value}</div>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-2 mb-6 border-b border-white/20">
+          <div className="flex-shrink-0 flex gap-2 px-6 border-b border-slate-200 bg-white/60 overflow-x-auto scrollbar-hide">
             {[
               { id: 'overview', label: 'Przegląd', icon: User },
               { id: 'profile', label: 'Profil', icon: Settings },
               { id: 'security', label: 'Bezpieczeństwo', icon: Shield },
               { id: 'auctions', label: 'Aukcje', icon: Package },
-            ].map((tab) => (
-              <button
+            ].map((tab, index) => (
+              <motion.button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + index * 0.05 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all duration-300 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-gold text-white'
-                    : 'border-transparent text-white/70 hover:text-white'
+                    ? 'border-gold text-slate-900'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
                 }`}
               >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
-              </button>
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gold/10 rounded-t-lg"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <motion.div
+                  animate={{ rotate: activeTab === tab.id ? [0, 10, -10, 0] : 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <tab.icon className="w-4 h-4 relative z-10" />
+                </motion.div>
+                <span className="relative z-10">{tab.label}</span>
+              </motion.button>
             ))}
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 custom-scrollbar">
             <AnimatePresence mode="wait">
               {activeTab === 'overview' && (
                 <motion.div
                   key="overview"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="h-full"
                 >
-                  <div className="grid grid-cols-2 gap-4 h-full">
-                    <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                      <h3 className="font-display text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Trophy className="w-5 h-5 text-gold" />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <motion.div 
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <motion.div
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                        >
+                          <Trophy className="w-6 h-6 text-gold" />
+                        </motion.div>
                         Podsumowanie konta
                       </h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70 text-sm">Twoje aukcje</span>
-                          <span className="text-white text-xl font-bold">0</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70 text-sm">Aktywne licytacje</span>
-                          <span className="text-white text-xl font-bold">0</span>
-                        </div>
+                      <div className="space-y-4">
+                        <motion.div 
+                          className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                          whileHover={{ x: 5 }}
+                        >
+                          <span className="text-white/70 text-sm flex items-center gap-2">
+                            <Package className="w-4 h-4" />
+                            Twoje aukcje
+                          </span>
+                          <motion.span 
+                            className="text-white text-2xl font-bold"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.3, type: "spring" }}
+                          >
+                            0
+                          </motion.span>
+                        </motion.div>
+                        <motion.div 
+                          className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                          whileHover={{ x: 5 }}
+                        >
+                          <span className="text-white/70 text-sm flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4" />
+                            Aktywne licytacje
+                          </span>
+                          <motion.span 
+                            className="text-white text-2xl font-bold"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.4, type: "spring" }}
+                          >
+                            0
+                          </motion.span>
+                        </motion.div>
+                        <motion.div 
+                          className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                          whileHover={{ x: 5 }}
+                        >
+                          <span className="text-white/70 text-sm flex items-center gap-2">
+                            <Heart className="w-4 h-4" />
+                            Obserwowane
+                          </span>
+                          <motion.span 
+                            className="text-white text-2xl font-bold"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.5, type: "spring" }}
+                          >
+                            0
+                          </motion.span>
+                        </motion.div>
                       </div>
-                    </div>
+                    </motion.div>
                     
-                    <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                      <h3 className="font-display text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-gold" />
+                    <motion.div 
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Star className="w-6 h-6 text-gold" />
+                        </motion.div>
                         Status konta
                       </h3>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {profile?.role === 'USER_REGISTERED' && (
-                          <div className="p-3 bg-amber-500/20 border border-amber-500/50 rounded-lg">
-                            <p className="text-amber-300 text-sm">Wymagana weryfikacja email</p>
-                          </div>
+                          <motion.div 
+                            className="p-4 bg-amber-500/20 border border-amber-500/50 rounded-xl backdrop-blur-sm"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.02 }}
+                          >
+                            <p className="text-amber-300 text-sm font-medium flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4" />
+                              Wymagana weryfikacja email
+                            </p>
+                          </motion.div>
                         )}
                         {profile?.role === 'USER_EMAIL_VERIFIED' && (
-                          <div className="p-3 bg-gold/20 border border-gold/50 rounded-lg">
-                            <p className="text-gold text-sm">Uzupełnij profil</p>
-                          </div>
+                          <motion.div 
+                            className="p-4 bg-gold/20 border border-gold/50 rounded-xl backdrop-blur-sm"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.02 }}
+                          >
+                            <p className="text-gold text-sm font-medium flex items-center gap-2">
+                              <Sparkles className="w-4 h-4" />
+                              Uzupełnij profil
+                            </p>
+                          </motion.div>
                         )}
                         {profile?.role === 'USER_FULL_VERIFIED' && (
-                          <div className="p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
-                            <p className="text-green-300 text-sm">Konto aktywne</p>
-                          </div>
+                          <motion.div 
+                            className="p-4 bg-green-500/20 border border-green-500/50 rounded-xl backdrop-blur-sm"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.02 }}
+                          >
+                            <p className="text-green-300 text-sm font-medium flex items-center gap-2">
+                              <Check className="w-4 h-4" />
+                              Konto aktywne
+                            </p>
+                          </motion.div>
                         )}
+                        {profile?.role === 'ADMIN' && (
+                          <motion.div 
+                            className="p-4 bg-purple-500/20 border border-purple-500/50 rounded-xl backdrop-blur-sm"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            whileHover={{ scale: 1.02 }}
+                          >
+                            <p className="text-purple-300 text-sm font-medium flex items-center gap-2">
+                              <Crown className="w-4 h-4" />
+                              Administrator
+                            </p>
+                          </motion.div>
+                        )}
+                        
+                        <div className="pt-4 space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-white/60">Poziom weryfikacji</span>
+                            <motion.div 
+                              className="flex gap-1"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              {[1, 2, 3].map((level) => (
+                                <motion.div
+                                  key={level}
+                                  className={`w-8 h-2 rounded-full ${
+                                    (profile?.role === 'USER_REGISTERED' && level <= 1) ||
+                                    (profile?.role === 'USER_EMAIL_VERIFIED' && level <= 2) ||
+                                    ((profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN') && level <= 3)
+                                      ? 'bg-gold'
+                                      : 'bg-white/20'
+                                  }`}
+                                  initial={{ scaleX: 0 }}
+                                  animate={{ scaleX: 1 }}
+                                  transition={{ delay: 0.4 + level * 0.1 }}
+                                />
+                              ))}
+                            </motion.div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                 </motion.div>
               )}
@@ -316,192 +523,314 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
               {activeTab === 'profile' && (
                 <motion.div
                   key="profile"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="h-full"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="space-y-6"
                 >
-                  <div className="grid grid-cols-2 gap-4 h-full">
-                    <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                      <h3 className="font-display text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <User className="w-5 h-5 text-gold" />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <motion.div 
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      whileHover={{ y: -3 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <motion.div
+                          whileHover={{ rotate: 360 }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          <User className="w-6 h-6 text-gold" />
+                        </motion.div>
                         Dane podstawowe
                       </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium text-white">Imię</label>
+                      <div className="space-y-4">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Imię</label>
                           <input
                             type="text"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             placeholder="Imię"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
+                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                           />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white">Nazwisko</label>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.25 }}
+                        >
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Nazwisko</label>
                           <input
                             type="text"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             placeholder="Nazwisko"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
+                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                           />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white">Telefon</label>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Telefon</label>
                           <input
                             type="tel"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="+48 600 000 000"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
+                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                           />
-                        </div>
+                        </motion.div>
                       </div>
-                    </div>
+                    </motion.div>
                     
-                    <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                      <h3 className="font-display text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-gold" />
+                    <motion.div 
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 }}
+                      whileHover={{ y: -3 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <motion.div
+                          whileHover={{ scale: 1.2 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <MapPin className="w-6 h-6 text-gold" />
+                        </motion.div>
                         Adres
                       </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium text-white">Ulica i numer</label>
+                      <div className="space-y-4">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Ulica i numer</label>
                           <input
                             type="text"
                             value={street}
                             onChange={(e) => setStreet(e.target.value)}
                             placeholder="Ulica i numer"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
+                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                           />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white">Miasto</label>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.25 }}
+                        >
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Miasto</label>
                           <input
                             type="text"
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
                             placeholder="Miasto"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
+                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                           />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white">Kod pocztowy</label>
-                          <input
-                            type="text"
-                            value={postalCode}
-                            onChange={(e) => setPostalCode(e.target.value)}
-                            placeholder="00-000"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white">Kraj</label>
-                          <input
-                            type="text"
-                            value={country}
-                            onChange={(e) => setCountry(e.target.value)}
-                            placeholder="Polska"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
-                          />
+                        </motion.div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            <label className="text-sm font-medium text-white/90 mb-2 block">Kod pocztowy</label>
+                            <input
+                              type="text"
+                              value={postalCode}
+                              onChange={(e) => setPostalCode(e.target.value)}
+                              placeholder="00-000"
+                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            />
+                          </motion.div>
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.35 }}
+                          >
+                            <label className="text-sm font-medium text-white/90 mb-2 block">Kraj</label>
+                            <input
+                              type="text"
+                              value={country}
+                              onChange={(e) => setCountry(e.target.value)}
+                              placeholder="Polska"
+                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            />
+                          </motion.div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                   
-                  <div className="mt-4 flex gap-3">
-                    <Button
-                      disabled={profileSaving}
-                      onClick={onSaveProfile}
-                      className="bg-gold text-navy hover:bg-gold/90"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      {profileSaving ? 'Zapisywanie...' : 'Zapisz profil'}
-                    </Button>
+                  <motion.div 
+                    className="flex gap-3"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        disabled={profileSaving}
+                        onClick={onSaveProfile}
+                        className="bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        {profileSaving ? 'Zapisywanie...' : 'Zapisz profil'}
+                      </Button>
+                    </motion.div>
                     
                     {isEmailVerified && (
-                      <Button
-                        variant="outline"
-                        disabled={!profileCompleteForSms}
-                        onClick={() => setShowSmsAuth(true)}
-                        className="border-white/30 text-white hover:bg-white/10"
-                      >
-                        Weryfikacja SMS
-                      </Button>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant="outline"
+                          disabled={!profileCompleteForSms}
+                          onClick={() => setShowSmsAuth(true)}
+                          className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300"
+                        >
+                          <Zap className="w-4 h-4 mr-2" />
+                          Weryfikacja SMS
+                        </Button>
+                      </motion.div>
                     )}
-                  </div>
+                  </motion.div>
                 </motion.div>
               )}
 
               {activeTab === 'security' && (
                 <motion.div
                   key="security"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="h-full"
                 >
-                  <div className="grid grid-cols-2 gap-4 h-full">
-                    <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                      <h3 className="font-display text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-gold" />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <motion.div 
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      whileHover={{ y: -3 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <motion.div
+                          animate={{ rotate: [0, -10, 10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                        >
+                          <Shield className="w-6 h-6 text-gold" />
+                        </motion.div>
                         Zmień hasło
                       </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium text-white">Nowe hasło</label>
-                          <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Nowe hasło"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white">Potwierdź hasła</label>
-                          <input
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Potwierdź hasła"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200"
-                          />
-                        </div>
-                        {passError && (
-                          <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                            <p className="text-red-400 text-sm">{passError}</p>
-                          </div>
-                        )}
-                        <Button
-                          disabled={passSaving}
-                          onClick={onChangePassword}
-                          className="bg-gold text-navy hover:bg-gold/90"
+                      <div className="space-y-4">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 }}
                         >
-                          <Shield className="w-4 h-4 mr-2" />
-                          {passSaving ? 'Zmienianie...' : 'Zmień hasło'}
-                        </Button>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Nowe hasło</label>
+                          <div className="relative">
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="Nowe hasło"
+                              className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                            >
+                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                          </div>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.25 }}
+                        >
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Potwierdź hasło</label>
+                          <div className="relative">
+                            <input
+                              type={showConfirmPassword ? "text" : "password"}
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Potwierdź hasło"
+                              className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                            >
+                              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                          </div>
+                        </motion.div>
+                        {passError && (
+                          <motion.div 
+                            className="p-4 bg-red-500/20 border border-red-500/50 rounded-xl backdrop-blur-sm"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                          >
+                            <p className="text-red-400 text-sm flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4" />
+                              {passError}
+                            </p>
+                          </motion.div>
+                        )}
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            disabled={passSaving}
+                            onClick={onChangePassword}
+                            className="w-full bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
+                          >
+                            <Lock className="w-4 h-4 mr-2" />
+                            {passSaving ? 'Zmienianie...' : 'Zmień hasło'}
+                          </Button>
+                        </motion.div>
                       </div>
-                    </div>
+                    </motion.div>
                     
-                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-                      <h4 className="font-medium text-red-200 mb-2">Wyloguj się</h4>
-                      <p className="text-red-300 text-sm mb-3">
-                        Zakończ sesję i wyloguj się ze swojego konta.
-                      </p>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          signOut();
-                          onClose();
-                        }}
-                        className="border-red-500/50 text-red-400 hover:bg-red-500/20"
-                      >
+                    <motion.div 
+                      className="rounded-2xl border border-red-500/40 bg-gradient-to-br from-red-500/20 to-red-900/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-red-500/60 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 }}
+                      whileHover={{ y: -3 }}
+                    >
+                      <h4 className="font-display text-xl font-semibold text-red-200 mb-3 flex items-center gap-2">
+                        <LogOut className="w-6 h-6" />
                         Wyloguj się
-                      </Button>
-                    </div>
+                      </h4>
+                      <p className="text-red-300 text-sm mb-4 leading-relaxed">
+                        Zakończ sesję i wyloguj się ze swojego konta. Będziesz musiał ponownie zalogować się, aby uzyskać dostęp do swojego konta.
+                      </p>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            signOut();
+                            onClose();
+                          }}
+                          className="w-full border-red-500/50 text-red-300 hover:bg-red-500/30 hover:border-red-500/70 transition-all duration-300"
+                        >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Wyloguj się
+                        </Button>
+                      </motion.div>
+                    </motion.div>
                   </div>
                 </motion.div>
               )}
@@ -509,46 +838,83 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
               {activeTab === 'auctions' && (
                 <motion.div
                   key="auctions"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="h-full"
                 >
-                  <div className="grid grid-cols-2 gap-4 h-full">
-                    <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                      <h3 className="font-display text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Package className="w-5 h-5 text-gold" />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <motion.div 
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      whileHover={{ y: -3 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <motion.div
+                          animate={{ rotate: [0, 360] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Package className="w-6 h-6 text-gold" />
+                        </motion.div>
                         Moje aukcje
                       </h3>
                       <div className="text-center py-8">
-                        <Package className="w-12 h-12 text-white/30 mx-auto mb-4" />
-                        <p className="text-white/60 mb-4">Nie masz jeszcze żadnych aukcji</p>
-                        <Button 
-                          onClick={() => {
-                            onClose();
-                            navigate('/auctions');
-                            setTimeout(() => {
-                              window.dispatchEvent(new CustomEvent('openCategorySelector'));
-                            }, 100);
-                          }}
-                          className="w-full bg-gold text-navy hover:bg-gold/90"
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
                         >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Stwórz aukcję
-                        </Button>
+                          <Package className="w-16 h-16 text-white/30 mx-auto mb-4" />
+                        </motion.div>
+                        <p className="text-white/60 mb-6">Nie masz jeszcze żadnych aukcji</p>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button 
+                            onClick={() => {
+                              onClose();
+                              navigate('/auctions');
+                              setTimeout(() => {
+                                window.dispatchEvent(new CustomEvent('openCategorySelector'));
+                              }, 100);
+                            }}
+                            className="w-full bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Stwórz aukcję
+                          </Button>
+                        </motion.div>
                       </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="rounded-xl border border-white/15 bg-black/40 p-4">
-                      <h3 className="font-display text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-gold" />
+                    <motion.div 
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 }}
+                      whileHover={{ y: -3 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Clock className="w-6 h-6 text-gold" />
+                        </motion.div>
                         Moje licytacje
                       </h3>
                       <div className="text-center py-8">
-                        <Clock className="w-12 h-12 text-white/30 mx-auto mb-4" />
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                        >
+                          <Clock className="w-16 h-16 text-white/30 mx-auto mb-4" />
+                        </motion.div>
                         <p className="text-white/60">Nie bierzesz udziału w żadnych licytacjach</p>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                 </motion.div>
               )}

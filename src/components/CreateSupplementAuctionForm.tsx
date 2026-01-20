@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { X, AlertCircle, Loader2, Check, Sparkles, Camera, Video, Pill, Package } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import FileUpload from '@/components/FileUpload';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +12,58 @@ interface CreateSupplementAuctionFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
 }
+
+const InputField = ({ 
+  label, 
+  name, 
+  value, 
+  onChange, 
+  placeholder, 
+  type = 'text',
+  required = false,
+  delay = 0,
+}: { 
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  placeholder?: string;
+  type?: string;
+  required?: boolean;
+  delay?: number;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, type: "spring", stiffness: 200, damping: 20 }}
+    className="group"
+  >
+    <label className="block text-sm font-medium text-white/70 group-focus-within:text-gold transition-colors mb-2">
+      {label} {required && <span className="text-red-400">*</span>}
+    </label>
+    {type === 'textarea' ? (
+      <textarea
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        placeholder={placeholder}
+        rows={4}
+        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-white placeholder-white/40 transition-all duration-200 hover:bg-white/10 hover:border-white/30 resize-none"
+      />
+    ) : (
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        placeholder={placeholder}
+        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-white placeholder-white/40 transition-all duration-200 hover:bg-white/10 hover:border-white/30"
+      />
+    )}
+  </motion.div>
+);
 
 const CreateSupplementAuctionForm = ({ onSuccess, onCancel }: CreateSupplementAuctionFormProps) => {
   const { session } = useAuth();
@@ -48,7 +101,6 @@ const CreateSupplementAuctionForm = ({ onSuccess, onCancel }: CreateSupplementAu
       const toastId = toast.loading('Przygotowuję dane aukcji...');
       const token = session?.access_token ?? null;
 
-      // 1. Upload images
       const imageUrls: string[] = [];
       if (files.length > 0) {
         for (let i = 0; i < files.length; i++) {
@@ -58,7 +110,6 @@ const CreateSupplementAuctionForm = ({ onSuccess, onCancel }: CreateSupplementAu
         }
       }
 
-      // 2. Upload videos
       const videoUrls: string[] = [];
       if (videoFiles.length > 0) {
         for (let i = 0; i < videoFiles.length; i++) {
@@ -104,145 +155,283 @@ const CreateSupplementAuctionForm = ({ onSuccess, onCancel }: CreateSupplementAu
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-6xl">
-      {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center gap-2 text-destructive">
-          <AlertCircle className="w-5 h-5" />
-          <span>{error}</span>
-        </div>
-      )}
+    <motion.form 
+      onSubmit={handleSubmit} 
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-3 text-red-400 backdrop-blur-sm"
+          >
+            <div className="p-2 rounded-xl bg-red-500/20">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <span className="flex-1">{error}</span>
+            <button 
+              type="button" 
+              onClick={() => setError(null)}
+              className="p-1 rounded-lg hover:bg-red-500/20 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Główne informacje - 4 kolumny */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-muted-foreground mb-2">Nazwa suplementu *</label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-foreground"
-            placeholder="np. Witaminy dla gołębi wyścigowych"
-          />
+      <motion.div 
+        className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <motion.div 
+            className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30"
+            animate={{ 
+              boxShadow: ['0 10px 30px rgba(16,185,129,0.3)', '0 10px 50px rgba(16,185,129,0.5)', '0 10px 30px rgba(16,185,129,0.3)']
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Pill className="w-6 h-6 text-white" />
+          </motion.div>
+          <div>
+            <h3 className="text-xl font-bold text-white">Nowa aukcja suplementu</h3>
+            <p className="text-sm text-white/60">Witaminy i preparaty dla gołębi</p>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-2">Licytacja</label>
-          <label className="flex items-center gap-2 cursor-pointer h-12 px-4 rounded-xl bg-background border border-border">
+        <InputField
+          label="Nazwa suplementu"
+          name="title"
+          value={formData.title}
+          onChange={handleChange}
+          placeholder="np. Witaminy dla gołębi wyścigowych"
+          required
+          delay={0.15}
+        />
+
+        <InputField
+          label="Opis"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="Opisz suplement, skład, dawkowanie..."
+          type="textarea"
+          required
+          delay={0.2}
+        />
+      </motion.div>
+
+      <motion.div 
+        className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+          <span className="text-2xl">💰</span> Opcje sprzedaży
+        </h3>
+
+        <div className="flex flex-wrap gap-4">
+          <motion.label 
+            className={`flex items-center gap-3 px-6 py-4 rounded-xl cursor-pointer transition-all duration-300 ${
+              isBidding 
+                ? 'bg-gold/20 border-2 border-gold text-gold shadow-lg shadow-gold/20' 
+                : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40'
+            }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             <input
               type="checkbox"
               checked={isBidding}
               onChange={(e) => setIsBidding(e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300 text-gold focus:ring-gold"
+              className="sr-only"
             />
-            <span className="text-foreground font-medium">Licytacja</span>
-          </label>
-        </div>
+            <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isBidding ? 'bg-gold' : 'border-2 border-white/30'}`}>
+              {isBidding && <Check className="w-4 h-4 text-navy" />}
+            </div>
+            <span className="font-medium">Licytacja</span>
+          </motion.label>
 
-        <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-2">Kup Teraz</label>
-          <label className="flex items-center gap-2 cursor-pointer h-12 px-4 rounded-xl bg-background border border-border">
+          <motion.label 
+            className={`flex items-center gap-3 px-6 py-4 rounded-xl cursor-pointer transition-all duration-300 ${
+              isBuyNow 
+                ? 'bg-gold/20 border-2 border-gold text-gold shadow-lg shadow-gold/20' 
+                : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40'
+            }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             <input
               type="checkbox"
               checked={isBuyNow}
               onChange={(e) => setIsBuyNow(e.target.checked)}
-              className="w-5 h-5 rounded border-gray-300 text-gold focus:ring-gold"
+              className="sr-only"
             />
-            <span className="text-foreground font-medium">Kup Teraz</span>
-          </label>
+            <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isBuyNow ? 'bg-gold' : 'border-2 border-white/30'}`}>
+              {isBuyNow && <Check className="w-4 h-4 text-navy" />}
+            </div>
+            <span className="font-medium">Kup Teraz</span>
+          </motion.label>
         </div>
-      </div>
 
-      {/* Opis - pełna szerokość */}
-      <div>
-        <label className="block text-sm font-medium text-muted-foreground mb-2">Opis *</label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-          rows={3}
-          className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-foreground resize-none"
-          placeholder="Opisz suplement..."
-        />
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <AnimatePresence>
+            {isBidding && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <InputField
+                  label="Cena wywoławcza (PLN)"
+                  name="startingPrice"
+                  value={formData.startingPrice}
+                  onChange={handleChange}
+                  placeholder="10"
+                  type="number"
+                  required={isBidding}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {/* Ceny - 4 kolumny */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {isBidding && (
+          <AnimatePresence>
+            {isBuyNow && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <InputField
+                  label="Cena Kup teraz (PLN)"
+                  name="buyNowPrice"
+                  value={formData.buyNowPrice}
+                  onChange={handleChange}
+                  placeholder="100"
+                  type="number"
+                  required={isBuyNow}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+
+      <motion.div 
+        className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <motion.div 
+            className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg shadow-purple-500/30"
+          >
+            <Package className="w-6 h-6 text-white" />
+          </motion.div>
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">Cena wywoławcza (PLN) *</label>
-            <input
-              type="number"
-              name="startingPrice"
-              value={formData.startingPrice}
-              onChange={handleChange}
-              required={isBidding}
-              min={1}
-              className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-foreground"
-              placeholder="50"
-            />
+            <h3 className="text-xl font-bold text-white">Media</h3>
+            <p className="text-sm text-white/60">Dodaj zdjęcia i filmy produktu</p>
           </div>
-        )}
+        </div>
 
-        {isBuyNow && (
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-muted-foreground mb-2">Cena "Kup teraz" (PLN) *</label>
-            <input
-              type="number"
-              name="buyNowPrice"
-              value={formData.buyNowPrice}
-              onChange={handleChange}
-              required={isBuyNow}
-              min={1}
-              className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-foreground"
-              placeholder="np. 100"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2 text-white">
+              <Camera className="w-5 h-5 text-blue-400" />
+              <span className="font-medium">Zdjęcia produktu</span>
+            </div>
+            <FileUpload
+              files={files}
+              onFilesChange={setFiles}
+              maxFiles={10}
+              maxSize={10}
+              accept="image/*"
             />
-          </div>
-        )}
-      </div>
+            <p className="text-xs text-white/50">Max 10 zdjęć, do 10MB każde</p>
+          </motion.div>
 
-      <div className="border-t border-border pt-6">
-        <h3 className="font-semibold text-foreground mb-4">Zdjęcia</h3>
-        <FileUpload
-          files={files}
-          onFilesChange={setFiles}
-          maxFiles={10}
-          maxSize={10}
-          accept="image/*"
-        />
-      </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2 text-white">
+              <Video className="w-5 h-5 text-green-400" />
+              <span className="font-medium">Filmy</span>
+            </div>
+            <FileUpload
+              files={videoFiles}
+              onFilesChange={setVideoFiles}
+              maxFiles={2}
+              maxSize={50}
+              accept="video/*"
+            />
+            <p className="text-xs text-white/50">Max 2 filmy, do 50MB każdy</p>
+          </motion.div>
+        </div>
+      </motion.div>
 
-      <div className="border-t border-border pt-6">
-        <h3 className="font-semibold text-foreground mb-4">Filmy</h3>
-        <FileUpload
-          files={videoFiles}
-          onFilesChange={setVideoFiles}
-          maxFiles={2}
-          maxSize={50}
-          accept="video/*"
-        />
-      </div>
-
-      <div className="flex gap-3 pt-4">
+      <motion.div 
+        className="flex gap-4 pt-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-            Anuluj
-          </Button>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel} 
+              className="w-full py-6 rounded-xl border-white/20 text-white hover:bg-white/10 transition-all"
+            >
+              <X className="w-5 h-5 mr-2" />
+              Anuluj
+            </Button>
+          </motion.div>
         )}
-        <Button type="submit" variant="gold" disabled={loading} className="flex-1">
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Tworzenie...
-            </>
-          ) : (
-            'Utwórz aukcję'
-          )}
-        </Button>
-      </div>
-    </form>
+        
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 md:flex-[2]">
+          <Button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full py-6 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all disabled:opacity-50"
+          >
+            {loading ? (
+              <motion.div 
+                className="flex items-center gap-2"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Tworzenie aukcji...</span>
+              </motion.div>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Utwórz aukcję suplementu
+              </span>
+            )}
+          </Button>
+        </motion.div>
+      </motion.div>
+    </motion.form>
   );
 };
 
