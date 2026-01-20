@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
 import ReviewService from '../services/ReviewService.js';
 import { prisma } from '../lib/db.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Wystaw recenzję
 router.post('/', authMiddleware, async (req: AuthenticatedRequest, res) => {

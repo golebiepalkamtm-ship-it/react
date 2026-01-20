@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../lib/db.js';
 import { cache } from '../lib/cache.js';
@@ -8,7 +8,7 @@ import { z } from 'zod';
 // Import types from Prisma client
 import type { Payment, PaymentStatus, PaymentProvider, PaymentType } from '@prisma/client';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;

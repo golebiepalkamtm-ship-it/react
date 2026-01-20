@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import { prisma } from '../lib/db.js';
 import { validatedEnv } from '../lib/env.js';
 import { createAuctionError, AuctionErrorCodes } from '../utils/auctionErrors.js';
 import Stripe from 'stripe';
 
-const router = express.Router();
+const router: Router = express.Router();
 const stripe = new Stripe(validatedEnv.STRIPE_SECRET_KEY);
 
 router.post('/stripe', express.raw({ type: 'application/json' }), async (req: any, res) => {

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
 import { supabase } from '../lib/db.js';
@@ -8,7 +8,7 @@ import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { validatedEnv } from '../lib/env.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Schematy walidacji
 const bucketNameEnum = z.enum(['auction-media', 'user-documents', 'temp-uploads']);

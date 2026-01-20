@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import { biddingLimiter } from '../middleware/rateLimiter.js';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.js';
@@ -15,7 +15,7 @@ import {
 } from '../utils/auctionErrors.js';
 import { serializeAuction, serializePrivateAuction, serializePublicAuction, baseAuctionInclude, detailAuctionInclude, listAuctionInclude } from '../utils/auctionSerializer.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 const auctionIdSchema = z.string().uuid('Invalid auction id');
 

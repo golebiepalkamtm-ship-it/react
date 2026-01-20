@@ -1,9 +1,9 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
 import NotificationManager from '../services/NotificationManager.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Pobierz nieprzeczytane powiadomienia użytkownika
 router.get('/unread', authMiddleware, async (req: AuthenticatedRequest, res) => {

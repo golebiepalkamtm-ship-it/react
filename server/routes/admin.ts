@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import { prisma } from '../lib/db.js';
 import { createClient } from '@supabase/supabase-js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Initialize Supabase Admin Client if credentials exist
 const supabaseAdmin = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY

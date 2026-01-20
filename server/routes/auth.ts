@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { supabase } from '../lib/db.js';
@@ -8,7 +8,7 @@ import { calculateRole, UserWithVerifications } from '../types/roles.js';
 import { wsTicketService } from '../services/WebSocketTicketService.js';
 import { smsService } from '../lib/sms.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Schematy walidacji
 const phoneSchema = z.object({
