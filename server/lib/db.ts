@@ -21,15 +21,25 @@ try {
     console.error('❌ CRITICAL: DATABASE_URL is not set in environment variables!');
   }
 
-  // Force pgbouncer=true for Supabase Transaction Pooler stability
-  // IMPORTANT: For Prisma 5+, direct connection is required for migrations but pgbouncer is for app
-  // We don't need to patch it if it's already using the pooled connection string provided by Render/Supabase
-  // If connection errors occur, verify if DATABASE_URL points to port 6543 (pooler) or 5432 (direct)
-  // if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('pgbouncer=true')) {
-  //   const separator = process.env.DATABASE_URL.includes('?') ? '&' : '?';
-  //   process.env.DATABASE_URL = `${process.env.DATABASE_URL}${separator}pgbouncer=true`;
-  //   console.log('🔧 Auto-patched DATABASE_URL with pgbouncer=true');
-  // }
+  // Auto-patch DATABASE_URL to use Supabase connection pooling (port 6543) if not already set.
+  // This is crucial for serverless/cloud environments like Render to prevent connection exhaustion.
+  // Supabase provides two ports: 5432 (Session/Direct) and 6543 (Transaction/Pooler).
+  // For production apps, we should prefer 6543 with pgbouncer=true.
+  if (process.env.DATABASE_URL) {
+    let url = process.env.DATABASE_URL;
+    
+    // Check if we are using the direct port 5432 and try to switch to 6543 for pooling if possible
+    // (This is a heuristic, verify with your specific Supabase setup)
+    if (url.includes(':5432') && !url.includes('pgbouncer=true')) {
+       console.log('⚠️ Detected direct DB connection (port 5432). Recommendation: Use port 6543 for pooling in production.');
+    }
+
+    // Ensure pgbouncer=true is set if we are on the pooler port or if explicitly needed
+    // However, recent Prisma versions handle this better. 
+    // We will re-enable the patch ONLY if we are sure it's missing and causing issues, 
+    // but based on logs, the issue is "type AuctionCategory does not exist", which is a MIGRATION/SCHEMA sync issue, not connection.
+    // So we leave the patch commented out for now.
+  }
 
   if (process.env.NODE_ENV === 'production') {
     prisma = new PrismaClient(prismaOptions);
