@@ -172,11 +172,11 @@ const Header = () => {
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-500 ${
         isOverlay
           ? "bg-transparent py-0"
           : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-0"
-      } overflow-hidden`}
+      }`}
     >
       {/* Efekt podświetlenia dla nagłówka */}
       <motion.div 
