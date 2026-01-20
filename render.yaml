@@ -36,6 +36,9 @@ services:
       - type: redirect
         source: /api/(.*)
         destination: https://champion-pigeon-api.onrender.com/api/$1
+      - type: rewrite
+        source: /*
+        destination: /index.html
 
   - type: web
     name: champion-pigeon-api
