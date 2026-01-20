@@ -22,11 +22,14 @@ try {
   }
 
   // Force pgbouncer=true for Supabase Transaction Pooler stability
-  if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('pgbouncer=true')) {
-    const separator = process.env.DATABASE_URL.includes('?') ? '&' : '?';
-    process.env.DATABASE_URL = `${process.env.DATABASE_URL}${separator}pgbouncer=true`;
-    console.log('🔧 Auto-patched DATABASE_URL with pgbouncer=true');
-  }
+  // IMPORTANT: For Prisma 5+, direct connection is required for migrations but pgbouncer is for app
+  // We don't need to patch it if it's already using the pooled connection string provided by Render/Supabase
+  // If connection errors occur, verify if DATABASE_URL points to port 6543 (pooler) or 5432 (direct)
+  // if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('pgbouncer=true')) {
+  //   const separator = process.env.DATABASE_URL.includes('?') ? '&' : '?';
+  //   process.env.DATABASE_URL = `${process.env.DATABASE_URL}${separator}pgbouncer=true`;
+  //   console.log('🔧 Auto-patched DATABASE_URL with pgbouncer=true');
+  // }
 
   if (process.env.NODE_ENV === 'production') {
     prisma = new PrismaClient(prismaOptions);
