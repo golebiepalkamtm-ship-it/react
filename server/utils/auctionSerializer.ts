@@ -48,6 +48,7 @@ export const baseAuctionInclude = {
 
 export const listAuctionInclude = {
   ...baseAuctionInclude,
+  images: true,
   bids: {
     select: {
       id: true,
@@ -74,6 +75,9 @@ export const listAuctionInclude = {
 
 export const detailAuctionInclude = {
   ...baseAuctionInclude,
+  images: true,
+  videos: true,
+  documents: true,
   bids: {
     select: {
       id: true,
@@ -203,9 +207,9 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(au
     sex: toLowerEnum(auction.sex) as 'male' | 'female' | undefined,
     location: auction.location ?? '',
     seller: serializePublicUser(sellerAny, showContact),
-    images: Array.isArray((auction as any).auctionImages) ? (auction as any).auctionImages.map((i: any) => i.url) : [],
-    videos: Array.isArray((auction as any).auctionVideos) ? (auction as any).auctionVideos.map((v: any) => v.url) : [],
-    documents: Array.isArray((auction as any).auctionDocuments) ? (auction as any).auctionDocuments.map((d: any) => d.url) : [],
+    images: Array.isArray((auction as any).images) ? (auction as any).images.map((i: any) => i.url) : [],
+    videos: Array.isArray((auction as any).videos) ? (auction as any).videos.map((v: any) => v.url) : [],
+    documents: Array.isArray((auction as any).documents) ? (auction as any).documents.map((d: any) => d.url) : [],
     bids: Array.isArray(auction.bids) ? auction.bids.map((b) => serializeBid(b as BidEntity, showContact)) : [],
     _count: auction._count ?? { bids: 0, watchlist: 0 },
     canViewContact,

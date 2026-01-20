@@ -41,6 +41,9 @@ const allowedOrigins = [
   'https://champion-pigeon-auctions.vercel.app',
   'https://palkamtm.pl',
   'https://www.palkamtm.pl',
+  'https://net-pocket.com',
+  'https://www.net-pocket.com',
+  'https://api.net-pocket.com',
   ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [])
 ].filter(Boolean);
 
