@@ -1184,6 +1184,18 @@
   filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
 }
 
+/* MTM Gold Hero - bright golden text */
+.mtm-gold-hero,
+.mtm-gold-hero .char {
+  color: #FFD700 !important;
+  -webkit-text-fill-color: #FFD700 !important;
+  text-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.8),
+    0 0 20px rgba(255, 215, 0, 0.6),
+    0 0 30px rgba(255, 215, 0, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
 /* initial hidden state for observed sections */
 .section-hidden {
   opacity: 0;
@@ -1232,7 +1244,7 @@
         center/cover no-repeat;
 
       &.black {
-        background-position-x: 100%;
+        background-position: 100% center;
       }
     }
     &.letter-0 {

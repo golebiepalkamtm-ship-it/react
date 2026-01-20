@@ -112,7 +112,7 @@ export const referenceService = {
         const { data, error } = await supabase
           .from('references')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('createdAt', { ascending: false });
 
         if (!error && Array.isArray(data)) {
           const remote = data.map(normalizeReference);
@@ -185,7 +185,7 @@ export const referenceService = {
               pigeonName: created.pigeonName,
               images: created.images ?? [],
               isApproved: created.isApproved ?? true,
-              created_at: created.createdAt,
+              createdAt: created.createdAt,
             },
           ])
           .select()

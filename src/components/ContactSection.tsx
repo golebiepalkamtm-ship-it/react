@@ -185,7 +185,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
             <Button 
               variant="gold" 
               size="lg" 
-              className="w-full shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_50px_rgba(212,175,55,0.7)]" 
+              className="w-full shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_50px_rgba(212,175,55,0.7)] relative z-30" 
               disabled={isSubmitting}
             >
               <Send className="w-4 h-4 mr-2" />
@@ -318,12 +318,12 @@ const GoogleMapCard = () => {
             title="Mapa hodowli MTM Pałka - ul. Stawowa 6, Lubań"
           />
         </div>
-        <div className="p-4 bg-black/70 backdrop-blur-xl flex flex-col sm:flex-row gap-3">
+        <div className="p-4 bg-black/70 backdrop-blur-xl flex flex-col sm:flex-row gap-3 relative z-30">
           <a
             href="https://www.google.com/maps/search/?api=1&query=ul.+Stawowa+6,+59-800+Lubań"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold font-medium transition-colors relative z-40"
           >
             <MapPin className="w-4 h-4" />
             Zobacz na mapie
@@ -333,7 +333,7 @@ const GoogleMapCard = () => {
             href="https://www.google.com/maps/dir/?api=1&destination=ul.+Stawowa+6,+59-800+Lubań"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold font-medium transition-colors relative z-40"
           >
             <Navigation className="w-4 h-4" />
             Wyznacz trasę

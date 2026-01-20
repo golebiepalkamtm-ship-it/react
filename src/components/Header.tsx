@@ -130,8 +130,17 @@ const Header = () => {
   const headerGlowY = useMotionValue(0);
   const headerGlowOpacity = useMotionValue(0);
   
+  // Cache header dimensions to avoid layout thrashing on mousemove
+  const headerRectRef = useRef<DOMRect | null>(null);
+
+  const handleHeaderMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    headerRectRef.current = e.currentTarget.getBoundingClientRect();
+  };
+
   const handleHeaderMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect = headerRectRef.current || e.currentTarget.getBoundingClientRect();
+    if (!headerRectRef.current) headerRectRef.current = rect;
+    
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
     
@@ -142,6 +151,7 @@ const Header = () => {
   
   const handleHeaderMouseLeave = () => {
     headerGlowOpacity.set(0);
+    headerRectRef.current = null; // Clear cache on leave
   };
 
   const setAdminModalWithTrace = (value: boolean) => {
@@ -159,6 +169,7 @@ const Header = () => {
       initial="hidden"
       animate="visible"
       variants={fadeInDown}
+      onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${

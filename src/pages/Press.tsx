@@ -97,7 +97,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
         
-        <div className="relative p-6 flex-grow flex flex-col justify-between">
+        <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
           <div className="flex items-center gap-2 text-sm text-white/60 mb-3 flex-wrap">
             <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/80 border border-gold/20">
               <Newspaper className="w-3 h-3" />
@@ -121,7 +121,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
             <Button 
               variant="outline" 
               size="sm" 
-              className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300"
+              className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300 relative z-40"
               asChild
             >
               <Link to={`/press/${article.id}`}>

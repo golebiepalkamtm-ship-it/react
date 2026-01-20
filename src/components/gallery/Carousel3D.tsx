@@ -59,7 +59,7 @@ export const Carousel3D = () => {
       scrollTrigger: {
         trigger: wrapper,
         start: 'top top',
-        end: '+=250%',        // Jeszcze dłuższy pin dla pauzy
+        end: '+=120%',        // Skrócony pin
         pin: true,
         scrub: true,
         anticipatePin: 1,
@@ -70,16 +70,6 @@ export const Carousel3D = () => {
           firstChangeTriggeredRef.current = false;
         },
         onEnterBack: () => setIsAutoPlaying(false),
-        onUpdate: (self) => {
-          // Zmiana zdjęcia dopiero po pauzie (progress ~60%)
-          // 0-40% = dolot karuzeli
-          // 40-60% = PAUZA (karuzela stoi w pełnym rozmiarze)
-          // 60% = zmiana zdjęcia
-          if (self.progress >= 0.6 && !firstChangeTriggeredRef.current) {
-            firstChangeTriggeredRef.current = true;
-            navigate(1);  // Zmiana na następne zdjęcie
-          }
-        },
       },
     });
     
@@ -297,6 +287,8 @@ export const Carousel3D = () => {
                     alt={activeChampion.name}
                     className="w-full h-full object-cover bg-gradient-to-b from-muted/20 to-background"
                     loading="lazy"
+                    width="800"
+                    height="600"
                   />
                 </motion.div>
               </AnimatePresence>

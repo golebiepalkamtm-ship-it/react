@@ -83,11 +83,12 @@ export const SeamlessSection = ({
         end: 'top 20%',
         scrub,
         onUpdate: (self) => {
+          const progressValue = self.progress;
           gsap.to(content, {
             ...to,
-            progress: self.progress,
             duration: 0,
             ease: 'none',
+            overwrite: 'auto',
           });
         },
       });
@@ -103,11 +104,12 @@ export const SeamlessSection = ({
         end: 'bottom 20%',
         scrub,
         onUpdate: (self) => {
+          const progressValue = self.progress;
           gsap.to(content, {
             ...from,
-            progress: self.progress,
             duration: 0,
             ease: 'none',
+            overwrite: 'auto',
           });
         },
       });

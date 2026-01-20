@@ -105,14 +105,14 @@ const HeroPremium = () => {
         style={{ willChange: 'opacity' }}
       />
 
-      <FloatingElement amplitude={15} frequency={0.3} phase={0}>
+      <FloatingElement amplitude={15} frequency={0.3} phase={0} className="absolute inset-0 pointer-events-none overflow-hidden">
         <div 
           className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold/10 blur-3xl"
           style={{ willChange: 'transform' }}
         />
       </FloatingElement>
       
-      <FloatingElement amplitude={20} frequency={0.25} phase={0.5}>
+      <FloatingElement amplitude={20} frequency={0.25} phase={0.5} className="absolute inset-0 pointer-events-none overflow-hidden">
         <div 
           className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl"
           style={{ willChange: 'transform' }}
@@ -130,41 +130,30 @@ const HeroPremium = () => {
           </span>
         </MagneticElement>
 
-        <div className="mb-6">
-          <PremiumTextReveal
-            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white mb-2"
-            as="h1"
-            splitBy="chars"
-            animation="slide"
-            stagger={0.03}
-            duration={0.8}
-            scrub={false}
-          >
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white">
             Pałka
-          </PremiumTextReveal>
+          </h1>
           
-          <GradientText 
-            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display block"
-            colors={['#d4af37', '#ffd700', '#ffed4e', '#ffd700', '#d4af37']}
+          <span 
+            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display"
+            style={{ 
+              color: '#FFD700',
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4)'
+            }}
           >
-            <PremiumTextReveal
-              as="span"
-              splitBy="chars"
-              animation="scale"
-              stagger={0.04}
-              duration={0.6}
-              delay={0.3}
-              scrub={false}
-            >
-              MTM
-            </PremiumTextReveal>
-          </GradientText>
+            MTM
+          </span>
+
+          <span className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white">
+            - Geny Zwyciezców
+          </span>
         </div>
 
         <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-12 leading-relaxed">
-          Trzy pokolenia pasji. Setki mistrzostw.
+          Wyniki budowane przez pokolenia.
           <br className="hidden md:block" />
-          Elitarne gołębie pocztowe z Dolnego Śląska.
+          Topowe gołębie pocztowe z Dolnego Śląska.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -411,6 +400,8 @@ const ChampionsShowcase = () => {
                   alt={`Champion ${num}`}
                   className="hover:scale-110 transition-transform duration-700"
                   scaleRange={[1.15, 1]}
+                  width={600}
+                  height={800}
                 />
               </div>
             </AdvancedParallax>

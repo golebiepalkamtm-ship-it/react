@@ -17,6 +17,7 @@
 
 import React, { useRef, useEffect, useCallback, memo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 import { registerCustomEasings, gsapEasings } from '@/lib/customEasings';
 import { ArrowRight, Trophy, Zap, Award, ChevronDown, Star } from 'lucide-react';
@@ -133,7 +134,7 @@ const HeroPremium = () => {
           </span>
         </MagneticElement>
 
-        <div className="mb-6 flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4">
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-2 md:gap-4">
           <PremiumTextReveal
             className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white"
             as="h1"
@@ -146,28 +147,21 @@ const HeroPremium = () => {
             Pałka
           </PremiumTextReveal>
           
-          <GradientText 
-            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display"
-            colors={['#d4af37', '#ffd700', '#ffed4e', '#ffd700', '#d4af37']}
+          <span 
+            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-gold"
           >
-            <PremiumTextReveal
-              as="span"
-              splitBy="chars"
-              animation="scale"
-              stagger={0.04}
-              duration={0.6}
-              delay={0.3}
-              scrub={false}
-            >
-              MTM
-            </PremiumTextReveal>
-          </GradientText>
+            MTM
+          </span>
+
+          <span className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white">
+            - Geny Zwycięzców
+          </span>
         </div>
 
         <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-12 leading-relaxed">
-          Trzy pokolenia pasji. Setki mistrzostw.
+          Wyniki budowane przez pokolenia.
           <br className="hidden md:block" />
-          Elitarne gołębie pocztowe z Dolnego Śląska.
+          Topowe gołębie pocztowe z Dolnego Śląska.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -177,7 +171,7 @@ const HeroPremium = () => {
               className="group flex items-center gap-3 px-8 py-4 bg-gold text-navy rounded-full font-semibold text-lg hover:bg-gold-light transition-all shadow-lg shadow-gold/20"
               style={{ willChange: 'transform' }}
             >
-              <span>Zobacz Championów</span>
+              <span>Zobacz Championy</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </MagneticElement>
@@ -237,58 +231,101 @@ const FeatureCardPremium = memo(({
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
+    stiffness: 150,
+    damping: 20,
+  });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
+    stiffness: 150,
+    damping: 20,
+  });
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current || !glowRef.current) return;
     
     const rect = cardRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+
+    const glowX = ((e.clientX - rect.left) / rect.width) * 100;
+    const glowY = ((e.clientY - rect.top) / rect.height) * 100;
 
     gsap.to(glowRef.current, {
-      '--glow-x': `${x}%`,
-      '--glow-y': `${y}%`,
+      '--glow-x': `${glowX}%`,
+      '--glow-y': `${glowY}%`,
       duration: 0.3,
       ease: 'power2.out',
     });
-  }, []);
+  }, [mouseX, mouseY]);
+
+  const handleMouseEnter = () => setIsHovered(true);
+  
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
     <MagneticElement strength={0.05}>
-      <div
+      <motion.div
         ref={cardRef}
-        className="relative group p-8 rounded-2xl border border-border overflow-hidden bg-card/50 backdrop-blur-sm"
-        onMouseMove={handleMouseMove}
+        className="group h-full"
         style={{ 
-          willChange: 'transform',
-          '--glow-x': '50%',
-          '--glow-y': '50%',
-        } as React.CSSProperties}
+          perspective: 1000,
+          transformStyle: 'preserve-3d',
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        <div
-          ref={glowRef}
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        <motion.div
+          className="h-full flex flex-col p-8 rounded-2xl border border-gold/30 bg-gradient-to-b from-black/70 via-slate-900/60 to-black/60 shadow-[0_25px_80px_rgba(212,175,55,0.15)] backdrop-blur-xl relative"
           style={{
-            background: 'radial-gradient(circle at var(--glow-x) var(--glow-y), rgba(212,175,55,0.15) 0%, transparent 50%)',
-          }}
-        />
-        
-        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-          style={{
-            boxShadow: '0 0 30px rgba(212,175,55,0.2), inset 0 0 20px rgba(212,175,55,0.05)',
-          }}
-        />
-        
-        <DepthLayer depth={index} className="relative z-10">
-          <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-6 group-hover:bg-gold/10 transition-colors duration-500">
-            <feature.icon className="w-7 h-7 text-gold" />
-          </div>
-          <h3 className="text-xl font-semibold font-display text-foreground mb-3">
-            {feature.title}
-          </h3>
-          <p className="text-muted-foreground">{feature.description}</p>
-        </DepthLayer>
-      </div>
+            rotateX: isHovered ? rotateX : 0,
+            rotateY: isHovered ? rotateY : 0,
+            transformStyle: 'preserve-3d',
+            '--glow-x': '50%',
+            '--glow-y': '50%',
+            minHeight: '260px',
+          } as React.CSSProperties}
+          whileHover={{ translateY: -8, scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        >
+          <div
+            ref={glowRef}
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle at var(--glow-x) var(--glow-y), rgba(212,175,55,0.15) 0%, transparent 50%)',
+            }}
+          />
+          
+          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            style={{
+              boxShadow: '0 0 30px rgba(212,175,55,0.2), inset 0 0 20px rgba(212,175,55,0.05)',
+            }}
+          />
+          
+          <DepthLayer depth={index} className="relative z-10">
+            <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center mb-3 group-hover:bg-gold/20 transition-colors duration-500">
+              <feature.icon className="w-6 h-6 text-gold" />
+            </div>
+            <h3 className="text-lg font-semibold font-display text-white mb-2">
+              {feature.title}
+            </h3>
+            <p className="text-white/70 text-sm leading-relaxed">
+              {feature.description}
+            </p>
+          </DepthLayer>
+        </motion.div>
+      </motion.div>
     </MagneticElement>
   );
 });
@@ -321,14 +358,14 @@ const FeaturesSectionPremium = () => {
       data-section="features"
     >
       <div className="max-w-6xl mx-auto">
-        <RevealOnScroll direction="up" className="text-center mb-16">
+        <RevealOnScroll direction="up" className="mb-16">
           <span className="inline-block px-4 py-1 border border-gold/30 rounded-full text-xs tracking-[0.2em] text-gold/70 uppercase mb-4">
             Dlaczego my
           </span>
           <h2 className="text-3xl md:text-4xl font-bold font-display mb-4 text-gold">
             Najwyższa Jakość Hodowli
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="text-white/70 max-w-xl leading-relaxed">
             Od ponad 50 lat dostarczamy championów hodowcom na całym świecie.
           </p>
         </RevealOnScroll>

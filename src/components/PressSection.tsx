@@ -95,6 +95,8 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
             alt={article.title}
             loading="lazy"
             decoding="async"
+            width="640"
+            height="400"
             className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-[1.02] transition-transform duration-300"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -102,7 +104,7 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
             }}
           />
         </div>
-        <div className="p-6">
+        <div className="p-6 relative z-30">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <Newspaper className="w-4 h-4" />
             <span>{article.publication}</span>
@@ -119,10 +121,13 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full group/btn border-gold/30 hover:bg-gold hover:text-navy"
+            className="w-full group/btn border-gold/30 hover:bg-gold hover:text-navy relative z-40"
             asChild
           >
-            <Link to={`/press/${article.id}`}>
+            <Link 
+              to={`/press/${article.id}`}
+              aria-label={`Czytaj więcej: ${article.title}`}
+            >
               Czytaj więcej
               <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
             </Link>
@@ -162,88 +167,78 @@ const PressSection = () => {
       // Header animations - staggered entrance
       if (headerBadge) {
         tl.fromTo(headerBadge,
-          { y: -50, opacity: 0, scale: 0.5, rotateX: 90 },
-          { y: 0, opacity: 1, scale: 1, rotateX: 0, duration: 0.6, ease: 'back.out(1.7)' }
+          { y: -30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
         );
       }
       
       if (headerTitle) {
         tl.fromTo(headerTitle,
-          { y: 80, opacity: 0, skewY: 5 },
-          { y: 0, opacity: 1, skewY: 0, duration: 0.8, ease: 'power3.out' },
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
           '-=0.3'
         );
       }
       
       if (headerDesc) {
         tl.fromTo(headerDesc,
-          { y: 40, opacity: 0 },
+          { y: 30, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
           '-=0.4'
         );
       }
 
-      // Cards - WOW 3D animations with different effects
+      // Cards - Simple fade and zoom animations (all same as center)
       if (cards.length >= 3) {
-        // Left card - flip from left with spiral
+        // Left card
         tl.fromTo(cards[0],
           { 
-            x: -300, 
+            y: 100,
             opacity: 0, 
-            rotateY: 120,
-            rotateZ: -20,
-            scale: 0.5
+            scale: 0.8
           },
           { 
-            x: 0, 
+            y: 0,
             opacity: 1, 
-            rotateY: 0,
-            rotateZ: 0,
             scale: 1,
             duration: 1.2, 
-            ease: 'power3.out'
+            ease: 'back.out(1.2)'
           },
           '-=0.2'
         );
         
-        // Center card - dramatic zoom from depth with flip
+        // Center card
         tl.fromTo(cards[1],
           { 
-            z: -800, 
+            y: 100,
             opacity: 0, 
-            scale: 0.2,
-            rotateX: -180
+            scale: 0.8
           },
           { 
-            z: 0, 
+            y: 0,
             opacity: 1, 
             scale: 1,
-            rotateX: 0,
-            duration: 1.4, 
-            ease: 'back.out(1.4)'
+            duration: 1.2, 
+            ease: 'back.out(1.2)'
           },
           '-=1.0'
         );
         
-        // Right card - flip from right with spiral
+        // Right card
         tl.fromTo(cards[2],
           { 
-            x: 300, 
+            y: 100,
             opacity: 0, 
-            rotateY: -120,
-            rotateZ: 20,
-            scale: 0.5
+            scale: 0.8
           },
           { 
-            x: 0, 
+            y: 0,
             opacity: 1, 
-            rotateY: 0,
-            rotateZ: 0,
             scale: 1,
             duration: 1.2, 
-            ease: 'power3.out'
+            ease: 'back.out(1.2)'
           },
-          '-=1.2'
+          '-=1.0'
         );
       }
       

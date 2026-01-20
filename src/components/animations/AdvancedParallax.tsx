@@ -181,6 +181,8 @@ interface ParallaxImageProps {
   containerClassName?: string;
   speed?: number;
   scaleRange?: [number, number];
+  width?: number | string;
+  height?: number | string;
 }
 
 export const ParallaxImage = ({
@@ -190,6 +192,8 @@ export const ParallaxImage = ({
   containerClassName = '',
   speed = 0.3,
   scaleRange = [1.2, 1],
+  width,
+  height,
 }: ParallaxImageProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -235,6 +239,8 @@ export const ParallaxImage = ({
         alt={alt}
         className={`w-full h-full object-cover ${className}`}
         style={{ transform: 'translateZ(0)' }}
+        width={width}
+        height={height}
       />
     </div>
   );

@@ -55,7 +55,7 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="h-full p-6 overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-b from-black/70 via-slate-900/60 to-black/60 shadow-[0_25px_80px_rgba(212,175,55,0.15)] backdrop-blur-xl relative"
+        className={`h-full p-6 overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-b from-black/70 via-slate-900/60 to-black/60 shadow-[0_25px_80px_rgba(212,175,55,0.15)] backdrop-blur-xl relative flex flex-col justify-start ${index === 1 || index === 3 ? 'pt-4' : ''}`}
         style={{
           rotateX: isHovered ? rotateX : 0,
           rotateY: isHovered ? rotateY : 0,
@@ -80,7 +80,7 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
         
         {/* Icon */}
         <motion.div 
-          className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold/20 to-gold/10 flex items-center justify-center mb-4 group-hover:from-gold/40 group-hover:to-gold/20 transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+          className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold/20 to-gold/10 flex items-center justify-center mb-3 group-hover:from-gold/40 group-hover:to-gold/20 transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.3)] shrink-0"
           whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
           transition={{ duration: 0.4 }}
         >
@@ -104,15 +104,15 @@ const AboutSection = () => {
   const features = [
     {
       icon: Crown,
-      title: "Linie mistrzowskie",
+      title: "Dziedzictwo Zwycięzców",
       description:
-        "Nasze gołębie pochodzą z pokoleń sprawdzonych mistrzów, starannie selekcjonowanych pod kątem prędkości, wytrzymałości i instynktu nawigacyjnego.",
+        "Nasze gołębie to owoc wielopokoleniowej selekcji ukierunkowanej na żelazną wytrzymałość i bezbłędny instynkt nawigacyjny. Każdy ptak w naszym gołębniku wywodzi się z rodziny sprawdzonych mistrzów, co daje pewność najwyższej jakości materiału lotowego.",
     },
     {
       icon: Target,
-      title: "Specjaliści od sprintów",
+      title: "Dynamika i Szybkość",
       description:
-        "Dominujemy w kategorii sprinterskiej z ptakami wyhodowanymi specjalnie do eksplozywnej prędkości na krótkich dystansach.",
+        "Jako specjaliści od sprintu, skupiamy się na ptakach zdolnych do utrzymania maksymalnego tempa na krótkich dystansach. Nasza praca hodowlana koncentruje się na budowie anatomicznej i psychice, które pozwalają naszym gołębiom wygrywać sekundy decydujące o zwycięstwie.",
     },
     {
       icon: Feather,
@@ -122,9 +122,9 @@ const AboutSection = () => {
     },
     {
       icon: Award,
-      title: "Udowodnione wyniki",
+      title: "Potwierdzona Klasa",
       description:
-        "Konsekwentnie zajmujemy czołowe miejsca w krajowych i międzynarodowych zawodach, rok po roku.",
+        "O klasie naszych ptaków świadczy ich uniwersalność – doskonale adaptują się do różnych warunków pogodowych i systemów motywacyjnych. Ich wartość potwierdzają liczne listy konkursowe i satysfakcja hodowców, którzy dzięki naszej krwi sięgnęli po najwyższe trofea w kraju.",
     },
   ];
 
@@ -172,86 +172,72 @@ const AboutSection = () => {
         }
       );
 
-      // Cards - WOW 3D animations like PressSection
+      // Cards - Simple fade and zoom animations (all same)
       if (cards.length >= 4) {
-        // Card 0 (top-left) - flip from left with spiral
+        // Card 0
         tl.fromTo(cards[0],
           { 
-            x: -300, 
+            y: 100,
             opacity: 0, 
-            rotateY: 120,
-            rotateZ: -20,
-            scale: 0.5
+            scale: 0.8
           },
           { 
-            x: 0, 
+            y: 0,
             opacity: 1, 
-            rotateY: 0,
-            rotateZ: 0,
             scale: 1,
             duration: 1.2, 
-            ease: 'power3.out'
+            ease: 'back.out(1.2)'
           },
           '-=0.6'
         );
         
-        // Card 1 (top-right) - flip from right with spiral
+        // Card 1
         tl.fromTo(cards[1],
           { 
-            x: 300, 
+            y: 100,
             opacity: 0, 
-            rotateY: -120,
-            rotateZ: 20,
-            scale: 0.5
+            scale: 0.8
           },
           { 
-            x: 0, 
+            y: 0,
             opacity: 1, 
-            rotateY: 0,
-            rotateZ: 0,
             scale: 1,
             duration: 1.2, 
-            ease: 'power3.out'
+            ease: 'back.out(1.2)'
           },
           '-=1.0'
         );
         
-        // Card 2 (bottom-left) - dramatic zoom from depth with flip
+        // Card 2
         tl.fromTo(cards[2],
           { 
-            z: -800, 
+            y: 100,
             opacity: 0, 
-            scale: 0.2,
-            rotateX: -180
+            scale: 0.8
           },
           { 
-            z: 0, 
+            y: 0,
             opacity: 1, 
-            scale: 1,
-            rotateX: 0,
-            duration: 1.4, 
-            ease: 'back.out(1.4)'
-          },
-          '-=0.8'
-        );
-        
-        // Card 3 (bottom-right) - flip from right with spiral
-        tl.fromTo(cards[3],
-          { 
-            x: 300, 
-            opacity: 0, 
-            rotateY: -120,
-            rotateZ: 20,
-            scale: 0.5
-          },
-          { 
-            x: 0, 
-            opacity: 1, 
-            rotateY: 0,
-            rotateZ: 0,
             scale: 1,
             duration: 1.2, 
-            ease: 'power3.out'
+            ease: 'back.out(1.2)'
+          },
+          '-=1.0'
+        );
+        
+        // Card 3
+        tl.fromTo(cards[3],
+          { 
+            y: 100,
+            opacity: 0, 
+            scale: 0.8
+          },
+          { 
+            y: 0,
+            opacity: 1, 
+            scale: 1,
+            duration: 1.2, 
+            ease: 'back.out(1.2)'
           },
           '-=1.0'
         );
@@ -284,14 +270,10 @@ const AboutSection = () => {
               MTM Pałka – <span className="text-white">Zwycięstwo</span> mamy w genach.
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-              Od ponad 45 lat poświęcamy się hodowli najlepszych gołębi pocztowych w Polsce. 
-              Nasze ptaki konsekwentnie sprawdzają się na najbardziej wymagających trasach, 
-              zdobywając czołowe miejsca w prestiżowych zawodach krajowych i międzynarodowych.
+              Od ponad 45 lat poświęcamy się hodowli najlepszych gołębi pocztowych, budując markę opartą na wynikach i unikalnej genetyce. Naszym największym atutem jest autorski system hodowlany: od 25 lat utrzymujemy własne linie krwi, konsekwentnie łącząc ptaki w bliskim pokrewieństwie.
             </p>
             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-              Nasza hodowla opiera się na starannie wyselekcjonowanych liniach krwi od najlepszych 
-              hodowców europejskich. Każdy gołąb w naszym gołębniku to efekt wieloletniego doświadczenia, 
-              pasji i nieustannego dążenia do doskonałości.
+              Każdy gołąb w naszym gołębniku to efekt ćwierćwiecza rygorystycznej selekcji i dążenia do doskonałości. Dzięki prowadzeniu czystych linii, nasze ptaki cechują się potężną siłą dziedziczenia i wybitną witalnością, co pozwala im seryjnie wygrywać konkursy zarówno w naszym gołębniku, jak i u hodowców z każdego regionu Polski.
             </p>
             <div className="flex items-center gap-4 pt-6 border-t border-white/10">
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center">
