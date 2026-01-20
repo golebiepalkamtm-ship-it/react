@@ -271,6 +271,9 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
         });
         return;
       }
+    } else {
+      // Dla kategorii innych niż gołębie, usuń dane gołębia lub ustaw wartości domyślne/puste
+      formData.pigeon = undefined;
     }
 
     if (!session?.access_token) {
@@ -341,18 +344,23 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
         description: formData.description || '',
         startingPrice: isBidding ? (Number(formData.startingPrice) || 100) : undefined,
         buyNowPrice: isBuyNow ? (Number(formData.buyNowPrice) || undefined) : undefined,
-        category: formData.category || 'Ogólna',
+        category: formData.category || 'RACING', // Default to RACING if generic
         sex: formData.sex as 'male' | 'female',
         location: formData.location || 'Lubań, Polska',
         images: imageUrls,
         videos: videoUrls,
         endTime: endTime.toISOString(),
-        pigeon: {
+        pigeon: isPigeonCategory ? {
           ...formData.pigeon,
           ringNumber: ringNumber,
           gender: formData.sex as 'male' | 'female',
-        },
+        } : undefined,
       };
+
+      // Mapowanie kategorii z formularza na enum API
+      if (auctionData.category === 'pigeons') auctionData.category = 'RACING';
+      if (auctionData.category === 'supplements') auctionData.category = 'SHOW'; // Tymczasowe mapowanie
+      if (auctionData.category === 'accessories') auctionData.category = 'BREEDING'; // Tymczasowe mapowanie
 
       await auctionService.createAuction(auctionData, token);
       
