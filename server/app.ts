@@ -60,11 +60,8 @@ const isAllowedOrigin = (origin?: string) => {
   return false;
 };
 
-app.use(helmet());
-app.use(cspMiddleware);
-
-app.use(cors({
-  origin: (origin, callback) => {
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (!origin) return callback(null, true);
     if (isAllowedOrigin(origin)) return callback(null, true);
     console.warn(`CORS blocked origin: ${origin}`);
@@ -89,7 +86,13 @@ app.use(cors({
     'X-RateLimit-Reset'
   ],
   maxAge: validatedEnv.CORS_MAX_AGE
-}));
+};
+
+app.use(helmet());
+app.use(cspMiddleware);
+
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
   try {

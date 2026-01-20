@@ -65,8 +65,12 @@
     if (isInitialized || !document || !document.body) return;
     isInitialized = true;
 
-    document.addEventListener('click', handleClick);
-    document.addEventListener('keydown', handleKeydown);
+    try {
+      document.addEventListener('click', handleClick);
+      document.addEventListener('keydown', handleKeydown);
+    } catch (e) {
+      console.error('Share modal init error:', e);
+    }
   }
 
   if (document.readyState === 'loading') {
