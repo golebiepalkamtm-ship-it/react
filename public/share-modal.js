@@ -1,7 +1,9 @@
 (function () {
   'use strict';
 
-  if (typeof document === 'undefined' || !document || typeof window === 'undefined') return;
+  // Ensure we have a proper DOM environment
+  if (typeof document === 'undefined' || !document || typeof window === 'undefined' || !window) return;
+  if (typeof document.addEventListener === 'undefined') return;
 
   var isInitialized = false;
 

@@ -456,21 +456,44 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="space-y-6"
+            className="space-y-8"
           >
             <motion.div 
-              className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-6"
+              className="p-6 rounded-2xl bg-gradient-to-br from-white/5 via-white/0 to-white/5 border border-white/10 backdrop-blur-sm space-y-6 relative overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-gold to-gold-dark shadow-lg shadow-gold/30">
-                  <Bird className="w-6 h-6 text-navy" />
+              <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.12),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(96,165,250,0.2),transparent_28%)] pointer-events-none" />
+
+              <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-gold to-gold-dark shadow-lg shadow-gold/30">
+                    <Bird className="w-6 h-6 text-navy" />
+                  </div>
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-white/10 border border-white/15 text-xs text-white/70 mb-2">
+                      <Sparkles className="w-4 h-4 text-gold" />
+                      Krok 1 • Podstawowe dane
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold text-white leading-tight">Nadaj aukcji charakter i zaufanie</h3>
+                    <p className="text-sm text-white/60">Tytuł, opis oraz kategoria określą sposób wyświetlania Twojej aukcji.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Podstawowe informacje</h3>
-                  <p className="text-sm text-white/60">Wypełnij dane aukcji</p>
+                <div className="relative flex flex-wrap gap-3">
+                  {[
+                    { label: 'Średni czas wystawienia', value: '2 min' },
+                    { label: 'Rekomendowane zdjęcia', value: '6+' },
+                    { label: 'Weryfikacja sprzedawcy', value: 'Wymagana' },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-left min-w-[160px]"
+                    >
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-white/50">{stat.label}</p>
+                      <p className="text-base font-semibold text-white">{stat.value}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -492,51 +515,100 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                 <label className="block text-sm font-medium text-white/70 mb-2">
                   Opis <span className="text-red-400">*</span>
                 </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-white placeholder-white/40 transition-all duration-200 hover:bg-white/10 resize-none"
-                  placeholder="Opisz gołębia, jego osiągnięcia, rodowód..."
-                />
+                <div className="rounded-2xl border border-white/15 bg-white/5 focus-within:border-gold/60 focus-within:shadow-[0_10px_40px_rgba(212,175,55,0.18)] transition-all">
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    required
+                    rows={5}
+                    className="w-full px-4 py-3 rounded-2xl bg-transparent outline-none text-white placeholder-white/40 transition-all duration-200"
+                    placeholder="Opisz gołębia, jego osiągnięcia, rodowód..."
+                  />
+                  <div className="flex items-center justify-between px-4 pb-3 text-xs text-white/50">
+                    <span>Opowiedz historię – osiągnięcia, linia, dlaczego jest wyjątkowy.</span>
+                    <span className="text-gold font-semibold">Storytelling sprzedaje szybciej 🔥</span>
+                  </div>
+                </div>
               </motion.div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-[1.2fr,0.8fr] gap-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
+                  className="space-y-3"
                 >
-                  <label className="block text-sm font-medium text-white/70 mb-2">Kategoria</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-white transition-all duration-200 hover:bg-white/10"
-                  >
-                    <option value="pigeons" className="bg-navy">Gołębie</option>
-                    <option value="supplements" className="bg-navy">Suplementy</option>
-                    <option value="accessories" className="bg-navy">Akcesoria</option>
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-white/70">Kategoria</label>
+                    <span className="text-[11px] text-white/50">Określa parametry i wymagane pola</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { value: 'pigeons', label: 'Gołębie', desc: 'Pełne cechy i media', accent: 'from-gold to-amber-500' },
+                      { value: 'supplements', label: 'Suplementy', desc: 'Dawki, skład, seria', accent: 'from-sky-400 to-cyan-500' },
+                      { value: 'accessories', label: 'Akcesoria', desc: 'Akcesoria i wyposażenie', accent: 'from-emerald-400 to-teal-500' },
+                    ].map((item) => {
+                      const active = formData.category === item.value;
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, category: item.value as any }))}
+                          className={`group relative overflow-hidden rounded-2xl border transition-all text-left p-4 ${
+                            active
+                              ? 'border-gold bg-gradient-to-br from-white/10 to-white/0 shadow-lg shadow-gold/25'
+                              : 'border-white/15 bg-white/5 hover:border-white/30 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className={`absolute inset-0 ${active ? 'opacity-100' : 'opacity-0'} bg-gradient-to-br ${item.accent} blur-3xl transition-opacity duration-500`} />
+                          <div className="relative flex items-start justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-semibold text-white">{item.label}</p>
+                              <p className="text-xs text-white/60">{item.desc}</p>
+                            </div>
+                            <div className={`w-5 h-5 rounded-lg border ${active ? 'border-gold bg-gold' : 'border-white/30'} flex items-center justify-center`}>
+                              {active && <Check className="w-4 h-4 text-navy" />}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
+                  className="space-y-3"
                 >
-                  <label className="block text-sm font-medium text-white/70 mb-2">Płeć</label>
-                  <select
-                    name="sex"
-                    value={formData.sex}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-white transition-all duration-200 hover:bg-white/10"
-                  >
-                    <option value="male" className="bg-navy">Samiec</option>
-                    <option value="female" className="bg-navy">Samica</option>
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-white/70">Płeć</label>
+                    <span className="text-[11px] text-white/50">Pomaga filtrować aukcje</span>
+                  </div>
+                  <div className="flex gap-3">
+                    {[
+                      { value: 'male', label: 'Samiec' },
+                      { value: 'female', label: 'Samica' },
+                    ].map((item) => {
+                      const active = formData.sex === item.value;
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, sex: item.value as 'male' | 'female' }))}
+                          className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+                            active
+                              ? 'border-gold bg-gold/15 text-gold shadow-lg shadow-gold/20'
+                              : 'border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </motion.div>
               </div>
             </motion.div>

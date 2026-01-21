@@ -27,7 +27,13 @@ if (supabaseUrl && supabaseKey) {
       detectSessionInUrl: true,
       flowType: 'pkce',
       debug: import.meta.env.DEV,
-       storage: window.localStorage,
+      storage: window.localStorage,
+    },
+    global: {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
     },
   });
 } else {

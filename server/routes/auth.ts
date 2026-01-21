@@ -79,9 +79,9 @@ router.post('/otp/verify', authMiddleware, validate(otpVerifySchema), otpVerifyL
     // This requires Service Role Key access which the server instance should have
     const { error: authError } = await supabase!.auth.admin.updateUserById(
       userId,
-      { 
+      {
         phone,
-        phone_confirm: true 
+        phone_confirm: true
       }
     );
 

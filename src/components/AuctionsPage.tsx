@@ -21,6 +21,7 @@ import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import AdvancedSearch from "@/components/AdvancedSearch";
 import { canCreateAuction } from "@/components/ProtectedRoute";
 import type { AuctionSortBy } from "@/types/auction";
+import { CreateAuctionModal } from "@/components/CreateAuctionModal";
 
 const AuctionsPage = () => {
   const { user, profile } = useAuth();
@@ -43,6 +44,7 @@ const AuctionsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<'pigeons' | 'supplements' | 'accessories' | null>(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState({ title: '', message: '' });
+  const [isAuctionModalOpen, setIsAuctionModalOpen] = useState(false);
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -84,11 +86,11 @@ const AuctionsPage = () => {
       });
       setShowVerificationModal(true);
     },
-    'USER_FULL_VERIFIED': () => { 
-      setIsCreateOpen(true); 
+    'USER_FULL_VERIFIED': () => {
+      setIsAuctionModalOpen(true);
     },
-    'ADMIN': () => { 
-      setIsCreateOpen(true); 
+    'ADMIN': () => {
+      setIsAuctionModalOpen(true);
     },
   }), []);
 
@@ -98,18 +100,18 @@ const AuctionsPage = () => {
       e.stopPropagation();
     }
     console.log('🔍 handleCreateAuctionClick called', { user: !!user, profile: profile?.role });
-    
+     
     if (!user) {
       toast("Musisz się zalogować.", { description: "Za chwilę przeniosę Cię do logowania." });
       setTimeout(() => navigate("/auth?mode=login"), 350);
       return;
     }
-
+ 
     if (!profile) {
       toast('Ładuję profil…', { description: 'Poczekaj i spróbuj ponownie.' });
       return;
     }
-
+ 
     console.log('🔍 Profile role:', profile.role);
     const action = roleActions[profile.role as keyof typeof roleActions];
     if (action) {
@@ -118,6 +120,10 @@ const AuctionsPage = () => {
     } else {
       toast('Brak uprawnień.', { description: 'Dokończ weryfikację konta.' });
     }
+  };
+
+  const handleCloseAuctionModal = () => {
+    setIsAuctionModalOpen(false);
   };
 
   const handleCategorySelect = (category: 'pigeons' | 'supplements' | 'accessories') => {
@@ -474,9 +480,18 @@ const AuctionsPage = () => {
         )}
       </AnimatePresence>
 
-      <AccountModal 
-        open={isAccountOpen} 
-        onClose={() => setIsAccountOpen(false)} 
+      <AccountModal
+        open={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
+      />
+
+      <CreateAuctionModal
+        isOpen={isAuctionModalOpen}
+        onClose={handleCloseAuctionModal}
+        onSuccess={() => {
+          handleCloseAuctionModal();
+          void refetch();
+        }}
       />
 
       {/* Modal informujący o wymaganej weryfikacji */}

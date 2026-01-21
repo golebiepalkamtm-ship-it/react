@@ -1,0 +1,38 @@
+# Railway configuration for Champion Pigeon Auctions
+# Update `project.id` with your Railway project id if desired.
+
+[project]
+id = ""
+
+[[services]]
+name = "api"
+path = "server"
+start = "npm run start"
+build = "npm install && npm run build"
+
+# Common env vars used by the service (Railway will prompt to set these or you can set in dashboard)
+env = [
+  "DATABASE_URL",
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "JWT_SECRET",
+  "CLIENT_URL",
+  "TWILIO_ACCOUNT_SID",
+  "TWILIO_AUTH_TOKEN",
+  "TWILIO_VERIFY_SERVICE_SID",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET"
+]
+
+[[services]]
+name = "frontend"
+path = "."
+start = "npm run start"
+build = "npm install && npm run build"
+env = [
+  "VITE_SUPABASE_URL",
+  "VITE_SUPABASE_ANON_KEY",
+  "VITE_API_BASE_URL",
+  "VITE_WS_URL",
+  "VITE_DISABLE_AUTH_GUARDS"
+]

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "render": {
+      "command": "render-mcp-server_v0.3.0.exe",
+      "env": {
+        "RENDER_API_KEY": "rnd_K4TZ5jAZ7FBhITXJeLBl5QnxMhfy"
+      }
+    }
+  }
+}
