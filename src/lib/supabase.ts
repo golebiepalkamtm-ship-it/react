@@ -18,6 +18,7 @@ if (supabaseUrl && supabaseKey) {
       detectSessionInUrl: true,
       flowType: 'pkce',
       debug: import.meta.env.DEV,
+      storage: window.localStorage, // Force local storage to persist session across tabs/reloads
     },
   });
 } else {
