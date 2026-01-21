@@ -44,9 +44,16 @@ export const userService = {
     try {
       if (!supabase) return null;
       
+      // Strip protected fields
+      const safeUpdates = { ...updates };
+      delete (safeUpdates as any).id;
+      delete (safeUpdates as any).email;
+      delete (safeUpdates as any).created_at;
+      delete (safeUpdates as any).updated_at;
+      
       const { data, error } = await supabase
         .from('users')
-        .update(updates)
+        .update(safeUpdates)
         .eq('id', userId)
         .select()
         .single();

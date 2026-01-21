@@ -127,11 +127,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Brak połączenia z bazą danych');
     }
 
-    // Strip protected fields
+    // Strip protected fields to avoid trigger rejection or constraint violations
     const safeUpdates = { ...updates };
     delete (safeUpdates as any).role;
     delete (safeUpdates as any).id;
     delete (safeUpdates as any).email;
+    delete (safeUpdates as any).created_at;
+    delete (safeUpdates as any).updated_at;
+    delete (safeUpdates as any).createdAt;
+    delete (safeUpdates as any).updatedAt;
     
     // Perform update
     const { data, error } = await client
