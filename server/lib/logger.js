@@ -23,7 +23,7 @@ function formatArgs(args) {
 
 const logger = {
   debug: isProd ? () => {} : (...args) => console.debug?.(...formatArgs(args)),
-  info: isProd ? () => {} : (...args) => console.info?.(...formatArgs(args)),
+  info: (...args) => console.info?.(...formatArgs(args)),
   warn: (...args) => console.warn?.(...formatArgs(args)),
   error: (...args) => console.error?.(...formatArgs(args)),
 };
