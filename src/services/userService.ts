@@ -24,7 +24,7 @@ export const userService = {
       
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select()
         .eq('id', userId)
         .single();
         

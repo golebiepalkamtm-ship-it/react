@@ -84,7 +84,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await client
         .from('users')
-        .select('*')
+        .select()
         .eq('id', authUser.id)
         .maybeSingle();
 
@@ -142,7 +142,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .from('users')
       .update(safeUpdates)
       .eq('id', user.id)
-      .select('*')
+      .select()
       .single();
 
     if (error) {
