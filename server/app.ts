@@ -121,6 +121,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+app.get('/api', (req, res) => {
+  res.json({
+    status: 'OK',
+    name: 'champion-pigeon-api',
+    timestamp: new Date().toISOString(),
+    health: '/api/health'
+  });
+});
+
 // Endpoint CSRF token
 app.get('/api/csrf-token', (req, res) => {
   const token = setCSRFToken(req, res);

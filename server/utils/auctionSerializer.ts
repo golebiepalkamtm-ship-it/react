@@ -48,7 +48,14 @@ export const baseAuctionInclude = {
 
 export const listAuctionInclude = {
   ...baseAuctionInclude,
-  images: true,
+  images: {
+    select: {
+      url: true,
+      ordering: true,
+      createdAt: true,
+    },
+    orderBy: [{ ordering: 'asc' as const }, { createdAt: 'asc' as const }],
+  } as any,
   bids: {
     select: {
       id: true,
@@ -75,9 +82,28 @@ export const listAuctionInclude = {
 
 export const detailAuctionInclude = {
   ...baseAuctionInclude,
-  images: true,
-  videos: true,
-  documents: true,
+  images: {
+    select: {
+      url: true,
+      ordering: true,
+      createdAt: true,
+    },
+    orderBy: [{ ordering: 'asc' as const }, { createdAt: 'asc' as const }],
+  } as any,
+  videos: {
+    select: {
+      url: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'asc' as const },
+  } as any,
+  documents: {
+    select: {
+      url: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'asc' as const },
+  } as any,
   bids: {
     select: {
       id: true,

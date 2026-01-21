@@ -8,6 +8,7 @@ const envSchema = z.object({
   
   // Baza Danych
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DIRECT_URL: z.string().url('DIRECT_URL must be a valid URL').optional(),
   SHADOW_DATABASE_URL: z.string().optional(),
   
   // Supabase

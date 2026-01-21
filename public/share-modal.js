@@ -58,13 +58,16 @@
 
   function init() {
     if (isInitialized || !document || !document.body) return;
+    var add = document.addEventListener;
+    var remove = document.removeEventListener;
+    if (typeof add !== 'function' || typeof remove !== 'function') return;
     try {
       // Remove old listeners if any to prevent duplicates
-      document.removeEventListener('click', handleClick);
-      document.removeEventListener('keydown', handleKeydown);
+      remove.call(document, 'click', handleClick);
+      remove.call(document, 'keydown', handleKeydown);
       
-      document.addEventListener('click', handleClick);
-      document.addEventListener('keydown', handleKeydown);
+      add.call(document, 'click', handleClick);
+      add.call(document, 'keydown', handleKeydown);
       isInitialized = true;
     } catch (err) {
       console.error('Share modal init error:', err);
@@ -72,7 +75,7 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
     init();
   }

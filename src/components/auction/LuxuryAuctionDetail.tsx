@@ -13,6 +13,8 @@ import { paymentService } from '@/services/paymentService';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Auction } from '@/types/auction';
 
+const AUCTION_PLACEHOLDER_SRC = '/placeholder.svg';
+
 interface LuxuryAuctionDetailProps {
   auction: Auction;
   isWatched: boolean;
@@ -62,7 +64,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
   
   // Obsługa zmiany zdjęcia
   const nextImage = () => {
-    if (auction?.images) {
+    if (auction.images.length > 1) {
       imageSpring.set(100);
       setTimeout(() => {
         setCurrentImageIndex((prev) => (prev + 1) % auction.images.length);
@@ -72,7 +74,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
   };
 
   const prevImage = () => {
-    if (auction?.images) {
+    if (auction.images.length > 1) {
       imageSpring.set(-100);
       setTimeout(() => {
         setCurrentImageIndex((prev) => (prev - 1 + auction.images.length) % auction.images.length);
@@ -156,8 +158,11 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             >
               <motion.img
                 key={currentImageIndex}
-                src={auction?.images[currentImageIndex]}
-                alt={auction?.title}
+                src={auction.images[currentImageIndex] || AUCTION_PLACEHOLDER_SRC}
+                alt={auction.title}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = AUCTION_PLACEHOLDER_SRC;
+                }}
                 className="w-full h-full object-contain"
                 style={{
                   scale: isImageZoomed ? 1.5 : 1,
@@ -213,7 +218,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             
             {/* Miniatury */}
             <div className="flex gap-2 p-4 overflow-x-auto">
-              {auction?.images.map((img: string, index: number) => (
+              {auction.images.map((img: string, index: number) => (
                 <motion.div
                   key={index}
                   className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer border-2 ${
@@ -226,6 +231,9 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                   <img 
                     src={img} 
                     alt={`Miniatura ${index + 1}`} 
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = AUCTION_PLACEHOLDER_SRC;
+                    }}
                     className="w-full h-full object-cover"
                   />
                 </motion.div>

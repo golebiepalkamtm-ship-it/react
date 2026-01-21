@@ -1,14 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const sanitizeEnvValue = (value: string | undefined) => {
+  if (!value) return value;
+  const trimmed = value.trim();
+  const wrapped = (trimmed.startsWith('`') && trimmed.endsWith('`'))
+    || (trimmed.startsWith('"') && trimmed.endsWith('"'))
+    || (trimmed.startsWith("'") && trimmed.endsWith("'"));
+  return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
+};
+
+const supabaseUrl = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_URL);
+const supabaseAnonKey = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY);
+const supabasePublishableKey = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 let supabase: SupabaseClient | null = null;
 
-const supabaseKey = supabasePublishableKey || supabaseAnonKey;
+const supabaseKey = supabaseAnonKey || supabasePublishableKey;
 
 if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey, {

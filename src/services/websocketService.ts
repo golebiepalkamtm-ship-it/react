@@ -1,5 +1,14 @@
 import { io, type Socket } from 'socket.io-client';
 
+const sanitizeEnvValue = (value: string | undefined) => {
+  if (!value) return value;
+  const trimmed = value.trim();
+  const wrapped = (trimmed.startsWith('`') && trimmed.endsWith('`'))
+    || (trimmed.startsWith('"') && trimmed.endsWith('"'))
+    || (trimmed.startsWith("'") && trimmed.endsWith("'"));
+  return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
+};
+
 class WebsocketService {
   public socket: Socket | null = null;
   private url: string;
@@ -10,7 +19,9 @@ class WebsocketService {
   private isManualDisconnect = false;
 
   constructor() {
-    const base = import.meta.env.VITE_WS_URL || import.meta.env.VITE_API_URL || 'http://localhost:8001';
+    const base = sanitizeEnvValue(import.meta.env.VITE_WS_URL)
+      || sanitizeEnvValue(import.meta.env.VITE_API_URL)
+      || 'http://localhost:8001';
     this.url = base.replace(/\/api$/, '').replace(/\/$/, '');
   }
 
@@ -55,6 +66,7 @@ class WebsocketService {
   connect(token: string) {
     if (this.socket?.connected) return;
     
+    this.isManualDisconnect = false;
     this.currentToken = token;
     
     this.socket = io(this.url, {
@@ -82,9 +94,13 @@ class WebsocketService {
 
     this.socket.on('connect_error', (error) => {
       console.error('⚠️ WebSocket connection error:', error);
-      if (!this.isManualDisconnect) {
-        this.scheduleReconnect();
+      const message = error instanceof Error ? error.message : String(error);
+      const isAuthError = /invalid or expired token|no authentication credentials provided|origin not allowed/i.test(message);
+      if (isAuthError) {
+        this.disconnect();
+        return;
       }
+      if (!this.isManualDisconnect) this.scheduleReconnect();
     });
 
     this.socket.on('pong', () => {

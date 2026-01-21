@@ -29,7 +29,10 @@ class TokenVerifier {
   private supabaseClient: SupabaseClient;
 
   constructor(options: TokenVerifierOptions) {
-    this.supabaseUrl = options.supabaseUrl;
+    const urlNoTrailingSlash = options.supabaseUrl.replace(/\/+$/, '');
+    this.supabaseUrl = urlNoTrailingSlash.endsWith('/auth/v1')
+      ? urlNoTrailingSlash.slice(0, -'/auth/v1'.length)
+      : urlNoTrailingSlash;
     this.supabaseKey = options.supabaseServiceKey || options.supabaseAnonKey || '';
     this.cacheTTL = options.cacheTTL || 5 * 60 * 1000; // 5 minutes
     this.rateLimitWindow = options.rateLimitWindow || 60 * 1000; // 1 minute

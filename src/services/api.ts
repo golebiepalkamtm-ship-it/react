@@ -1,8 +1,17 @@
 import { logger } from '@/lib/logger';
 
+const sanitizeEnvValue = (value: string | undefined) => {
+  if (!value) return value;
+  const trimmed = value.trim();
+  const wrapped = (trimmed.startsWith('`') && trimmed.endsWith('`'))
+    || (trimmed.startsWith('"') && trimmed.endsWith('"'))
+    || (trimmed.startsWith("'") && trimmed.endsWith("'"));
+  return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
+};
+
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL
-  || import.meta.env.VITE_API_URL
+  sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL)
+  || sanitizeEnvValue(import.meta.env.VITE_API_URL)
   || (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:8001/api');
 
 interface RequestConfig extends RequestInit {

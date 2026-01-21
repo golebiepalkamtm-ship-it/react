@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import { MagneticButton } from '@/components/effects/MagneticButton';
 import { ChampionCardEffect } from '@/components/effects/ChampionCardEffect';
 
+const AUCTION_PLACEHOLDER_SRC = '/placeholder.svg';
+
 interface LuxuryAuctionCardProps {
   id: string;
   title: string;
@@ -149,8 +151,11 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
       {/* Kontener zdjęcia */}
       <div className="relative h-64 overflow-hidden">
         <motion.img
-          src={image}
+          src={image || AUCTION_PLACEHOLDER_SRC}
           alt={title}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = AUCTION_PLACEHOLDER_SRC;
+          }}
           className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-3 bg-black/15' : 'object-cover'} transition-all duration-500`}
           style={{ 
             scale: isHovered ? 1.05 : 1,

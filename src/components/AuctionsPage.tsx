@@ -57,7 +57,7 @@ const AuctionsPage = () => {
   const filteredAuctions = useAuctionFilters(auctions, filters);
 
   const getFirstImage = (images: string[]) => {
-    return images && images.length > 0 ? images[0] : '';
+    return images && images.length > 0 ? images[0] : '/placeholder.svg';
   };
 
   const clearFilters = () => {

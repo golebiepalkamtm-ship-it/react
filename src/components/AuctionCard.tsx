@@ -6,6 +6,8 @@ import { cardMicro } from "@/components/motion";
 import { ChampionCardEffect } from "@/components/effects/ChampionCardEffect";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 
+const AUCTION_PLACEHOLDER_SRC = "/placeholder.svg";
+
 interface AuctionCardProps {
   id: string;
   name: string;
@@ -44,10 +46,13 @@ const AuctionCard = ({
       {/* Image Container */}
       <div className="relative h-64 overflow-hidden">
         <img
-          src={image}
+          src={image || AUCTION_PLACEHOLDER_SRC}
           alt={name}
           loading="lazy"
           decoding="async"
+          onError={(e) => {
+            e.currentTarget.src = AUCTION_PLACEHOLDER_SRC;
+          }}
           className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-3 bg-black/15' : 'object-cover'} transition-[filter] duration-300 group-hover:brightness-[1.03]`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent" />

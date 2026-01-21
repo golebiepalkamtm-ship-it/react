@@ -174,6 +174,41 @@ router.post('/', authMiddleware, validate(createAuctionSchema), async (req: Auth
       endTime, pigeon, category, location, images, videos, documents
     } = req.body;
 
+    const imagesCreate = Array.isArray(images)
+      ? images.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string, idx: number) => ({ url, ordering: idx }))
+      : undefined;
+
+    const videosCreate = Array.isArray(videos)
+      ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
+      : undefined;
+
+    const documentsCreate = Array.isArray(documents)
+      ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
+      : undefined;
+
+    const pigeonPayload = pigeon && typeof pigeon === 'object'
+      ? {
+          ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
+          eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
+          featherColor: typeof pigeon.pigeonColor === 'string' ? pigeon.pigeonColor : undefined,
+          construction: typeof pigeon.construction === 'string' ? pigeon.construction : undefined,
+          vitality: typeof pigeon.vitality === 'string' ? pigeon.vitality : undefined,
+          length: typeof pigeon.length === 'string' ? pigeon.length : undefined,
+          endurance: typeof pigeon.endurance === 'string' ? pigeon.endurance : undefined,
+          forkStrength: typeof pigeon.forkStrength === 'string' ? pigeon.forkStrength : undefined,
+          forkAlignment: typeof pigeon.forkAlignment === 'string' ? pigeon.forkAlignment : undefined,
+          muscles: typeof pigeon.muscles === 'string' ? pigeon.muscles : undefined,
+          balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
+          back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
+          purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
+          gender: typeof pigeon.gender === 'string' ? (pigeon.gender || 'male').toUpperCase() : undefined,
+        }
+      : null;
+
+    const pigeonHasData = pigeonPayload
+      ? Object.values(pigeonPayload).some((v) => v !== undefined && v !== null && v !== '')
+      : false;
+
     const created = await prisma.auction.create({
       data: {
         title,
@@ -188,6 +223,10 @@ router.post('/', authMiddleware, validate(createAuctionSchema), async (req: Auth
         sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
         location: location || 'Lubań, Polska',
         sellerId: userId,
+        pigeon: pigeonHasData && pigeonPayload ? { create: pigeonPayload as any } : undefined,
+        images: imagesCreate ? { create: imagesCreate } : undefined,
+        videos: videosCreate ? { create: videosCreate } : undefined,
+        documents: documentsCreate ? { create: documentsCreate } : undefined,
       },
       include: detailAuctionInclude,
     });

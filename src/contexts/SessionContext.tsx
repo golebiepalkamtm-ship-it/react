@@ -44,7 +44,10 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   const getBaseUrl = useCallback(() => {
-    const configuredSiteUrl = import.meta.env.VITE_SITE_URL as string | undefined;
+    const rawSiteUrl = import.meta.env.VITE_SITE_URL as string | undefined;
+    const configuredSiteUrl = rawSiteUrl
+      ? rawSiteUrl.trim().replace(/^`|`$/g, '').replace(/^"|"$/g, '').replace(/^'|'$/g, '')
+      : undefined;
     const origin = window.location.origin;
     const normalizedOrigin = origin.replace(/\/$/, '');
     const normalizedConfigured = configuredSiteUrl?.replace(/\/$/, '');
