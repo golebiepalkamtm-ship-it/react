@@ -34,7 +34,7 @@ enum UserRole {
 
 model SavedSearch {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id")
+  userId    String   @map("user_id") @db.Uuid
   name      String
   filters   Json // Store search filters as JSON
   isActive  Boolean  @default(true) @map("is_active")
@@ -104,9 +104,8 @@ model Auction {
   age                   Int?
   createdAt             DateTime        @default(now()) @map("created_at")
   updatedAt             DateTime        @updatedAt @map("updated_at")
-  winnerId              String?         @map("winner_id")
-
-  sellerId String? @map("owner_id")
+  winnerId              String?         @map("winner_id") @db.Uuid
+  sellerId String? @map("owner_id") @db.Uuid
   seller   User?   @relation("SellerAuctions", fields: [sellerId], references: [id])
   winner   User?   @relation("WinnerAuctions", fields: [winnerId], references: [id])
 
@@ -132,7 +131,7 @@ model Auction {
 
 model PigeonProfile {
   id            String   @id @default(uuid()) @db.Uuid
-  auctionId     String   @unique @map("auction_id")
+  auctionId     String   @unique @map("auction_id") @db.Uuid
   ringNumber    String   @map("ringnumber")
   eyeColor      String?  @map("eye_color")
   featherColor  String?  @map("feather_color")
@@ -157,7 +156,7 @@ model PigeonProfile {
 
 model AuctionImage {
   id        String   @id @default(uuid()) @db.Uuid
-  auctionId String   @map("auction_id")
+  auctionId String   @map("auction_id") @db.Uuid
   url       String
   ordering  Int?
   createdAt DateTime @default(now()) @map("created_at")
@@ -170,7 +169,7 @@ model AuctionImage {
 
 model AuctionVideo {
   id        String   @id @default(uuid()) @db.Uuid
-  auctionId String   @map("auction_id")
+  auctionId String   @map("auction_id") @db.Uuid
   url       String
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -182,7 +181,7 @@ model AuctionVideo {
 
 model AuctionDocument {
   id        String   @id @default(uuid()) @db.Uuid
-  auctionId String   @map("auction_id")
+  auctionId String   @map("auction_id") @db.Uuid
   url       String
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -194,8 +193,8 @@ model AuctionDocument {
 
 model Bid {
   id          String   @id @default(uuid()) @db.Uuid
-  auctionId   String   @map("auction_id")
-  bidderId    String   @map("bidder_id")
+  auctionId   String   @map("auction_id") @db.Uuid
+  bidderId    String?  @map("bidder_id") @db.Uuid
   displayName String?  @map("display_name")
   amount      Decimal  @db.Decimal(12, 2)
   isProxy     Boolean  @default(false) @map("is_proxy")
@@ -212,8 +211,8 @@ model Bid {
 
 model Watchlist {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id")
-  auctionId String   @map("auction_id")
+  userId    String   @map("user_id") @db.Uuid
+  auctionId String   @map("auction_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -234,8 +233,8 @@ enum NotificationType {
 
 model Notification {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id")
-  auctionId String?  @map("auction_id")
+  userId    String           @map("user_id") @db.Uuid
+  auctionId String?  @map("auction_id") @db.Uuid
   type      String   @db.Text
   title     String
   message   String
@@ -255,9 +254,9 @@ model Notification {
 
 model Review {
   id         String   @id @default(uuid()) @db.Uuid
-  auctionId  String   @map("auction_id")
-  reviewerId String   @map("reviewer_id")
-  revieweeId String   @map("reviewee_id")
+  auctionId  String   @map("auction_id") @db.Uuid
+  reviewerId String   @map("reviewer_id") @db.Uuid
+  revieweeId String   @map("reviewee_id") @db.Uuid
   rating     Int
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp
@@ -281,7 +280,7 @@ model Meeting {
   date        DateTime?
   description String?
   images      Json      @default("[]")
-  authorId    String    @map("author_id")
+  authorId    String    @map("author_id") @db.Uuid
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -311,8 +310,8 @@ enum PaymentType {
 
 model Payment {
   id          String          @id @default(uuid()) @db.Uuid
-  auctionId   String          @map("auction_id")
-  userId      String          @map("user_id")
+  auctionId   String          @map("auction_id") @db.Uuid
+  userId      String?         @map("user_id") @db.Uuid
   amount      Decimal         @db.Decimal(12, 2)
   provider    String?
   type        PaymentType     @default(BUY_NOW)
@@ -324,7 +323,7 @@ model Payment {
   updatedAt   DateTime        @updatedAt @map("updated_at")
 
   auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([auctionId])
   @@index([userId])
