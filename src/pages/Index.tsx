@@ -437,7 +437,7 @@ const Index = () => {
   // Debug hotkeys logic preserved from original Index.tsx
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'd' && e.ctrlKey && e.shiftKey) {
+      if (e.key && e.key.toLowerCase() === 'd' && e.ctrlKey && e.shiftKey) {
         const scrollY = window.scrollY;
         const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-section]'));
         const nearest = sections.reduce<HTMLElement | null>((acc, sec) => {
@@ -450,7 +450,7 @@ const Index = () => {
         console.log(`[DEBUG] scrollY=${Math.round(scrollY)} nearest=${nearest?.dataset?.section ?? 'unknown'}`);
       }
       
-      if (e.key.toLowerCase() === 'g' && e.ctrlKey && e.shiftKey) {
+      if (e.key && e.key.toLowerCase() === 'g' && e.ctrlKey && e.shiftKey) {
         console.clear();
         import('@/debug/gsap-diagnostic').then(module => {
           module.runGSAPDiagnostic();

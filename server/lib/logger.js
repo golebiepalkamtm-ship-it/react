@@ -9,8 +9,10 @@ function formatArgs(args) {
       try {
         return JSON.stringify(arg, (key, value) => {
           // Sensitive field masking
-          const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization', 'cookie'];
-          if (sensitiveFields.includes(key.toLowerCase())) return '***';
+          if (typeof key === 'string') {
+            const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization', 'cookie'];
+            if (sensitiveFields.includes(key.toLowerCase())) return '***';
+          }
           return value;
         });
       } catch {

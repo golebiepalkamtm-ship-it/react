@@ -201,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const queryPromise = client
         .from('users')
-        .select('*')
+        .select()
         .eq('id', authUser.id)
         .maybeSingle();
 
@@ -583,7 +583,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .from('users')
       .update(safeUpdates) // Use update, not upsert
       .eq('id', user.id)
-      .select('*')
+      .select()
       .maybeSingle();
 
     if (!error && !data) {
@@ -605,13 +605,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: user.id,
         email: user.email,
         role: calculatedRole,
+        username: generateUsername(user),
         ...safeUpdates
       };
       
       const insertResult = await client
         .from('users')
         .insert(insertPayload)
-        .select('*')
+        .select()
         .single();
         
       if (insertResult.error) {

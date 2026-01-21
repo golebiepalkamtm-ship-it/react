@@ -346,15 +346,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const filteredUsers = users.filter(user => 
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.last_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const query = (searchQuery || '').toLowerCase();
+    return (
+      user.email?.toLowerCase().includes(query) ||
+      user.first_name?.toLowerCase().includes(query) ||
+      user.last_name?.toLowerCase().includes(query)
+    );
+  });
 
-  const filteredAuctions = auctions.filter(auction =>
-    auction.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAuctions = auctions.filter(auction => {
+    const query = (searchQuery || '').toLowerCase();
+    return (
+      auction.title?.toLowerCase().includes(query)
+    );
+  });
 
   if (profile?.role !== 'ADMIN') return null;
 

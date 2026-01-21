@@ -12,8 +12,8 @@ interface AuctionFilters {
 export function useAuctionFilters(auctions: Auction[], filters: AuctionFilters) {
   return useMemo(() => {
     return auctions.filter(auction => {
-      const term = filters.searchTerm?.toLowerCase() || '';
-      const matchesSearch = !term ||
+      const term = (filters.searchTerm || '').toLowerCase();
+      const matchesSearch = !term || 
         auction.title?.toLowerCase().includes(term) ||
         auction.pigeon?.ringNumber?.toLowerCase().includes(term);
 
