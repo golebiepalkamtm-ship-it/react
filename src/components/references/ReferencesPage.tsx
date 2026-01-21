@@ -777,7 +777,8 @@ function ModalSideEffects({
       const first = container.querySelector<HTMLElement>('input,select,textarea,button,a[href],[tabindex]:not([tabindex="-1"])');
       try {
         first?.focus();
-      } catch {
+      } catch (err) {
+        // focus can fail in some browsers/states
       }
     }
 
@@ -794,7 +795,8 @@ function ModalSideEffects({
       document.removeEventListener('keydown', onKey);
       try {
         (triggerEl ?? previouslyActive.current)?.focus();
-      } catch {
+      } catch (err) {
+        // focus can fail in some browsers/states
       }
     };
   }, [modalRef, onClose, triggerRef]);

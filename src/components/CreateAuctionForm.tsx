@@ -248,8 +248,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
       return;
     }
 
-    if (profile.role === 'ADMIN') {
-    } else if (profile.role !== 'USER_FULL_VERIFIED') {
+    if (profile.role !== 'ADMIN' && profile.role !== 'USER_FULL_VERIFIED') {
       setError('Brak uprawnień do tworzenia aukcji.');
       toast('Brak uprawnień do tworzenia aukcji.', {
         description: 'Dokończ weryfikację konta (email + telefon) i spróbuj ponownie.',

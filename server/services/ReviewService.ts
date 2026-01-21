@@ -5,7 +5,6 @@ export interface ReviewData {
   reviewerId: string;
   revieweeId: string;
   rating: number;
-  comment?: string;
 }
 
 export interface ReviewResponse {
@@ -14,14 +13,13 @@ export interface ReviewResponse {
   reviewerId: string;
   revieweeId: string;
   rating: number;
-  comment?: string;
   createdAt: string;
   updatedAt: string;
   reviewer: {
     id: string;
-    firstName?: string;
-    lastName?: string;
-    avatarUrl?: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    avatarUrl?: string | null;
   };
 }
 
@@ -46,7 +44,7 @@ export class ReviewService {
       }
 
       // Sprawdzenie czy aukcja istnieje i jest zakończona
-      const auction = await (prisma as any).auction.findUnique({
+      const auction = await prisma.auction.findUnique({
         where: { id: data.auctionId },
         include: {
           seller: true,
@@ -73,7 +71,7 @@ export class ReviewService {
       }
 
       // Sprawdzenie czy recenzja już istnieje
-      const existingReview = await (prisma as any).review.findUnique({
+      const existingReview = await prisma.review.findUnique({
         where: {
           auctionId_reviewerId: {
             auctionId: data.auctionId,
@@ -87,20 +85,19 @@ export class ReviewService {
       }
 
       // Tworzenie recenzji
-      const review = await (prisma as any).review.create({
+      const review = await prisma.review.create({
         data: {
           auctionId: data.auctionId,
           reviewerId: data.reviewerId,
           revieweeId: data.revieweeId,
           rating: data.rating,
-          comment: data.comment || null,
         },
         include: {
           reviewer: {
             select: {
               id: true,
-              firstName: true,
-              lastName: true,
+              first_name: true,
+              last_name: true,
               avatarUrl: true,
             },
           },
@@ -116,7 +113,6 @@ export class ReviewService {
         reviewerId: review.reviewerId,
         revieweeId: review.revieweeId,
         rating: review.rating,
-        comment: review.comment || undefined,
         createdAt: review.createdAt.toISOString(),
         updatedAt: review.updatedAt.toISOString(),
         reviewer: review.reviewer,
@@ -145,14 +141,14 @@ export class ReviewService {
       const skip = (page - 1) * limit;
 
       const [reviews, total] = await Promise.all([
-        (prisma as any).review.findMany({
+        prisma.review.findMany({
           where: { revieweeId: userId },
           include: {
             reviewer: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                first_name: true,
+                last_name: true,
                 avatarUrl: true,
               },
             },
@@ -161,7 +157,7 @@ export class ReviewService {
                 id: true,
                 title: true,
                 currentPrice: true,
-                endedAt: true,
+                endTime: true,
               },
             },
           },
@@ -169,26 +165,25 @@ export class ReviewService {
           skip,
           take: limit,
         }),
-        (prisma as any).review.count({
+        prisma.review.count({
           where: { revieweeId: userId },
         }),
       ]);
 
       // Obliczanie średniej oceny
-      const ratingResult = await (prisma as any).review.aggregate({
+      const ratingResult = await prisma.review.aggregate({
         where: { revieweeId: userId },
         _avg: { rating: true },
       });
 
       const averageRating = ratingResult._avg.rating || 0;
 
-      const formattedReviews = reviews.map((review: any) => ({
+      const formattedReviews = reviews.map((review) => ({
         id: review.id,
         auctionId: review.auctionId,
         reviewerId: review.reviewerId,
         revieweeId: review.revieweeId,
         rating: review.rating,
-        comment: review.comment || undefined,
         createdAt: review.createdAt.toISOString(),
         updatedAt: review.updatedAt.toISOString(),
         reviewer: review.reviewer,
@@ -213,7 +208,7 @@ export class ReviewService {
       if (!userId || !prisma) return;
 
       // Obliczanie średniej oceny
-      const ratingResult = await (prisma as any).review.aggregate({
+      const ratingResult = await prisma.review.aggregate({
         where: { revieweeId: userId },
         _avg: { rating: true },
       });
@@ -221,7 +216,7 @@ export class ReviewService {
       const averageRating = ratingResult._avg.rating || 0;
 
       // Aktualizacja trust score
-      await (prisma as any).user.update({
+      await prisma.user.update({
         where: { id: userId },
         data: { trustScore: Number(averageRating.toFixed(2)) },
       });
@@ -248,7 +243,7 @@ export class ReviewService {
         return { canReview: false, reason: 'Database not available' };
       }
 
-      const auction = await (prisma as any).auction.findUnique({
+      const auction = await prisma.auction.findUnique({
         where: { id: auctionId },
         select: {
           status: true,
@@ -270,7 +265,7 @@ export class ReviewService {
       }
 
       // Sprawdzenie czy recenzja już istnieje
-      const existingReview = await (prisma as any).review.findUnique({
+      const existingReview = await prisma.review.findUnique({
         where: {
           auctionId_reviewerId: {
             auctionId,
@@ -297,7 +292,7 @@ export class ReviewService {
     try {
       if (!userId || !prisma) return 0;
 
-      const user = await (prisma as any).user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { trustScore: true },
       });

@@ -12,7 +12,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
     const userId = req.user?.id ?? req.user?.uid;
     if (!userId) return res.status(401).json({ error: 'Invalid user payload' });
 
-    const { auctionId, rating, comment } = req.body;
+    const { auctionId, rating } = req.body;
 
     // Sprawdzenie czy użytkownik może wystawić recenzję
     const eligibilityCheck = await ReviewService.canReview(auctionId, userId);
@@ -29,7 +29,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    const auction = await (prisma as any).auction.findUnique({
+    const auction = await prisma.auction.findUnique({
       where: { id: auctionId },
       select: { sellerId: true },
     });
@@ -41,9 +41,8 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
     const review = await ReviewService.createReview({
       auctionId,
       reviewerId: userId,
-      revieweeId: auction.sellerId,
+      revieweeId: auction.sellerId!,
       rating,
-      comment,
     });
 
     res.status(201).json(review);

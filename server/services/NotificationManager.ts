@@ -34,7 +34,7 @@ export class NotificationManager {
       }
 
       // Tworzenie powiadomienia w bazie danych
-      const notification = await (prisma as any).notification.create({
+      const notification = await prisma.notification.create({
         data: {
           userId: data.userId,
           auctionId: data.auctionId,
@@ -152,7 +152,7 @@ export class NotificationManager {
         return [];
       }
 
-      const notifications = await (prisma as any).notification.findMany({
+      const notifications = await prisma.notification.findMany({
         where: {
           userId,
           read: false,
@@ -163,7 +163,7 @@ export class NotificationManager {
         take: 50, // Ograniczenie do 50 najnowszych
       });
 
-      return notifications.map((notification: any) => ({
+      return notifications.map((notification) => ({
         id: notification.id,
         type: notification.type,
         title: notification.title,
@@ -192,7 +192,7 @@ export class NotificationManager {
         return false;
       }
 
-      const result = await (prisma as any).notification.updateMany({
+      const result = await prisma.notification.updateMany({
         where: {
           id: notificationId,
           userId, // Bezpieczeństwo - użytkownik może oznaczyć tylko swoje powiadomienia
@@ -221,7 +221,7 @@ export class NotificationManager {
         return false;
       }
 
-      await (prisma as any).notification.updateMany({
+      await prisma.notification.updateMany({
         where: {
           userId,
           read: false,
@@ -251,7 +251,7 @@ export class NotificationManager {
       // Pobieranie aukcji kończących się w ciągu następnych 30 minut
       const thirtyMinutesFromNow = new Date(Date.now() + 30 * 60 * 1000);
       
-      const endingAuctions = await (prisma as any).auction.findMany({
+      const endingAuctions = await prisma.auction.findMany({
         where: {
           status: 'ACTIVE',
           endTime: {  // Użyj nazwy pola z schematu Prisma
@@ -263,6 +263,7 @@ export class NotificationManager {
       });
 
       for (const auction of endingAuctions) {
+        if (!auction.endTime) continue;
         const timeLeft = this.formatTimeLeft(auction.endTime);  // Użyj endTime
         
         // Na razie pomiń powiadomienia - brakuje tabeli watchlist

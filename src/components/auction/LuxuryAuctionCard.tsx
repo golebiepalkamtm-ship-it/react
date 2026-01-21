@@ -157,6 +157,7 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
             (e.currentTarget as HTMLImageElement).src = AUCTION_PLACEHOLDER_SRC;
           }}
           className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-3 bg-black/15' : 'object-cover'} transition-all duration-500`}
+          loading="lazy"
           style={{ 
             scale: isHovered ? 1.05 : 1,
             filter: isHovered ? 'brightness(1.1)' : 'brightness(1)'

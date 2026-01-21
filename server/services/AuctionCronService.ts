@@ -104,7 +104,7 @@ export class AuctionCronService {
 
             if (highestBid) {
               // --- SCENARIO A: SOLD ---
-              const winnerId = highestBid.bidderId;
+              const winnerId = highestBid.bidderId!;
               const finalPrice = highestBid.amount;
 
               // 1. Update Auction Status
