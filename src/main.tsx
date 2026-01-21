@@ -5,7 +5,10 @@ import { logger } from '@/lib/logger';
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw-vite.js');
+    Promise.all([
+      navigator.serviceWorker.getRegistrations().then((regs) => Promise.all(regs.map((r) => r.unregister()))),
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+    ]).catch(() => {});
   });
 }
 
