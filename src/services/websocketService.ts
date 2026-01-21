@@ -10,8 +10,8 @@ class WebsocketService {
   private isManualDisconnect = false;
 
   constructor() {
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-    this.url = base.replace(/\/api$/, '');
+    const base = import.meta.env.VITE_WS_URL || import.meta.env.VITE_API_URL || 'http://localhost:8001';
+    this.url = base.replace(/\/api$/, '').replace(/\/$/, '');
   }
 
   private getReconnectDelay(): number {
