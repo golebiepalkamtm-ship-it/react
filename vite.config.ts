@@ -10,6 +10,8 @@ export default defineConfig(({ mode }) => ({
     port: 5173,
     strictPort: false,
   },
+  envPrefix: 'VITE_',
+  envDir: '.',
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {

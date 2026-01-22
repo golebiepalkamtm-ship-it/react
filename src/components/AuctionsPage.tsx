@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search, SlidersHorizontal, Plus, X } from "lucide-react";
+import { Search, SlidersHorizontal, Plus, X, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
@@ -14,7 +14,7 @@ import CreateAccessoryAuctionForm from "@/components/CreateAccessoryAuctionForm"
 import AuctionCategorySelector from "@/components/AuctionCategorySelector";
 import DraggableModal from "@/components/DraggableModal";
 import AccountModal from "@/components/AccountModal";
-import UnifiedModal from "@/components/ui/UnifiedModal";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { useAuctionFilters } from "@/hooks/useAuctionFilters";
 import { auctionService } from "@/services/auctionService";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
@@ -132,6 +132,10 @@ const AuctionsPage = () => {
 
   const handleCloseModal = () => {
     setIsCreateOpen(false);
+    setSelectedCategory(null);
+  };
+
+  const handleBackToCategory = () => {
     setSelectedCategory(null);
   };
 
@@ -416,15 +420,16 @@ const AuctionsPage = () => {
               />
             ) : selectedCategory === 'pigeons' ? (
               <>
-                <div className="mb-6">
+                <div className="mb-3">
                   <button
-                    onClick={() => setSelectedCategory(null)}
-                    className="text-muted-foreground hover:text-foreground transition-colors mb-4"
+                    onClick={handleBackToCategory}
+                    className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mb-2 group text-sm"
                   >
-                    ← Powrót do wyboru kategorii
+                    <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+                    <span>Powrót do wyboru kategorii</span>
                   </button>
-                  <h2 className="font-display text-2xl font-bold text-foreground">Aukcja gołębi</h2>
-                  <p className="text-muted-foreground">Wypełnij podstawowe informacje o gołębiu.</p>
+                  <h2 className="font-display text-lg font-bold text-foreground">Aukcja gołębi</h2>
+                  <p className="text-muted-foreground text-sm">Wypełnij podstawowe informacje o gołębiu.</p>
                 </div>
                 <CreateAuctionForm
                   initialCategory={selectedCategory}
@@ -439,10 +444,11 @@ const AuctionsPage = () => {
               <>
                 <div className="mb-6">
                   <button
-                    onClick={() => setSelectedCategory(null)}
-                    className="text-muted-foreground hover:text-foreground transition-colors mb-4"
+                    onClick={handleBackToCategory}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4 group"
                   >
-                    ← Powrót do wyboru kategorii
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    <span>Powrót do wyboru kategorii</span>
                   </button>
                   <h2 className="font-display text-2xl font-bold text-foreground">Aukcja suplementów</h2>
                   <p className="text-muted-foreground">Wypełnij podstawowe informacje o suplementach.</p>
@@ -459,10 +465,11 @@ const AuctionsPage = () => {
               <>
                 <div className="mb-6">
                   <button
-                    onClick={() => setSelectedCategory(null)}
-                    className="text-muted-foreground hover:text-foreground transition-colors mb-4"
+                    onClick={handleBackToCategory}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4 group"
                   >
-                    ← Powrót do wyboru kategorii
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    <span>Powrót do wyboru kategorii</span>
                   </button>
                   <h2 className="font-display text-2xl font-bold text-foreground">Aukcja akcesoriów hodowlanych</h2>
                   <p className="text-muted-foreground">Wypełnij podstawowe informacje o akcesoriach.</p>

@@ -10,7 +10,7 @@ import { Camera, CheckCircle, AlertCircle, Upload, X, Users } from 'lucide-react
 import { Button } from '@/components/ui/button';
 import { meetingsService } from '@/services/meetingsService';
 import { useOptimizedToast } from '@/hooks/use-optimized-toast';
-import UnifiedModal from '@/components/ui/UnifiedModal';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import AccountModal from '@/components/AccountModal';
 import { useNavigate } from 'react-router-dom';
 

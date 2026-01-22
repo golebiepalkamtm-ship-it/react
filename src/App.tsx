@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { PageTransition } from "@/components/motion";
 import { SmoothScrollProvider } from "@/components/animations";
+import { UIProviders } from "@/components/ui/UIProviders";
 import "@/utils/diagnostics";
 import {
   LazyIndex,
@@ -45,17 +46,18 @@ const App = () => {
       <ThemeProvider defaultTheme="dark" storageKey="champion-pigeon-theme">
         <LocaleProvider>
           <AuthProvider>
-            <SmoothScrollProvider>
-              <GlobalParallaxBackground />
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true,
-                }}
-              >
+            <UIProviders>
+              <SmoothScrollProvider>
+                <GlobalParallaxBackground />
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true,
+                  }}
+                >
                 <PageTransition>
                   <Suspense fallback={<LoadingSpinner />}>
                     <Routes>
@@ -97,11 +99,12 @@ const App = () => {
               </BrowserRouter>
             </TooltipProvider>
           </SmoothScrollProvider>
-          </AuthProvider>
-        </LocaleProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+        </UIProviders>
+        </AuthProvider>
+      </LocaleProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
+</ErrorBoundary>
   );
 };
 

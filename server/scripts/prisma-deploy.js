@@ -38,13 +38,5 @@ const hasMigrations =
     return statSync(fullPath).isDirectory() && existsSync(join(fullPath, 'migration.sql'))
   })
 
-if (hasMigrations) {
-  run('npx', ['prisma', 'migrate', 'deploy'])
-} else {
-  runSql(`
-    update "users"
-    set "username" = 'user_' || replace("id"::text, '-', '')
-    where "username" is null;
-  `)
-  run('npx', ['prisma', 'db', 'push', '--skip-generate'])
-}
+// Docker build: use db push only (skip migrations)
+run('npx', ['prisma', 'db', 'push', '--skip-generate'])

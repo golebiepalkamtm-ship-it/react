@@ -8,7 +8,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
-import UnifiedModal from '@/components/ui/UnifiedModal';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 
 interface UserPanelProps {
   onClose: () => void;

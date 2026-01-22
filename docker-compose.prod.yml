@@ -21,12 +21,25 @@ services:
       context: .
       dockerfile: Dockerfile.production
       target: production
+      args:
+        VITE_API_URL: http://localhost:8001/api
+        VITE_WS_URL: http://localhost:8001
+        VITE_SITE_URL: http://localhost
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-https://your-supabase-url}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-your-anon-key}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-your-publishable-key}
     container_name: champion_frontend_prod
     ports:
       - "80:80"
       - "443:443"
     environment:
       - NODE_ENV=production
+      - VITE_API_URL=http://localhost:8001/api
+      - VITE_WS_URL=http://localhost:8001
+      - VITE_SITE_URL=http://localhost
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-https://your-supabase-url}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY:-your-anon-key}
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY:-your-publishable-key}
     volumes:
       - ./ssl:/etc/nginx/ssl:ro
     restart: unless-stopped
@@ -40,13 +53,31 @@ services:
       context: ./server
       dockerfile: Dockerfile.production
       target: production
+      args:
+        DATABASE_URL: "${DATABASE_URL:-postgresql://user:pass@host:5432/dbname}"
+        DIRECT_URL: "${DIRECT_URL:-${DATABASE_URL:-postgresql://user:pass@host:5432/dbname}}"
     container_name: champion_backend_prod
     ports:
       - "8001:8001"
-    env_file:
-      - ./server/.env.production
     environment:
       - NODE_ENV=production
+      - CLIENT_URL=http://localhost
+      - DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@host:5432/dbname}
+      - DIRECT_URL=${DIRECT_URL:-${DATABASE_URL:-postgresql://user:pass@host:5432/dbname}}
+      - SUPABASE_URL=${SUPABASE_URL:-https://your-supabase-url}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-your-anon-key}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-your-service-role-key}
+      - SUPABASE_BUCKET=${SUPABASE_BUCKET:-auction-media}
+      - SUPABASE_BUCKET_PUBLIC=${SUPABASE_BUCKET_PUBLIC:-true}
+      - JWT_SECRET=${JWT_SECRET:-change-me}
+      - JWT_EXPIRES_IN=1h
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_API_KEY=${TWILIO_API_KEY}
+      - TWILIO_API_SECRET=${TWILIO_API_SECRET}
+      - TWILIO_VERIFY_SERVICE_SID=${TWILIO_VERIFY_SERVICE_SID}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -66,11 +97,14 @@ services:
       context: ./server
       dockerfile: Dockerfile.production
       target: production
+      args:
+        DATABASE_URL: "postgresql://postgres.nctvwxiqzbedgcmetyal:Milosz.120588@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+        DIRECT_URL: "postgresql://postgres.nctvwxiqzbedgcmetyal:Milosz.120588@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
     container_name: champion_db_migrate_prod
-    env_file:
-      - ./server/.env.production
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres.nctvwxiqzbedgcmetyal:Milosz.120588@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+      - DIRECT_URL=postgresql://postgres.nctvwxiqzbedgcmetyal:Milosz.120588@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true
     command: >
       sh -c "
         echo 'Running migrations...' &&

@@ -8,6 +8,7 @@ export default defineConfig({
   },
   datasource: {
     // Use process.env to avoid throwing during `prisma` commands when DATABASE_URL is not set
-    url: process.env.DATABASE_URL ?? ''
+    url: process.env.DATABASE_URL ?? '',
+    directUrl: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? ''
   }
 })

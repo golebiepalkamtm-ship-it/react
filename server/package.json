@@ -8,7 +8,7 @@
     "dev": "nodemon --watch . --ext ts --exec \"tsx\" index.ts",
     "create-admin": "node ./scripts/create-admin.js",
     "create-user": "node ./scripts/create-user.js",
-    "build": "node ./scripts/prisma-deploy.js && prisma generate && tsc --skipLibCheck",
+    "build": "prisma generate && tsc --skipLibCheck",
     "postbuild": "node ./scripts/create-dist-index.js",
     "start": "node dist/bootstrap.js",
     "type-check": "tsc --noEmit",

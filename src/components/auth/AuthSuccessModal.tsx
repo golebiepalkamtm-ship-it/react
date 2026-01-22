@@ -1,4 +1,4 @@
-import UnifiedModal, { type ModalType } from '@/components/ui/UnifiedModal';
+import { UnifiedModal, type ModalType } from '@/components/ui/UnifiedModal';
 
 type MessageType = ModalType;
 

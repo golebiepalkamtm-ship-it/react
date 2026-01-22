@@ -375,27 +375,27 @@ const StatsHeader = ({
       value: mistrz,
       icon: Trophy,
       color: "text-gold",
-      bgColor: "from-gold/20 to-gold-dark/5",
-      borderColor: "border-gold/30",
-      glowColor: "shadow-gold/20",
+      bgColor: "from-gold/30 to-gold-dark/10",
+      borderColor: "border-gold/50",
+      glowColor: "shadow-gold/40",
     },
     {
       label: "Wicemistrz",
       value: wicemistrz,
       icon: Medal,
-      color: "text-gray-300",
-      bgColor: "from-gray-300/20 to-gray-500/5",
-      borderColor: "border-gray-300/30",
-      glowColor: "shadow-gray-300/20",
+      color: "text-gray-200",
+      bgColor: "from-gray-200/30 to-gray-500/10",
+      borderColor: "border-gray-200/50",
+      glowColor: "shadow-gray-200/40",
     },
     {
       label: "Przodownik",
       value: przodownik,
       icon: Award,
-      color: "text-amber-600",
-      bgColor: "from-amber-600/20 to-amber-800/5",
-      borderColor: "border-amber-600/30",
-      glowColor: "shadow-amber-600/20",
+      color: "text-amber-500",
+      bgColor: "from-amber-500/30 to-amber-800/10",
+      borderColor: "border-amber-500/50",
+      glowColor: "shadow-amber-500/40",
     },
   ];
 
@@ -409,13 +409,13 @@ const StatsHeader = ({
       {stats.map((stat, index) => (
         <motion.div
           key={stat.label}
-          className={`relative flex items-center gap-3 px-5 py-3 md:px-6 md:py-4 rounded-2xl border ${stat.borderColor} bg-gradient-to-br ${stat.bgColor} backdrop-blur-md shadow-lg ${stat.glowColor}`}
+          className={`relative flex items-center gap-3 px-5 py-3 md:px-6 md:py-4 rounded-2xl border ${stat.borderColor} bg-gradient-to-br ${stat.bgColor} backdrop-blur-xl shadow-2xl ${stat.glowColor}`}
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.7 + index * 0.15 }}
           whileHover={{
-            scale: 1.05,
-            boxShadow: "0 0 30px hsl(var(--primary) / 0.3)",
+            scale: 1.08,
+            boxShadow: `0 0 40px hsl(var(--primary) / 0.5), 0 0 80px hsl(var(--primary) / 0.25)`,
           }}
         >
           <motion.div
@@ -839,16 +839,29 @@ const TimelineCard = ({ event, index, isActive }: { event: TimelineEvent; index:
             transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 2.625 }}
           />
           
-          {/* Subtelny blask matowej powierzchni */}
+          {/* Subtelny blask matowej powierzchni + ultra glow na hover */}
           <motion.div
             className="absolute inset-[6px] rounded-[44px] pointer-events-none z-20"
             animate={{
-              opacity: isHovered ? 0.2 : 0,
+              opacity: isHovered ? 0.35 : 0.05,
             }}
             style={{
-              background: 'radial-gradient(circle at center, rgba(140,100,35,0.25) 0%, transparent 60%)',
+              background: 'radial-gradient(circle at center, rgba(200,150,50,0.35) 0%, rgba(255,200,80,0.15) 30%, transparent 60%)',
             }}
             transition={{ duration: 0.3 }}
+          />
+
+          {/* Ultra-glow efekt na hover */}
+          <motion.div
+            className="absolute inset-0 rounded-[50px] pointer-events-none z-10"
+            animate={{
+              opacity: isHovered ? 0.5 : 0,
+            }}
+            style={{
+              boxShadow: isHovered ? '0 0 60px rgba(255,215,0,0.5), 0 0 100px rgba(255,200,80,0.3), inset 0 0 80px rgba(255,235,150,0.15)' : '0 0 0px rgba(255,215,0,0)',
+              background: isHovered ? 'radial-gradient(ellipse at center, rgba(255,235,150,0.1) 0%, transparent 70%)' : 'transparent',
+            }}
+            transition={{ duration: 0.4 }}
           />
 
           {/* Szkło - intensywny górny lewy refleks */}
@@ -954,6 +967,17 @@ const TimelineCard = ({ event, index, isActive }: { event: TimelineEvent; index:
               whileInView={{ width: "100%" }}
               transition={{ duration: 1, delay: 0.2 }}
             />
+
+            {/* Tooltip info na hover */}
+            <motion.div
+              className="absolute -bottom-12 left-1/2 -translate-x-1/2 px-3 py-2 rounded-lg bg-primary/15 backdrop-blur-sm border border-primary/30 text-xs text-foreground/80 whitespace-nowrap z-50"
+              initial={{ opacity: 0, y: -5 }}
+              animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: -5 }}
+              transition={{ duration: 0.3 }}
+              pointer-events="none"
+            >
+              {event.achievements.length} osiągnięć • {event.year}
+            </motion.div>
           </div>
           </div>
           </div>
@@ -973,7 +997,7 @@ const TimelineCard = ({ event, index, isActive }: { event: TimelineEvent; index:
   );
 };
 
-const particlePresets = Array.from({ length: 120 }, (_, i) => ({
+const particlePresets = Array.from({ length: 60 }, (_, i) => ({
   id: i,
   x: Math.random() * 100,
   y: Math.random() * 100,
@@ -989,17 +1013,19 @@ const ParticlesBackground = () => {
       {particlePresets.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute rounded-full bg-primary/30"
+          className="absolute rounded-full"
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,
             width: particle.size,
             height: particle.size,
+            background: `radial-gradient(circle, rgba(255,215,0,0.8) 0%, rgba(255,215,0,0.4) 50%, rgba(255,215,0,0) 100%)`,
+            boxShadow: `0 0 ${particle.size * 2}px rgba(255,215,0,0.6), 0 0 ${particle.size * 4}px rgba(255,215,0,0.3)`,
           }}
           animate={{
             y: [0, -300, 0],
             x: [0, particle.offsetX, 0],
-            opacity: [0, 1, 0],
+            opacity: [0, 0.8, 0],
             scale: [0.5, 2, 0.5],
             rotate: [0, 180, 360],
           }}

@@ -1,38 +1,39 @@
 # Railway configuration for Champion Pigeon Auctions
-# Update `project.id` with your Railway project id if desired.
-
-[project]
-id = ""
-
+# Backend API Service
 [[services]]
 name = "api"
 path = "server"
 start = "npm run start"
 build = "npm install && npm run build"
+healthcheck_path = "/api/health"
+healthcheck_port = 8001
 
-# Common env vars used by the service (Railway will prompt to set these or you can set in dashboard)
-env = [
-  "DATABASE_URL",
-  "SUPABASE_URL",
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "JWT_SECRET",
-  "CLIENT_URL",
-  "TWILIO_ACCOUNT_SID",
-  "TWILIO_AUTH_TOKEN",
-  "TWILIO_VERIFY_SERVICE_SID",
-  "STRIPE_SECRET_KEY",
-  "STRIPE_WEBHOOK_SECRET"
-]
+# Backend environment variables (set in Railway dashboard)
+[services.env]
+NODE_ENV = "production"
+PORT = "8001"
+DATABASE_URL = "${{DATABASE_URL}}"
+SUPABASE_URL = "${{SUPABASE_URL}}"
+SUPABASE_SERVICE_ROLE_KEY = "${{SUPABASE_SERVICE_ROLE_KEY}}"
+JWT_SECRET = "${{JWT_SECRET}}"
+CLIENT_URL = "${{CLIENT_URL}}"
+TWILIO_ACCOUNT_SID = "${{TWILIO_ACCOUNT_SID}}"
+TWILIO_AUTH_TOKEN = "${{TWILIO_AUTH_TOKEN}}"
+TWILIO_VERIFY_SERVICE_SID = "${{TWILIO_VERIFY_SERVICE_SID}}"
 
+# Frontend Service
 [[services]]
 name = "frontend"
 path = "."
 start = "npm run start"
 build = "npm install && npm run build"
-env = [
-  "VITE_SUPABASE_URL",
-  "VITE_SUPABASE_ANON_KEY",
-  "VITE_API_BASE_URL",
-  "VITE_WS_URL",
-  "VITE_DISABLE_AUTH_GUARDS"
-]
+healthcheck_path = "/"
+healthcheck_port = 3000
+
+# Frontend environment variables (set in Railway dashboard)
+[services.env]
+NODE_ENV = "production"
+VITE_SUPABASE_URL = "${{VITE_SUPABASE_URL}}"
+VITE_SUPABASE_ANON_KEY = "${{VITE_SUPABASE_ANON_KEY}}"
+VITE_API_BASE_URL = "${{VITE_API_BASE_URL}}"
+VITE_WS_URL = "${{VITE_WS_URL}}"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import UnifiedModal from '@/components/ui/UnifiedModal';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import type { Auction } from '@/types/auction';
 
 interface EditAuctionModalProps {

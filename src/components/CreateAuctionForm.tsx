@@ -32,13 +32,13 @@ const StepIndicator = ({
   
   return (
     <motion.div 
-      className="flex items-center gap-3"
+      className="flex items-center gap-2"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: step * 0.1 }}
     >
       <motion.div
-        className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-300 ${
+        className={`relative w-8 h-8 rounded-md flex items-center justify-center font-bold text-xs transition-all duration-300 ${
           isCompleted 
             ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30' 
             : isActive 
@@ -57,10 +57,10 @@ const StepIndicator = ({
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 20 }}
           >
-            <Check className="w-6 h-6" />
+            <Check className="w-3.5 h-3.5" />
           </motion.div>
         ) : (
-          <Icon className="w-5 h-5" />
+          <Icon className="w-3.5 h-3.5" />
         )}
         
         {isActive && (
@@ -76,7 +76,7 @@ const StepIndicator = ({
       
       <div className="hidden md:block">
         <motion.p 
-          className={`text-sm font-medium transition-colors ${isActive ? 'text-gold' : isCompleted ? 'text-green-400' : 'text-white/50'}`}
+          className={`text-[10px] font-medium transition-colors ${isActive ? 'text-gold' : isCompleted ? 'text-green-400' : 'text-white/50'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 + step * 0.1 }}
@@ -115,15 +115,15 @@ const InputField = ({
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, type: "spring", stiffness: 200, damping: 20 }}
-    className={`group ${highlighted ? 'p-4 rounded-2xl border-2 border-gold/30 bg-gold/5' : ''}`}
+    className={`group ${highlighted ? 'p-2 rounded-lg border-2 border-gold/30 bg-gold/5' : ''}`}
   >
-    <label className={`block text-sm font-medium mb-2 transition-colors ${highlighted ? 'text-gold font-semibold' : 'text-white/70 group-focus-within:text-gold'}`}>
+    <label className={`block text-[11px] font-medium mb-1 transition-colors ${highlighted ? 'text-gold font-semibold' : 'text-white/70 group-focus-within:text-gold'}`}>
       {label} {required && <span className="text-red-400">*</span>}
     </label>
     <div className="relative">
       {Icon && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-gold transition-colors">
-          <Icon className="w-5 h-5" />
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-gold transition-colors">
+          <Icon className="w-3.5 h-3.5" />
         </div>
       )}
       <input
@@ -133,11 +133,11 @@ const InputField = ({
         onChange={onChange}
         required={required}
         placeholder={placeholder}
-        className={`w-full ${Icon ? 'pl-12' : 'px-4'} pr-4 py-3 rounded-xl bg-white/5 border border-white/20 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-white placeholder-white/40 transition-all duration-200 hover:bg-white/10 hover:border-white/30`}
+        className={`w-full ${Icon ? 'pl-9' : 'px-2.5'} pr-2.5 py-1.5 rounded-md bg-white/5 border border-white/20 focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none text-white placeholder-white/40 transition-all duration-200 hover:bg-white/10 hover:border-white/30 text-xs`}
       />
     </div>
     {highlighted && (
-      <p className="text-xs text-white/50 mt-2">Wprowadź pełny numer obrączki gołębia</p>
+      <p className="text-[9px] text-white/50 mt-1">Wprowadź pełny numer obrączki gołębia</p>
     )}
   </motion.div>
 );
@@ -351,9 +351,9 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
         endTime: endTime.toISOString(),
         pigeon: isPigeonCategory ? {
           ...formData.pigeon,
-          ringNumber: ringNumber,
+          ringNumber: ringNumber || '',
           gender: formData.sex as 'male' | 'female',
-        } : undefined,
+        } : {},
       };
 
       // Mapowanie kategorii z formularza na enum API
@@ -389,7 +389,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
   return (
     <motion.form 
       onSubmit={handleSubmit} 
-      className="space-y-8"
+      className="space-y-1"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -400,10 +400,10 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-3 text-red-400 backdrop-blur-sm"
+            className="p-2 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-red-400 backdrop-blur-sm"
           >
-            <div className="p-2 rounded-xl bg-red-500/20">
-              <AlertCircle className="w-5 h-5" />
+            <div className="p-1.5 rounded-lg bg-red-500/20">
+              <AlertCircle className="w-4 h-4" />
             </div>
             <span className="flex-1">{error}</span>
             <button 
@@ -418,12 +418,12 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
       </AnimatePresence>
 
       <motion.div 
-        className="flex items-center justify-between gap-4 p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+        className="flex items-center justify-between gap-1.5 p-1.5 rounded-md bg-white/5 border border-white/10 backdrop-blur-sm"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2">
           {steps.slice(0, totalSteps).map((s) => (
             <StepIndicator 
               key={s.step}
@@ -436,13 +436,13 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
         </div>
         
         <motion.div 
-          className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gold/10 border border-gold/30"
+          className="hidden md:flex items-center gap-1 px-2 py-1 rounded-md bg-gold/10 border border-gold/30"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <Sparkles className="w-4 h-4 text-gold" />
-          <span className="text-sm text-gold font-medium">
+          <Sparkles className="w-2.5 h-2.5 text-gold" />
+          <span className="text-[10px] text-gold font-medium">
             Krok {currentStep} z {totalSteps}
           </span>
         </motion.div>
@@ -456,46 +456,15 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="space-y-8"
+            className="space-y-1"
           >
             <motion.div 
-              className="p-6 rounded-2xl bg-gradient-to-br from-white/5 via-white/0 to-white/5 border border-white/10 backdrop-blur-sm space-y-6 relative overflow-hidden"
+              className="p-2 rounded-lg bg-gradient-to-br from-white/5 via-white/0 to-white/5 border border-white/10 backdrop-blur-sm space-y-1.5 relative overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
               <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.12),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(96,165,250,0.2),transparent_28%)] pointer-events-none" />
-
-              <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-gold to-gold-dark shadow-lg shadow-gold/30">
-                    <Bird className="w-6 h-6 text-navy" />
-                  </div>
-                  <div>
-                    <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-white/10 border border-white/15 text-xs text-white/70 mb-2">
-                      <Sparkles className="w-4 h-4 text-gold" />
-                      Krok 1 • Podstawowe dane
-                    </div>
-                    <h3 className="text-xl md:text-2xl font-bold text-white leading-tight">Nadaj aukcji charakter i zaufanie</h3>
-                    <p className="text-sm text-white/60">Tytuł, opis oraz kategoria określą sposób wyświetlania Twojej aukcji.</p>
-                  </div>
-                </div>
-                <div className="relative flex flex-wrap gap-3">
-                  {[
-                    { label: 'Średni czas wystawienia', value: '2 min' },
-                    { label: 'Rekomendowane zdjęcia', value: '6+' },
-                    { label: 'Weryfikacja sprzedawcy', value: 'Wymagana' },
-                  ].map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-left min-w-[160px]"
-                    >
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-white/50">{stat.label}</p>
-                      <p className="text-base font-semibold text-white">{stat.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               <InputField
                 label="Tytuł aukcji"
@@ -512,82 +481,38 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
               >
-                <label className="block text-sm font-medium text-white/70 mb-2">
+                <label className="block text-xs font-medium text-white/70 mb-1">
                   Opis <span className="text-red-400">*</span>
                 </label>
-                <div className="rounded-2xl border border-white/15 bg-white/5 focus-within:border-gold/60 focus-within:shadow-[0_10px_40px_rgba(212,175,55,0.18)] transition-all">
+                <div className="rounded-lg border border-white/15 bg-white/5 focus-within:border-gold/60 focus-within:shadow-[0_10px_40px_rgba(212,175,55,0.18)] transition-all">
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
                     required
-                    rows={5}
-                    className="w-full px-4 py-3 rounded-2xl bg-transparent outline-none text-white placeholder-white/40 transition-all duration-200"
+                    rows={2}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-transparent outline-none text-white placeholder-white/40 transition-all duration-200 text-sm"
                     placeholder="Opisz gołębia, jego osiągnięcia, rodowód..."
                   />
-                  <div className="flex items-center justify-between px-4 pb-3 text-xs text-white/50">
+                  <div className="flex items-center justify-between px-2.5 pb-1.5 text-[10px] text-white/50">
                     <span>Opowiedz historię – osiągnięcia, linia, dlaczego jest wyjątkowy.</span>
                     <span className="text-gold font-semibold">Storytelling sprzedaje szybciej 🔥</span>
                   </div>
                 </div>
               </motion.div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1.2fr,0.8fr] gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-[1.2fr,0.8fr] gap-2">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="space-y-3"
+                  className="space-y-1"
                 >
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-white/70">Kategoria</label>
-                    <span className="text-[11px] text-white/50">Określa parametry i wymagane pola</span>
+                    <label className="block text-xs font-medium text-white/70">Płeć</label>
+                    <span className="text-[9px] text-white/50">Pomaga filtrować</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      { value: 'pigeons', label: 'Gołębie', desc: 'Pełne cechy i media', accent: 'from-gold to-amber-500' },
-                      { value: 'supplements', label: 'Suplementy', desc: 'Dawki, skład, seria', accent: 'from-sky-400 to-cyan-500' },
-                      { value: 'accessories', label: 'Akcesoria', desc: 'Akcesoria i wyposażenie', accent: 'from-emerald-400 to-teal-500' },
-                    ].map((item) => {
-                      const active = formData.category === item.value;
-                      return (
-                        <button
-                          key={item.value}
-                          type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, category: item.value as any }))}
-                          className={`group relative overflow-hidden rounded-2xl border transition-all text-left p-4 ${
-                            active
-                              ? 'border-gold bg-gradient-to-br from-white/10 to-white/0 shadow-lg shadow-gold/25'
-                              : 'border-white/15 bg-white/5 hover:border-white/30 hover:bg-white/10'
-                          }`}
-                        >
-                          <div className={`absolute inset-0 ${active ? 'opacity-100' : 'opacity-0'} bg-gradient-to-br ${item.accent} blur-3xl transition-opacity duration-500`} />
-                          <div className="relative flex items-start justify-between gap-2">
-                            <div>
-                              <p className="text-sm font-semibold text-white">{item.label}</p>
-                              <p className="text-xs text-white/60">{item.desc}</p>
-                            </div>
-                            <div className={`w-5 h-5 rounded-lg border ${active ? 'border-gold bg-gold' : 'border-white/30'} flex items-center justify-center`}>
-                              {active && <Check className="w-4 h-4 text-navy" />}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 }}
-                  className="space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-white/70">Płeć</label>
-                    <span className="text-[11px] text-white/50">Pomaga filtrować aukcje</span>
-                  </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-1.5">
                     {[
                       { value: 'male', label: 'Samiec' },
                       { value: 'female', label: 'Samica' },
@@ -598,7 +523,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                           key={item.value}
                           type="button"
                           onClick={() => setFormData((prev) => ({ ...prev, sex: item.value as 'male' | 'female' }))}
-                          className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+                          className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                             active
                               ? 'border-gold bg-gold/15 text-gold shadow-lg shadow-gold/20'
                               : 'border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white'
@@ -614,18 +539,18 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
             </motion.div>
 
             <motion.div 
-              className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-6"
+              className="p-2 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm space-y-1.5"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <span className="text-2xl">💰</span> Opcje sprzedaży
+              <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">
+                <span className="text-base">💰</span> Opcje sprzedaży
               </h3>
 
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-1.5">
                 <motion.label 
-                  className={`flex items-center gap-3 px-6 py-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md cursor-pointer transition-all duration-300 ${
                     isBidding 
                       ? 'bg-gold/20 border-2 border-gold text-gold shadow-lg shadow-gold/20' 
                       : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40'
@@ -639,14 +564,14 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                     onChange={(e) => setIsBidding(e.target.checked)}
                     className="sr-only"
                   />
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isBidding ? 'bg-gold' : 'border-2 border-white/30'}`}>
-                    {isBidding && <Check className="w-4 h-4 text-navy" />}
+                  <div className={`w-4 h-4 rounded flex items-center justify-center ${isBidding ? 'bg-gold' : 'border-2 border-white/30'}`}>
+                    {isBidding && <Check className="w-2.5 h-2.5 text-navy" />}
                   </div>
-                  <span className="font-medium">Licytacja</span>
+                  <span className="font-medium text-xs">Licytacja</span>
                 </motion.label>
 
                 <motion.label 
-                  className={`flex items-center gap-3 px-6 py-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md cursor-pointer transition-all duration-300 ${
                     isBuyNow 
                       ? 'bg-gold/20 border-2 border-gold text-gold shadow-lg shadow-gold/20' 
                       : 'bg-white/5 border-2 border-white/20 text-white/70 hover:border-white/40'
@@ -660,14 +585,14 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                     onChange={(e) => setIsBuyNow(e.target.checked)}
                     className="sr-only"
                   />
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isBuyNow ? 'bg-gold' : 'border-2 border-white/30'}`}>
-                    {isBuyNow && <Check className="w-4 h-4 text-navy" />}
+                  <div className={`w-4 h-4 rounded flex items-center justify-center ${isBuyNow ? 'bg-gold' : 'border-2 border-white/30'}`}>
+                    {isBuyNow && <Check className="w-2.5 h-2.5 text-navy" />}
                   </div>
-                  <span className="font-medium">Kup Teraz</span>
+                  <span className="font-medium text-xs">Kup Teraz</span>
                 </motion.label>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <AnimatePresence>
                   {isBidding && (
                     <motion.div
@@ -719,21 +644,21 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="space-y-6"
+            className="space-y-1.5"
           >
             <motion.div 
-              className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+              className="p-2 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
-                  <Bird className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="p-1.5 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
+                  <Bird className="w-3 h-3 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Cechy gołębia</h3>
-                  <p className="text-sm text-white/60">Opisz szczegóły swojego gołębia</p>
+                  <h3 className="text-sm font-bold text-white">Cechy gołębia</h3>
+                  <p className="text-[10px] text-white/60">Opisz szczegóły swojego gołębia</p>
                 </div>
               </div>
 
@@ -748,7 +673,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                 delay={0.15}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 mt-2">
                 {pigeonCharacteristics.map((char, index) => (
                   <InputField
                     key={char.name}
@@ -773,34 +698,34 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="space-y-6"
+            className="space-y-1.5"
           >
             <motion.div 
-              className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+              className="p-2 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg shadow-purple-500/30">
-                  <Upload className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="p-1.5 rounded-md bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg shadow-purple-500/30">
+                  <Upload className="w-3 h-3 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Media</h3>
-                  <p className="text-sm text-white/60">Dodaj zdjęcia i filmy</p>
+                  <h3 className="text-sm font-bold text-white">Media</h3>
+                  <p className="text-[10px] text-white/60">Dodaj zdjęcia i filmy</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="space-y-3"
+                  className="space-y-1.5"
                 >
-                  <div className="flex items-center gap-2 text-white">
-                    <Camera className="w-5 h-5 text-blue-400" />
-                    <span className="font-medium">Zdjęcia gołębia</span>
+                  <div className="flex items-center gap-1 text-white">
+                    <Camera className="w-3.5 h-3.5 text-blue-400" />
+                    <span className="font-medium text-xs">Zdjęcia gołębia</span>
                   </div>
                   <FileUpload
                     files={pigeonFiles}
@@ -809,18 +734,18 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                     maxSize={20}
                     accept="image/*"
                   />
-                  <p className="text-xs text-white/50">Max 10 zdjęć, do 20MB każde</p>
+                  <p className="text-[10px] text-white/50">Max 10 zdjęć, do 20MB każde</p>
                 </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="space-y-3"
+                  className="space-y-1.5"
                 >
-                  <div className="flex items-center gap-2 text-white">
-                    <Video className="w-5 h-5 text-green-400" />
-                    <span className="font-medium">Wideo</span>
+                  <div className="flex items-center gap-1 text-white">
+                    <Video className="w-3.5 h-3.5 text-green-400" />
+                    <span className="font-medium text-xs">Wideo</span>
                   </div>
                   <FileUpload
                     files={videoFiles}
@@ -829,18 +754,18 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                     maxSize={50}
                     accept="video/*"
                   />
-                  <p className="text-xs text-white/50">Max 2 filmy, do 50MB każdy</p>
+                  <p className="text-[10px] text-white/50">Max 2 filmy, do 50MB każdy</p>
                 </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
-                  className="space-y-3"
+                  className="space-y-1.5"
                 >
-                  <div className="flex items-center gap-2 text-white">
-                    <FileText className="w-5 h-5 text-amber-400" />
-                    <span className="font-medium">Rodowód</span>
+                  <div className="flex items-center gap-1 text-white">
+                    <FileText className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="font-medium text-xs">Rodowód</span>
                   </div>
                   <FileUpload
                     files={pedigreeFile ? [pedigreeFile] : []}
@@ -849,7 +774,7 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
                     maxSize={10}
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   />
-                  <p className="text-xs text-white/50">PDF, DOC, DOCX, JPG, PNG - max 10MB</p>
+                  <p className="text-[10px] text-white/50">PDF, DOC, DOCX, JPG, PNG - max 10MB</p>
                 </motion.div>
               </div>
             </motion.div>
@@ -858,63 +783,60 @@ const CreateAuctionForm = ({ onSuccess, onCancel, initialCategory = 'pigeons' }:
       </AnimatePresence>
 
       <motion.div 
-        className="flex gap-4 pt-4"
+        className="flex gap-1 pt-0.5"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        {currentStep > 1 && (
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setCurrentStep(currentStep - 1)}
-              className="w-full py-6 rounded-xl border-white/20 text-white hover:bg-white/10 transition-all"
-            >
-              <ChevronLeft className="w-5 h-5 mr-2" />
-              Wróć
-            </Button>
-          </motion.div>
-        )}
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setCurrentStep(currentStep - 1)}
+            disabled={currentStep === 1}
+            className="w-full py-1.5 rounded-md border-white/20 text-white hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+          >
+            <ChevronLeft className="w-3 h-3 mr-1" />
+            Wróć
+          </Button>
+        </motion.div>
         
-        {onCancel && (
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel} 
-              className="w-full py-6 rounded-xl border-white/20 text-white hover:bg-white/10 transition-all"
-            >
-              <X className="w-5 h-5 mr-2" />
-              Anuluj
-            </Button>
-          </motion.div>
-        )}
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel} 
+            className="w-full py-1.5 rounded-md border-white/20 text-white hover:bg-white/10 transition-all text-xs"
+          >
+            <X className="w-3 h-3 mr-1" />
+            Anuluj
+          </Button>
+        </motion.div>
         
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 md:flex-[2]">
           <Button 
             type="submit" 
             disabled={loading} 
-            className="w-full py-6 rounded-xl bg-gradient-to-r from-gold via-gold-light to-gold text-navy font-bold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/40 transition-all disabled:opacity-50"
+            className="w-full py-1.5 rounded-md bg-gradient-to-r from-gold via-gold-light to-gold text-navy font-bold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/40 transition-all disabled:opacity-50 text-xs"
           >
             {loading ? (
               <motion.div 
-                className="flex items-center gap-2"
+                className="flex items-center gap-1"
                 animate={{ opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>{currentStep === totalSteps ? 'Tworzenie aukcji...' : 'Przetwarzanie...'}</span>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span className="text-xs">{currentStep === totalSteps ? 'Tworzenie aukcji...' : 'Przetwarzanie...'}</span>
               </motion.div>
             ) : currentStep === totalSteps ? (
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
+              <span className="flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
                 Utwórz aukcję
               </span>
             ) : (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1">
                 Dalej
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-3 h-3" />
               </span>
             )}
           </Button>

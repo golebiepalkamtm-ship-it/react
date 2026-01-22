@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, memo } from "react";
 import type { MotionValue } from "framer-motion";
-import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValueEvent, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, Award } from "lucide-react";
 
 interface Achievement {
@@ -48,6 +48,8 @@ function TimeTunnelCard({
 
   const distance = Math.abs(index - currentIndex);
   const zIndex = 50 - Math.min(40, distance * 5);
+  const isActive = index === currentIndex;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="relative h-[88vh]">
@@ -63,34 +65,67 @@ function TimeTunnelCard({
           zIndex,
           filter,
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="relative overflow-hidden rounded-2xl border border-border/30 bg-card/20 backdrop-blur-md">
+        <motion.div
+          className="relative overflow-hidden rounded-2xl border bg-card/30 backdrop-blur-xl shadow-lg"
+          animate={{
+            borderColor: isActive || isHovered ? 'rgba(255, 215, 0, 0.6)' : 'rgba(255, 255, 255, 0.1)',
+            boxShadow: isActive || isHovered
+              ? '0 0 40px rgba(255, 215, 0, 0.4), 0 0 80px rgba(255, 215, 0, 0.2)'
+              : '0 0 0px rgba(255, 215, 0, 0)',
+          }}
+          transition={{ duration: 0.3 }}
+        >
           {/* Removed big year watermark to avoid persistent overlay across sections */}
 
-          <div className="relative p-6 sm:p-8">
+          <div className="relative p-6 sm:p-8 cursor-pointer">
             <div className="flex items-baseline justify-between gap-6">
               <h3 className="text-2xl sm:text-3xl font-display text-gradient-gold">Sezon {yearData.year}</h3>
-              <div className="text-sm text-foreground/70">{yearData.achievements.length} osiągnięć</div>
+              <motion.div
+                className="text-sm text-foreground/70"
+                animate={{ scale: isExpanded ? 1.1 : 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                {yearData.achievements.length} osiągnięć {isExpanded && ' ▼'}
+              </motion.div>
             </div>
 
-            <div className="mt-6 space-y-2">
-              {yearData.achievements.map((achievement, i) => (
-                <div key={`timeline-achievement-${i}`} className="flex items-start gap-2 text-sm">
-                  <div className="mt-0.5">{getPositionIcon(achievement.position)}</div>
-                  <div className="flex-1">
-                    <span className="text-foreground font-medium">
-                      {achievement.region} – {achievement.category}
-                    </span>
-                    <span className="text-timeline-gold ml-2">{achievement.position}</span>
-                    {achievement.points !== "-" && (
-                      <span className="text-foreground/60 ml-2 text-xs">({achievement.points} pkt)</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AnimatePresence>
+              <motion.div
+                className="mt-6 space-y-2 max-h-[300px] overflow-y-auto"
+                animate={{
+                  maxHeight: isExpanded ? 'auto' : '300px',
+                  opacity: 1
+                }}
+                transition={{ duration: 0.3 }}
+              >
+                {yearData.achievements.map((achievement, i) => (
+                  <motion.div
+                    key={`timeline-achievement-${i}`}
+                    className="flex items-start gap-2 text-sm p-2 rounded hover:bg-primary/10 transition-colors"
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.05 }}
+                  >
+                    <div className="mt-0.5">{getPositionIcon(achievement.position)}</div>
+                    <div className="flex-1">
+                      <span className="text-foreground font-medium">
+                        {achievement.region} – {achievement.category}
+                      </span>
+                      <span className="text-timeline-gold ml-2">{achievement.position}</span>
+                      {achievement.points !== "-" && (
+                        <span className="text-foreground/60 ml-2 text-xs">({achievement.points} pkt)</span>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );
@@ -408,8 +443,20 @@ const TimelineSection = () => {
                   style={{ scaleY: progressFillScale, transformOrigin: "top" }}
                 />
                 <motion.div
-                  className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-timeline-gold shadow-[0_0_18px_hsla(var(--glow-color)/0.45)]"
-                  style={{ top: indicatorTop }}
+                  className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-timeline-gold"
+                  style={{
+                    top: indicatorTop,
+                    boxShadow: '0 0 18px hsla(var(--glow-color) / 0.45)',
+                  }}
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    boxShadow: [
+                      '0 0 18px hsla(var(--glow-color) / 0.45)',
+                      '0 0 35px hsla(var(--glow-color) / 0.7)',
+                      '0 0 18px hsla(var(--glow-color) / 0.45)',
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
               </div>
 

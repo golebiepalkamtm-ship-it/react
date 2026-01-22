@@ -65,6 +65,8 @@ export class AuctionCronService {
 
   /**
    * Core logic: Transactional check and update of ending auctions
+   * Fixed: Avoid Prisma interactive transaction conflicts with Supabase PgBouncer
+   * by processing updates sequentially without interactive transaction wrapper
    */
   private async checkEndingAuctions() {
     if (!prisma) {
@@ -75,91 +77,83 @@ export class AuctionCronService {
     const now = new Date();
 
     try {
-      // Fetch and process within a transaction for ACID compliance
-      await prisma.$transaction(async (tx) => {
-        // 1. Select candidates: Active auctions that have passed their end time
-        const endingAuctions = await tx.auction.findMany({
-          where: {
-            status: AuctionStatus.ACTIVE,
-            endTime: {
-              lte: now
-            }
-          },
-          include: {
-            bids: {
-              orderBy: { amount: 'desc' },
-              take: 1
-            },
-            seller: true
+      // 1. Fetch candidates OUTSIDE transaction to avoid prepared statement conflicts
+      const endingAuctions = await prisma.auction.findMany({
+        where: {
+          status: AuctionStatus.ACTIVE,
+          endTime: {
+            lte: now
           }
-        });
-
-        if (endingAuctions.length > 0) {
-          logger.info(`Processing ${endingAuctions.length} ending auctions...`);
+        },
+        include: {
+          bids: {
+            orderBy: { amount: 'desc' },
+            take: 1
+          },
+          seller: true
         }
+      });
 
-        for (const auction of endingAuctions) {
-          try {
-            const highestBid = auction.bids[0];
+      if (endingAuctions.length > 0) {
+        logger.info(`Processing ${endingAuctions.length} ending auctions...`);
+      }
 
-            if (highestBid) {
-              // --- SCENARIO A: SOLD ---
-              const winnerId = highestBid.bidderId!;
-              const finalPrice = highestBid.amount;
+      // 2. Process each auction sequentially
+      for (const auction of endingAuctions) {
+        try {
+          const highestBid = auction.bids[0];
 
-              // 1. Update Auction Status
-              await tx.auction.update({
+          if (highestBid) {
+            // --- SCENARIO A: SOLD ---
+            const winnerId = highestBid.bidderId!;
+            const finalPrice = highestBid.amount;
+
+            // Use non-interactive transaction for safe updates
+            await prisma.$transaction([
+              prisma.auction.update({
                 where: { id: auction.id },
                 data: {
                   status: AuctionStatus.ENDED,
                   winnerId: winnerId,
                   currentPrice: finalPrice
                 }
-              });
-
-              // 2. Generate Order/Transaction Record (Payment 'INITIATED')
-              // Using existing Payment model to track the obligation
-              await tx.payment.create({
+              }),
+              prisma.payment.create({
                 data: {
                   auctionId: auction.id,
                   userId: winnerId,
                   amount: finalPrice,
-                  type: PaymentType.BUY_NOW, // Treating winning bid as a purchase obligation
-                  provider: 'P24', // Default provider, user will select later
+                  type: PaymentType.BUY_NOW,
+                  provider: 'P24',
                   status: PaymentStatus.INITIATED
                 }
-              });
+              })
+            ]);
 
-              logger.info(`Auction ${auction.id} sold to ${winnerId} for ${finalPrice}`);
+            logger.info(`Auction ${auction.id} sold to ${winnerId} for ${finalPrice}`);
+            this.notifyAuctionSold(auction, winnerId, Number(finalPrice));
 
-              // 3. Emit Events (Notifications) - executed after DB update success
-              // Note: Ideally, we'd use an event bus, but direct calls work for this monolith
-              this.notifyAuctionSold(auction, winnerId, Number(finalPrice));
-              
-            } else {
-              // --- SCENARIO B: EXPIRED (No Bids) ---
-              // Using ENDED status but with no winner to indicate expiration
-              await tx.auction.update({
-                where: { id: auction.id },
-                data: {
-                  status: AuctionStatus.ENDED,
-                  winnerId: null
-                }
-              });
+          } else {
+            // --- SCENARIO B: EXPIRED (No Bids) ---
+            await prisma.auction.update({
+              where: { id: auction.id },
+              data: {
+                status: AuctionStatus.ENDED,
+                winnerId: null
+              }
+            });
 
-              logger.info(`Auction ${auction.id} expired without bids`);
-
-              this.notifyAuctionExpired(auction);
-            }
-          } catch (err) {
-            logger.error(`Failed to close auction ${auction.id}:`, err);
-            // Continue loop to not block other auctions
+            logger.info(`Auction ${auction.id} expired without bids`);
+            this.notifyAuctionExpired(auction);
           }
+        } catch (err) {
+          logger.error(`Failed to close auction ${auction.id}:`, err);
+          // Continue loop to not block other auctions
         }
-      });
+      }
 
     } catch (error) {
-      logger.error('CRITICAL: Transaction failed in checkEndingAuctions', error);
+      logger.error('CRITICAL: Error in checkEndingAuctions', error);
     }
   }
 

@@ -16,6 +16,10 @@ RUN npm ci --include=dev
 COPY . .
 
 # Generate Prisma client and build application
+ARG DATABASE_URL
+ARG DIRECT_URL
+ENV DATABASE_URL=${DATABASE_URL}
+ENV DIRECT_URL=${DIRECT_URL:-${DATABASE_URL}}
 RUN npx prisma generate
 RUN npm run build
 

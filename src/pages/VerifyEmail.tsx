@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { useLocale } from "@/contexts/LocaleContext";
 import logger from "@/lib/logger";
-import UnifiedModal from "@/components/ui/UnifiedModal";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 
 export default function VerifyEmail() {
   const { t } = useLocale();

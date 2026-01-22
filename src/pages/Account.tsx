@@ -8,7 +8,7 @@ import { useAuth, type Profile } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useProfile } from "@/hooks/useProfile";
 import PhoneVerification from "@/components/auth/PhoneVerification";
-import UnifiedModal from "@/components/ui/UnifiedModal";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { User, Mail, Shield, ChevronDown, Sparkles, Settings, ShoppingBag, LogOut, CheckCircle, AlertCircle } from "lucide-react";
 
 const EmailVerifiedProfileCard = ({

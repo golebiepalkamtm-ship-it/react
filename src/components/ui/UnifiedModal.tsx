@@ -18,6 +18,7 @@ interface UnifiedModalProps {
   confirmButton?: {
     text: string;
     onClick: () => void;
+    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   };
   cancelButton?: {
     text: string;
@@ -31,7 +32,7 @@ interface UnifiedModalProps {
 const typeConfig = {
   default: {
     icon: null,
-    gradient: 'from-white/5 to-white/0',
+    gradient: 'from-white/15 to-white/5',
     iconBg: 'from-gold to-amber-600',
     iconShadow: 'shadow-gold/30',
     buttonGradient: 'from-gold to-amber-600 hover:from-gold/90 hover:to-amber-700',
@@ -55,11 +56,11 @@ const typeConfig = {
   },
   warning: {
     icon: AlertTriangle,
-    gradient: 'from-amber-500/10 to-orange-500/5',
-    iconBg: 'from-amber-400 to-orange-600',
-    iconShadow: 'shadow-amber-500/30',
-    buttonGradient: 'from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700',
-    buttonShadow: 'shadow-amber-500/25',
+    gradient: 'from-yellow-500/10 to-amber-500/5',
+    iconBg: 'from-yellow-400 to-amber-600',
+    iconShadow: 'shadow-yellow-500/30',
+    buttonGradient: 'from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700',
+    buttonShadow: 'shadow-yellow-500/25',
   },
   info: {
     icon: Info,
@@ -71,15 +72,15 @@ const typeConfig = {
   },
 };
 
-const sizeClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  full: 'max-w-5xl',
+const sizeConfig = {
+  sm: 'max-w-md',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl md:max-w-4xl',
+  full: 'max-w-full md:max-w-7xl mx-0 md:mx-4 h-full md:h-auto'
 };
 
-const UnifiedModal: React.FC<UnifiedModalProps> = ({
+export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   isOpen,
   onClose,
   type = 'default',
@@ -87,7 +88,7 @@ const UnifiedModal: React.FC<UnifiedModalProps> = ({
   message,
   icon,
   showCloseButton = true,
-  closeOnBackdrop = false,
+  closeOnBackdrop = true,
   closeOnEscape = true,
   confirmButton,
   cancelButton,
@@ -96,28 +97,81 @@ const UnifiedModal: React.FC<UnifiedModalProps> = ({
   draggable = false,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
-  const previouslyActiveRef = useRef<HTMLElement | null>(null);
-
   const config = typeConfig[type];
-  const IconComponent = icon || config.icon;
+  const Icon = icon || config.icon;
+  const isDragging = useRef(false);
+  const startPos = useRef({ x: 0, y: 0 });
+  const modalPos = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    previouslyActiveRef.current = document.activeElement as HTMLElement | null;
-
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && closeOnEscape) {
+      if (e.key === 'Escape' && closeOnEscape && isOpen) {
         onClose();
       }
     };
-    document.addEventListener('keydown', handleEscape);
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      previouslyActiveRef.current?.focus();
+      document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose, closeOnEscape]);
+  }, [isOpen, closeOnEscape, onClose]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Tylko na desktop (>= 768px)
+    if (draggable && window.innerWidth >= 768 && modalRef.current) {
+      isDragging.current = true;
+      startPos.current = {
+        x: e.clientX - modalPos.current.x,
+        y: e.clientY - modalPos.current.y,
+      };
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging.current && modalRef.current) {
+      const rect = modalRef.current.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width;
+      const maxY = window.innerHeight - rect.height;
+      
+      let newX = e.clientX - startPos.current.x;
+      let newY = e.clientY - startPos.current.y;
+      
+      // Ograniczenia - nie wychodzić poza ekran
+      newX = Math.max(-maxX / 2, Math.min(maxX / 2, newX));
+      newY = Math.max(-maxY / 2, Math.min(maxY / 2, newY));
+      
+      modalPos.current = { x: newX, y: newY };
+      modalRef.current.style.transform = `translate(${modalPos.current.x}px, ${modalPos.current.y}px)`;
+    }
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  useEffect(() => {
+    // Reset pozycji przy otwieraniu modala
+    if (isOpen && modalRef.current) {
+      modalPos.current = { x: 0, y: 0 };
+      modalRef.current.style.transform = 'translate(0px, 0px)';
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (draggable && window.innerWidth >= 768) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [draggable, isOpen]);
 
   return (
     <AnimatePresence>
@@ -127,113 +181,103 @@ const UnifiedModal: React.FC<UnifiedModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-black/60 backdrop-blur-sm overflow-y-auto"
-          onClick={closeOnBackdrop ? onClose : undefined}
+          className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4"
         >
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 bg-transparent"
+            onClick={closeOnBackdrop ? onClose : undefined}
+          />
+          
+          {/* Modal */}
           <motion.div
             ref={modalRef}
-            drag={draggable}
-            dragMomentum={false}
-            dragConstraints={{ left: -400, right: 400, top: -200, bottom: 200 }}
-            dragElastic={0.1}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`relative w-full ${sizeClasses[size]} bg-gradient-to-br from-[#00172D] to-[#002244] rounded-2xl border border-white/20 shadow-2xl overflow-hidden ${draggable ? 'cursor-move' : ''}`}
-            onClick={(e) => e.stopPropagation()}
+            exit={{ opacity: 0, scale: 0.96, y: 20 }}
+            transition={{ 
+              type: 'spring', 
+              damping: 25, 
+              stiffness: 400,
+              duration: 0.2
+            }}
+            className={`relative w-full ${sizeConfig[size]} bg-gray-800/80 backdrop-blur-xl rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-hidden max-h-screen md:max-h-[90vh] flex flex-col`}
+            style={{ cursor: draggable && window.innerWidth >= 768 ? 'move' : 'default' }}
+            onMouseDown={(e) => {
+              // Tylko na desktop i tylko gdy kliknięto w header
+              if (window.innerWidth >= 768 && draggable && (e.target as HTMLElement).closest('.modal-header')) {
+                handleMouseDown(e);
+              }
+            }}
           >
+            {/* Background Gradient */}
             <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} pointer-events-none`} />
-
-            {showCloseButton && (
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={onClose}
-                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                aria-label="Zamknij"
-              >
-                <X className="w-4 h-4 text-white" />
-              </motion.button>
-            )}
-
-            <div className="relative p-8">
-              {IconComponent && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring', damping: 15 }}
-                  className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br ${config.iconBg} flex items-center justify-center shadow-lg ${config.iconShadow}`}
-                >
-                  <IconComponent className="w-10 h-10 text-white" />
-                </motion.div>
-              )}
-
-              {title && (
-                <motion.h2
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-2xl md:text-3xl font-bold text-white mb-3 text-center"
-                >
-                  {title}
-                </motion.h2>
-              )}
-
-              {message && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-white/70 mb-6 text-base leading-relaxed whitespace-pre-line text-center"
-                >
-                  {message}
-                </motion.p>
-              )}
-
-              {children && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  {children}
-                </motion.div>
-              )}
-
-              {(confirmButton || cancelButton) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex flex-col sm:flex-row gap-3 justify-center mt-6"
-                >
-                  {cancelButton && (
-                    <Button
-                      variant="outline"
-                      onClick={cancelButton.onClick}
-                      className="px-6 py-3 border-white/20 text-white hover:bg-white/10"
-                    >
-                      {cancelButton.text}
-                    </Button>
+            
+            {/* Header */}
+            <div className="relative z-10 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/10 modal-header">
+              <div className="flex items-center gap-3">
+                {Icon && (
+                  <div className={`p-2 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}>
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                )}
+                <div>
+                  {title && (
+                    <h2 className="text-xl font-semibold text-white">{title}</h2>
                   )}
-                  {confirmButton && (
-                    <Button
-                      onClick={confirmButton.onClick}
-                      className={`px-8 py-3 bg-gradient-to-r ${config.buttonGradient} text-white font-semibold rounded-xl shadow-lg ${config.buttonShadow} transition-all duration-200`}
-                    >
-                      {confirmButton.text}
-                    </Button>
+                  {message && (
+                    <p className="text-sm text-white/70 mt-1">{message}</p>
                   )}
-                </motion.div>
+                </div>
+              </div>
+              
+              {showCloseButton && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               )}
             </div>
+            
+            {/* Content */}
+            <div className="relative z-10 flex-1 overflow-y-auto">
+              {children}
+            </div>
+            
+            {/* Actions */}
+            {(confirmButton || cancelButton) && (
+              <div className="relative z-10 flex items-center justify-end gap-3 px-4 md:px-6 py-3 md:py-4 border-t border-white/10">
+                {cancelButton && (
+                  <Button
+                    variant="outline"
+                    onClick={cancelButton.onClick}
+                    className="border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
+                  >
+                    {cancelButton.text}
+                  </Button>
+                )}
+                {confirmButton && (
+                  <Button
+                    onClick={confirmButton.onClick}
+                    variant={confirmButton.variant || 'default'}
+                    className={`bg-gradient-to-r ${config.buttonGradient} text-white border-0 shadow-lg ${config.buttonShadow}`}
+                  >
+                    {confirmButton.text}
+                  </Button>
+                )}
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 };
-
-export default UnifiedModal;
-export { UnifiedModal };

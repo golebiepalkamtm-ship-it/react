@@ -8,7 +8,7 @@ import type { Profile } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/components/ui/sonner';
 import { reviewService } from '@/services/reviewService';
-import UnifiedModal from '@/components/ui/UnifiedModal';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import PhoneVerification from '@/components/auth/PhoneVerification';
 
 interface Props {

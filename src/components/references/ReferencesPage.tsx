@@ -18,7 +18,7 @@ import { AddReferenceForm } from '@/components/references/AddReferenceForm';
 import { type Reference, referenceService } from '@/services/referenceService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import UnifiedModal from '@/components/ui/UnifiedModal';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import AccountModal from '@/components/AccountModal';
 import { useOptimizedToast } from '@/hooks/use-optimized-toast';
 

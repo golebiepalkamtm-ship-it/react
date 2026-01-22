@@ -2,6 +2,7 @@
   "recommendations": [
     "denoland.vscode-deno",
     "saoudrizwan.claude-dev",
-    "buildwithlayer.railway-integration-expert-x3o0c"
+    "buildwithlayer.railway-integration-expert-x3o0c",
+    "zenclabs.previewjs"
   ]
 }

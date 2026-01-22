@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useLocale } from '@/contexts/LocaleContext';
 import { toast } from '@/components/ui/sonner';
-import UnifiedModal from '@/components/ui/UnifiedModal';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import { apiClient } from '@/services/api';
 
 interface PhoneVerificationProps {

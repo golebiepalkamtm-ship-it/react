@@ -13,7 +13,7 @@ import { reviewService } from "@/services/reviewService";
 import LuxuryAuctionDetail from "@/components/auction/LuxuryAuctionDetail";
 import ReviewForm from "@/components/ReviewForm";
 import SellerReviews from "@/components/SellerReviews";
-import UnifiedModal from "@/components/ui/UnifiedModal";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import AccountModal from "@/components/AccountModal";
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
 

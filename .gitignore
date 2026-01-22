@@ -3,6 +3,10 @@ dist
 build
 .env
 .env.local
+.env.production
+.env.staging
+.env*.local
+.env.production.example
 .DS_Store
 .vscode
 coverage
@@ -11,3 +15,6 @@ render-env-backend.txt
 render-env-frontend.txt
 chrono-tunnel/
 cli/
+server/.env
+server/.env.*
+!server/.env.production.example

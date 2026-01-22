@@ -27,7 +27,7 @@ import AboutSection from '@/components/AboutSection';
 import PressSection from '@/components/PressSection';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
-import UnifiedModal from "@/components/ui/UnifiedModal";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   VideoBackground,
