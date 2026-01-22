@@ -292,6 +292,7 @@ router.post('/users', ensureAdmin, async (req, res) => {
     }
 
     // 2. Create/Update in Public Schema
+    const username = email.split('@')[0] + '_' + Math.random().toString(36).substring(2, 8);
     const newUser = await prisma!.user.upsert({
         where: { id: authUser.user.id },
         update: {
@@ -300,7 +301,8 @@ router.post('/users', ensureAdmin, async (req, res) => {
             last_name,
             role: role || 'USER_REGISTERED',
             phone,
-            name: `${first_name} ${last_name}`.trim()
+            name: `${first_name} ${last_name}`.trim(),
+            username
         },
         create: {
             id: authUser.user.id,
@@ -310,7 +312,8 @@ router.post('/users', ensureAdmin, async (req, res) => {
             role: role || 'USER_REGISTERED',
             phone,
             trustScore: 0,
-            name: `${first_name} ${last_name}`.trim()
+            name: `${first_name} ${last_name}`.trim(),
+            username
         }
     });
 

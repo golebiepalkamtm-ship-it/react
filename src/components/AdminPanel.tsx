@@ -1348,6 +1348,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium text-white/70 mb-2">Hasło *</label>
                         <input 
                           type="password"
+                          autoComplete="current-password"
                           required
                           className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
                           value={newUser.password}

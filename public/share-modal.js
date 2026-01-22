@@ -62,11 +62,15 @@
     if (isInitialized || typeof document === 'undefined' || !document || !document.body) return;
     try {
       // Remove old listeners if any to prevent duplicates
-      document.removeEventListener('click', handleClick);
-      document.removeEventListener('keydown', handleKeydown);
+      if (document.removeEventListener) {
+        document.removeEventListener('click', handleClick);
+        document.removeEventListener('keydown', handleKeydown);
+      }
       
-      document.addEventListener('click', handleClick);
-      document.addEventListener('keydown', handleKeydown);
+      if (document.addEventListener) {
+        document.addEventListener('click', handleClick);
+        document.addEventListener('keydown', handleKeydown);
+      }
       isInitialized = true;
     } catch (err) {
       console.error('Share modal init error:', err);
