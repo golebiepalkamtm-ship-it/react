@@ -8,7 +8,7 @@
     "dev": "nodemon --watch . --ext ts --exec \"tsx\" index.ts",
     "create-admin": "node ./scripts/create-admin.js",
     "create-user": "node ./scripts/create-user.js",
-    "build": "prisma generate && tsc --skipLibCheck",
+    "build": "prisma generate && tsc --skipLibCheck && node ./scripts/copy-runtime.js",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
     "seed:json": "tsx scripts/seed-from-json.ts"
