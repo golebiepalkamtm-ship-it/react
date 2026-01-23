@@ -13,11 +13,12 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": false,
+    "allowJs": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "downlevelIteration": true
   },
-  "include": ["**/*.ts", "**/*.d.ts"],
+  "include": ["**/*.ts", "**/*.d.ts", "lib/*.js"],
   "exclude": ["node_modules", "dist", "tests"]
 }
