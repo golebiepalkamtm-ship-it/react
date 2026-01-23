@@ -15,9 +15,12 @@ const normalizeApiBase = (raw?: string) => {
   return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
 };
 
+const DEFAULT_API_BASE = 'https://server-production-0e43.up.railway.app/api';
+
 const API_BASE_URL =
   normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL))
   || normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL))
+  || normalizeApiBase(DEFAULT_API_BASE)
   || (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:8001/api');
 
 interface RequestConfig extends RequestInit {
