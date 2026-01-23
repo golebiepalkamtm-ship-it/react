@@ -1,6 +1,7 @@
 {
   "name": "champion-pigeon-auctions",
   "scripts": {
+    "preinstall": "npm config set ignore-scripts true",
     "dev:client": "vite",
     "dev:server": "npm --prefix server run dev",
     "dev": "concurrently -k -n FRONTEND,BACKEND -c \"blue,green\" \"npm:dev:client\" \"npm:dev:server\"",
