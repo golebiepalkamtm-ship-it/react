@@ -9,7 +9,6 @@
     "create-admin": "node ./scripts/create-admin.js",
     "create-user": "node ./scripts/create-user.js",
     "build": "prisma generate && tsc --skipLibCheck",
-    "postbuild": "node ./scripts/create-dist-index.js",
     "start": "node dist/bootstrap.js",
     "type-check": "tsc --noEmit",
     "seed:json": "tsx scripts/seed-from-json.ts"
