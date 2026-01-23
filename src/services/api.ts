@@ -9,9 +9,15 @@ const sanitizeEnvValue = (value: string | undefined) => {
   return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
 };
 
+const normalizeApiBase = (raw?: string) => {
+  if (!raw) return raw;
+  const trimmed = raw.replace(/\/+$/, ''); // usuń trailing slash
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
 const API_BASE_URL =
-  sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL)
-  || sanitizeEnvValue(import.meta.env.VITE_API_URL)
+  normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL))
+  || normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL))
   || (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:8001/api');
 
 interface RequestConfig extends RequestInit {
