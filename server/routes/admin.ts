@@ -288,7 +288,13 @@ router.post('/users', ensureAdmin, async (req, res) => {
     });
 
     if (authError || !authUser.user) {
-        throw new Error(`Auth creation failed: ${authError?.message}`);
+      // Supabase zwraca 422 z komunikatem "A user with this email address has already been registered"
+      const alreadyExists = authError?.message?.toLowerCase().includes('already been registered');
+      const statusCode = alreadyExists ? 409 : authError?.status ?? 500;
+      const message = alreadyExists
+        ? 'User with this email already exists'
+        : `Auth creation failed: ${authError?.message || 'Unknown error'}`;
+      return res.status(statusCode).json({ error: message });
     }
 
     // 2. Create/Update in Public Schema
