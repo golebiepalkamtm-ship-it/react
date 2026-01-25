@@ -709,12 +709,3 @@ const ContactSection = () => {
 };
 
 export default React.memo(ContactSection);
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default React.memo(ContactSection);
