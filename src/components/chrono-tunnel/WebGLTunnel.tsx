@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/purity */
-/* eslint-disable react-hooks/immutability */
 import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { 

@@ -1,41 +1,39 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Newspaper, Calendar, ExternalLink, ArrowRight } from 'lucide-react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
+import { Newspaper, Calendar, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
-import { Reveal, StaggeredList, fadeInUp, fadeInLeft, cardMicro, buttonMicro } from "@/components/motion";
+import { motion, useTransform, useMotionValue, useSpring, useScroll } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { PressService, PressArticle } from '@/services/pressService';
+import { logger } from '@/lib/logger';
 
-interface PressArticle {
-  id: string;
-  title: string;
-  excerpt: string;
-  publication: string;
-  date: string;
-  image: string;
-  category: 'newspaper' | 'magazine' | 'online';
-}
+gsap.registerPlugin(ScrollTrigger);
 
-// Press Card Component z efektami ChampionCard
-const PressCard = ({ article, index }: { article: PressArticle; index: number }) => {
+const PressArticleCard = ({ article, index }: { article: PressArticle; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]);
+  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.9, 1, 1, 0.9]);
   
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
     stiffness: 150,
     damping: 20,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
     stiffness: 150,
     damping: 20,
   });
-  
-  const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
-  const lightY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
   
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -44,10 +42,6 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     mouseX.set(x);
     mouseY.set(y);
-  };
-  
-  const handleMouseEnter = () => {
-    setIsHovered(true);
   };
   
   const handleMouseLeave = () => {
@@ -59,80 +53,94 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
   return (
     <motion.div
       ref={cardRef}
-      className="group h-full"
-      style={{ 
-        perspective: 1000,
-        transformStyle: 'preserve-3d',
-      }}
+      className="relative group h-full"
+      style={{ perspective: '1000px', opacity, y, scale }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="h-full overflow-hidden rounded-3xl border border-gold/30 bg-gradient-to-b from-black/70 via-slate-900/60 to-black/60 shadow-[0_25px_80px_rgba(212,175,55,0.15)] backdrop-blur-xl relative"
+        className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] h-full flex flex-col"
         style={{
-          rotateX: isHovered ? rotateX : 0,
-          rotateY: isHovered ? rotateY : 0,
+          rotateX,
+          rotateY,
           transformStyle: 'preserve-3d',
         }}
-        whileHover={{ translateY: -8, scale: 1.02 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ scale: { duration: 0.2 } }}
       >
-        {/* Dynamic light reflection - wzmocnione */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
+        
         <motion.div 
-          className="absolute inset-0 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
-            background: useTransform(
-              [lightX, lightY],
-              ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(212,175,55,0.5) 0%, rgba(255,255,255,0.2) 25%, transparent 60%)`
-            ),
+            background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)',
           }}
+          animate={{
+            opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3,
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.18),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(255,223,128,0.14),transparent_30%)]" />
-        <div className="relative aspect-[16/10] overflow-hidden bg-linear-to-b from-black/15 via-transparent to-black/20">
+        
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+        
+        <div className="relative aspect-[16/10] overflow-hidden">
           <img 
-            src={article.image} 
+            src={article.images.main} 
             alt={article.title}
             loading="lazy"
             decoding="async"
-            width="640"
-            height="400"
-            className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-[1.02] transition-transform duration-300"
+            className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop';
             }}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
-        <div className="p-6 relative z-30">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <Newspaper className="w-4 h-4" />
-            <span>{article.publication}</span>
-            <span>•</span>
-            <Calendar className="w-4 h-4" />
-            <time>{new Date(article.date).toLocaleDateString('pl-PL')}</time>
+        
+        <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
+          <div className="flex items-center gap-2 text-sm text-white/60 mb-3 flex-wrap">
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/80 border border-gold/20">
+              <Newspaper className="w-3 h-3" />
+              {article.publication}
+            </span>
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10">
+              <Calendar className="w-3 h-3" />
+              {new Date(article.date).toLocaleDateString('pl-PL')}
+            </span>
           </div>
-          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 group-hover:text-gold transition-colors">
+          
+          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
             {article.title}
           </h3>
-          <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
+          
+          <p className="text-white/60 text-sm line-clamp-4 mb-4">
             {article.excerpt}
           </p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full group/btn border-gold/30 hover:bg-gold hover:text-navy relative z-40"
-            asChild
-          >
-            <Link 
-              to={`/press/${article.id}`}
-              aria-label={`Czytaj więcej: ${article.title}`}
+          
+          <div className="mt-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300 relative z-40"
+              asChild
             >
-              Czytaj więcej
-              <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
+              <Link to={`/press/${article.id}`}>
+                Czytaj więcej
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          </div>
         </div>
+        
+        <motion.div 
+          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          transition={{ duration: 1, delay: index * 0.1 }}
+          viewport={{ once: true }}
+        />
       </motion.article>
     </motion.div>
   );
@@ -141,10 +149,33 @@ const PressCard = ({ article, index }: { article: PressArticle; index: number })
 const PressSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
-  
-  // GSAP 3D WOW animations
+  const [articles, setArticles] = useState<PressArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const prefersReducedMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    []
+  );
+
   useEffect(() => {
-    if (!sectionRef.current || !cardsContainerRef.current) return;
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        const allArticles = await PressService.loadArticles();
+        const featuredArticles = allArticles.filter(a => a.featured).slice(0, 3);
+        setArticles(featuredArticles.length > 0 ? featuredArticles : allArticles.slice(0, 3));
+      } catch (error) {
+        logger.error('Failed to load press articles for section:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchArticles();
+  }, []);
+  
+  useEffect(() => {
+    if (loading || !sectionRef.current || !cardsContainerRef.current || articles.length === 0) return;
+    if (prefersReducedMotion || window.innerWidth < 1024) return;
     
     const section = sectionRef.current;
     const headerBadge = section.querySelector('.header-badge');
@@ -160,151 +191,34 @@ const PressSection = () => {
           start: 'top 70%',
           toggleActions: 'play none none reverse',
           invalidateOnRefresh: true,
-          refreshPriority: -2,
         }
       });
 
-      // Header animations - staggered entrance
-      if (headerBadge) {
-        tl.fromTo(headerBadge,
-          { y: -30, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
-        );
-      }
-      
-      if (headerTitle) {
-        tl.fromTo(headerTitle,
-          { y: 40, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
-          '-=0.3'
-        );
-      }
-      
-      if (headerDesc) {
-        tl.fromTo(headerDesc,
-          { y: 30, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
-          '-=0.4'
-        );
-      }
+      if (headerBadge) tl.fromTo(headerBadge, { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' });
+      if (headerTitle) tl.fromTo(headerTitle, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.3');
+      if (headerDesc) tl.fromTo(headerDesc, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }, '-=0.4');
 
-      // Cards - Simple fade and zoom animations (all same as center)
-      if (cards.length >= 3) {
-        // Left card
-        tl.fromTo(cards[0],
-          { 
-            y: 100,
-            opacity: 0, 
-            scale: 0.8
-          },
-          { 
-            y: 0,
-            opacity: 1, 
-            scale: 1,
-            duration: 1.2, 
-            ease: 'back.out(1.2)'
-          },
-          '-=0.2'
-        );
-        
-        // Center card
-        tl.fromTo(cards[1],
-          { 
-            y: 100,
-            opacity: 0, 
-            scale: 0.8
-          },
-          { 
-            y: 0,
-            opacity: 1, 
-            scale: 1,
-            duration: 1.2, 
-            ease: 'back.out(1.2)'
-          },
-          '-=1.0'
-        );
-        
-        // Right card
-        tl.fromTo(cards[2],
-          { 
-            y: 100,
-            opacity: 0, 
-            scale: 0.8
-          },
-          { 
-            y: 0,
-            opacity: 1, 
-            scale: 1,
-            duration: 1.2, 
-            ease: 'back.out(1.2)'
-          },
-          '-=1.0'
-        );
+      if (cards.length > 0) {
+        tl.fromTo(cards, {
+          y: 100,
+          opacity: 0,
+          scale: 0.9
+        }, {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 1,
+          ease: 'back.out(1.4)',
+          stagger: 0.2
+        }, '-=0.5');
       }
       
-      // CTA button - bounce in
-      if (ctaButton) {
-        tl.fromTo(ctaButton,
-          { y: 60, opacity: 0, scale: 0.8 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2)' },
-          '-=0.3'
-        );
-      }
+      if (ctaButton) tl.fromTo(ctaButton, { y: 60, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2)' }, '-=0.3');
       
     }, section);
     
     return () => ctx.revert();
-  }, []);
-  
-  // Prosty parallax scroll
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"]
-  });
-  
-  // Tylko jeden subtelny efekt - karty przesuwają się wolniej niż scroll
-  const cardsY = useTransform(scrollYProgress, [0, 1], [80, -40]);
-
-  const pressArticles: PressArticle[] = [
-    {
-      id: '1',
-      title: 'MTM Pałka - Tradycja i Pasja w Hodowli Gołębi Pocztowych',
-      excerpt: 'Artykuł w miesięczniku "Dobry Lot" przedstawia historię hodowli MTM Pałka, jej osiągnięcia i podejście do selekcji ptaków. Poznaj sekrety sukcesu rodzinnej hodowli z Lubania.',
-      publication: 'Dobry Lot - Miesięcznik',
-      date: '2023-09-15',
-      image: '/press/articles/older/1/dobry-lot.jpg',
-      category: 'magazine'
-    },
-    {
-      id: '2',
-      title: 'Wywiad z Hodowcami MTM - Strategia i Filozofia Hodowli',
-      excerpt: 'Ekskluzywny wywiad w magazynie "Hodowca" z przedstawicielami MTM Pałka. Dowiedz się o metodach hodowlanych, planach rozwoju i najważniejszych osiągnięciach hodowli.',
-      publication: 'Hodowca - Magazyn Specjalistyczny',
-      date: '2023-07-20',
-      image: '/press/articles/older/2/Hodowca.jpg',
-      category: 'magazine'
-    },
-    {
-      id: '3',
-      title: 'Sukcesy MTM Pałka w Prasie Branżowej',
-      excerpt: 'Relacje z najważniejszych zawodów i aukcji, w których brały udział gołębie z hodowli MTM Pałka. Artykuł podsumowuje osiągnięcia sportowe i hodowlane.',
-      publication: 'Prasa Gołębiarska',
-      date: '2023-05-10',
-      image: '/press/articles/older/3/Newspapers.jpg',
-      category: 'newspaper'
-    },
-    {
-      id: '4',
-      title: 'Historia Sukcesu - 45 Lat Hodowli MTM Pałka',
-      excerpt: 'Reportaż o historii hodowli MTM Pałka, od początków w 1978 roku do dzisiaj. Prezentacja najważniejszych momentów, osiągnięć i planów na przyszłość.',
-      publication: 'Hodowca - Wydanie Specjalne 2014',
-      date: '2014-08-15',
-      image: '/press/articles/older/4/Hodowca2014m.jpg',
-      category: 'magazine'
-    }
-  ];
-
-  const articlesToRender = pressArticles.slice(0, 3);
+  }, [loading, articles, prefersReducedMotion]);
 
   return (
     <section
@@ -313,45 +227,44 @@ const PressSection = () => {
       className="py-20 relative overflow-hidden"
     >
       <div className="container mx-auto px-4 relative z-10">
-        {/* Nagłówek */}
         <div className="text-center mb-16">
           <span 
-            className="header-badge inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6 opacity-0"
+            className="header-badge inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
           >
             Media o nas
           </span>
           <h2 
-            className="header-title font-display text-3xl md:text-4xl text-gold font-bold leading-tight mb-4 opacity-0"
+            className="header-title font-display text-3xl md:text-4xl text-white font-bold leading-tight mb-4"
           >
-            W <span className="text-white">mediach</span>
+            W centrum <span className="text-gold">uwagi</span>
           </h2>
           <p 
-            className="header-desc text-muted-foreground max-w-2xl mx-auto opacity-0"
+            className="header-desc text-white/70 max-w-2xl mx-auto"
           >
-            Zobacz jak media opisują nasze sukcesy w hodowli gołębi pocztowych
+            Zobacz, jak media opisują nasze sukcesy w hodowli gołębi pocztowych.
           </p>
         </div>
 
-        {/* Karty z parallax i 3D */}
-        <div 
-          ref={cardsContainerRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"
-          style={{ perspective: '1200px' }}
-        >
-          {articlesToRender.map((article, index) => (
-            <div
-              key={article.id}
-              className="press-card opacity-0"
-              style={{ transformStyle: 'preserve-3d' }}
-            >
-              <PressCard article={article} index={index} />
-            </div>
-          ))}
-        </div>
+        {!loading && articles.length > 0 && (
+          <div 
+            ref={cardsContainerRef}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+            style={{ perspective: '1200px' }}
+          >
+            {articles.map((article, index) => (
+              <div
+                key={article.id}
+                className="press-card"
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <PressArticleCard article={article} index={index} />
+              </div>
+            ))}
+          </div>
+        )}
         
-        {/* Przycisk */}
-        <div className="cta-button text-center opacity-0">
-          <Button variant="outline" size="lg" className="border-gold/50 hover:bg-gold hover:text-navy" asChild>
+        <div className="cta-button text-center">
+          <Button variant="outline" size="lg" className="border-gold/50 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300" asChild>
             <Link to="/press">
               Zobacz wszystkie artykuły
               <Newspaper className="w-4 h-4 ml-2" />

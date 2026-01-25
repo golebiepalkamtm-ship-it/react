@@ -87,6 +87,21 @@ const HeroPremium = () => {
       .to(content, { y: 150, opacity: 0.3, scale: 0.95 }, 0)
       .to(videoOverlayRef.current, { opacity: 0.8 }, 0);
 
+    // Add visual effects for Living Sites
+    const floatingElements = heroRef.current.querySelectorAll('[class*="FloatingElement"]');
+    floatingElements.forEach((element: HTMLElement) => {
+      gsap.to(element, {
+        opacity: 0.8,
+        scale: 1.2,
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+    });
+
     return () => {
       tl.kill();
       parallaxTl.kill();
@@ -320,7 +335,7 @@ const FeaturesSectionPremium = () => {
   ];
 
   return (
-    <SeamlessSection 
+    <SeamlessSection
       className="py-24 px-4 relative overflow-hidden"
       transitionIn="fade"
     >
@@ -337,8 +352,8 @@ const FeaturesSectionPremium = () => {
           </p>
         </RevealOnScroll>
 
-        <RevealOnScroll 
-          direction="up" 
+        <RevealOnScroll
+          direction="up"
           stagger={0.15}
           className="grid md:grid-cols-3 gap-8"
         >
@@ -348,6 +363,11 @@ const FeaturesSectionPremium = () => {
             </div>
           ))}
         </RevealOnScroll>
+      </div>
+
+      {/* Add visual effects for Living Sites */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-b from-gold/5 to-transparent blur-3xl opacity-30" />
       </div>
     </SeamlessSection>
   );
@@ -367,12 +387,12 @@ const CTASectionPremium = () => {
         >
           Gotowy na swojego Championa?
         </PremiumTextReveal>
-        
+
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
           Przeglądaj naszą ekskluzywną kolekcję i znajdź idealnego gołębia
           dla swojej hodowli.
         </p>
-        
+
         <MagneticElement strength={0.2}>
           <Link
             to="/champions"
@@ -383,6 +403,11 @@ const CTASectionPremium = () => {
           </Link>
         </MagneticElement>
       </RevealOnScroll>
+
+      {/* Add visual effects for Living Sites */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-b from-gold/10 to-transparent blur-3xl opacity-50" />
+      </div>
     </SeamlessSection>
   );
 };

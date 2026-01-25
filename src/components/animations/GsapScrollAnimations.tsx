@@ -35,8 +35,8 @@ export const GsapFadeInUp: React.FC<FadeInUpProps> = ({
           trigger: ref.current,
           start: 'top 85%',
           end: 'top 60%',
-          scrub: false,
-          once: true,
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -81,8 +81,9 @@ export const GsapSlideInLeft: React.FC<SlideInProps> = ({
         scrollTrigger: {
           trigger: ref.current,
           start: 'top 85%',
-          scrub: false,
-          once: true,
+          end: 'top 60%',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -119,8 +120,9 @@ export const GsapSlideInRight: React.FC<SlideInProps> = ({
         scrollTrigger: {
           trigger: ref.current,
           start: 'top 85%',
-          scrub: false,
-          once: true,
+          end: 'top 60%',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -163,8 +165,9 @@ export const GsapScaleIn: React.FC<ScaleInProps> = ({
         scrollTrigger: {
           trigger: ref.current,
           start: 'top 85%',
-          scrub: false,
-          once: true,
+          end: 'top 60%',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -249,8 +252,9 @@ export const GsapStaggeredList: React.FC<StaggeredListProps> = ({
         scrollTrigger: {
           trigger: ref.current,
           start: 'top 85%',
-          scrub: false,
-          once: true,
+          end: 'top 60%',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -334,8 +338,9 @@ export const GsapTextReveal: React.FC<TextRevealProps> = ({
         scrollTrigger: {
           trigger: ref.current,
           start: 'top 85%',
-          scrub: false,
-          once: true,
+          end: 'top 60%',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -389,8 +394,9 @@ export const GsapCountUp: React.FC<CountUpProps> = ({
       scrollTrigger: {
         trigger: ref.current,
         start: 'top 85%',
-        scrub: false,
-        once: true,
+        end: 'top 60%',
+        scrub: true,
+        once: false,
       },
     });
   }, [end, start, duration, suffix, prefix]);
@@ -437,8 +443,9 @@ export const GsapRotateIn: React.FC<RotateInProps> = ({
         scrollTrigger: {
           trigger: ref.current,
           start: 'top 85%',
-          scrub: false,
-          once: true,
+          end: 'top 60%',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -481,8 +488,9 @@ export const GsapBlurIn: React.FC<BlurInProps> = ({
         scrollTrigger: {
           trigger: ref.current,
           start: 'top 85%',
-          scrub: false,
-          once: true,
+          end: 'top 60%',
+          scrub: true,
+          once: false,
         },
       }
     );

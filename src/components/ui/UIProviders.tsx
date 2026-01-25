@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { ToastProvider } from './ToastProvider';
-import { ModalProvider } from './ModalProvider';
+import { OverlayProvider } from '@/components/overlays/OverlayProvider';
 
 interface UIProvidersProps {
   children: ReactNode;
@@ -9,9 +9,9 @@ interface UIProvidersProps {
 export const UIProviders = ({ children }: UIProvidersProps) => {
   return (
     <ToastProvider>
-      <ModalProvider>
+      <OverlayProvider>
         {children}
-      </ModalProvider>
+      </OverlayProvider>
     </ToastProvider>
   );
 };

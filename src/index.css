@@ -133,8 +133,8 @@
     /* Gradients */
     --gradient-gold: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
     --gradient-navy: linear-gradient(180deg, hsl(223, 59%, 29%), hsl(223, 54%, 24%));
-    --gradient-hero-overlay: linear-gradient(180deg, hsla(222, 53%, 40%, 0.6) 0%, hsla(222, 47%, 12%, 0.80) 100%);
-    --gradient-hero: radial-gradient(1200px 700px at 18% 10%, hsla(220, 60%, 45%, 0.26) 0%, transparent 60%), radial-gradient(980px 720px at 85% 18%, hsla(210, 70%, 55%, 0.18) 0%, transparent 55%), radial-gradient(900px 700px at 50% 35%, hsla(200, 50%, 60%, 0.20) 0%, transparent 58%), radial-gradient(980px 760px at 16% 78%, hsla(230, 40%, 50%, 0.14) 0%, transparent 62%), radial-gradient(820px 640px at 52% 78%, hsla(240, 30%, 65%, 0.13) 0%, transparent 60%), linear-gradient(180deg, hsl(220 60% 15%) 0%, hsl(210 70% 20%) 55%, hsl(200 80% 25%) 100%);
+    --gradient-hero-overlay: none;
+    --gradient-hero: none;
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 20% 97%));
 
     /* Shadows */
@@ -313,6 +313,16 @@
     overflow-y: auto;
     margin: 0;
     padding: 0;
+  }
+
+  /* Wyłącz tło globalne dla strony /auth */
+  body.auth-no-bg {
+    background: none !important;
+    background-color: transparent !important;
+  }
+  html.auth-no-bg {
+    background: none !important;
+    background-color: transparent !important;
   }
 
   @keyframes floatOrbs {

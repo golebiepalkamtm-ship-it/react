@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { MagneticButton } from '@/components/effects/MagneticButton';
 import { ChampionCardEffect } from '@/components/effects/ChampionCardEffect';
+import { LuxuryAuctionTimer } from '@/components/auction/LuxuryAuctionTimer';
 
 const AUCTION_PLACEHOLDER_SRC = '/placeholder.svg';
 
@@ -13,7 +14,7 @@ interface LuxuryAuctionCardProps {
   title: string;
   image: string;
   currentBid: number;
-  timeLeft: string;
+  endTime: string;
   ringNumber?: string;
   watchCount?: number;
   featured?: boolean;
@@ -25,7 +26,7 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
   title,
   image,
   currentBid,
-  timeLeft,
+  endTime,
   ringNumber,
   watchCount,
   featured = false,
@@ -110,8 +111,8 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
       className={`overflow-hidden rounded-2xl border ${
         featured 
           ? 'border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.3)]' 
-          : 'border-white/10'
-      } bg-black/70 backdrop-blur-xl`}
+          : 'border-white/15'
+      } bg-white/10 backdrop-blur-xl`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-100px' }}
@@ -120,7 +121,7 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
       whileTap="tap"
     >
       {/* Efekt gradientu na krawędziach - wzmocnione oświetlenie */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/30 via-transparent to-gold/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/25 via-transparent to-gold/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <motion.div 
         className="absolute inset-0 rounded-2xl opacity-0 pointer-events-none"
         animate={{ 
@@ -165,27 +166,8 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
         />
         
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy/35 via-transparent to-transparent" />
         
-        {/* Licznik czasu */}
-        <motion.div 
-          className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-xl border border-white/25"
-          variants={itemVariants}
-        >
-          <Clock className="w-4 h-4 text-gold" />
-          <span className="text-foreground text-sm font-medium">{timeLeft}</span>
-        </motion.div>
-
-        {/* Licznik oglądających */}
-        {watchCount && (
-          <motion.div 
-            className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-xl border border-white/25"
-            variants={itemVariants}
-          >
-            <Eye className="w-4 h-4 text-muted-foreground" />
-            <span className="text-muted-foreground text-sm">{watchCount}</span>
-          </motion.div>
-        )}
       </div>
 
       {/* Zawartość karty */}
@@ -194,14 +176,33 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
         variants={contentVariants}
       >
         <motion.div 
-          className="flex items-start justify-between mb-4"
+          className="flex flex-col gap-3 mb-4"
           variants={itemVariants}
         >
-          <div>
-            <h3 className="font-display text-xl text-foreground font-semibold mb-1 line-clamp-2">
-              {title}
-            </h3>
-            <p className="text-muted-foreground text-sm">{ringNumber}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-display text-xl text-foreground font-semibold mb-1 line-clamp-2">
+                {title}
+              </h3>
+              <p className="text-muted-foreground text-sm">{ringNumber}</p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-white/12 backdrop-blur-xl border border-white/25">
+                <LuxuryAuctionTimer endTime={endTime} />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="w-3.5 h-3.5 text-gold" />
+                  <span className="leading-tight">
+                    {new Date(endTime).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })}
+                  </span>
+                </div>
+              </div>
+              {watchCount && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/12 backdrop-blur-xl border border-white/20">
+                  <Eye className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground text-sm">{watchCount}</span>
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
 

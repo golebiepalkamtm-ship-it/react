@@ -206,7 +206,7 @@ export const Hero = () => (
     <GsapFadeInUp duration={0.8}>
       <h1 className="text-6xl font-bold">Tytuł</h1>
     </GsapFadeInUp>
-    
+
     <GsapSlideInLeft delay={0.2}>
       <p className="text-xl">Podtytuł</p>
     </GsapSlideInLeft>
@@ -219,7 +219,7 @@ export const Hero = () => (
 ```jsx
 export const CardGrid = () => {
   const cards = [1, 2, 3, 4];
-  
+
   return (
     <div className="grid grid-cols-2 gap-8">
       {cards.map(card => (
@@ -242,12 +242,56 @@ export const Section = () => (
     <GsapParallax speed={0.3} className="absolute inset-0 -z-10">
       <div className="w-full h-full bg-gradient-gold opacity-20"></div>
     </GsapParallax>
-    
+
     <div className="relative z-10">
       <h2>Zawartość nad parallax</h2>
     </div>
   </section>
 );
+```
+
+### Sticky Section with Inner Animations
+
+```jsx
+export const StickySection = () => (
+  <section className="min-h-screen">
+    <GsapPinElement duration={5}>
+      <div className="h-screen flex items-center justify-center">
+        <GsapFadeInUp duration={1.5}>
+          <h2 className="text-5xl font-bold">Sticky Content</h2>
+        </GsapFadeInUp>
+      </div>
+    </GsapPinElement>
+  </section>
+);
+```
+
+### Scroll-Driven Visual Effects
+
+```jsx
+export const VisualEffectsSection = () => {
+  const { visualEffects } = useLivingSite();
+
+  useEffect(() => {
+    const element = document.querySelector('.visual-effects-element');
+    if (element) {
+      visualEffects(element, {
+        bokeh: true,
+        depthOfField: true,
+        glow: true,
+        intensity: 1.5
+      });
+    }
+  }, []);
+
+  return (
+    <section className="min-h-screen">
+      <div className="visual-effects-element h-screen bg-gradient-to-b from-blue-500 to-purple-600">
+        <h2 className="text-5xl font-bold text-white">Visual Effects</h2>
+      </div>
+    </section>
+  );
+};
 ```
 
 ---
@@ -324,10 +368,11 @@ Komponenty doskonale współpracują z Tailwind CSS:
 
 ## ⚡ Performance Tips
 
-1. **Użyj `once: true`** dla animacji które powinny wykonać się tylko raz
-2. **Limit animacji na stronie** - zbyt wiele animacji wpłynęłoby na wydajność
-3. **Unikaj animacji na dużych listach** - użyj `GsapStaggeredList` dla optimizacji
-4. **Testuj na wolnych urządzeniach** - sprawdzaj wydajność
+1. **Użyj `scrub: true`** dla płynnych animacji scroll-driven (Living Sites)
+2. **Użyj `once: false`** dla animacji które powinny reagować na scroll
+3. **Limit animacji na stronie** - zbyt wiele animacji wpłynęłoby na wydajność
+4. **Unikaj animacji na dużych listach** - użyj `GsapStaggeredList` dla optimizacji
+5. **Testuj na wolnych urządzeniach** - sprawdzaj wydajność
 
 ---
 
@@ -349,6 +394,7 @@ Pełna dokumentacja GSAP: https://greensock.com/docs/
 - Wszystkie animacje są responsive
 - Nie potrzebujesz konfigurować ScrollTrigger - zrobione za Ciebie
 - Możesz kombinować różne komponenty dla złożonych efektów
+- Używaj `scrub: true` dla płynnych animacji scroll-driven (Living Sites)
 
 ---
 
@@ -366,7 +412,143 @@ Pełna dokumentacja GSAP: https://greensock.com/docs/
 - Upewnij się że `speed` jest ustawiony poprawnie
 - Sprawdź czy element ma poprawne CSS
 
+### Scroll-driven animacje nie działają
+- Upewnij się że używasz `scrub: true` i `once: false`
+- Sprawdź czy element ma poprawną wysokość i pozycję
+
 ---
 
-**Wersja:** 1.0.0
-**Ostatnia aktualizacja:** 2024
+**Wersja:** 2.0.0
+**Ostatnia aktualizacja:** 2026
+**Nowe funkcje:**
+- Wszystkie animacje używają `scrub: true` dla płynnych animacji scroll-driven
+- Dodano zaawansowane techniki "Sticky Triggering" z animacjami wewnątrz
+- Dodano efekty wizualne (bokeh, depth of field, glow)
+- Zoptymalizowano viewport awareness dla lepszej wydajności
+- Dodano hook `visualEffects` dla zaawansowanych efektów wizualnych
+- Zaktualizowano dokumentację z nowymi przykładami i najlepszymi praktykami
+
+---
+
+## 🎨 CSS dla efektów wizualnych
+
+Dodaj te klasy CSS do swojego projektu dla efektów wizualnych:
+
+```css
+/* Bokeh Effect */
+.bokeh-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.bokeh-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  filter: blur(calc(var(--bokeh-intensity, 1) * 20px));
+  opacity: calc(var(--bokeh-intensity, 1) * 0.5);
+  pointer-events: none;
+}
+
+/* Depth of Field Effect */
+.depth-of-field-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.depth-of-field-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
+  opacity: calc(var(--dof-intensity, 1) * 0.3);
+  pointer-events: none;
+}
+
+/* Glow Effect */
+.glow-effect {
+  position: relative;
+}
+
+.glow-effect::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.2) 0%, transparent 70%);
+  filter: blur(calc(var(--glow-intensity, 1) * 30px));
+  opacity: calc(var(--glow-intensity, 1) * 0.8);
+  pointer-events: none;
+  z-index: -1;
+}
+```
+
+---
+
+## 🎯 Integracja z Tailwind CSS
+
+Dodaj te klasy do swojego `tailwind.config.ts`:
+
+```typescript
+module.exports = {
+  theme: {
+    extend: {
+      animation: {
+        'bokeh-pulse': 'bokeh-pulse 3s ease-in-out infinite',
+        'dof-fade': 'dof-fade 2s ease-in-out infinite',
+        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+      },
+      keyframes: {
+        'bokeh-pulse': {
+          '0%, 100%': { opacity: '0.3' },
+          '50%': { opacity: '0.6' },
+        },
+        'dof-fade': {
+          '0%, 100%': { opacity: '0.1' },
+          '50%': { opacity: '0.3' },
+        },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.6' },
+          '50%': { opacity: '0.9' },
+        },
+      },
+    },
+  },
+};
+```
+
+---
+
+## 🚀 Optymalizacja Wydajności
+
+1. **Używaj `will-change`** dla elementów z animacjami:
+   ```jsx
+   <div style={{ willChange: 'transform, opacity' }} />
+   ```
+
+2. **Ograniczaj ilość animacji** na stronie do 10-15 dla najlepszej wydajności
+
+3. **Używaj GPU acceleration**:
+   ```jsx
+   <div style={{ transform: 'translateZ(0)' }} />
+   ```
+
+4. **Optymalizuj obrazy** i używaj formatów WebP dla lepszej wydajności
+
+5. **Testuj na różnych urządzeniach** i przeglądarkach
+
+---
+
+**Zespół Champion Pigeon Auctions**
+**Lead Creative Developer: Cline**
+**Data: 2026**
+**Wersja: 2.0.0 - Living Sites Edition**

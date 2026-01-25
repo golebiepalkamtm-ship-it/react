@@ -143,7 +143,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Lewa kolumna - zdjęcia */}
         <motion.div variants={itemVariants}>
-          <div className="relative overflow-hidden rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+          <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]">
             {/* Główne zdjęcie */}
             <div 
               ref={imageContainerRef}
@@ -181,7 +181,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 0.8 }}
                     exit={{ opacity: 0 }}
-                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-black/70 backdrop-blur-xl text-white text-sm flex items-center gap-2"
+                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-white/85 text-navy text-sm flex items-center gap-2 shadow-lg border border-white/40"
                   >
                     <Eye className="w-4 h-4" />
                     Kliknij, aby powiększyć
@@ -199,7 +199,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                   whileHover="hover"
                   whileTap="tap"
                   onClick={prevImage}
-                  className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-xl border border-white/25 flex items-center justify-center text-white pointer-events-auto"
+                  className="w-10 h-10 rounded-full bg-white/85 backdrop-blur-xl border border-white/40 flex items-center justify-center text-navy pointer-events-auto shadow-md"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </motion.button>
@@ -209,7 +209,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                   whileHover="hover"
                   whileTap="tap"
                   onClick={nextImage}
-                  className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-xl border border-white/25 flex items-center justify-center text-white pointer-events-auto"
+                  className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-xl border border-white/35 flex items-center justify-center text-navy pointer-events-auto shadow-md"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </motion.button>
@@ -244,7 +244,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
           {/* Informacje o gołębiu */}
           <motion.div 
             variants={itemVariants}
-            className="mt-6 p-6 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+            className="mt-6 p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
           >
             <h3 className="font-display text-xl font-semibold mb-4">Informacje o gołębiu</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -276,7 +276,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
         <div>
           <motion.div 
             variants={itemVariants}
-            className="p-6 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+            className="p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
           >
             <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
               <h1 className="font-display text-3xl font-bold">{auction?.title}</h1>
@@ -338,7 +338,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
               >
                 <p>{auction?.description}</p>
                 {!isDescriptionExpanded && auction?.description.length > 150 && (
-                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/80 to-transparent" />
                 )}
               </motion.div>
               {auction?.description.length > 150 && (
@@ -422,7 +422,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                   </p>
                 </div>
                 
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 text-navy backdrop-blur-sm border border-white/40 shadow-sm">
                   <LuxuryAuctionTimer 
                     endTime={auction.endTime}
                   />
@@ -438,7 +438,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                         value={bidAmount}
                         onChange={(e) => onBidAmountChange(e.target.value)}
                         placeholder={`Min. ${minimumBid.toLocaleString('pl-PL')} zł`}
-                        className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/25 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground placeholder:text-muted-foreground"
+                        className="w-full px-4 py-3 rounded-xl bg-white/85 border border-white/40 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-navy placeholder:text-muted-foreground"
                       />
                     </div>
                     <MagneticButton strength={0.3}>
@@ -487,7 +487,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                   )}
                 </>
               ) : (
-                <div className="p-4 rounded-xl bg-black/50 text-center">
+                <div className="p-4 rounded-xl bg-white/85 text-center text-navy border border-white/40 shadow">
                   <p className="text-lg font-medium">Aukcja zakończona</p>
                   {isEnded && user?.id === (auction as any).winnerId && (
                     <div className="mt-4 space-y-2">
@@ -557,7 +557,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             {/* Historia licytacji */}
             <motion.div 
               variants={itemVariants}
-              className="mt-6 p-6 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+              className="mt-6 p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
             >
               <h3 className="font-display text-xl font-semibold mb-4">Historia licytacji</h3>
               {auction?.bids && auction.bids.length > 0 ? (
@@ -589,7 +589,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
 
       {/* Share Modal */}
       <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"
+        className="fixed inset-0 bg-white/30 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"
         data-share-modal
       >
         <div className="flex items-center justify-center min-h-screen p-4">

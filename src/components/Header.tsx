@@ -25,6 +25,7 @@ const Header = () => {
   }, [isHeaderAdminPanelOpen]);
   
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
   const firstMobileLinkRef = useRef<HTMLElement | null>(null);
   const mobileNavId = "mobile-nav";
   
@@ -100,6 +101,33 @@ const Header = () => {
     setIsMobileMenuOpen(false);
   }, []);
 
+  const scrollToAnchor = useCallback((anchor: string) => {
+    if (location.pathname !== '/') {
+      window.location.assign(`/#${anchor}`);
+      return;
+    }
+
+    // dla "home" jedziemy na samą górę
+    if (anchor === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      closeMobileMenu();
+      return;
+    }
+
+    const el = document.getElementById(anchor);
+    if (el) {
+      const headerHeight = headerRef.current?.offsetHeight ?? 88;
+      const isAbout = anchor === 'about';
+      // About potrzebuje mocnego ujemnego offsetu (sekcja pinowana); reszta standardowy offset
+      const safeOffset = isAbout ? -(headerHeight + 520) : headerHeight + 32;
+      const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - safeOffset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    }
+
+    closeMobileMenu();
+  }, [closeMobileMenu, location.pathname]);
+
   useEffect(() => {
     if (!isMobileMenuOpen) return;
 
@@ -166,6 +194,7 @@ const Header = () => {
 
   return (
     <motion.header
+      ref={headerRef}
       initial="hidden"
       animate="visible"
       variants={fadeInDown}
@@ -343,23 +372,7 @@ const Header = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       const anchor = link.href.split('#')[1];
-                      // If not on homepage, navigate to homepage with hash (full page load ensures correct anchor)
-                      if (location.pathname !== '/') {
-                        window.location.assign(`/#${anchor}`);
-                        return;
-                      }
-
-                      // If already on homepage, smooth scroll to the section with offset to account for fixed header
-                      const el = document.getElementById(anchor);
-                      if (el) {
-                        const headerOffset = 88; // adjust if header height changes
-                        const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-                        const offsetPosition = elementPosition - headerOffset;
-                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                      }
-
-                      // close mobile menu if open
-                      closeMobileMenu();
+                      scrollToAnchor(anchor);
                     }}
                     className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}
                   >
@@ -608,18 +621,7 @@ const Header = () => {
                         onClick={(e) => {
                           e.preventDefault();
                           const anchor = link.href.split('#')[1];
-                          if (location.pathname !== '/') {
-                            window.location.assign(`/#${anchor}`);
-                            return;
-                          }
-                          const el = document.getElementById(anchor);
-                          if (el) {
-                            const headerOffset = 88;
-                            const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-                            const offsetPosition = elementPosition - headerOffset;
-                            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                          }
-                          closeMobileMenu();
+                          scrollToAnchor(anchor);
                         }}
                         ref={link.label === navLinks[0]?.label ? (el: HTMLElement | null) => {
                           firstMobileLinkRef.current = el;

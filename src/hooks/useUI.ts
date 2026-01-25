@@ -1,9 +1,18 @@
 import { useToast } from '@/components/ui/ToastProvider';
-import { useModal } from '@/components/ui/ModalProvider';
+import { useModal, useModalStore } from '@/stores/modalStore';
 
 export const useUI = () => {
   const toast = useToast();
   const modal = useModal();
+
+  const closeActiveModal = () => {
+    const current = useModalStore.getState().activeModal;
+    if (current) {
+      modal.closeModal(current.id);
+    }
+  };
+
+  const isModalOpen = () => !!useModalStore.getState().activeModal;
 
   return {
     // Toast methods
@@ -18,7 +27,13 @@ export const useUI = () => {
     // Modal methods
     openModal: modal.openModal,
     closeModal: modal.closeModal,
-    closeAllModals: modal.closeAllModals,
-    isModalOpen: modal.isModalOpen,
+    modal: modal.modal,
+    setLoading: modal.setLoading,
+    setSuccess: modal.setSuccess,
+    updateState: modal.updateState,
+    updateProgress: modal.updateProgress,
+    getModalContext: useModalStore.getState().getModalContext,
+    closeActiveModal,
+    isModalOpen,
   };
 };

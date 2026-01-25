@@ -143,6 +143,8 @@ export function ReferencesPage() {
   const [references, setReferences] = useState<Reference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -188,7 +190,8 @@ export function ReferencesPage() {
 
   const handleAddReference = () => {
     if (!user) {
-      navigate('/auth?mode=login&callbackUrl=/references');
+      setPendingRedirect('/references');
+      setShowLoginPrompt(true);
       return;
     }
 
@@ -744,6 +747,26 @@ export function ReferencesPage() {
         cancelButton={{
           text: 'Anuluj',
           onClick: () => setShowVerificationModal(false)
+        }}
+      />
+
+      <UnifiedModal
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        type="info"
+        title="Wymagane logowanie"
+        message="Aby dodać referencję, musisz się zalogować. Po zamknięciu komunikatu przeniosę Cię do strony logowania."
+        confirmButton={{
+          text: 'Przejdź do logowania',
+          onClick: () => {
+            const target = pendingRedirect || '/references';
+            setShowLoginPrompt(false);
+            navigate(`/auth?mode=login&callbackUrl=${encodeURIComponent(target)}`);
+          }
+        }}
+        cancelButton={{
+          text: 'Anuluj',
+          onClick: () => setShowLoginPrompt(false),
         }}
       />
 

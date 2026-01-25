@@ -1,9 +1,7 @@
 (function () {
   'use strict';
 
-  // Ensure we have a proper DOM environment
-  if (typeof document === 'undefined' || !document || typeof window === 'undefined' || !window) return;
-  if (typeof document.addEventListener === 'undefined') return;
+  if (typeof document === 'undefined' || !document || typeof window === 'undefined') return;
 
   var isInitialized = false;
 
@@ -59,29 +57,26 @@
   }
 
   function init() {
-    if (isInitialized || typeof document === 'undefined' || !document || !document.body) return;
+    if (isInitialized || !document || !document.body) return;
+    var add = document.addEventListener;
+    var remove = document.removeEventListener;
+    if (typeof add !== 'function' || typeof remove !== 'function') return;
     try {
       // Remove old listeners if any to prevent duplicates
-      if (document.removeEventListener) {
-        document.removeEventListener('click', handleClick);
-        document.removeEventListener('keydown', handleKeydown);
-      }
+      remove.call(document, 'click', handleClick);
+      remove.call(document, 'keydown', handleKeydown);
       
-      if (document.addEventListener) {
-        document.addEventListener('click', handleClick);
-        document.addEventListener('keydown', handleKeydown);
-      }
+      add.call(document, 'click', handleClick);
+      add.call(document, 'keydown', handleKeydown);
       isInitialized = true;
     } catch (err) {
       console.error('Share modal init error:', err);
     }
   }
 
-  if (typeof document !== 'undefined' && document) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init, { once: true });
-    } else {
-      init();
-    }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
   }
 })();

@@ -72,7 +72,6 @@ router.post('/stripe/checkout', validate(createCheckoutSchema), async (req: any,
         auctionId,
         userId,
         amount: amount + commission,
-        currency: currency.toUpperCase(),
         provider: 'STRIPE' as any,
         type: 'BUY_NOW' as any,
         status: 'INITIATED' as any
@@ -160,7 +159,6 @@ router.post('/stripe/listing-fee', validate(z.object({
         auctionId,
         userId,
         amount,
-        currency: currency.toUpperCase(),
         provider: 'STRIPE' as any,
         type: 'LISTING_FEE' as any,
         status: 'INITIATED' as any

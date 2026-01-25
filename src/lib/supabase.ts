@@ -19,7 +19,14 @@ let supabase: SupabaseClient | null = null;
 
 const supabaseKey = supabaseAnonKey || supabasePublishableKey;
 
-if (supabaseUrl && supabaseKey) {
+export const missingSupabaseEnv = [
+  !supabaseUrl && 'VITE_SUPABASE_URL',
+  !supabaseAnonKey && !supabasePublishableKey && 'VITE_SUPABASE_ANON_KEY lub VITE_SUPABASE_PUBLISHABLE_KEY',
+].filter(Boolean) as string[];
+
+export const isSupabaseConfigured = missingSupabaseEnv.length === 0;
+
+if (isSupabaseConfigured && supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
       autoRefreshToken: true,

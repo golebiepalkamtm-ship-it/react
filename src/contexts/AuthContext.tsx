@@ -201,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const queryPromise = client
         .from('users')
-        .select()
+        .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
 
@@ -564,19 +564,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Brak połączenia z bazą danych');
     }
 
-    // Strip protected fields to avoid trigger rejection or constraint violations
-    const safeUpdates: any = { ...updates };
-    delete safeUpdates.role;
-    delete safeUpdates.id;
-    delete safeUpdates.email;
-    delete safeUpdates.created_at;
-    delete safeUpdates.updated_at;
-    delete safeUpdates.createdAt;
-    delete safeUpdates.updatedAt;
+    // Strip protected fields to avoid trigger rejection
+    const safeUpdates = { ...updates };
+    delete (safeUpdates as any).role;
+    delete (safeUpdates as any).id;
+    delete (safeUpdates as any).email;
 
-    if (safeUpdates.username) {
-      safeUpdates.username = sanitizeUsername(safeUpdates.username);
-      if (!safeUpdates.username || safeUpdates.username.length < 3) {
+    const payload: Partial<Profile> & { id: string } = { id: user.id, ...safeUpdates };
+    
+    if (payload.username) {
+      payload.username = sanitizeUsername(payload.username);
+      if (!payload.username || payload.username.length < 3) {
         throw new Error('Nazwa użytkownika jest nieprawidłowa (min. 3 znaki, tylko litery/cyfry i myślniki).');
       }
     }
@@ -585,7 +583,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .from('users')
       .update(safeUpdates) // Use update, not upsert
       .eq('id', user.id)
-      .select()
+      .select('*')
       .maybeSingle();
 
     if (!error && !data) {
@@ -607,24 +605,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: user.id,
         email: user.email,
         role: calculatedRole,
-        username: safeUpdates.username || generateUsername(user),
         ...safeUpdates
       };
       
       const insertResult = await client
         .from('users')
         .insert(insertPayload)
-        .select()
+        .select('*')
         .single();
         
       if (insertResult.error) {
-        logger.error('Error creating missing profile:', {
-          error: insertResult.error,
-          message: insertResult.error.message,
-          details: insertResult.error.details,
-          hint: insertResult.error.hint,
-          payload: insertPayload
-        });
+        logger.error('Error creating missing profile:', insertResult.error);
         throw insertResult.error;
       }
       

@@ -34,7 +34,7 @@ const AuctionCard = ({
       className={`group relative mx-auto w-full max-w-[360px]`}
       glowColor="rgba(212, 175, 55, 0.5)"
     >
-      <div className="rounded-2xl overflow-hidden gold-border glass-card transition-all duration-500 shadow-glow border-gold/30">
+      <div className="rounded-2xl overflow-hidden gold-border glass-card transition-all duration-500 shadow-glow border-gold/30 bg-white/10 backdrop-blur-xl">
       {/* Featured Badge */}
       {featured && (
         <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-gradient-to-r from-gold to-gold-light text-navy text-xs font-semibold uppercase tracking-wide flex items-center gap-1">
@@ -55,7 +55,7 @@ const AuctionCard = ({
           }}
           className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-3 bg-black/15' : 'object-cover'} transition-[filter] duration-300 group-hover:brightness-[1.03]`}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy/40 via-transparent to-transparent" />
         
         {/* Time Badge */}
         <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">

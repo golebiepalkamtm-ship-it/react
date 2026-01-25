@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { reviewService, type Review, type CreateReviewRequest } from '@/services/reviewService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUI } from '@/hooks/useUI';
 
 interface ReviewFormProps {
   auctionId: string;
@@ -16,6 +17,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
   onReviewSubmitted,
 }) => {
   const { session } = useAuth();
+  const { info, success: toastSuccess, error: toastError } = useUI();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,7 +28,9 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
     e.preventDefault();
     
     if (!session) {
-      setError('Musisz być zalogowany');
+      const msg = 'Musisz być zalogowany, aby dodać recenzję.';
+      setError(msg);
+      info(msg, 'Zaloguj się i spróbuj ponownie.');
       return;
     }
 
@@ -42,13 +46,16 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
       await reviewService.createReview(reviewData, session.access_token);
       setSuccess(true);
+      toastSuccess('Dziękujemy!', 'Twoja recenzja została dodana.');
       onReviewSubmitted();
       
       // Reset form
       setRating(5);
       setComment('');
     } catch (error: any) {
-      setError(error.message || 'Wystąpił błąd');
+      const msg = error?.message || 'Wystąpił błąd';
+      setError(msg);
+      toastError('Nie udało się dodać recenzji', msg);
     } finally {
       setIsSubmitting(false);
     }

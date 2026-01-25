@@ -24,7 +24,7 @@ export const userService = {
       
       const { data, error } = await supabase
         .from('users')
-        .select()
+        .select('*')
         .eq('id', userId)
         .single();
         
@@ -44,16 +44,9 @@ export const userService = {
     try {
       if (!supabase) return null;
       
-      // Strip protected fields
-      const safeUpdates = { ...updates };
-      delete (safeUpdates as any).id;
-      delete (safeUpdates as any).email;
-      delete (safeUpdates as any).created_at;
-      delete (safeUpdates as any).updated_at;
-      
       const { data, error } = await supabase
         .from('users')
-        .update(safeUpdates)
+        .update(updates)
         .eq('id', userId)
         .select()
         .single();

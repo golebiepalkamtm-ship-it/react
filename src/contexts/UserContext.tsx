@@ -84,7 +84,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await client
         .from('users')
-        .select()
+        .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
 
@@ -127,22 +127,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Brak połączenia z bazą danych');
     }
 
-    // Strip protected fields to avoid trigger rejection or constraint violations
+    // Strip protected fields
     const safeUpdates = { ...updates };
     delete (safeUpdates as any).role;
     delete (safeUpdates as any).id;
     delete (safeUpdates as any).email;
-    delete (safeUpdates as any).created_at;
-    delete (safeUpdates as any).updated_at;
-    delete (safeUpdates as any).createdAt;
-    delete (safeUpdates as any).updatedAt;
     
     // Perform update
     const { data, error } = await client
       .from('users')
       .update(safeUpdates)
       .eq('id', user.id)
-      .select()
+      .select('*')
       .single();
 
     if (error) {

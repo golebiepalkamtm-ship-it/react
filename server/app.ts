@@ -30,14 +30,10 @@ import { validateCSRFToken, setCSRFToken } from './middleware/csrf.js';
 import { validatedEnv } from './lib/env.js';
 import AuctionCronService from './services/AuctionCronService.js';
 
-import { requestLogger } from './middleware/requestLogger.js';
-
 const app: Application = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-app.use(requestLogger);
 
 const allowedOrigins = [
   validatedEnv.CLIENT_URL,
@@ -95,28 +91,11 @@ const corsOptions = {
   maxAge: validatedEnv.CORS_MAX_AGE
 };
 
-// Development convenience: relax CORS to avoid accidental blocking by strict origin checks
-// This only applies in development to keep production restrictions intact.
-if (validatedEnv.NODE_ENV === 'development') {
-  // Allow any origin in development (Vite dev server, previews, etc.)
-  // The `cors` package accepts `true` to reflect request origin.
-  // Mutate the options object rather than re-declaring to preserve other settings.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  corsOptions.origin = true;
-  console.info('CORS: development mode - allowing all origins for local dev');
-}
+app.use(helmet());
+app.use(cspMiddleware);
 
-// CORS must be before helmet to ensure headers are set correctly
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
-
-// Configure helmet to not interfere with CORS
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginEmbedderPolicy: false
-}));
-app.use(cspMiddleware);
 
 app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
   try {

@@ -69,7 +69,7 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
   // Get lenis instance
   const getLenis = () => lenisRef.current;
 
-  // Scroll reveal animation
+  // Scroll reveal animation with scrub for Living Sites
   const scrollReveal = (
     elements: string | HTMLElement | NodeListOf<HTMLElement>,
     options: ScrollRevealOptions = {}
@@ -116,7 +116,8 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
           trigger: elements,
           start: 'top 85%',
           end: 'bottom 15%',
-          toggleActions: 'play none none reverse',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -165,7 +166,7 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
     };
   };
 
-  // Sticky reveal animation
+  // Sticky reveal animation with advanced inner animations
   const stickyReveal = (
     container: HTMLElement,
     content: HTMLElement,
@@ -180,8 +181,24 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
         start: 'top top',
         end: pinDuration ? `+=${pinDuration}` : 'bottom top',
         scrub: true,
+        anticipatePin: 1,
       },
     });
+
+    // Add inner animations for Living Sites effect
+    const innerElements = content.querySelectorAll('[data-sticky-animate]');
+    if (innerElements.length > 0) {
+      tween.fromTo(innerElements,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1.5,
+          stagger: 0.2,
+          ease: 'power2.out'
+        }
+      );
+    }
 
     const id = Math.random().toString(36).substr(2, 9);
     animationsRef.current.set(id, tween);
@@ -192,7 +209,7 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
     };
   };
 
-  // Scale reveal animation
+  // Scale reveal animation with scrub for Living Sites
   const scaleReveal = (
     elements: string | HTMLElement | NodeListOf<HTMLElement>,
     options: { duration?: number; delay?: number; stagger?: number } = {}
@@ -221,7 +238,9 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
         scrollTrigger: {
           trigger: elements,
           start: 'top 85%',
-          toggleActions: 'play none none reverse',
+          end: 'bottom 15%',
+          scrub: true,
+          once: false,
         },
       }
     );
@@ -235,7 +254,7 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
     };
   };
 
-  // Text reveal animation
+  // Text reveal animation with scrub for Living Sites
   const textReveal = (
     element: HTMLElement,
     options: { duration?: number; delay?: number } = {}
@@ -250,7 +269,7 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
     // Split text into words
     const text = element.textContent || '';
     const words = text.split(' ');
-    
+
     element.innerHTML = words
       .map(word => `<span class="word" style="display: inline-block; opacity: 0; transform: translateY(20px);">${word}</span>`)
       .join(' ');
@@ -267,7 +286,9 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
       scrollTrigger: {
         trigger: element,
         start: 'top 85%',
-        toggleActions: 'play none none reverse',
+        end: 'bottom 15%',
+        scrub: true,
+        once: false,
       },
     });
 
@@ -287,6 +308,117 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
     if (scrollTriggerRefresh) {
       ScrollTrigger.refresh();
     }
+  };
+
+  // Visual effects for Living Sites (bokeh, depth of field, glow)
+  const visualEffects = (
+    element: HTMLElement,
+    options: {
+      bokeh?: boolean;
+      depthOfField?: boolean;
+      glow?: boolean;
+      intensity?: number;
+      scrollTrigger?: boolean;
+      start?: string;
+      end?: string;
+    } = {}
+  ) => {
+    if (!enableAnimations) return;
+
+    const {
+      bokeh = false,
+      depthOfField = false,
+      glow = false,
+      intensity = 1,
+      scrollTrigger = true,
+      start = 'top bottom',
+      end = 'bottom top',
+    } = options;
+
+    // Apply visual effects based on options
+    if (bokeh) {
+      element.style.setProperty('--bokeh-intensity', `${intensity}`);
+      element.classList.add('bokeh-effect');
+    }
+
+    if (depthOfField) {
+      element.style.setProperty('--dof-intensity', `${intensity}`);
+      element.classList.add('depth-of-field-effect');
+    }
+
+    if (glow) {
+      element.style.setProperty('--glow-intensity', `${intensity}`);
+      element.classList.add('glow-effect');
+    }
+
+    // Add scroll-driven visual effects
+    const tween = gsap.to(element, {
+      '--visual-effect-progress': 1,
+      ease: 'none',
+      scrollTrigger: scrollTrigger ? {
+        trigger: element,
+        start,
+        end,
+        scrub: true,
+        once: false,
+      } : undefined,
+    });
+
+    const id = Math.random().toString(36).substr(2, 9);
+    animationsRef.current.set(id, tween);
+
+    return () => {
+      animationsRef.current.delete(id);
+      tween.kill();
+      // Clean up classes
+      element.classList.remove('bokeh-effect', 'depth-of-field-effect', 'glow-effect');
+    };
+  };
+
+  // Viewport awareness optimization
+  const viewportAwareness = (
+    element: HTMLElement,
+    options: {
+      threshold?: number;
+      onEnter?: () => void;
+      onLeave?: () => void;
+      pauseAnimations?: boolean;
+    } = {}
+  ) => {
+    if (!enableAnimations) return;
+
+    const {
+      threshold = 0.1,
+      onEnter,
+      onLeave,
+      pauseAnimations = true,
+    } = options;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onEnter?.();
+          if (pauseAnimations) {
+            element.style.animationPlayState = 'running';
+          }
+        } else {
+          onLeave?.();
+          if (pauseAnimations) {
+            element.style.animationPlayState = 'paused';
+          }
+        }
+      },
+      {
+        threshold,
+      }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.unobserve(element);
+      observer.disconnect();
+    };
   };
 
   // Kill all animations
@@ -314,6 +446,7 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
     stickyReveal,
     scaleReveal,
     textReveal,
+    visualEffects,
     refresh,
     killAll,
   };

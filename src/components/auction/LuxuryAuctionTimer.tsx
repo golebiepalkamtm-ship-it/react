@@ -132,23 +132,21 @@ export const LuxuryAuctionTimer: React.FC<LuxuryAuctionTimerProps> = ({
               <span className="text-muted-foreground mx-1">m</span>
             </div>
             
-            {(isNearEnd || timeLeft.days === 0) && (
-              <div className="flex items-center">
-                <AnimatePresence mode="popLayout">
-                  <motion.span
-                    key={timeLeft.seconds}
-                    variants={digitVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    className={`font-mono font-bold ${getColorClass()}`}
-                  >
-                    {timeLeft.seconds.toString().padStart(2, '0')}
-                  </motion.span>
-                </AnimatePresence>
-                <span className="text-muted-foreground mx-1">s</span>
-              </div>
-            )}
+            <div className="flex items-center">
+              <AnimatePresence mode="popLayout">
+                <motion.span
+                  key={timeLeft.seconds}
+                  variants={digitVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className={`font-mono font-bold ${getColorClass()}`}
+                >
+                  {timeLeft.seconds.toString().padStart(2, '0')}
+                </motion.span>
+              </AnimatePresence>
+              <span className="text-muted-foreground mx-1">s</span>
+            </div>
           </>
         ) : (
           <motion.span

@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 20 10% 8%;
+    --foreground: 40 30% 95%;
+
+    --card: 20 10% 12%;
+    --card-foreground: 40 30% 95%;
+
+    --popover: 20 10% 10%;
+    --popover-foreground: 40 30% 95%;
+
+    --primary: 38 70% 55%;
+    --primary-foreground: 20 10% 8%;
+
+    --secondary: 20 10% 16%;
+    --secondary-foreground: 40 30% 95%;
+
+    --muted: 20 10% 18%;
+    --muted-foreground: 40 15% 60%;
+
+    --accent: 38 70% 55%;
+    --accent-foreground: 20 10% 8%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 40 30% 95%;
+
+    --border: 38 20% 20%;
+    --input: 20 10% 20%;
+    --ring: 38 70% 55%;
+
+    --radius: 0.5rem;
+
+    /* Custom design tokens */
+    --gold: 38 70% 55%;
+    --gold-light: 40 60% 70%;
+    --gold-dark: 35 75% 40%;
+    --cream: 40 30% 95%;
+    --charcoal: 20 10% 8%;
+    --charcoal-light: 20 10% 14%;
+
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(38 70% 55%), hsl(45 80% 65%), hsl(38 70% 55%));
+    --gradient-dark: linear-gradient(180deg, hsl(20 10% 8%), hsl(20 10% 4%));
+    --gradient-overlay: linear-gradient(180deg, hsla(20 10% 8% / 0.3), hsla(20 10% 8% / 0.9));
+    --gradient-hero: linear-gradient(135deg, hsla(38 70% 55% / 0.1), transparent);
+
+    /* Shadows */
+    --shadow-gold: 0 4px 30px hsla(38 70% 55% / 0.3);
+    --shadow-elegant: 0 25px 50px -12px hsla(0 0% 0% / 0.5);
+
+    /* Typography */
+    --font-display: 'Cinzel', serif;
+    --font-body: 'Raleway', sans-serif;
+
+    --sidebar-background: 20 10% 10%;
+    --sidebar-foreground: 40 30% 95%;
+    --sidebar-primary: 38 70% 55%;
+    --sidebar-primary-foreground: 20 10% 8%;
+    --sidebar-accent: 20 10% 16%;
+    --sidebar-accent-foreground: 40 30% 95%;
+    --sidebar-border: 38 20% 20%;
+    --sidebar-ring: 38 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .text-gradient-gold {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-gold {
+    background: var(--gradient-gold);
+  }
+
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+
+  .glass {
+    background: hsla(20 10% 12% / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsla(38 70% 55% / 0.1);
+  }
+
+  .glass-dark {
+    background: hsla(20 10% 8% / 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsla(38 70% 55% / 0.1);
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+}

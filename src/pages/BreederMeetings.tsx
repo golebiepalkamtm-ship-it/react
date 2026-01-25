@@ -42,6 +42,8 @@ export default function BreederMeetings() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ meetingId: string; imageIndex: number } | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   
   // Verification handling
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -91,7 +93,8 @@ export default function BreederMeetings() {
 
   const handleAddMeeting = () => {
     if (!user) {
-      navigate('/auth?mode=login&callbackUrl=/meetings');
+      setPendingRedirect('/meetings');
+      setShowLoginPrompt(true);
       return;
     }
 
@@ -280,6 +283,26 @@ export default function BreederMeetings() {
         cancelButton={{
           text: 'Anuluj',
           onClick: () => setShowVerificationModal(false)
+        }}
+      />
+
+      <UnifiedModal
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        type="info"
+        title="Wymagane logowanie"
+        message="Aby dodać spotkanie z hodowcą, musisz się zalogować. Po zamknięciu tego komunikatu przeniosę Cię do strony logowania."
+        confirmButton={{
+          text: 'Przejdź do logowania',
+          onClick: () => {
+            const target = pendingRedirect || '/meetings';
+            setShowLoginPrompt(false);
+            navigate(`/auth?mode=login&callbackUrl=${encodeURIComponent(target)}`);
+          }
+        }}
+        cancelButton={{
+          text: 'Anuluj',
+          onClick: () => setShowLoginPrompt(false),
         }}
       />
 

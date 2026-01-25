@@ -1,6 +1,4 @@
-import * as React from "react";
-import { CheckCircle, AlertCircle, TriangleAlert, Info } from "lucide-react";
-import { toast } from "sonner";
+import { useFeedback } from "@/components/ui/feedback/FeedbackProvider";
 
 interface ToastOptions {
   message: string;
@@ -8,45 +6,12 @@ interface ToastOptions {
 }
 
 export const useOptimizedToast = () => {
-  const success = ({ message, duration = 3000 }: ToastOptions) => {
-    toast.success(message, {
-      duration,
-      action: {
-        label: "Zamknij",
-        onClick: () => toast.dismiss(),
-      },
-    });
-  };
+  const { pushToast } = useFeedback();
 
-  const error = ({ message, duration = 5000 }: ToastOptions) => {
-    toast.error(message, {
-      duration,
-      action: {
-        label: "Zamknij",
-        onClick: () => toast.dismiss(),
-      },
-    });
-  };
-
-  const warning = ({ message, duration = 4000 }: ToastOptions) => {
-    toast.warning(message, {
-      duration,
-      action: {
-        label: "Zamknij",
-        onClick: () => toast.dismiss(),
-      },
-    });
-  };
-
-  const info = ({ message, duration = 3000 }: ToastOptions) => {
-    toast.info(message, {
-      duration,
-      action: {
-        label: "Zamknij",
-        onClick: () => toast.dismiss(),
-      },
-    });
-  };
+  const success = ({ message }: ToastOptions) => pushToast({ tone: "success", title: message });
+  const error = ({ message }: ToastOptions) => pushToast({ tone: "error", title: message });
+  const warning = ({ message }: ToastOptions) => pushToast({ tone: "error", title: message });
+  const info = ({ message }: ToastOptions) => pushToast({ tone: "info", title: message });
 
   return {
     success,

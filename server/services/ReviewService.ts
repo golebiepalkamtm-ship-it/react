@@ -5,6 +5,7 @@ export interface ReviewData {
   reviewerId: string;
   revieweeId: string;
   rating: number;
+  comment?: string;
 }
 
 export interface ReviewResponse {
@@ -13,13 +14,14 @@ export interface ReviewResponse {
   reviewerId: string;
   revieweeId: string;
   rating: number;
+  comment?: string;
   createdAt: string;
   updatedAt: string;
   reviewer: {
     id: string;
-    first_name?: string | null;
-    last_name?: string | null;
-    avatarUrl?: string | null;
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string;
   };
 }
 

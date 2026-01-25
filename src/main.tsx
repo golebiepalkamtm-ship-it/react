@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { FeedbackProvider } from "@/components/ui/feedback/FeedbackProvider";
 import "./index.css";
 import { logger } from '@/lib/logger';
 
@@ -44,4 +45,8 @@ if (import.meta.env.PROD) {
   };
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <FeedbackProvider>
+    <App />
+  </FeedbackProvider>
+);

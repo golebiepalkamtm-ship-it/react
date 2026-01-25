@@ -31,14 +31,15 @@ export default function Login() {
 
   useEffect(() => {
     if (!loading && user && profile) {
+      // Nie przekierowuj automatycznie admina po zalogowaniu
+      if (profile.role === 'ADMIN') return;
+
       // Check verification level
       if (profile.role === 'USER_REGISTERED') {
         // Redirect to email confirmation or profile completion
         navigate('/verify-email');
-      } else if (profile.role === 'USER_EMAIL_VERIFIED') {
-        // Otwórz modal konta na stronie głównej do uzupełnienia profilu
-        navigate('/', { state: { openAccount: true } });
-      } else {
+      } else if (callbackUrl && callbackUrl !== '/') {
+        // Tylko gdy mamy celny callback
         navigate(callbackUrl);
       }
     }

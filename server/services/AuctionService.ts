@@ -54,7 +54,7 @@ export class AuctionService {
         data: {
           status: 'ENDED',
           winnerId: highestBid.bidderId!
-        }
+        } as any
       });
 
       // Powiadomienie SMS dla zwycięzcy
@@ -209,7 +209,7 @@ export class AuctionService {
           auctionId,
           isProxy,
           maxBid: maxBid ? new Prisma.Decimal(maxBid) : null
-        },
+        } as any,
         include: {
           bidder: true
         }
@@ -234,7 +234,7 @@ export class AuctionService {
               auctionId,
               isProxy: true,
               maxBid: new Prisma.Decimal(previousMaxBid)
-            },
+            } as any,
             include: {
               bidder: true
             }
@@ -256,14 +256,14 @@ export class AuctionService {
           // Emit auto-bid event
           try {
             const io = getIO();
-            const autoBidder = autoBid.bidder!;
+            const autoBidder = (autoBid as any).bidder;
             io.to(`auction-${auctionId}`).emit('bid-placed', {
               bid: {
                 ...autoBid,
                 bidder: {
                   id: autoBidder.id,
-                  firstName: autoBidder.first_name,
-                  lastName: autoBidder.last_name,
+                  firstName: autoBidder.first_name || autoBidder.firstName,
+                  lastName: autoBidder.last_name || autoBidder.lastName,
                   email: autoBidder.email
                 }
               },
@@ -300,7 +300,7 @@ export class AuctionService {
                 auctionId,
                 isProxy: true,
                 maxBid: new Prisma.Decimal(currentMaxBid)
-              },
+              } as any,
               include: {
                 bidder: true
               }
@@ -314,14 +314,14 @@ export class AuctionService {
             // Emit jump bid event
             try {
               const io = getIO();
-              const jumpBidder = jumpBid.bidder!;
+              const jumpBidder = (jumpBid as any).bidder;
               io.to(`auction-${auctionId}`).emit('bid-placed', {
                 bid: {
                   ...jumpBid,
                   bidder: {
                     id: jumpBidder.id,
-                    firstName: jumpBidder.first_name,
-                    lastName: jumpBidder.last_name,
+                    firstName: jumpBidder.first_name || jumpBidder.firstName,
+                    lastName: jumpBidder.last_name || jumpBidder.lastName,
                     email: jumpBidder.email
                   }
                 },
@@ -365,14 +365,14 @@ export class AuctionService {
       // Emit real-time bid event z throttlingiem (leading+trailing)
       try {
         const io = getIO();
-        const bidder = bid.bidder!;
+        const bidder = (bid as any).bidder;
         const eventData = {
           bid: {
             ...bid,
             bidder: {
               id: bidder.id,
-              firstName: bidder.first_name,
-              lastName: bidder.last_name,
+              firstName: bidder.first_name || bidder.firstName,
+              lastName: bidder.last_name || bidder.lastName,
               email: bidder.email
             }
           },

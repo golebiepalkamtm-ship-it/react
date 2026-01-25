@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -125,15 +126,20 @@ export const useNotificationStore = create<NotificationState>()(
 );
 
 /**
- * Hook for accessing notification store
- * Usage: const { notify, dismiss } = useNotifications();
+ * Hook for accessing notification store (stable snapshot to avoid infinite loops)
+ * Usage: const { notifications, pendingCount, notify, dismiss } = useNotifications();
  */
 export const useNotifications = () => {
-  return useNotificationStore((state) => ({
-    notifications: state.getDisplayedNotifications(),
-    notify: state.notify,
-    dismiss: state.dismiss,
-    dismissAll: state.dismissAll,
-    pendingCount: state.getPendingCount(),
-  }));
+  const notifications = useNotificationStore((state) => state.notifications);
+  const notify = useNotificationStore((state) => state.notify);
+  const dismiss = useNotificationStore((state) => state.dismiss);
+  const dismissAll = useNotificationStore((state) => state.dismissAll);
+
+  const displayed = useMemo(() => notifications.slice(0, 2), [notifications]);
+  const pendingCount = useMemo(
+    () => Math.max(0, notifications.length - 2),
+    [notifications]
+  );
+
+  return { notifications: displayed, pendingCount, notify, dismiss, dismissAll };
 };

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { LuxuryAuctionCard } from "@/components/auction/LuxuryAuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
 import { auctionService } from "@/services/auctionService";
-import { motion } from 'framer-motion';
+import { motion, useTransform, useScroll } from 'framer-motion';
 import { buttonMicro } from "@/components/motion";
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
+import { resolveAuctionImage } from '@/utils/image';
 
 const AuctionsSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -15,18 +16,13 @@ const AuctionsSection = () => {
   const headerRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
 
-  const { auctions, loading } = useAuctions({ 
+  const { auctions, isLoading } = useAuctions({ 
     status: 'active', 
-    sortBy: 'newest', 
-    limit: 3 
+    sortBy: 'newest'
   });
 
-  const getFirstImage = (images: string[]) => {
-    return images && images.length > 0 ? images[0] : '/placeholder.svg';
-  };
-
   useEffect(() => {
-    if (!sectionRef.current || loading) return;
+    if (!sectionRef.current || isLoading) return;
 
     const section = sectionRef.current;
     const header = headerRef.current;
@@ -90,11 +86,11 @@ const AuctionsSection = () => {
     return () => {
       ctx.revert();
     };
-  }, [loading]);
+  }, [isLoading]);
 
   // Osobny efekt dla kart - uruchamia się gdy aukcje są załadowane
   useEffect(() => {
-    if (loading || auctions.length === 0 || !cardsContainerRef.current || !sectionRef.current) return;
+    if (isLoading || auctions.length === 0 || !cardsContainerRef.current || !sectionRef.current) return;
 
     // Daj chwilę na render kart
     const timer = setTimeout(() => {
@@ -159,7 +155,7 @@ const AuctionsSection = () => {
           }
         );
 
-      }, cardsContainerRef.current);
+      }, cardsContainerRef.current as Element);
 
       setTimeout(() => ScrollTrigger.refresh(), 100);
 
@@ -167,7 +163,7 @@ const AuctionsSection = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [loading, auctions]);
+  }, [isLoading, auctions]);
 
   return (
     <section
@@ -204,7 +200,7 @@ const AuctionsSection = () => {
         </div>
 
         {/* Auction Grid */}
-        {loading ? (
+        {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
               <div key={`auction-skeleton-${i}`} className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] h-96 animate-pulse" />
@@ -225,7 +221,7 @@ const AuctionsSection = () => {
                 <LuxuryAuctionCard
                   id={auction.id}
                   title={auction.title}
-                  image={getFirstImage(auction.images)}
+                  image={resolveAuctionImage(auction.images?.[0])}
                   currentBid={auction.currentPrice}
                   timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
                   ringNumber={auction.pigeon?.ringNumber || 'Brak numeru'}

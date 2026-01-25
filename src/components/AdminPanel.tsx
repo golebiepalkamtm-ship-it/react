@@ -346,21 +346,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const query = (searchQuery || '').toLowerCase();
-    return (
-      user.email?.toLowerCase().includes(query) ||
-      user.first_name?.toLowerCase().includes(query) ||
-      user.last_name?.toLowerCase().includes(query)
-    );
-  });
+  const filteredUsers = users.filter(user => 
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.last_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const filteredAuctions = auctions.filter(auction => {
-    const query = (searchQuery || '').toLowerCase();
-    return (
-      auction.title?.toLowerCase().includes(query)
-    );
-  });
+  const filteredAuctions = auctions.filter(auction =>
+    auction.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (profile?.role !== 'ADMIN') return null;
 
@@ -1348,7 +1342,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium text-white/70 mb-2">Hasło *</label>
                         <input 
                           type="password"
-                          autoComplete="current-password"
                           required
                           className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
                           value={newUser.password}

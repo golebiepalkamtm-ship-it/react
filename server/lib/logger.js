@@ -1,33 +1,12 @@
 const isProd = process.env.NODE_ENV === 'production';
 
-function formatArgs(args) {
-  return args.map(arg => {
-    if (arg instanceof Error) {
-      return isProd ? arg.message : arg.stack;
-    }
-    if (typeof arg === 'object') {
-      try {
-        return JSON.stringify(arg, (key, value) => {
-          // Sensitive field masking
-          if (typeof key === 'string') {
-            const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization', 'cookie'];
-            if (sensitiveFields.includes(key.toLowerCase())) return '***';
-          }
-          return value;
-        });
-      } catch {
-        return '[Complex Object]';
-      }
-    }
-    return arg;
-  });
-}
+function noop() {}
 
 const logger = {
-  debug: isProd ? () => {} : (...args) => console.debug?.(...formatArgs(args)),
-  info: (...args) => console.info?.(...formatArgs(args)),
-  warn: (...args) => console.warn?.(...formatArgs(args)),
-  error: (...args) => console.error?.(...formatArgs(args)),
+  debug: isProd ? noop : (...args) => console.debug?.(...args),
+  info: isProd ? noop : (...args) => console.info?.(...args),
+  warn: (...args) => console.warn?.(...args),
+  error: (...args) => console.error?.(...args),
 };
 
 export default logger;

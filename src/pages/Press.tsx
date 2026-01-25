@@ -214,12 +214,12 @@ const PressPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-black to-black" />
-        <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-gold/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-gold-dark/5 rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gold/3 rounded-full blur-[80px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/15 to-white/5" />
+        <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-gold/12 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-gold-dark/10 rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gold/8 rounded-full blur-[80px]" />
       </div>
 
       <Header />

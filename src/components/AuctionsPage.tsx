@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import AuctionCard from "./AuctionCard";
 import { LuxuryAuctionCard } from "@/components/auction/LuxuryAuctionCard";
+import { AuctionListItem } from "@/components/auction/AuctionListItem";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuctions } from "@/hooks/useAuctions";
 import CreateAuctionForm from "@/components/CreateAuctionForm";
@@ -17,6 +18,7 @@ import AccountModal from "@/components/AccountModal";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { useAuctionFilters } from "@/hooks/useAuctionFilters";
 import { auctionService } from "@/services/auctionService";
+import { resolveAuctionImage } from "@/utils/image";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import AdvancedSearch from "@/components/AdvancedSearch";
 import { canCreateAuction } from "@/components/ProtectedRoute";
@@ -31,7 +33,8 @@ const AuctionsPage = () => {
   const [sortBy, setSortBy] = useState<AuctionSortBy>("newest");
   const [showFilters, setShowFilters] = useState(false);
   const [gridCols, setGridCols] = useState(1);
-  const [imageFit, setImageFit] = useState<'cover' | 'contain'>('cover');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [imageFit, setImageFit] = useState<'cover' | 'contain'>('contain');
   
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
@@ -58,9 +61,7 @@ const AuctionsPage = () => {
 
   const filteredAuctions = useAuctionFilters(auctions, filters);
 
-  const getFirstImage = (images: string[]) => {
-    return images && images.length > 0 ? images[0] : '/placeholder.svg';
-  };
+  const getFirstImage = (images: string[]) => resolveAuctionImage(images?.[0]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -144,7 +145,8 @@ const AuctionsPage = () => {
   useEffect(() => {
     const updateCols = () => {
       const w = window.innerWidth;
-      if (w >= 1024) setGridCols(3);
+      if (w >= 1440) setGridCols(4);
+      else if (w >= 1024) setGridCols(3);
       else if (w >= 768) setGridCols(2);
       else setGridCols(1);
     };
@@ -249,6 +251,27 @@ const AuctionsPage = () => {
                     className="rounded-lg"
                   >
                     Contain
+                  </Button>
+                </div>
+
+                <div className="flex items-center rounded-xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-1">
+                  <Button
+                    type="button"
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="rounded-lg"
+                  >
+                    Siatka
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="rounded-lg"
+                  >
+                    Lista
                   </Button>
                 </div>
 
@@ -364,22 +387,40 @@ const AuctionsPage = () => {
           )}
 
           {!isLoading && filteredAuctions.length > 0 && (
-            <div className="grid gap-8" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
-              {filteredAuctions.map((auction, index) => (
-                <LuxuryAuctionCard
-                  key={auction.id || `auction-${index}`}
-                  id={auction.id}
-                  title={auction.title}
-                  image={getFirstImage(auction.images)}
-                  currentBid={auction.currentPrice}
-                  timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
-                  ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                  featured={index < 2}
-                  imageFit={imageFit}
-                  watchCount={auction._count?.watchlist}
-                />
-              ))}
-            </div>
+            viewMode === "grid" ? (
+              <div className="grid gap-8" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
+                {filteredAuctions.map((auction, index) => (
+                  <LuxuryAuctionCard
+                    key={auction.id || `auction-${index}`}
+                    id={auction.id}
+                    title={auction.title}
+                    image={getFirstImage(auction.images)}
+                    currentBid={auction.currentPrice}
+                    endTime={auction.endTime}
+                    ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
+                    featured={index < 2}
+                    imageFit={imageFit}
+                    watchCount={auction._count?.watchlist}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {filteredAuctions.map((auction, index) => (
+                  <AuctionListItem
+                    key={auction.id || `auction-${index}`}
+                    id={auction.id}
+                    title={auction.title}
+                    image={getFirstImage(auction.images)}
+                    currentBid={auction.currentPrice}
+                    endTime={auction.endTime}
+                    ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
+                    imageFit={imageFit}
+                    watchCount={auction._count?.watchlist}
+                  />
+                ))}
+              </div>
+            )
           )}
 
           {!isLoading && filteredAuctions.length === 0 && (

@@ -1,9 +1,8 @@
 import { prisma } from '../lib/db.js';
 import type { AdvancedSearchFilters, SavedSearchData } from '../schemas/searchSchemas.js';
-import type { AuctionDTO } from '../utils/auctionSerializer.js';
 
 export interface SearchResult {
-  auctions: AuctionDTO[];
+  auctions: any[];
   total: number;
   page: number;
   totalPages: number;

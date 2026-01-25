@@ -4,8 +4,22 @@
  */
 
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const GlobalParallaxBackground = () => {
+  const [enabled, setEnabled] = useState(true);
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setEnabled(!media.matches && window.innerWidth >= 768);
+    update();
+    media.addEventListener('change', update);
+    window.addEventListener('resize', update);
+    return () => {
+      media.removeEventListener('change', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
   const { scrollYProgress } = useScroll();
 
   // Parallax transforms for different layers
@@ -19,36 +33,10 @@ const GlobalParallaxBackground = () => {
   const rotate1 = useTransform(scrollYProgress, [0, 1], [0, 45]);
   const rotate2 = useTransform(scrollYProgress, [0, 1], [0, -30]);
 
+  if (!enabled) return null;
+
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-      {/* Deep space layer - slowest */}
-      <motion.div 
-        className="absolute inset-0"
-        style={{ y: starsY }}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1a1a4e]/20 via-transparent to-transparent" />
-        {/* Floating stars */}
-        {[...Array(25)].map((_, i) => (
-          <motion.div
-            key={`star-${i}`}
-            className="absolute w-1 h-1 bg-gold/60 rounded-full"
-            style={{
-              left: `${(i * 17) % 100}%`,
-              top: `${(i * 23) % 100}%`,
-            }}
-            animate={{
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 2 + (i % 3),
-              repeat: Infinity,
-              delay: i * 0.2,
-            }}
-          />
-        ))}
-      </motion.div>
-
       {/* Golden orb - left side */}
       <motion.div
         className="absolute -left-32 top-1/4 w-96 h-96 rounded-full"
