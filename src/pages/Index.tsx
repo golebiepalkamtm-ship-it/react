@@ -214,7 +214,7 @@ const HeroPremium = () => {
 };
 
 interface FeatureData {
-  icon: React.ElementType;
+  icon: React.ElementType<{ className?: string }>;
   title: string;
   description: string;
 }

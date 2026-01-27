@@ -16,7 +16,7 @@ import { useRef, memo } from "react";
 interface TimelineEvent {
   year: number;
   title: string;
-  achievements: string[];
+  achievements: readonly string[];
   highlight?: string;
 }
 
