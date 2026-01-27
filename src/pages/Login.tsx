@@ -64,7 +64,6 @@ export default function Login() {
 
   const handleOAuth = async (provider: 'google' | 'facebook') => {
     setIsOAuthSubmitting(true);
-    setError(null);
     try {
       const redirectTo = window.location.origin;
       if (!supabase) throw new Error('Supabase not available');

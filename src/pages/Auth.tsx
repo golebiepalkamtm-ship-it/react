@@ -27,7 +27,6 @@ type Mode = "login" | "register";
 export default function Auth() {
   const navigate = useNavigate();
   const { user, profile, loading, signUp, signIn, signInWithGoogle, signInWithFacebook } = useAuth();
-  const { t } = useLocale();
   const { pushToast } = useFeedback();
   const reduceMotion = useReducedMotion();
 
