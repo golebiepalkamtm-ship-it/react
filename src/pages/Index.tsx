@@ -184,10 +184,7 @@ const HeroPremium = () => {
             { icon: Zap, value: 3, suffix: '', label: 'Pokolenia Hodowców' },
           ].map((stat, i) => (
             <MagneticElement key={stat.label} strength={0.08}>
-              <div 
-                className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/30 transition-colors"
-                style={{ willChange: 'transform' }}
-              >
+              <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/30 transition-colors">
                 <stat.icon className="w-6 h-6 text-gold mx-auto mb-2" />
                 <div className="text-3xl md:text-4xl font-bold text-white mb-1">
                   <CountUp 
@@ -197,7 +194,7 @@ const HeroPremium = () => {
                     suffix={stat.suffix}
                   />
                 </div>
-                <div className="text-white/50 text-sm">{stat.label}</div>
+                <div className="text-white/70 text-sm">{stat.label}</div>
               </div>
             </MagneticElement>
           ))}
@@ -287,7 +284,7 @@ const FeatureCardPremium = memo(({
         onMouseLeave={handleMouseLeave}
       >
         <motion.div
-          className="h-full flex flex-col p-8 rounded-2xl border border-gold/30 bg-gradient-to-b from-black/70 via-slate-900/60 to-black/60 shadow-[0_25px_80px_rgba(212,175,55,0.15)] backdrop-blur-xl relative"
+          className="h-full flex flex-col p-8 rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 shadow-[0_0_30px_rgba(212,175,55,0.1),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-lg relative overflow-hidden"
           style={{
             rotateX: isHovered ? rotateX : 0,
             rotateY: isHovered ? rotateY : 0,
@@ -307,10 +304,14 @@ const FeatureCardPremium = memo(({
             }}
           />
           
-          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          <div className="absolute inset-0 rounded-2xl pointer-events-none"
             style={{
-              boxShadow: '0 0 30px rgba(212,175,55,0.2), inset 0 0 20px rgba(212,175,55,0.05)',
+              boxShadow: '0 0 30px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
             }}
+          />
+          
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[150%] h-24 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.15) 0%, transparent 60%)' }}
           />
           
           <DepthLayer depth={index} className="relative z-10">

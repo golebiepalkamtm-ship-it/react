@@ -41,33 +41,42 @@ const findAvailablePort = (startPort: number, attempts = 0): Promise<number> => 
 };
 
 const PORT = Number(process.env.PORT) || 8001;
+const isProdStaticPort = process.env.NODE_ENV === 'production' && process.env.FORCE_DYNAMIC_PORT !== 'true';
 
-// For Render, use the PORT directly without port scanning
-if (process.env.NODE_ENV === 'production') {
-  server.listen(PORT, () => {
-    console.log(`🚀 Backend server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`📡 API endpoint: http://localhost:${PORT}/api`);
+const startServer = (listenPort: number) => {
+  server.listen(listenPort, () => {
+    console.log(`🚀 Backend server running on port ${listenPort}`);
+    console.log(`📊 Health check: http://localhost:${listenPort}/health`);
+    console.log(`📡 API endpoint: http://localhost:${listenPort}/api`);
   });
-} else {
-  // Development: find available port
-  findAvailablePort(PORT)
-    .then((availablePort) => {
-      server.listen(availablePort, () => {
-        console.log(`🚀 Backend server running on port ${availablePort}`);
-        console.log(`📊 Health check: http://localhost:${availablePort}/health`);
-        console.log(`📡 API endpoint: http://localhost:${availablePort}/api`);
-      });
 
-      server.on('error', (err: NodeJS.ErrnoException) => {
-        if (err.code === 'EADDRINUSE') {
-          console.error(`❌ Port ${availablePort} is already in use!`);
-          process.exit(1);
-        } else {
-          throw err;
-        }
-      });
-    })
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${listenPort} is already in use!`);
+      if (isProdStaticPort) {
+        process.exit(1);
+      } else {
+        findAvailablePort(listenPort + 1)
+          .then((fallbackPort) => {
+            console.log(`↪️  Retrying on free port ${fallbackPort}`);
+            startServer(fallbackPort);
+          })
+          .catch((findErr) => {
+            console.error('Failed to find available fallback port:', findErr);
+            process.exit(1);
+          });
+      }
+    } else {
+      throw err;
+    }
+  });
+};
+
+if (isProdStaticPort) {
+  startServer(PORT);
+} else {
+  findAvailablePort(PORT)
+    .then((availablePort) => startServer(availablePort))
     .catch((err) => {
       console.error('Failed to find available port:', err);
       process.exit(1);

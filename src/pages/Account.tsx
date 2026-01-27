@@ -302,10 +302,23 @@ export default function Account() {
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-black to-black" />
-        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-gold/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] bg-gold-dark/5 rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-gold/3 rounded-full blur-[80px]" />
+        {/* Warstwa bazowa z wyraźnym kontrastem lewej/prawej */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black to-[#0c111d]" />
+
+        {/* Lewa połówka – głęboka czerń z miękkim przejściem */}
+        <div className="absolute inset-y-0 left-0 w-1/2 min-w-[50vw] h-full overflow-hidden z-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        </div>
+
+        {/* Linia podziału / glow w środku */}
+        <div className="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-white/25 to-transparent z-20 pointer-events-none" />
+        <div className="absolute inset-y-0 left-1/2 w-12 -translate-x-1/2 bg-gradient-radial from-white/10 via-white/0 to-transparent blur-2xl z-10 pointer-events-none" />
+
+        {/* Akcenty poświat */}
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-gold/6 rounded-full blur-[120px] z-0" />
+        <div className="absolute bottom-1/3 left-0 w-[520px] h-[520px] bg-gold-dark/6 rounded-full blur-[120px] z-0" />
+        <div className="absolute top-1/2 right-0 w-[420px] h-[420px] bg-gold/4 rounded-full blur-[90px] z-0" />
       </div>
 
       <Header />

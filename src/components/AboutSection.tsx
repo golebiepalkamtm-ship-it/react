@@ -55,7 +55,7 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative p-6 rounded-2xl bg-black/90 border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] overflow-hidden"
+        className="relative p-6 rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 backdrop-blur-lg shadow-[0_0_30px_rgba(212,175,55,0.1),inset_0_1px_0_rgba(255,255,255,0.05)] overflow-hidden"
         style={{
           rotateX,
           rotateY,
@@ -79,9 +79,9 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
         <motion.div
           className="absolute inset-0 pointer-events-none z-10"
           initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 0.6 : 0 }}
+          animate={{ opacity: isHovered ? 0.6 : 0.2 }}
           style={{
-            background: 'radial-gradient(circle at 50% 0%, rgba(212,175,55,0.4) 0%, transparent 50%)',
+            background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.18) 0%, transparent 60%)',
           }}
         />
         

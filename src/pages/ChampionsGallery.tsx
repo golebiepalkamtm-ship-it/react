@@ -6,7 +6,7 @@
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { X, Trophy, MapPin, Zap, Calendar, Award, Sparkles, Loader2, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { X, Trophy, Calendar, Award, Sparkles, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { ChampionCard } from '@/components/gallery/ChampionCard';
 import { PedigreeModal } from '@/components/gallery/PedigreeModal';
 import { useChampions, type Champion } from '@/hooks/useChampions';
@@ -19,43 +19,39 @@ interface ChampionModalProps {
   champion: Champion | null;
   onClose: () => void;
   onViewPedigree: (url: string) => void;
+  onPrevChampion: () => void;
+  onNextChampion: () => void;
+  hasPrevChampion: boolean;
+  hasNextChampion: boolean;
+  championIndex: number;
+  totalChampions: number;
 }
 
-const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps) => {
+const ChampionModal = ({
+  champion,
+  onClose,
+  onViewPedigree,
+  onPrevChampion,
+  onNextChampion,
+  hasPrevChampion,
+  hasNextChampion,
+  championIndex,
+  totalChampions,
+}: ChampionModalProps) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
-
-  const nextPhoto = useCallback(() => {
-    if (!champion || champion.images.length <= 1) return;
-    console.log('Next photo clicked, current index:', currentPhotoIndex, 'total images:', champion.images.length);
-    console.log('Current image:', champion.images[currentPhotoIndex]);
-    console.log('Next image will be:', champion.images[(currentPhotoIndex + 1) % champion.images.length]);
-    setCurrentPhotoIndex((prev) => (prev + 1) % champion.images.length);
-    setImageLoading(true);
-    setImageError(false);
-  }, [currentPhotoIndex, champion]);
-
-  const prevPhoto = useCallback(() => {
-    if (!champion || champion.images.length <= 1) return;
-    console.log('Prev photo clicked, current index:', currentPhotoIndex, 'total images:', champion.images.length);
-    console.log('Current image:', champion.images[currentPhotoIndex]);
-    console.log('Prev image will be:', champion.images[(currentPhotoIndex - 1 + champion.images.length) % champion.images.length]);
-    setCurrentPhotoIndex((prev) => (prev - 1 + champion.images.length) % champion.images.length);
-    setImageLoading(true);
-    setImageError(false);
-  }, [currentPhotoIndex, champion]);
+  const hasMultiplePhotos = !!(champion && champion.images.length > 1);
 
   useEffect(() => {
     if (!champion) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (champion.images.length <= 1) return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        prevPhoto();
+        if (hasPrevChampion) onPrevChampion();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        nextPhoto();
+        if (hasNextChampion) onNextChampion();
       } else if (e.key === 'Escape') {
         e.preventDefault();
         if (onClose) onClose();
@@ -63,7 +59,7 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [champion, prevPhoto, nextPhoto, onClose]);
+  }, [champion, onClose, hasPrevChampion, hasNextChampion, onPrevChampion, onNextChampion]);
 
   if (!champion) return null;
   console.log('ChampionModal render:', champion.name, 'images:', champion.images, 'length:', champion.images.length);
@@ -97,11 +93,52 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
           <X className="w-6 h-6 text-foreground" />
         </button>
 
+        {/* Champion navigation */}
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (hasPrevChampion) onPrevChampion();
+            }}
+            disabled={!hasPrevChampion}
+            className={`px-3 py-2 rounded-full border text-sm font-medium transition-all duration-200 backdrop-blur-sm ${
+              hasPrevChampion
+                ? 'bg-card/80 hover:bg-card border-border hover:scale-105'
+                : 'bg-card/40 border-border/50 opacity-60 cursor-not-allowed'
+            }`}
+            aria-label="Poprzedni champion"
+            type="button"
+          >
+            Poprzedni
+          </button>
+          <div className="px-3 py-2 rounded-full bg-card/80 border border-border text-sm font-semibold">
+            {championIndex + 1} / {totalChampions}
+          </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (hasNextChampion) onNextChampion();
+            }}
+            disabled={!hasNextChampion}
+            className={`px-3 py-2 rounded-full border text-sm font-medium transition-all duration-200 backdrop-blur-sm ${
+              hasNextChampion
+                ? 'bg-card/80 hover:bg-card border-border hover:scale-105'
+                : 'bg-card/40 border-border/50 opacity-60 cursor-not-allowed'
+            }`}
+            aria-label="Następny champion"
+            type="button"
+          >
+            Następny
+          </button>
+        </div>
+
         <div className="grid grid-cols-10 h-full">
-          {/* Image - 7/10 columns (70%) */}  
-          <div className="col-span-10 lg:col-span-7 relative h-full min-h-[400px] lg:min-h-full bg-muted/20 flex items-center justify-center">
+          {/* Image - rozszerzona szerokość (80%) aby „czarna strona” sięgała do nawigacji */}  
+          <div className="col-span-10 lg:col-span-8 relative h-full min-h-[400px] lg:min-h-full bg-muted/20 flex items-center justify-center">
             {imageLoading && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
@@ -123,7 +160,7 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
                     src={champion.images[currentPhotoIndex]}
                     alt={champion.name}
                     className={`w-full h-full object-contain ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                    onError={(e) => {
+                    onError={() => {
                       console.error('Failed to load image:', champion.images[currentPhotoIndex]);
                       setImageError(true);
                       setImageLoading(false);
@@ -141,40 +178,46 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
                 )}
               </>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-card/50 via-transparent to-transparent lg:bg-gradient-to-r" />
+            <div className="absolute inset-0 bg-gradient-to-t from-card/50 via-transparent to-transparent lg:bg-gradient-to-r pointer-events-none" />
 
-            {/* Navigation arrows - show only when multiple images */}
-            {champion.images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Previous photo clicked');
-                    prevPhoto();
-                  }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full bg-black/70 hover:bg-black/90 border-2 border-white/30 shadow-xl transition-all duration-200 hover:scale-110 backdrop-blur-sm"
-                  aria-label="Poprzednie zdjęcie"
-                >
-                  <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Next photo clicked');
-                    nextPhoto();
-                  }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full bg-black/70 hover:bg-black/90 border-2 border-white/30 shadow-xl transition-all duration-200 hover:scale-110 backdrop-blur-sm"
-                  aria-label="Następne zdjęcie"
-                >
-                  <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
-                </button>
-              </>
-            )}
+            {/* Navigation arrows (zawsze widoczne, zmieniają championa) */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (hasPrevChampion) onPrevChampion();
+              }}
+              disabled={!hasPrevChampion}
+              className={`absolute left-4 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full border-2 shadow-xl transition-all duration-200 backdrop-blur-sm cursor-pointer ${
+                hasPrevChampion
+                  ? 'bg-black/70 hover:bg-black/90 border-white/30 hover:scale-110'
+                  : 'bg-black/30 border-white/10 opacity-60 cursor-not-allowed'
+              }`}
+              type="button"
+              aria-label="Poprzedni champion"
+            >
+              <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (hasNextChampion) onNextChampion();
+              }}
+              disabled={!hasNextChampion}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full border-2 shadow-xl transition-all duration-200 backdrop-blur-sm cursor-pointer ${
+                hasNextChampion
+                  ? 'bg-black/70 hover:bg-black/90 border-white/30 hover:scale-110'
+                  : 'bg-black/30 border-white/10 opacity-60 cursor-not-allowed'
+              }`}
+              type="button"
+              aria-label="Następny champion"
+            >
+              <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
+            </button>
 
-            {/* Photo indicator - show only when multiple images */}
-            {champion.images.length > 1 && (
+            {/* Photo indicator */}
+            {hasMultiplePhotos && (
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3">
                 <div className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
                   {champion.images.map((_, index) => (
@@ -208,8 +251,8 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
             </div>
           </div>
 
-          {/* Content - 3/10 columns (30%) */}
-          <div className="col-span-10 lg:col-span-3 p-6 lg:p-8 overflow-y-auto h-full">
+          {/* Content - 2/10 columns (20%) */}
+          <div className="col-span-10 lg:col-span-2 p-6 lg:p-8 overflow-y-auto h-full">
 
             {/* Pigeon Number */}
             <div className="mb-4">
@@ -255,6 +298,7 @@ const ChampionModal = ({ champion, onClose, onViewPedigree }: ChampionModalProps
 
 export const ChampionsGallery = () => {
   const [selectedChampion, setSelectedChampion] = useState<Champion | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
   const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
   const { champions, loading, error } = useChampions();
@@ -269,13 +313,33 @@ export const ChampionsGallery = () => {
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
 
-  const handleSelect = useCallback((champion: Champion) => {
-    setSelectedChampion(champion);
-  }, []);
+  const handleSelect = useCallback(
+    (champion: Champion) => {
+      const idx = champions.findIndex((c) => c.id === champion.id);
+      setSelectedChampion(champion);
+      setSelectedIndex(idx >= 0 ? idx : null);
+    },
+    [champions]
+  );
 
   const handleClose = useCallback(() => {
     setSelectedChampion(null);
+    setSelectedIndex(null);
   }, []);
+
+  const handlePrevChampion = useCallback(() => {
+    if (selectedIndex === null || champions.length === 0) return;
+    const nextIdx = (selectedIndex - 1 + champions.length) % champions.length;
+    setSelectedIndex(nextIdx);
+    setSelectedChampion(champions[nextIdx]);
+  }, [champions, selectedIndex]);
+
+  const handleNextChampion = useCallback(() => {
+    if (selectedIndex === null || champions.length === 0) return;
+    const nextIdx = (selectedIndex + 1) % champions.length;
+    setSelectedIndex(nextIdx);
+    setSelectedChampion(champions[nextIdx]);
+  }, [champions, selectedIndex]);
 
   const handleViewPedigree = useCallback((url: string) => {
     setPedigreeUrl(url);
@@ -286,6 +350,9 @@ export const ChampionsGallery = () => {
     setIsPedigreeOpen(false);
     setPedigreeUrl(null);
   }, []);
+
+  const hasPrevChampion = selectedIndex !== null && champions.length > 1;
+  const hasNextChampion = selectedIndex !== null && champions.length > 1;
 
   const totalAchievements = champions.reduce((acc, c) => acc + c.achievements.length, 0);
 
@@ -342,7 +409,7 @@ export const ChampionsGallery = () => {
                   { label: "Championów", value: champions.length, icon: Trophy },
                   { label: "Osiągnięć", value: totalAchievements, icon: Award },
                   { label: "Lat Doświadczenia", value: 23, icon: Calendar },
-                ].map((stat, i) => (
+                ].map((stat) => (
                   <motion.div 
                     key={stat.label}
                     className="text-center group"
@@ -418,7 +485,18 @@ export const ChampionsGallery = () => {
       {/* Modal */}
       <AnimatePresence>
         {selectedChampion && (
-          <ChampionModal champion={selectedChampion} onClose={handleClose} onViewPedigree={handleViewPedigree} />
+          <ChampionModal
+            key={selectedChampion.id}
+            champion={selectedChampion}
+            onClose={handleClose}
+            onViewPedigree={handleViewPedigree}
+            onPrevChampion={handlePrevChampion}
+            onNextChampion={handleNextChampion}
+            hasPrevChampion={hasPrevChampion}
+            hasNextChampion={hasNextChampion}
+            championIndex={selectedIndex ?? 0}
+            totalChampions={champions.length}
+          />
         )}
       </AnimatePresence>
 

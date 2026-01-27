@@ -7,7 +7,24 @@ import { Button } from "@/components/ui/button";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 import { gsap } from '@/lib/gsapConfig';
 
-const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: any) => {
+interface ContactFormProps {
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  formData: {
+    fullName: string;
+    email: string;
+    subject: string;
+    message: string;
+  };
+  setFormData: React.Dispatch<React.SetStateAction<{
+    fullName: string;
+    email: string;
+    subject: string;
+    message: string;
+  }>>;
+  isSubmitting: boolean;
+}
+
+const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: ContactFormProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   
@@ -72,8 +89,8 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
                 <label className="block text-sm font-medium text-foreground mb-2">Imię i Nazwisko</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground"
                   placeholder="Jan Kowalski"
                   required
@@ -142,7 +159,6 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
 const GoogleMapCard = () => {
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const address = "ul. Stawowa 6, 59-800 Lubań";
 
@@ -162,7 +178,6 @@ const GoogleMapCard = () => {
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -251,7 +266,7 @@ type ContactInfoItem = {
   href?: string;
 };
 
-const StyledContactCard = ({ info, index }: { info: ContactInfoItem; index: number }) => {
+const StyledContactCard = ({ info }: { info: ContactInfoItem }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -326,7 +341,7 @@ const StyledContactCard = ({ info, index }: { info: ContactInfoItem; index: numb
 
 const ContactSection = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [formData, setFormData] = useState({ fullName: '', email: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
@@ -364,13 +379,13 @@ const ContactSection = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await contactService.sendContactForm(formData);
+      await contactService.submitContactForm(formData);
       toast({
         title: "Wiadomość wysłana!",
         description: "Dziękujemy za kontakt. Odpowiemy najszybciej jak to możliwe.",
       });
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (error) {
+      setFormData({ fullName: '', email: '', subject: '', message: '' });
+    } catch {
       toast({
         title: "Błąd wysyłania",
         description: "Nie udało się wysłać wiadomości. Spróbuj ponownie później.",
@@ -382,7 +397,7 @@ const ContactSection = () => {
   };
 
   return (
-    <section ref={sectionRef} className="py-20 sm:py-32 bg-background text-foreground">
+    <section id="contact" ref={sectionRef} className="py-20 sm:py-32 text-foreground">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight text-gold">
@@ -398,7 +413,7 @@ const ContactSection = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {contactInfo.map((info, index) => (
                 <div key={index} className="contact-card-reveal">
-                  <StyledContactCard info={info} index={index} />
+                  <StyledContactCard info={info} />
                 </div>
               ))}
             </div>

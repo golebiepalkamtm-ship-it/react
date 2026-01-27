@@ -9,6 +9,8 @@ import { FloatingElement } from '@/components/animations';
 import AuthMessageModal, { type MessageType } from "@/components/auth/AuthSuccessModal";
 import { isSupabaseConfigured, missingSupabaseEnv } from "@/lib/supabase";
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { VideoBackground } from '@/components/animations';
 
 function useQueryParams() {
@@ -283,25 +285,51 @@ export default function Auth() {
           <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
         </div>
         {/* Lewe tło wideo (desktop) */}
-        <div className="hidden lg:block lg:w-[38%] xl:w-[30%] relative overflow-hidden bg-black">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background/85" aria-hidden="true" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/65 via-transparent to-transparent" aria-hidden="true" />
+        <div className="hidden lg:block lg:w-[38%] xl:w-[32%] relative overflow-hidden bg-black">
+          <VideoBackground
+            src="/1229.mp4"
+            scrub={1.2}
+            start="top bottom"
+            end="bottom top"
+            overlayClassName="bg-gradient-to-r from-background/30 via-background/40 to-background/85"
+            className="scale-[1.02]"
+            fadeOut={false}
+          />
+
+          <div className="absolute inset-0 pointer-events-none">
+            <motion.div
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.9 }}
+              transition={{ duration: 0.8 }}
+              style={{ background: 'radial-gradient(circle at 30% 20%, rgba(255,215,128,0.15), transparent 40%), radial-gradient(circle at 80% 60%, rgba(64,119,255,0.18), transparent 35%)' }}
+            />
+          </div>
 
           <motion.div
             initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.6 }}
-            className="absolute bottom-12 left-12 z-10"
+            className="absolute bottom-12 left-12 z-10 drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+            style={{ perspective: 1200 }}
           >
-            <h1 className="font-display text-5xl xl:text-6xl text-white tracking-tight">
-              PALKA<span className="text-gold">MTM</span>
-            </h1>
-            <p className="text-white/70 mt-3 text-lg tracking-wide font-light">
-              Hodowla Gołębi Sportowych
-            </p>
+            <motion.div
+              className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-2xl px-6 py-5 shadow-[0_30px_80px_rgba(0,0,0,0.4)]"
+              whileHover={reduceMotion ? undefined : { rotateX: -6, rotateY: 6, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <h1 className="font-display text-5xl xl:text-6xl text-white tracking-tight">
+                PALKA<span className="text-gold">MTM</span>
+              </h1>
+              <p className="text-white/80 mt-3 text-lg tracking-wide font-light">
+                Hodowla Gołębi Sportowych
+              </p>
+              <p className="text-white/60 text-sm mt-2">
+                Pasja • Precyzja • Dynamika lotu
+              </p>
+            </motion.div>
           </motion.div>
-
-          {/* usunięta zasłaniająca nakładka */}
         </div>
 
         {/* Prawy panel formularza */}
@@ -312,6 +340,8 @@ export default function Auth() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="w-full max-w-md relative z-10 rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_20%_20%,rgba(255,223,128,0.08),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(75,108,183,0.15),transparent_30%),rgba(6,8,16,0.82)] backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.45)] p-6 sm:p-8"
+            whileHover={reduceMotion ? undefined : { rotateX: -2.5, rotateY: 2.5, scale: 1.01 }}
+            style={{ transformStyle: "preserve-3d", perspective: 1200 }}
           >
             <div className="text-center mb-10">
               <motion.div

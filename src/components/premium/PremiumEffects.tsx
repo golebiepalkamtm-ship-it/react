@@ -1,5 +1,5 @@
 import { useRef, useEffect, ReactNode } from "react";
-import { motion, useInView, useAnimation } from "framer-motion";
+import { motion, useInView, useAnimation, Variants, Easing } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -59,7 +59,7 @@ export function PremiumTextReveal({
     return <motion.span variants={getCharVariants(effect)}>{text}</motion.span>;
   };
 
-  const getCharVariants = (effectType: string) => {
+  const getCharVariants = (effectType: string): Variants => {
     switch (effectType) {
       case "slide":
         return {
@@ -70,7 +70,7 @@ export function PremiumTextReveal({
             transition: {
               delay: delay + i * stagger,
               duration,
-              ease: [0.22, 1, 0.36, 1],
+              ease: "easeOut" as Easing,
             },
           }),
         };
@@ -94,7 +94,7 @@ export function PremiumTextReveal({
             transition: {
               delay: delay + i * stagger,
               duration,
-              ease: [0.22, 1, 0.36, 1],
+              ease: "easeOut" as Easing,
             },
           }),
         };
@@ -107,7 +107,7 @@ export function PremiumTextReveal({
             transition: {
               delay: delay + i * stagger,
               duration,
-              ease: [0.22, 1, 0.36, 1],
+              ease: "easeOut" as Easing,
             },
           }),
         };
@@ -121,7 +121,7 @@ export function PremiumTextReveal({
             transition: {
               delay: delay + i * stagger,
               duration,
-              ease: [0.22, 1, 0.36, 1],
+              ease: "easeOut" as Easing,
             },
           }),
         };
@@ -348,7 +348,7 @@ export function ScrollReveal({
       transition={{
         duration,
         delay,
-        ease: [0.22, 1, 0.36, 1],
+        ease: "easeOut",
       }}
     >
       {children}
@@ -386,14 +386,14 @@ export function StaggerContainer({ children, className = "", staggerDelay = 0.1 
   );
 }
 
-export const staggerItemVariants = {
+export const staggerItemVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      ease: "easeOut",
     },
   },
 };

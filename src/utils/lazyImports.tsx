@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 
-// Lazy load pages to improve initial load performance
+// Lazy load all page components
 export const LazyIndex = lazy(() => import('@/pages/Index'));
 export const LazyAchievements = lazy(() => import('@/pages/Achievements'));
 export const LazyAuctions = lazy(() => import('@/pages/Auctions'));
@@ -18,3 +18,5 @@ export const LazyChampionsGallery = lazy(() => import('@/pages/ChampionsGallery'
 export const LazyAgentDesktop = lazy(() => import('@/pages/AgentDesktop'));
 export const LazyAuth = lazy(() => import('@/pages/Auth'));
 export const LazyAccount = lazy(() => import('@/pages/Account'));
+export const LazyHomePage = lazy(() => import('@/pages/HomePage'));
+export const LazyHomePagePremium = lazy(() => import('@/pages/HomePagePremium'));

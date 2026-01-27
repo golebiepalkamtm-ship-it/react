@@ -322,42 +322,14 @@ export function ReferencesPage() {
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-black relative overflow-hidden">
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 via-black to-black" />
-        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-gold/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] bg-gold-dark/5 rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-gold/3 rounded-full blur-[80px]" />
-      </div>
+    <div ref={containerRef} className="min-h-screen relative overflow-hidden">
 
       <motion.section 
         ref={heroRef}
         className="relative min-h-[50vh] flex items-center justify-center z-10 pt-20"
         style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
       >
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-gold/10"
-              style={{
-                width: `${80 + i * 80}px`,
-                height: `${80 + i * 80}px`,
-                right: `${5 + i * 12}%`,
-                top: `${15 + i * 12}%`,
-              }}
-              animate={{
-                y: [0, -20, 0],
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{
-                duration: 3 + i,
-                repeat: Infinity,
-                delay: i * 0.3,
-              }}
-            />
-          ))}
-        </div>
+        <div className="absolute inset-0 overflow-hidden" />
 
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.div

@@ -30,7 +30,13 @@ import {
   LazyChampionsGallery,
   LazyAgentDesktop,
   LazyAuth,
-  LazyAccount
+  LazyAccount,
+  LazyHomePage,
+  LazyHomePagePremium,
+  // Living Web / GSAP demo wyłączone z routingu
+  // LazyHomePageLivingWeb,
+  // LazyLivingWebShowcase,
+  // LazyGsapAnimationsDemo
 } from "@/utils/lazyImports";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GlobalParallaxBackground from "@/components/GlobalParallaxBackground";
@@ -88,6 +94,13 @@ const App = () => {
                         <LazyAdmin />
                       </ProtectedRoute>
                     } />
+                    {/* Showcase / demo routes */}
+                    <Route path="/homepage" element={<LazyHomePage />} />
+                    <Route path="/homepage-premium" element={<LazyHomePagePremium />} />
+                    {/* Living Web / GSAP demo wyłączone */}
+                    {/* <Route path="/homepage-livingweb" element={<LazyHomePageLivingWeb />} /> */}
+                    {/* <Route path="/livingweb-showcase" element={<LazyLivingWebShowcase />} /> */}
+                    {/* <Route path="/gsap-animations-demo" element={<LazyGsapAnimationsDemo />} /> */}
                     <Route path="/login" element={<Navigate to="/auth?mode=login" replace />} />
                     <Route path="/register" element={<Navigate to="/auth?mode=register" replace />} />
                     <Route path="/champions" element={<LazyChampionsGallery />} />

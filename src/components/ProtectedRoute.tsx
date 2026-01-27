@@ -44,8 +44,13 @@ export const ProtectedRoute = ({
     return <Navigate to={`/auth?mode=login&callbackUrl=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // Jeśli profil jeszcze się nie wczytał, poczekaj zamiast przekierowywać
+  // Jeśli profil jeszcze się nie wczytał:
+  // - dla allowUnverified wpuszczamy dalej (np. demo/środowiska bez profilu),
+  // - w pozostałych przypadkach czekamy na załadowanie profilu.
   if (!profile) {
+    if (allowUnverified) {
+      return <>{children}</>;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner />

@@ -215,12 +215,6 @@ const PressPage = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/15 to-white/5" />
-        <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-gold/12 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-gold-dark/10 rounded-full blur-[100px]" />
-        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gold/8 rounded-full blur-[80px]" />
-      </div>
 
       <Header />
 
@@ -229,29 +223,7 @@ const PressPage = () => {
         className="relative min-h-[50vh] flex items-center justify-center z-10 pt-20"
         style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
       >
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-gold/10"
-              style={{
-                width: `${80 + i * 80}px`,
-                height: `${80 + i * 80}px`,
-                left: `${10 + i * 15}%`,
-                top: `${15 + i * 12}%`,
-              }}
-              animate={{
-                y: [0, -20, 0],
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{
-                duration: 3 + i,
-                repeat: Infinity,
-                delay: i * 0.3,
-              }}
-            />
-          ))}
-        </div>
+        <div className="absolute inset-0 overflow-hidden" />
 
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.div

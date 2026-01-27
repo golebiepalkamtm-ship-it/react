@@ -1,8 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { logger } from '@/lib/logger';
-import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
+import { User, Session, AuthChangeEvent, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { toast } from '@/components/ui/sonner';
 import { apiClient } from '@/services/api';
 import { calculateRole, UserWithVerifications } from '../types/roles.js';
 
@@ -52,10 +51,10 @@ interface AuthContextType {
   profile: Profile | null;
   pendingEmailVerification: string | null;
   clearPendingEmailVerification: () => void;
-  signUp: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
-  signIn: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
-  signInWithGoogle: () => Promise<{ user: User | null; error: any }>;
-  signInWithFacebook: () => Promise<{ user: User | null; error: any }>;
+  signUp: (email: string, password: string) => Promise<{ user: User | null; error: AuthError | Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>;
+  signInWithGoogle: () => Promise<{ user: User | null; error: Error | null }>;
+  signInWithFacebook: () => Promise<{ user: User | null; error: Error | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   loading: boolean;
@@ -77,39 +76,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  const isEmailConfirmed = useCallback((authUser: User) => {
-    const u = authUser as any;
-    return Boolean(u?.email_confirmed_at || u?.confirmed_at);
-  }, []);
 
-  const isPhoneConfirmed = useCallback((authUser: User) => {
-    const u = authUser as any;
-    return Boolean(u?.phone_confirmed_at);
-  }, []);
-
-  const computeRole = useCallback((authUser: User, existingProfile?: Profile | null) => {
-    const supabaseRole = (authUser as any).app_metadata?.role || (authUser as any).user_metadata?.role;
-    const inferredRole = supabaseRole === 'ADMIN' ? 'ADMIN' : existingProfile?.role;
-
-    const userWithVerifications: UserWithVerifications = {
-      id: authUser.id,
-      email: authUser.email,
-      email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
-      phone: authUser.phone,
-      phone_confirmed_at: (authUser as any).phone_confirmed_at,
-      role: inferredRole
-    };
-    
-    return calculateRole(userWithVerifications);
-  }, []);
 
   const ensureProfile = useCallback(async (authUser: User, existingProfile: Profile | null) => {
     // Rely on DB triggers for profile creation.
     // Check if existing profile needs synchronization with Auth state
     if (existingProfile) {
-      const appMeta = (authUser as any).app_metadata;
-      const isEmailVerified = Boolean((authUser as any).email_confirmed_at || (authUser as any).confirmed_at);
-      const isPhoneVerified = Boolean((authUser as any).phone_confirmed_at);
+      const appMeta = authUser.app_metadata;
+      const isEmailVerified = Boolean(authUser.email_confirmed_at);
+      const isPhoneVerified = Boolean(authUser.phone_confirmed_at);
       
       let newRole: UserRole | null = null;
 
@@ -129,12 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const upgradedProfile = { ...existingProfile, role: newRole };
         
         // Trigger DB update in background
-        supabase.from('users')
-          .update({ role: newRole })
-          .eq('id', authUser.id)
-          .then(({ error }) => {
-            if (error) logger.error('Failed to sync user role to DB:', error);
-          });
+        if (supabase) {
+          supabase.from('users')
+            .update({ role: newRole })
+            .eq('id', authUser.id)
+            .then(({ error }) => {
+              if (error) logger.error('Failed to sync user role to DB:', error);
+            });
+        }
           
         return upgradedProfile;
       }
@@ -142,16 +119,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return existingProfile;
     }
 
-    const supabaseRole = (authUser as any).app_metadata?.role || (authUser as any).user_metadata?.role;
+    const supabaseRole = authUser.app_metadata?.role || authUser.user_metadata?.role;
     const roleOverride = supabaseRole === 'ADMIN' ? 'ADMIN' : undefined;
 
     // If missing (race condition), return temp read-only object
     const userWithVerifications: UserWithVerifications = {
       id: authUser.id,
       email: authUser.email,
-      email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
+      email_confirmed_at: authUser.email_confirmed_at,
       phone: authUser.phone,
-      phone_confirmed_at: (authUser as any).phone_confirmed_at,
+      phone_confirmed_at: authUser.phone_confirmed_at,
       role: roleOverride ?? 'USER_REGISTERED'
     };
     
@@ -410,7 +387,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string) => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: new Error('Supabase not configured') };
 
     const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
     const baseUrl = getBaseUrl();
@@ -437,7 +414,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: new Error('Supabase not configured') };
     const { data, error } = await client.auth.signInWithPassword({
       email,
       password,
@@ -447,7 +424,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: new Error('Supabase not configured') };
 
     const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
     const baseUrl = getBaseUrl();
@@ -493,14 +470,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithFacebook = async () => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: new Error('Supabase not configured') };
 
     const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
     const baseUrl = getBaseUrl();
     const redirectTo = configuredRedirect || `${baseUrl}/auth`;
 
     try {
-      const { data, error } = await client.auth.signInWithOAuth({
+      const { error } = await client.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
           redirectTo,
@@ -566,9 +543,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Strip protected fields to avoid trigger rejection
     const safeUpdates = { ...updates };
-    delete (safeUpdates as any).role;
-    delete (safeUpdates as any).id;
-    delete (safeUpdates as any).email;
+    delete safeUpdates.role;
+    delete safeUpdates.id;
+    delete safeUpdates.email;
 
     const payload: Partial<Profile> & { id: string } = { id: user.id, ...safeUpdates };
     
@@ -593,9 +570,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userWithVerifications: UserWithVerifications = {
         id: user.id,
         email: user.email,
-        email_confirmed_at: (user as any).email_confirmed_at || (user as any).confirmed_at,
+        email_confirmed_at: user.email_confirmed_at,
         phone: user.phone,
-        phone_confirmed_at: (user as any).phone_confirmed_at,
+        phone_confirmed_at: user.phone_confirmed_at,
         role: 'USER_REGISTERED'
       };
       const calculatedRole = calculateRole(userWithVerifications);

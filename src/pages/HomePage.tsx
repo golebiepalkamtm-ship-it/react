@@ -277,7 +277,7 @@ const FeatureCardPremium = memo(({
     <MagneticElement strength={0.05}>
       <div
         ref={cardRef}
-        className="relative group p-8 rounded-2xl border border-border overflow-hidden bg-card/50 backdrop-blur-sm"
+        className="relative group p-8 rounded-2xl border border-gold/30 overflow-hidden bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 backdrop-blur-lg shadow-[0_0_30px_rgba(212,175,55,0.1),inset_0_1px_0_rgba(255,255,255,0.05)]"
         onMouseMove={handleMouseMove}
         style={{ 
           willChange: 'transform',
@@ -293,10 +293,14 @@ const FeatureCardPremium = memo(({
           }}
         />
         
-        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        <div className="absolute inset-0 rounded-2xl pointer-events-none"
           style={{
-            boxShadow: '0 0 30px rgba(212,175,55,0.2), inset 0 0 20px rgba(212,175,55,0.05)',
+            boxShadow: '0 0 30px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
           }}
+        />
+        <div 
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[150%] h-24 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.15) 0%, transparent 60%)' }}
         />
         
         <DepthLayer depth={index} className="relative z-10">

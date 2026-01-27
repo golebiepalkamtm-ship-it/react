@@ -76,10 +76,12 @@ const Header = () => {
       { label: "Start", href: "/#home" },
       { label: "Aukcje", href: "/auctions" },
       { label: "Championy", href: "/champions" },
-      { label: "Historia", href: "/historia" },
+      // Brak dedykowanej podstrony /historia – kierujemy na sekcję osiągnięć
+      { label: "Historia", href: "/achievements" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
       { label: "Referencje", href: "/references" },
       { label: "Prasa i media", href: "/press" },
+      { label: "Chrono Tunnel", href: "/chrono-tunnel" },
       { label: "O nas", href: "/#about" },
       { label: "Kontakt", href: "/#contact" },
       { label: "Konto", href: accountHref },

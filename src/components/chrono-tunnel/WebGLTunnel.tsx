@@ -124,7 +124,7 @@ function ParticleField({ count, scrollProgress }: ParticleFieldProps) {
       vel[i3 + 2] = -0.05 - Math.random() * 0.1;
       
       const mixRatio = Math.random();
-      const color = goldColor.clone().lerp(whiteColor, mixRatio * 0.3);
+      const color = new THREE.Color().lerpColors(goldColor, whiteColor, mixRatio * 0.3);
       col[i3] = color.r;
       col[i3 + 1] = color.g;
       col[i3 + 2] = color.b;
@@ -207,18 +207,21 @@ function ParticleField({ count, scrollProgress }: ParticleFieldProps) {
           count={count}
           array={positions}
           itemSize={3}
+          args={[positions, 3]}
         />
         <bufferAttribute
           attach="attributes-aVelocity"
           count={count}
           array={velocities}
           itemSize={3}
+          args={[velocities, 3]}
         />
         <bufferAttribute
           attach="attributes-aColor"
           count={count}
           array={colors}
           itemSize={3}
+          args={[colors, 3]}
         />
       </bufferGeometry>
       <primitive object={shaderMaterial} ref={materialRef} attach="material" />
@@ -291,8 +294,7 @@ function TunnelScene({ scrollProgress }: TunnelSceneProps) {
   useFrame((state) => {
     const wobbleX = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
     const wobbleY = Math.cos(state.clock.elapsedTime * 0.3) * 0.1;
-    camera.position.x = wobbleX;
-    camera.position.y = wobbleY;
+    camera.position.set(wobbleX, wobbleY, camera.position.z);
     
     const targetZ = 5 - scrollProgress * 3;
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.05);

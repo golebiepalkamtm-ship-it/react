@@ -1,6 +1,6 @@
 {
   "champions": [
-    { "id": 1, "image": "DV-02906-11-98t_OLIMP (1).jpg", "pedigree": "DV-02906-11-98.1.jpg", "images": ["DV-02906-11-98t_OLIMP (1).jpg", "DV-02906-11-98t_OLIMP (2).jpg"] },
+    { "id": 1, "image": "DV-02906-11-98t_OLIMP (1).jpg", "pedigree": "DV-02906-11-98.1.jpg", "images": ["DV-02906-11-98t_OLIMP (1).jpg"] },
     { "id": 2, "image": "dv-0987-11-396_c.jpg", "pedigree": "DV-00987-11-396.1.jpg", "images": ["dv-0987-11-396_c.jpg"] },
     { "id": 3, "image": "dv-07136-10-202_c.jpg", "pedigree": "DV-07136-10-202.1.jpg", "images": ["dv-07136-10-202_c.jpg"] },
     { "id": 4, "image": "PL-11-160651t_b2 (1).jpg", "pedigree": "PL-11-160651.1.jpg", "images": ["PL-11-160651t_b2 (1).jpg"] },
