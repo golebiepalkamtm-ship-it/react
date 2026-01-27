@@ -14,13 +14,9 @@ import { Reveal, fadeInUp, scaleIn, buttonMicro } from '@/components/motion';
 import { MagneticButton } from '@/components/effects/MagneticButton';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 import { SplitText, ParallaxSection, ParallaxLayer } from '@/components/animations';
-import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 function HeroSection() {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const heroSectionRef = useRef<HTMLElement | null>(null);
-  const videoContainerRef = useRef<HTMLDivElement | null>(null);
-  const animRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -59,60 +55,6 @@ function HeroSection() {
     { x: -100, y: 0, delay: 2, duration: 6, scale: 0.6 },
     { x: 110, y: 10, delay: 2.5, duration: 4.8, scale: 0.85 },
   ], []);
-
-  const attemptVideoPlay = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const p = v.play();
-    if (p && typeof p.then === 'function') p.catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    attemptVideoPlay();
-    const triggerNode = videoContainerRef.current;
-    if (animRef.current && triggerNode && !prefersReducedMotion) {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: triggerNode,
-          start: 'top center+=20%',
-          end: 'bottom top',
-          scrub: 0.8,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      tl.fromTo(
-        animRef.current,
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          z: 0,
-          x: 0,
-          transformOrigin: '50% 50%',
-          transformPerspective: 1000,
-          force3D: true,
-        },
-        {
-          opacity: 0,
-          scale: 0.5,
-          y: -250,
-          z: -1500,
-          x: 0,
-          transformOrigin: '50% 50%',
-          transformPerspective: 1000,
-          force3D: true,
-        }
-      );
-
-      return () => {
-        if (tl.scrollTrigger) {
-          tl.scrollTrigger.kill();
-        }
-        tl.kill();
-      };
-    }
-  }, [attemptVideoPlay, prefersReducedMotion]);
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
@@ -154,21 +96,6 @@ function HeroSection() {
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
     >
-      <div ref={videoContainerRef} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 max-w-4xl h-[65vh] mb-2 will-change-transform">
-        {/* Video w środku - bez oświetlenia */}
-        <div ref={animRef} className="relative w-full h-full">
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="relative z-0 w-full h-full object-contain"
-            src="/pigeon-tlo-Picsart-BackgroundRemover.mp4"
-          />
-        </div>
-      </div>
-
       {/* Text content */}
       <div className="relative z-60 w-full p-0 mt-20">
         <div className="container mx-auto px-4 text-center">

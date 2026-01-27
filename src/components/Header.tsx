@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { HashLink } from "react-router-hash-link";
 import { Menu, X, User, Shield, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -76,12 +75,10 @@ const Header = () => {
       { label: "Start", href: "/#home" },
       { label: "Aukcje", href: "/auctions" },
       { label: "Championy", href: "/champions" },
-      // Brak dedykowanej podstrony /historia – kierujemy na sekcję osiągnięć
       { label: "Historia", href: "/achievements" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
       { label: "Referencje", href: "/references" },
       { label: "Prasa i media", href: "/press" },
-      { label: "Chrono Tunnel", href: "/chrono-tunnel" },
       { label: "O nas", href: "/#about" },
       { label: "Kontakt", href: "/#contact" },
       { label: "Konto", href: accountHref },
@@ -381,7 +378,7 @@ const Header = () => {
                     {link.label}
                   </button>
                 ) : (
-                  <HashLink to={link.href} smooth className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}>
+                  <RouterLink to={link.href} className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}>
                     <span className="relative z-10">{link.label}</span>
                     <motion.span 
                       className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
@@ -395,7 +392,7 @@ const Header = () => {
                       whileHover={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.2 }}
                     />
-                  </HashLink>
+                  </RouterLink>
                 )}
               </motion.div>
             );
@@ -632,9 +629,8 @@ const Header = () => {
                         {link.label}
                       </a>
                     ) : (
-                      <HashLink
+                      <RouterLink
                         to={link.href}
-                        smooth
                         className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary block"
                         onClick={closeMobileMenu}
                         ref={link.label === navLinks[0]?.label ? (el: HTMLElement | null) => {
@@ -642,7 +638,7 @@ const Header = () => {
                         } : undefined}
                       >
                         {link.label}
-                      </HashLink>
+                      </RouterLink>
                     )}
                   </motion.div>
                 );

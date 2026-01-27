@@ -7,24 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 import { gsap } from '@/lib/gsapConfig';
 
-interface ContactFormProps {
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
-  formData: {
-    fullName: string;
-    email: string;
-    subject: string;
-    message: string;
-  };
-  setFormData: React.Dispatch<React.SetStateAction<{
-    fullName: string;
-    email: string;
-    subject: string;
-    message: string;
-  }>>;
-  isSubmitting: boolean;
-}
-
-const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: ContactFormProps) => {
+const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   
@@ -159,6 +142,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
 const GoogleMapCard = () => {
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const address = "ul. Stawowa 6, 59-800 Lubań";
 
@@ -178,6 +162,7 @@ const GoogleMapCard = () => {
   };
 
   const handleMouseLeave = () => {
+    setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -266,7 +251,7 @@ type ContactInfoItem = {
   href?: string;
 };
 
-const StyledContactCard = ({ info }: { info: ContactInfoItem }) => {
+const StyledContactCard = ({ info, index }: { info: ContactInfoItem; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -385,7 +370,7 @@ const ContactSection = () => {
         description: "Dziękujemy za kontakt. Odpowiemy najszybciej jak to możliwe.",
       });
       setFormData({ fullName: '', email: '', subject: '', message: '' });
-    } catch {
+    } catch (error) {
       toast({
         title: "Błąd wysyłania",
         description: "Nie udało się wysłać wiadomości. Spróbuj ponownie później.",
@@ -413,7 +398,7 @@ const ContactSection = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {contactInfo.map((info, index) => (
                 <div key={index} className="contact-card-reveal">
-                  <StyledContactCard info={info} />
+                  <StyledContactCard info={info} index={index} />
                 </div>
               ))}
             </div>

@@ -1,13 +1,21 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { componentTagger } from 'lovable-tagger';
+import path from 'path';
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: '0.0.0.0', // Explicitly bind to IPv4 all interfaces
     port: 5173,
     strictPort: false,
+    cors: true,
+    allowedHosts: true, // Allow all hosts (Vite 6+) or use array for stricter control
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+      },
+    },
   },
   envPrefix: 'VITE_',
   envDir: '.',

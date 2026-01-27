@@ -1,16 +1,38 @@
+import js from "@eslint/js";
 import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
-import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-export default [
-  { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
-  { languageOptions: { globals: globals.browser } },
-  ...tseslint.configs.recommended,
-  pluginReactConfig,
+// Provide __dirname for ESM modules (package.json uses "type": "module")
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export default tseslint.config(
+  { ignores: ["dist", "server/prisma.config.ts"] },
   {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        tsconfigRootDir: __dirname,
+        // Point directly to the app tsconfig so files under `src/` are included
+        project: ['./tsconfig.app.json'],
+      },
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
     rules: {
-      "react/react-in-jsx-scope": "off",
-      "react/no-unknown-property": "off",
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
-];
+);

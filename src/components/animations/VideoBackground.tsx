@@ -23,6 +23,7 @@ interface VideoBackgroundProps {
   fadeOut?: boolean;
   playbackRange?: [number, number];
   onProgress?: (progress: number) => void;
+  objectFit?: 'cover' | 'contain';
 }
 
 export const VideoBackground = forwardRef<HTMLDivElement, VideoBackgroundProps>(({
@@ -37,6 +38,7 @@ export const VideoBackground = forwardRef<HTMLDivElement, VideoBackgroundProps>(
   fadeOut = true,
   playbackRange = [0, 1],
   onProgress,
+  objectFit = 'cover',
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -126,7 +128,7 @@ export const VideoBackground = forwardRef<HTMLDivElement, VideoBackgroundProps>(
     >
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
+        className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
         src={src}
         poster={poster}
         muted

@@ -257,42 +257,19 @@ export default function Auth() {
 
   return (
     <div
-      className={`min-h-screen text-foreground relative overflow-hidden bg-hero-gradient`}
+      className="min-h-screen text-foreground relative isolate overflow-hidden"
     >
       <Header />
 
-      <main className="relative flex min-h-[calc(100vh-96px)] overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-background/40 to-background/85" />
-
-        <div className="fixed inset-0 -z-10 pointer-events-none">
-          <FloatingElement amplitude={15} frequency={0.3} phase={0}>
-            <div
-              className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold/10 blur-3xl"
-              style={{ willChange: 'transform' }}
-            />
-          </FloatingElement>
-
-          <FloatingElement amplitude={20} frequency={0.25} phase={0.5}>
-            <div
-              className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl"
-              style={{ willChange: 'transform' }}
-            />
-          </FloatingElement>
-
-          <div className="absolute top-20 left-10 w-32 h-32 bg-gold/5 rounded-full blur-2xl" />
-          <div className="absolute top-1/3 right-20 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
-        </div>
-        {/* Lewe tło wideo (desktop) */}
-        <div className="hidden lg:block lg:w-[38%] xl:w-[32%] relative overflow-hidden bg-black">
-          <VideoBackground
-            src="/1229.mp4"
-            scrub={1.2}
-            start="top bottom"
-            end="bottom top"
-            overlayClassName="bg-gradient-to-r from-background/30 via-background/40 to-background/85"
-            className="scale-[1.02]"
-            fadeOut={false}
+      <main className="relative flex flex-col lg:flex-row min-h-[calc(100vh-96px)] overflow-hidden">
+        <div className="w-full lg:w-[60%] xl:w-[58%] relative overflow-hidden h-[40vh] sm:h-[48vh] lg:h-auto">
+          <video
+            src="/pigeon-tlo-Picsart-BackgroundRemover.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-contain scale-[0.78] translate-x-[10%]"
           />
 
           <div className="absolute inset-0 pointer-events-none">
@@ -309,49 +286,38 @@ export default function Auth() {
             initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.6 }}
-            className="absolute bottom-12 left-12 z-10 drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+            className="absolute top-32 right-[36%] sm:top-36 sm:right-[36%] z-30 drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
             style={{ perspective: 1200 }}
           >
             <motion.div
-              className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-2xl px-6 py-5 shadow-[0_30px_80px_rgba(0,0,0,0.4)]"
+              className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-2xl px-6 py-5 shadow-[0_30px_80px_rgba(0,0,0,0.4)] text-right"
               whileHover={reduceMotion ? undefined : { rotateX: -6, rotateY: 6, scale: 1.02 }}
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
               style={{ transformStyle: "preserve-3d" }}
             >
               <h1 className="font-display text-5xl xl:text-6xl text-white tracking-tight">
-                PALKA<span className="text-gold">MTM</span>
+                Pałka <span className="text-gold">MTM</span>
               </h1>
               <p className="text-white/80 mt-3 text-lg tracking-wide font-light">
-                Hodowla Gołębi Sportowych
-              </p>
-              <p className="text-white/60 text-sm mt-2">
-                Pasja • Precyzja • Dynamika lotu
+                Mistrzowie sprintu
               </p>
             </motion.div>
           </motion.div>
         </div>
 
         {/* Prawy panel formularza */}
-        <div className="w-full lg:w-3/5 xl:w-2/3 flex items-center justify-center p-6 sm:p-8 lg:p-14 xl:pr-20 relative">
+        <div className="w-full lg:w-[38%] xl:w-[40%] flex items-center justify-center p-4 sm:p-6 lg:p-10 xl:pr-16 relative mt-6 lg:mt-10">
 
           <motion.div
             initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-md relative z-10 rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_20%_20%,rgba(255,223,128,0.08),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(75,108,183,0.15),transparent_30%),rgba(6,8,16,0.82)] backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.45)] p-6 sm:p-8"
+            className="w-full max-w-sm relative z-10 rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_20%_20%,rgba(255,223,128,0.08),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(75,108,183,0.15),transparent_30%),rgba(6,8,16,0.82)] backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.45)] p-5 sm:p-6"
             whileHover={reduceMotion ? undefined : { rotateX: -2.5, rotateY: 2.5, scale: 1.01 }}
             style={{ transformStyle: "preserve-3d", perspective: 1200 }}
           >
-            <div className="text-center mb-10">
-              <motion.div
-                initial={{ scale: reduceMotion ? 1 : 0.9, opacity: reduceMotion ? 1 : 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: reduceMotion ? 0 : 0.2, duration: reduceMotion ? 0 : 0.5 }}
-                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/20 mb-6"
-              >
-                <div className="w-8 h-8 rounded-lg bg-gold/80" />
-              </motion.div>
-              <h2 className="font-display text-3xl sm:text-4xl text-white tracking-tight mb-2">
+            <div className="text-center mb-4">
+              <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight mb-1">
                 {mode === "register" ? "Dołącz do nas" : "Witaj ponownie"}
               </h2>
               <p className="text-white/70 text-sm">
@@ -360,7 +326,7 @@ export default function Auth() {
             </div>
 
             {/* Przełącznik */}
-            <div className="relative bg-white/5 rounded-xl p-1 mb-8 backdrop-blur-sm border border-white/10">
+            <div className="relative bg-white/5 rounded-xl p-1 mb-4 backdrop-blur-sm border border-white/10">
               <motion.div
                 className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/15 rounded-lg shadow-lg border border-white/10"
                 animate={{ x: mode === "register" ? "calc(100% + 4px)" : 0 }}
@@ -369,14 +335,14 @@ export default function Auth() {
               <div className="relative flex">
                 <button
                   onClick={() => switchMode("login")}
-                  className={`flex-1 py-3 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-white" : "text-white/60 hover:text-white/80"}`}
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-white" : "text-white/60 hover:text-white/80"}`}
                   type="button"
                 >
                   Logowanie
                 </button>
                 <button
                   onClick={() => switchMode("register")}
-                  className={`flex-1 py-3 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-white" : "text-white/60 hover:text-white/80"}`}
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-white" : "text-white/60 hover:text-white/80"}`}
                   type="button"
                 >
                   Rejestracja
@@ -385,11 +351,11 @@ export default function Auth() {
             </div>
 
             {/* Social */}
-            <div className="space-y-3 mb-8">
+            <div className="space-y-2 mb-4">
               <motion.button
                 whileHover={reduceMotion ? undefined : { scale: 1.02, backgroundColor: "rgba(255,255,255,0.06)" }}
                 whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
                 type="button"
                 onClick={() => handleOAuthSignIn("google")}
                 disabled={isOAuthSubmitting}
@@ -403,7 +369,7 @@ export default function Auth() {
               <motion.button
                 whileHover={reduceMotion ? undefined : { scale: 1.02, backgroundColor: "rgba(255,255,255,0.06)" }}
                 whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
                 type="button"
                 onClick={() => handleOAuthSignIn("facebook")}
                 disabled={isOAuthSubmitting}
@@ -421,7 +387,7 @@ export default function Auth() {
               )}
             </div>
 
-            <div className="relative my-8">
+            <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
               </div>
@@ -432,7 +398,7 @@ export default function Auth() {
               </div>
             </div>
 
-            <form className="space-y-5" onSubmit={onSubmit}>
+            <form className="space-y-3" onSubmit={onSubmit}>
               {mode === "register" && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-white" htmlFor="name">

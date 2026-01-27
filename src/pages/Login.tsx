@@ -27,7 +27,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOAuthSubmitting, setIsOAuthSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && user && profile) {
@@ -48,6 +47,7 @@ export default function Login() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     setError(null);
 
     try {

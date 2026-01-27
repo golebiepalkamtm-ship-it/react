@@ -147,6 +147,10 @@
     --glass-bg: 222 47% 10%;
     --glass-border: 45 80% 55%;
     --year-ghost: 45 80% 55%;
+    --gold: 45 80% 55%;
+    --gold-glow: 45 80% 55% / 0.15;
+    --card-bg: 0 0% 10%;
+    --card-border: 0 0% 100% / 0.1;
     --tunnel-depth: 222 47% 3%;
     --glow-primary: 45 80% 55%;
     --glow-secondary: 45 70% 75%;
@@ -261,15 +265,18 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Scoped dark "chrono-tunnel" theme for Achievements only */
+  /* Scoped light "chrono-tunnel" theme for Achievements only */
   .achievements-tunnel {
-    /* Custom tunnel tokens */
-    --glass-bg: 222 47% 12%;
-    --glass-border: 45 80% 55%;
-    --year-ghost: 45 80% 55%;
-    --tunnel-depth: 222 47% 3%;
-    --glow-primary: 45 80% 55%;
+    /* Custom tunnel tokens - Original Golden Theme */
+    --background: 222 35% 12%;
+    --foreground: 210 40% 96%;
+    --glass-bg: 222 35% 18%;
+    --glass-border: 43 81% 46%;
+    --year-ghost: 43 81% 46%;
+    --tunnel-depth: 222 35% 8%;
+    --glow-primary: 43 81% 46%;
     --glow-secondary: 35 90% 55%;
+    --parallax-bg: 222 30% 15%;
   }
   .theme {
     --animate-shiny-text: shiny-text 8s infinite;
@@ -834,15 +841,17 @@
 
   /* Year ghost text */
   .year-ghost {
+    @apply select-none pointer-events-none transition-opacity duration-700;
     font-family: 'Orbitron', monospace;
     background: linear-gradient(
       180deg,
-      hsl(var(--year-ghost) / 0.15) 0%,
-      hsl(var(--year-ghost) / 0.02) 100%
+      hsl(var(--year-ghost) / 0.1) 0%,
+      hsl(var(--year-ghost) / 0.05) 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: blur(1px);
   }
 
   .year-ghost-strong {
@@ -1127,10 +1136,10 @@
     background: 
       radial-gradient(
         ellipse at center,
-        hsl(var(--background) / 0.95) 0%,
+        hsl(var(--background) / 0.9) 0%,
         hsl(var(--background)) 100%
       ),
-      linear-gradient(180deg, hsl(220 20% 12%) 0%, hsl(220 15% 8%) 100%);
+      linear-gradient(180deg, hsl(var(--primary) / 0.05) 0%, transparent 100%);
   }
 
   .tunnel-gold-glow {

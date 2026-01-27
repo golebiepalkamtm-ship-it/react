@@ -15,7 +15,7 @@ const normalizeApiBase = (raw?: string) => {
   return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
 };
 
-const DEFAULT_API_BASE = 'https://server-production-0e43.up.railway.app/api';
+const DEFAULT_API_BASE = import.meta.env.PROD ? 'https://server-production-0e43.up.railway.app/api' : '';
 
 const API_BASE_URL =
   normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL))

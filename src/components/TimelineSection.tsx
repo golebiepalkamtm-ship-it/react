@@ -49,6 +49,7 @@ function TimeTunnelCard({
   const distance = Math.abs(index - currentIndex);
   const zIndex = 50 - Math.min(40, distance * 5);
   const isActive = index === currentIndex;
+  const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (

@@ -125,7 +125,7 @@ const HeroPremium = () => {
 
       <div 
         ref={contentRef}
-        className="relative z-10 max-w-6xl mx-auto px-4 text-center"
+        className="relative z-10 max-w-6xl mx-auto px-4 text-left"
       >
         <MagneticElement strength={0.1} className="mb-8">
           <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium backdrop-blur-sm">
@@ -134,7 +134,7 @@ const HeroPremium = () => {
           </span>
         </MagneticElement>
 
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-2 md:gap-4">
+        <div className="mb-6 flex flex-wrap items-center justify-start gap-2 md:gap-4">
           <PremiumTextReveal
             className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white"
             as="h1"
@@ -158,13 +158,13 @@ const HeroPremium = () => {
           </span>
         </div>
 
-        <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-12 leading-relaxed">
+        <p className="text-xl md:text-2xl text-white/70 max-w-2xl mb-12 leading-relaxed">
           Wyniki budowane przez pokolenia.
           <br className="hidden md:block" />
           Topowe gołębie pocztowe z Dolnego Śląska.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+        <div className="flex flex-col sm:flex-row items-start justify-start gap-4 mb-20">
           <MagneticElement strength={0.15}>
             <Link
               to="/champions"

@@ -1,12 +1,16 @@
-import React from 'react';
+import React from "react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import TimeTunnel from "@/chronoTunnel/TimeTunnel";
 
-const Achievements: React.FC = () => {
+const Achievements = () => {
   return (
-    <div className="container mx-auto px-4 py-16">
-      <h1 className="text-4xl font-bold text-center mb-8">Osiągnięcia</h1>
-      <p className="text-center text-gray-600">
-        Strona z osiągnięciami - w budowie
-      </p>
+    <div className="min-h-screen bg-background achievements-tunnel">
+      <Header />
+      <main className="relative pt-0">
+        <TimeTunnel />
+      </main>
+      <Footer />
     </div>
   );
 };
