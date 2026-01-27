@@ -210,9 +210,10 @@ const GoogleMapCard = () => {
           width="100%"
           height="250"
           style={{ border: 0 }}
-          allowFullScreen={false}
+          allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
+          title="Mapa lokalizacji MTM Pałka"
           className="grayscale-[70%] contrast-120 group-hover:grayscale-0 transition-all duration-500"
         ></iframe>
         <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2">
