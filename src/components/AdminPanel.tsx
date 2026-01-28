@@ -33,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import { apiClient } from '@/services/api';
+import { createPortal } from 'react-dom';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -243,6 +244,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen, profile, session, fetchData]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'delete' | 'verify') => {
     if (!session?.access_token) return;
     try {
@@ -358,6 +368,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   if (profile?.role !== 'ADMIN') return null;
 
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
   const tabs = [
     { id: 'dashboard' as TabType, label: 'Dashboard', icon: BarChart3 },
     { id: 'users' as TabType, label: 'Użytkownicy', icon: Users },
@@ -365,18 +379,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     { id: 'settings' as TabType, label: 'Ustawienia', icon: Settings },
   ];
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+          className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-black/40 pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-7xl max-h-[95vh] flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl border border-white/20 shadow-2xl overflow-hidden"
+            className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[95vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-t-3xl md:rounded-3xl border border-white/20 shadow-2xl"
             initial={{ opacity: 0, scale: 0.9, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 50 }}
@@ -1523,7 +1536,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  , document.body);
 };
 
 export default AdminPanel;

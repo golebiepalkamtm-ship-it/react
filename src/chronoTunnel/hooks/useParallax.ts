@@ -165,6 +165,7 @@ export const useParallax = () => {
     });
 
     gsap.utils.toArray<HTMLElement>(".tunnel-ring").forEach((ring, i) => {
+      // Continuous breathing animation
       gsap.to(ring, {
         scale: 1.08,
         opacity: 0.35,
@@ -175,6 +176,7 @@ export const useParallax = () => {
         delay: i * 0.4,
       });
 
+      // Rotation
       gsap.to(ring, {
         rotation: i % 2 === 0 ? 360 : -360,
         duration: 80 + i * 15,
@@ -182,6 +184,7 @@ export const useParallax = () => {
         repeat: -1,
       });
 
+      // Scroll interaction - optimized for smoothness
       gsap.to(ring, {
         scale: 1 + i * 0.05,
         opacity: 0.15 - i * 0.02,
@@ -190,7 +193,7 @@ export const useParallax = () => {
           trigger: "body",
           start: "top top",
           end: "bottom bottom",
-          scrub: 2,
+          scrub: 1, // Reduced scrub time for tighter response
         },
       });
     });

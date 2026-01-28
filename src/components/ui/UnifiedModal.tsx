@@ -27,6 +27,7 @@ interface UnifiedModalProps {
   children?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   draggable?: boolean;
+  bodyScrollable?: boolean;
 }
 
 const typeConfig = {
@@ -95,6 +96,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   children,
   size = 'md',
   draggable = false,
+  bodyScrollable = true,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const config = typeConfig[type];
@@ -247,8 +249,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
               )}
             </div>
             
-            {/* Content */}
-            <div className="relative z-10 flex-1 overflow-y-auto">
+            <div className={`relative z-10 flex-1 ${bodyScrollable ? 'overflow-y-auto' : 'overflow-y-hidden'}`}>
               {children}
             </div>
             

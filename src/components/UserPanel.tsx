@@ -1,6 +1,7 @@
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { User, MapPin, Star, Shield, Settings, X, Calendar, Phone, Mail, Lock, Save, Trophy, Package, Clock, Award, CreditCard, Bell, LogOut, Edit3, Check, AlertCircle, TrendingUp, Heart, Eye, EyeOff, Crown, Zap, Sparkles, Plus } from 'lucide-react';
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { useLocale } from '@/contexts/LocaleContext';
@@ -152,16 +153,26 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
     setIsDragging(false);
   }, [onClose]);
 
-  return (
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(
     <>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
-        onClick={onClose}
+        className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-black/40 pointer-events-none"
       >
-        {/* Main modal */}
         <motion.div
           ref={dragConstraintsRef}
           initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -172,7 +183,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             ease: [0.4, 0, 0.2, 1],
             scale: { type: "spring", stiffness: 300, damping: 30 }
           }}
-          className="relative w-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100 rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50"
+          className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[90vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gradient-to-br from-slate-50 via-white to-slate-100 rounded-t-3xl md:rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50"
           onClick={(e) => e.stopPropagation()}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -936,7 +947,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         size="md"
       />
     </>
-  );
+  , document.body);
 };
 
 export default UserPanel;

@@ -122,6 +122,25 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
     tap: { scale: 0.95 }
   };
 
+  const pigeonTraits = [
+    { label: 'Numer obrączki', value: auction?.pigeon?.ringNumber },
+    { label: 'Płeć', value: auction?.sex === 'male' ? 'Samiec' : 'Samica' },
+    { label: 'Kolor', value: auction?.pigeon?.pigeonColor },
+    { label: 'Kolor oka', value: auction?.pigeon?.eyeColor },
+    { label: 'Budowa', value: auction?.pigeon?.construction },
+    { label: 'Witalność', value: auction?.pigeon?.vitality },
+    { label: 'Mięśnie', value: auction?.pigeon?.muscles },
+    { label: 'Plecy', value: auction?.pigeon?.shoulders },
+    { label: 'Balans', value: auction?.pigeon?.balance },
+    { label: 'Upierzenie', value: auction?.pigeon?.feathers },
+    { label: 'Długość', value: auction?.pigeon?.length },
+    { label: 'Wytrzymałość', value: auction?.pigeon?.endurance },
+    { label: 'Siła widełek', value: auction?.pigeon?.forkStrength },
+    { label: 'Ustawienie widełek', value: auction?.pigeon?.forkAlignment },
+    { label: 'Linia / cel', value: auction?.pigeon?.purpose },
+    { label: 'Grzbiet', value: auction?.pigeon?.back },
+  ].filter((item) => item.value && String(item.value).trim().length > 0);
+
   return (
     <motion.div
       initial="hidden"
@@ -246,40 +265,45 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             variants={itemVariants}
             className="mt-6 p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
           >
-            <h3 className="font-display text-xl font-semibold mb-4">Informacje o gołębiu</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Numer obrączki</p>
-                <p className="font-medium">{auction?.pigeon?.ringNumber || 'Brak'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Płeć</p>
-                <p className="font-medium">{auction?.sex === 'male' ? 'Samiec' : 'Samica'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Kolor oczu</p>
-                <p className="font-medium">{auction?.pigeon?.eyeColor || 'Brak informacji'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Kolor gołębia</p>
-                <p className="font-medium">{auction?.pigeon?.pigeonColor || 'Brak informacji'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Budowa</p>
-                <p className="font-medium">{auction?.pigeon?.construction || 'Brak informacji'}</p>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h3 className="font-display text-xl font-semibold">Cechy gołębia</h3>
+              <div className="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/20 text-muted-foreground">
+                {pigeonTraits.length} pól uzupełnionych
               </div>
             </div>
+            {pigeonTraits.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {pigeonTraits.map((trait, idx) => (
+                  <motion.div
+                    key={trait.label}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.02 * idx }}
+                    className="p-3 rounded-xl bg-white/6 border border-white/10 backdrop-blur-sm"
+                  >
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      {trait.label}
+                    </p>
+                    <p className="font-medium text-foreground mt-1 break-words">{trait.value}</p>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Brak uzupełnionych cech.</p>
+            )}
           </motion.div>
         </motion.div>
         
         {/* Prawa kolumna - informacje o aukcji */}
-        <div>
+        <div className="min-w-0">
           <motion.div 
             variants={itemVariants}
             className="p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
           >
             <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-              <h1 className="font-display text-3xl font-bold">{auction?.title}</h1>
+              <h1 className="font-display text-3xl font-bold leading-tight break-words text-balance">
+                {auction?.title}
+              </h1>
               
               <div className="flex gap-2">
                 <motion.button
@@ -334,14 +358,16 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             <div className="mb-6">
               <h3 className="font-semibold mb-2">Opis</h3>
               <motion.div 
-                className={`text-muted-foreground relative ${isDescriptionExpanded ? '' : 'max-h-24 overflow-hidden'}`}
+                className={`text-muted-foreground relative break-words whitespace-pre-line ${
+                  isDescriptionExpanded ? '' : 'max-h-24 overflow-hidden'
+                }`}
               >
-                <p>{auction?.description}</p>
-                {!isDescriptionExpanded && auction?.description.length > 150 && (
+                <p className="leading-relaxed text-sm md:text-base">{auction?.description}</p>
+                {!isDescriptionExpanded && auction?.description && auction.description.length > 150 && (
                   <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/80 to-transparent" />
                 )}
               </motion.div>
-              {auction?.description.length > 150 && (
+              {auction?.description && auction.description.length > 150 && (
                 <button 
                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                   className="text-gold hover:text-gold/80 text-sm mt-2"

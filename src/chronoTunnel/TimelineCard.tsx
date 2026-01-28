@@ -1,15 +1,3 @@
-/**
- * TimelineCard Component - Premium Animated Card
- * 
- * Uses Framer Motion for declarative animations with professional easing.
- * GSAP handles the heavy lifting via useParallax hook.
- * 
- * Animation Philosophy:
- * - Cards enter with 3D rotation and blur for depth
- * - Dynamic glow controlled via CSS variables
- * - Staggered achievement reveals for engagement
- */
-
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useRef, memo } from "react";
 
@@ -46,23 +34,41 @@ const TimelineCard = memo(({
     damping: 25,
     restDelta: 0.001
   };
-  const y = useSpring(useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]), springConfig);
-  const scale = useSpring(useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.85, 1, 1, 0.9]), springConfig);
-  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.5, 1], [12, 0, -12]), springConfig);
+
+  const y = useSpring(
+    useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]),
+    springConfig
+  );
+
+  const scale = useSpring(
+    useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.85, 1, 1, 0.9]),
+    springConfig
+  );
+
+  const rotateX = useSpring(
+    useTransform(scrollYProgress, [0, 0.5, 1], [12, 0, -12]),
+    springConfig
+  );
+
+  // Hover animation state defined here to avoid TS issues with CSS variables
+  const hoverAnimations = {
+    scale: 1.02,
+    "--glow-intensity": 1
+  } as any;
+
   const isEven = index % 2 === 0;
 
   return (
     <motion.div 
-      ref={cardRef} 
+      ref={cardRef}
       style={{
         y,
         scale,
-        rotateX,
-        willChange: "transform"
+        rotateX
       }} 
       className="tunnel-card relative mb-24 md:mb-32"
     >
-      <div className={`flex items-center gap-8 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
+      <div className={`flex items-center gap-10 md:gap-14 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} w-full max-w-7xl mx-auto perspective-1000 px-4 md:px-6`}>
         {/* Year Ghost - Enhanced with mouse-parallax */}
         <motion.div 
           className="hidden md:block absolute inset-0 -z-10 overflow-visible pointer-events-none mouse-parallax" 
@@ -78,21 +84,16 @@ const TimelineCard = memo(({
             ease: [0.16, 1, 0.3, 1]
           }}
         >
-          <span className={`year-ghost year-ghost-strong absolute text-[8rem] lg:text-[12rem] font-display font-black leading-none text-amber-400
-              ${isEven ? 'left-[10%] text-left' : 'right-[10%] text-right'} top-1/2 -translate-y-1/2`}>
+          <span className={`year-ghost year-ghost-strong absolute text-[8rem] lg:text-[12rem] xl:text-[14rem] font-display font-black leading-none text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.35)]
+              ${isEven ? '-left-2 text-left' : '-right-2 text-right'} top-1/2 -translate-y-1/2`}>
             {event.year}
           </span>
         </motion.div>
 
-        {/* Content Card with Dynamic Glow */}
         <motion.div 
-          className={`glass-card p-6 md:p-8 w-full md:w-[60%] lg:w-[50%] relative z-10 overflow-hidden
+          className={`glass-card px-8 py-4 md:px-12 md:py-6 w-full md:w-[72%] lg:w-[64%] xl:w-[58%] relative z-10 overflow-hidden
             ${isEven ? 'md:ml-auto' : 'md:mr-auto'}`} 
-          whileHover={{
-            scale: 1.02,
-            // Glow intensity increases on hover
-            "--glow-intensity": 1
-          } as any} 
+          whileHover={hoverAnimations} 
           transition={{
             type: "spring",
             stiffness: 400,
@@ -148,15 +149,15 @@ const TimelineCard = memo(({
           />
 
           {/* Mobile Year Badge */}
-          <div className="md:hidden mb-4">
-            <span className="font-display text-5xl font-bold text-amber-400 drop-shadow-md">
+          <div className="md:hidden mb-5">
+            <span className="font-display text-6xl font-extrabold text-amber-400 drop-shadow-md">
               {event.year}
             </span>
           </div>
 
           {/* Title with premium animation */}
           <motion.h3 
-            className="text-xl md:text-2xl font-semibold text-foreground mb-3 leading-tight" 
+            className="text-2xl md:text-3xl font-semibold text-foreground mb-4 leading-tight tracking-tight" 
             initial={{
               opacity: 0,
               y: 20
@@ -178,37 +179,58 @@ const TimelineCard = memo(({
           </motion.h3>
 
           {/* Achievements List with Staggered Reveal */}
-          <motion.ul 
-            className="space-y-1.5 text-sm text-muted-foreground"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-30px" }}
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.05
-                }
-              }
-            }}
-          >
+          <ul className="space-y-1 text-sm md:text-base text-muted-foreground">
             {event.achievements.map((achievement, i) => (
               <motion.li 
                 key={i} 
-                className="achievement-item flex items-start gap-2" 
-                variants={{
-                  hidden: { opacity: 0, x: -20 },
-                  visible: { opacity: 1, x: 0 }
+                className="achievement-item flex items-start gap-3" 
+                initial={{
+                  opacity: 0,
+                  x: -30,
+                  scale: 0.95
+                }}
+                whileInView={{
+                  opacity: 1,
+                  x: 0,
+                  scale: 1
                 }}
                 transition={{
-                  duration: 0.4,
-                  ease: "easeOut"
+                  duration: 0.5,
+                  delay: i * 0.05,
+                  ease: [0.33, 1, 0.68, 1]
+                }}
+                viewport={{
+                  once: true,
+                  margin: "-30px"
                 }}
               >
-                <span className="text-primary mt-1 text-xs">●</span>
+                <motion.span 
+                  className="text-primary mt-1 text-base"
+                  initial={{
+                    scale: 0,
+                    rotate: -180
+                  }}
+                  whileInView={{
+                    scale: 1,
+                    rotate: 0
+                  }}
+                  transition={{
+                    duration: 0.4,
+                    delay: i * 0.05 + 0.15,
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 20
+                  }}
+                  viewport={{
+                    once: true
+                  }}
+                >
+                  ●
+                </motion.span>
                 <span>{achievement}</span>
               </motion.li>
             ))}
-          </motion.ul>
+          </ul>
 
           {/* Decorative Bottom Line - Animated draw */}
           <motion.div 

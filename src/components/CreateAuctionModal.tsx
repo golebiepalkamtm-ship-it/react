@@ -118,8 +118,9 @@ export const CreateAuctionModal = ({
       showCloseButton={true}
       closeOnBackdrop={true}
       closeOnEscape={true}
-      size={currentStep === 1 ? "xl" : "full"}
+      size={currentStep === 1 ? "xl" : "xl"}
       draggable={true}
+      bodyScrollable={false}
       cancelButton={currentStep === 2 ? {
         text: 'Wróć',
         onClick: handleBack

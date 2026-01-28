@@ -21,12 +21,13 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
     const isDev = import.meta.env.DEV;
 
     const lenis = new Lenis({
-      duration: prefersReducedMotion && !isDev ? 1.0 : 1.6,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
+      // Bardziej "luxury", miękki i wolniejszy scroll dla całego serwisu
+      duration: prefersReducedMotion && !isDev ? 1.0 : 2.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -9 * t)), // nieco łagodniejsza krzywa
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: !prefersReducedMotion || isDev,
-      wheelMultiplier: prefersReducedMotion ? 0.4 : 0.6,
+      wheelMultiplier: prefersReducedMotion ? 0.35 : 0.45,
       touchMultiplier: prefersReducedMotion ? 0.8 : 1.2,
       infinite: false,
       autoRaf: false,

@@ -460,23 +460,7 @@ const Header = () => {
 
         <AnimatePresence>
           {showAccountModal && (
-            <motion.div
-              key="user-panel-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              onClick={() => setShowAccountModal(false)}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <UserPanel onClose={() => setShowAccountModal(false)} />
-              </motion.div>
-            </motion.div>
+            <UserPanel onClose={() => setShowAccountModal(false)} />
           )}
           {isHeaderAdminPanelOpen && (
             <AdminPanel 
