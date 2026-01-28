@@ -383,10 +383,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-black/40 pointer-events-none"
+          className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-black/40"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={onClose}
         >
           <motion.div
             className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[95vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-t-3xl md:rounded-3xl border border-white/20 shadow-2xl"
