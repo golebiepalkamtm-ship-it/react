@@ -13,9 +13,10 @@ import { useOptimizedToast } from '@/hooks/use-optimized-toast';
 interface AddBreederMeetingFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  embedded?: boolean;
 }
 
-export default function AddBreederMeetingForm({ onSuccess, onCancel }: AddBreederMeetingFormProps) {
+export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = false }: AddBreederMeetingFormProps) {
   const { user, loading } = useAuth();
   const { canBid, missingFields } = useProfileVerification();
   const { success: showSuccess, error: showError } = useOptimizedToast();
@@ -92,54 +93,8 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel }: AddBreede
     setPreviewImages(newPreviews);
   };
 
-  if (loading || verificationLoading) {
-    return (
-      <div className="min-h-[200px] flex items-center justify-center">
-        <div className="bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-2xl p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4" />
-          <p className="text-lg text-foreground">Sprawdzanie autoryzacji...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <motion.div
-      drag
-      dragMomentum={false}
-      dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
-      dragElastic={0.1}
-      initial={{ opacity: 0, scale: 0.95, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -20 }}
-      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move max-h-[90vh] overflow-y-auto"
-    >
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing"
-      >
-        <h2 id="add-meeting-title" className="font-display font-bold text-xl md:text-2xl text-white select-none flex items-center gap-2">
-          <Camera className="w-6 h-6 text-gold" />
-          Dodaj spotkanie
-        </h2>
-        {onCancel && (
-          <motion.button
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={onCancel}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-            aria-label="Zamknij formularz"
-            title="Zamknij formularz"
-          >
-            <X className="w-5 h-5 text-white/70" />
-          </motion.button>
-        )}
-      </motion.div>
-
-      <div className="max-w-4xl mx-auto">
+  const content = (
+    <div className="max-w-4xl mx-auto">
           {/* Header is rendered by the parent page to avoid duplicate titles */}
 
         {user ? (
@@ -248,6 +203,64 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel }: AddBreede
           </div>
         )}
       </div>
+  );
+
+  if (loading || verificationLoading) {
+    return (
+      <div className="min-h-[200px] flex items-center justify-center">
+        <div className="bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] rounded-2xl p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4" />
+          <p className="text-lg text-foreground">Sprawdzanie autoryzacji...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (embedded) {
+    return (
+      <div className="py-4">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
+      dragElastic={0.1}
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -20 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      className="bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move max-h-[90vh] overflow-y-auto"
+    >
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing"
+      >
+        <h2 id="add-meeting-title" className="font-display font-bold text-xl md:text-2xl text-white select-none flex items-center gap-2">
+          <Camera className="w-6 h-6 text-gold" />
+          Dodaj spotkanie
+        </h2>
+        {onCancel && (
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onCancel}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Zamknij formularz"
+            title="Zamknij formularz"
+          >
+            <X className="w-5 h-5 text-white/70" />
+          </motion.button>
+        )}
+      </motion.div>
+
+      {content}
     </motion.div>
   );
 }

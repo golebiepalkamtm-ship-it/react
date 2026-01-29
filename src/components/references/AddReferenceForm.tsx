@@ -199,15 +199,11 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
 
   return (
     <motion.div
-      drag
-      dragMomentum={false}
-      dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
-      dragElastic={0.1}
-      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      initial={{ opacity: 0, scale: 0.98, y: 14 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -20 }}
+      exit={{ opacity: 0, scale: 0.98, y: -14 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move"
+      className="bg-white/5 border border-white/15 rounded-2xl shadow-2xl p-4 md:p-6 backdrop-blur-xl"
     >
       <motion.div 
         initial={{ opacity: 0, y: -10 }}

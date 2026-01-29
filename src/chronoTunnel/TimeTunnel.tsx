@@ -1,10 +1,10 @@
-import { useRef, useMemo, useEffect } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { useMotionValue } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
 import TimelineCard from "./TimelineCard";
 import CosmicPortal from "./CosmicPortal";
 import StatsHeader from "./StatsHeader";
+import CosmicEnergyHeadline from "@/components/CosmicEnergyHeadline";
 
 const timelineEvents = [
   {
@@ -581,14 +581,20 @@ const timelineEvents = [
   },
 ];
 
-const SECTION_DEPTH = 450; // px per card segment for ScrollTrigger (dłuższy lot)
+const SECTION_DEPTH = 520; // px per card segment (wolniejszy scroll)
 
 export default function TimeTunnel() {
-  const totalDistance = timelineEvents.length * SECTION_DEPTH;
+  const visibleEvents = useMemo(() => timelineEvents.filter((e) => e.year <= 2024), []);
+  const totalDistance = visibleEvents.length * SECTION_DEPTH;
+  const extraBuffer = useMemo(
+    () => (typeof window !== "undefined" ? window.innerHeight * 1.6 : 1600),
+    []
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const statsRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLDivElement | null>(null);
   const scrollProgress = useMotionValue(0);
   
   const stats = useMemo(() => {
@@ -596,7 +602,7 @@ export default function TimeTunnel() {
     let wicemistrz = 0;
     let przodownik = 0;
 
-    timelineEvents.forEach(event => {
+    visibleEvents.forEach(event => {
       event.achievements.forEach(ach => {
         const lower = ach.toLowerCase();
         if (lower.includes("wicemistrz") || lower.includes("v-ce mistrz") || lower.includes("v-ce  mistrz")) {
@@ -610,84 +616,101 @@ export default function TimeTunnel() {
     });
 
     return { mistrz, wicemistrz, przodownik };
-  }, []);
+  }, [visibleEvents]);
 
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: `+=${totalDistance}`,
-          scrub: true,
-          pin: true,
-          onUpdate: (self) => scrollProgress.set(self.progress),
-          invalidateOnRefresh: true,
-        },
-      });
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: containerRef.current,
+            scroller: document.body,
+            start: "top top",
+            end: `+=${totalDistance + extraBuffer}`,
+            scrub: true,
+            pin: true,
+            onUpdate: (self) => scrollProgress.set(self.progress),
+            invalidateOnRefresh: true,
+          },
+        });
 
-      if (statsRef.current) {
-        tl.fromTo(
-          statsRef.current,
-          { z: -1200, autoAlpha: 0, scale: 0.8 },
-          { z: 200, autoAlpha: 1, scale: 1, duration: 0.8 },
-          0
-        );
-        tl.to(
-          statsRef.current,
-          { z: 800, autoAlpha: 0, scale: 1.05, duration: 0.5 },
-          0.25
-        );
-        tl.set(statsRef.current, { autoAlpha: 0 }, 0.8);
-      }
+        // Ukryj karty i end-screen na starcie; statystyki zostają widoczne
+      if (statsRef.current) tl.set(statsRef.current, { autoAlpha: 1 });
+      if (titleRef.current) tl.set(titleRef.current, { autoAlpha: 1 });
+      if (endRef.current) tl.set(endRef.current, { autoAlpha: 0 });
+      cardsRef.current.forEach((card) => card && tl.set(card, { autoAlpha: 0 }));
 
-      const cardSpacing = 0.9;
-      const cardEnterDuration = 0.6;
-      const cardExitDuration = 0.6;
+        const cardSpacing = 1.9;
+        const cardEnterDuration = 0.6;
+        const cardExitDuration = 0.6;
 
-      cardsRef.current.forEach((card, index) => {
-        if (!card) return;
-        const start = index * cardSpacing + 0.8;
-        tl.fromTo(
-          card,
-          { z: -1400, autoAlpha: 0, scale: 0.85 },
-          { z: 0, autoAlpha: 1, scale: 1, duration: cardEnterDuration },
-          start
-        );
-        tl.to(
-          card,
-          { z: 1400, autoAlpha: 0, scale: 1.05, duration: cardExitDuration },
-          start + 0.7
-        );
-      });
+        // Statystyki znikają tuż przed pierwszą kartą
+        if (statsRef.current || titleRef.current) {
+          tl.to(
+            [statsRef.current, titleRef.current].filter(Boolean),
+            { autoAlpha: 0, duration: 0.4, ease: "power1.out" },
+            0.55
+          );
+        }
 
-      if (endRef.current) {
-        const endPos = cardsRef.current.length * cardSpacing + 1.2;
-        tl.fromTo(
-          endRef.current,
-          { z: -1200, opacity: 0, scale: 0.9 },
-          { z: 200, opacity: 1, scale: 1, duration: 0.8 },
-          endPos
-        );
-      }
+        // Animacje kart
+        cardsRef.current.forEach((card, index) => {
+          if (!card) return;
+          const start = index * cardSpacing + 0.8;
+          tl.fromTo(
+            card,
+            { z: -900, autoAlpha: 0, scale: 0.9 },
+            { z: 200, autoAlpha: 1, scale: 1.12, duration: cardEnterDuration },
+            start
+          );
+          tl.to(
+            card,
+            { z: 360, autoAlpha: 1, scale: 1.14, duration: 0.45 },
+            start + cardEnterDuration
+          );
+          tl.to(
+            card,
+            { z: 1600, autoAlpha: 0, scale: 1.2, duration: cardExitDuration },
+            start + 1.05
+          );
+        });
+
+        // End screen
+        if (endRef.current) {
+          const endPos = cardsRef.current.length * cardSpacing + 1.2;
+          tl.fromTo(
+            endRef.current,
+            { z: -1200, opacity: 0, scale: 0.9 },
+            { z: 200, opacity: 1, scale: 1, duration: 0.8 },
+            endPos
+          );
+        }
+
+        ScrollTrigger.refresh();
     }, containerRef);
 
     return () => {
       ctx.revert();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [scrollProgress, totalDistance]);
+  }, [scrollProgress, totalDistance, extraBuffer, visibleEvents]);
 
   return (
     <div
       ref={containerRef}
       className="relative bg-black"
-      style={{ height: `${totalDistance + 3000}px` }} // większy zapas wysokości na pin + scrubbing
+      style={{ height: `${totalDistance + extraBuffer}px` }} // większy zapas wysokości na pin + scrubbing
     >
       {/* Sticky viewport for the 3D scene */}
       <div className="sticky top-0 h-screen w-full overflow-hidden perspective-1000">
+        {/* Page title */}
+        <div
+          ref={titleRef}
+          className="absolute top-24 md:top-28 left-0 right-0 z-20 flex justify-center pointer-events-none"
+        >
+          <CosmicEnergyHeadline text="Historia osiągnięć" className="px-4" />
+        </div>
+
         {/* Background Cosmic Portal */}
         <CosmicPortal scrollProgress={scrollProgress} />
 
@@ -698,19 +721,19 @@ export default function TimeTunnel() {
           <div
             ref={statsRef}
             className="pointer-events-auto"
-            style={{ transformStyle: "preserve-3d" }}
+            style={{ transformStyle: "preserve-3d", opacity: 1 }}
           >
             <StatsHeader {...stats} />
           </div>
 
           {/* Timeline Cards */}
-          {timelineEvents.map((event, index) => (
+          {visibleEvents.map((event, index) => (
             <div
               key={event.year}
               ref={(el) => {
                 cardsRef.current[index] = el;
               }}
-              className="pointer-events-auto"
+              className="pointer-events-auto translate-y-24 md:translate-y-32 lg:translate-y-40"
               style={{
                 position: "absolute",
                 top: 0,
@@ -721,13 +744,14 @@ export default function TimeTunnel() {
                 alignItems: "center",
                 justifyContent: "center",
                 transformStyle: "preserve-3d",
+                opacity: 0,
               }}
             >
               <TimelineCard event={event} index={index} isActive />
             </div>
           ))}
 
-          {/* End Text - At the very end (0.9) */}
+          {/* End Text - At the very end (ukryte na load) */}
           <div
             ref={endRef}
             className="pointer-events-auto"
@@ -741,6 +765,8 @@ export default function TimeTunnel() {
               alignItems: "center",
               justifyContent: "center",
               transformStyle: "preserve-3d",
+              opacity: 0,
+              visibility: "hidden",
             }}
           >
             <div className="text-center">

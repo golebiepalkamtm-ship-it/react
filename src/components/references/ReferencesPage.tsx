@@ -627,7 +627,7 @@ export function ReferencesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent"
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-reference-title"

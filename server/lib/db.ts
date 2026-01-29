@@ -26,7 +26,7 @@ try {
   // Supabase provides two ports: 5432 (Session/Direct) and 6543 (Transaction/Pooler).
   // For production apps, we should prefer 6543 with pgbouncer=true.
   if (process.env.DATABASE_URL) {
-    let url = process.env.DATABASE_URL;
+    const url = process.env.DATABASE_URL;
     
     // Check if we are using the direct port 5432 and try to switch to 6543 for pooling if possible
     // (This is a heuristic, verify with your specific Supabase setup)

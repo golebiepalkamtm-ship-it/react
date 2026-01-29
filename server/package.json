@@ -11,7 +11,9 @@
     "build": "prisma generate && tsc --skipLibCheck && node ./scripts/copy-runtime.js",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
-    "seed:json": "tsx scripts/seed-from-json.ts"
+    "seed:json": "tsx scripts/seed-from-json.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/adapter-pg": "6.19.2",

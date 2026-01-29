@@ -45,9 +45,19 @@ class ApiClient {
     return url.toString();
   }
 
+  private isSameOrigin(): boolean {
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      return !!origin && new URL(this.baseUrl, origin).origin === origin;
+    } catch {
+      return false;
+    }
+  }
+
   private async request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
     const { params, ...fetchConfig } = config;
     const url = this.buildUrl(endpoint, params);
+    const sameOrigin = this.isSameOrigin();
 
     logger.debug('API Request:', url);
 
@@ -64,6 +74,7 @@ class ApiClient {
     };
 
     const ensureCsrfCookie = async () => {
+      if (!sameOrigin) return; // unikaj CORS dla zewnętrznego API
       if (getCSRFToken()) return;
       try {
         await fetch(this.buildUrl('/csrf-token'), { credentials: 'include' });
@@ -86,7 +97,7 @@ class ApiClient {
     const response = await fetch(url, {
       ...fetchConfig,
       headers,
-      credentials: 'include',
+      credentials: sameOrigin ? 'include' : 'omit',
       signal: fetchConfig.signal,
     });
     
@@ -181,7 +192,7 @@ class ApiClient {
       method: 'POST',
       body: formData,
       headers,
-      credentials: 'include',
+      credentials: this.isSameOrigin() ? 'include' : 'omit',
     });
 
     if (!response.ok) {
@@ -194,6 +205,10 @@ class ApiClient {
 
   // Metoda do pobierania CSRF token
   async getCSRFToken(): Promise<{ csrfToken: string }> {
+    if (!this.isSameOrigin()) {
+      logger.debug('Skipping CSRF fetch for cross-origin API');
+      return { csrfToken: '' as const };
+    }
     return this.get<{ csrfToken: string }>('/csrf-token');
   }
 }

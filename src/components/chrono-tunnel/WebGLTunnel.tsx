@@ -1,5 +1,5 @@
-import { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useRef, useMemo } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { 
   EffectComposer, 
   Bloom, 
@@ -9,6 +9,11 @@ import {
 } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
+
+function pseudoRandom(seed: number): number {
+  const x = Math.sin(seed * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
 
 interface TunnelRingProps {
   radius: number;
@@ -112,18 +117,18 @@ function ParticleField({ count, scrollProgress }: ParticleFieldProps) {
     
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
-      const theta = Math.random() * Math.PI * 2;
-      const radius = 2 + Math.random() * 8;
+      const theta = pseudoRandom(i) * Math.PI * 2;
+      const radius = 2 + pseudoRandom(i + count) * 8;
       
       pos[i3] = Math.cos(theta) * radius;
       pos[i3 + 1] = Math.sin(theta) * radius;
-      pos[i3 + 2] = (Math.random() - 0.5) * 40;
+      pos[i3 + 2] = (pseudoRandom(i + count * 2) - 0.5) * 40;
       
-      vel[i3] = (Math.random() - 0.5) * 0.02;
-      vel[i3 + 1] = (Math.random() - 0.5) * 0.02;
-      vel[i3 + 2] = -0.05 - Math.random() * 0.1;
+      vel[i3] = (pseudoRandom(i + count * 3) - 0.5) * 0.02;
+      vel[i3 + 1] = (pseudoRandom(i + count * 4) - 0.5) * 0.02;
+      vel[i3 + 2] = -0.05 - pseudoRandom(i + count * 5) * 0.1;
       
-      const mixRatio = Math.random();
+      const mixRatio = pseudoRandom(i + count * 6);
       const color = new THREE.Color().lerpColors(goldColor, whiteColor, mixRatio * 0.3);
       col[i3] = color.r;
       col[i3 + 1] = color.g;
@@ -243,7 +248,7 @@ function GoldenOrbs({ scrollProgress }: GoldenOrbsProps) {
         Math.cos(i * Math.PI * 0.25) * 6,
         -5 - i * 3,
       ] as [number, number, number],
-      scale: 0.3 + Math.random() * 0.4,
+      scale: 0.3 + pseudoRandom(i + 8) * 0.4,
     }));
   }, []);
 
@@ -284,14 +289,17 @@ interface TunnelSceneProps {
 }
 
 function TunnelScene({ scrollProgress }: TunnelSceneProps) {
-  const { camera } = useThree();
-  
-  useEffect(() => {
-    camera.position.set(0, 0, 5);
-    camera.lookAt(0, 0, -10);
-  }, [camera]);
+  const hasInitialized = useRef(false);
 
   useFrame((state) => {
+    const camera = state.camera;
+
+    if (!hasInitialized.current) {
+      camera.position.set(0, 0, 5);
+      camera.lookAt(0, 0, -10);
+      hasInitialized.current = true;
+    }
+
     const wobbleX = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
     const wobbleY = Math.cos(state.clock.elapsedTime * 0.3) * 0.1;
     camera.position.set(wobbleX, wobbleY, camera.position.z);

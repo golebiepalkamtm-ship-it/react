@@ -5,8 +5,7 @@ import { FullscreenImageModal } from '@/components/ui/FullscreenImageModal';
 import { SmartImage } from '@/components/ui/SmartImage';
 import AddBreederMeetingForm from '@/components/breeder-meetings/AddBreederMeetingForm';
 import { useAuth } from '@/contexts/AuthContext';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Camera, CheckCircle, AlertCircle, Upload, X, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { meetingsService } from '@/services/meetingsService';
 import { useOptimizedToast } from '@/hooks/use-optimized-toast';
@@ -51,7 +50,6 @@ export default function BreederMeetings() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   
   const triggerButtonRef = React.useRef<HTMLButtonElement | null>(null);
-  const modalRef = React.useRef<HTMLDivElement | null>(null);
 
   const roleActions = useMemo(() => ({
     'USER_REGISTERED': () => {
@@ -209,53 +207,35 @@ export default function BreederMeetings() {
         return <FullscreenImageModal isOpen={selectedImage !== null} onClose={handleCloseModal} images={meeting.images} currentIndex={selectedImage.imageIndex} title={meeting.name} />;
       })()}
 
-      <AnimatePresence>
-        {isFormOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="add-meeting-title"
-          >
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              type="button"
-              className="absolute inset-0 bg-transparent"
-              aria-label="Zamknij"
-              onClick={() => setIsFormOpen(false)}
-            />
-
-            <div
-              ref={modalRef}
-              className="relative z-10 w-full max-w-4xl"
-            >
-              <AddBreederMeetingForm 
-                onCancel={() => setIsFormOpen(false)}
-                onSuccess={() => {
-                  setIsFormOpen(false);
-                  // Refresh meetings list after adding new one
-                  const fetchBreederMeetings = async () => {
-                    try {
-                      const data = await meetingsService.getMeetings();
-                      setBreederMeetings(Array.isArray(data) ? data : []);
-                    } catch (error) {
-                      console.error('Błąd podczas ładowania spotkań z hodowcami:', error);
-                      setBreederMeetings([]);
-                    }
-                  };
-                  fetchBreederMeetings();
-                }}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <UnifiedModal
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        type="default"
+        title="Dodaj spotkanie"
+        showCloseButton={true}
+        closeOnBackdrop={true}
+        closeOnEscape={true}
+        size="xl"
+        draggable={true}
+        bodyScrollable={true}
+      >
+        <AddBreederMeetingForm
+          embedded
+          onSuccess={() => {
+            setIsFormOpen(false);
+            const fetchBreederMeetings = async () => {
+              try {
+                const data = await meetingsService.getMeetings();
+                setBreederMeetings(Array.isArray(data) ? data : []);
+              } catch (error) {
+                console.error('Błąd podczas ładowania spotkań z hodowcami:', error);
+                setBreederMeetings([]);
+              }
+            };
+            fetchBreederMeetings();
+          }}
+        />
+      </UnifiedModal>
       </main>
       
       <AccountModal 

@@ -28,6 +28,9 @@ interface UnifiedModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   draggable?: boolean;
   bodyScrollable?: boolean;
+  containerClassName?: string;
+  backdropClassName?: string;
+  hideGradient?: boolean;
 }
 
 const typeConfig = {
@@ -97,7 +100,10 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   size = 'md',
   draggable = false,
   bodyScrollable = true,
-}) => {
+  containerClassName = '',
+  backdropClassName = '',
+  hideGradient = false,
+}: UnifiedModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const config = typeConfig[type];
   const Icon = icon || config.icon;
@@ -191,7 +197,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="absolute inset-0 bg-transparent"
+            className={`absolute inset-0 bg-transparent ${backdropClassName}`}
             onClick={closeOnBackdrop ? onClose : undefined}
           />
           
@@ -207,7 +213,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
               stiffness: 400,
               duration: 0.2
             }}
-            className={`relative w-full ${sizeConfig[size]} bg-gray-800/80 backdrop-blur-xl rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-hidden max-h-screen md:max-h-[90vh] flex flex-col`}
+            className={`relative w-full ${sizeConfig[size]} bg-gray-800/80 backdrop-blur-xl rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-hidden max-h-screen md:max-h-[80vh] flex flex-col ${containerClassName}`}
             style={{ cursor: draggable && window.innerWidth >= 768 ? 'move' : 'default' }}
             onMouseDown={(e) => {
               // Tylko na desktop i tylko gdy kliknięto w header
@@ -217,11 +223,13 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
             }}
           >
             {/* Background Gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} pointer-events-none`} />
+            {!hideGradient && (
+              <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} pointer-events-none`} />
+            )}
             
             {/* Header */}
-            <div className="relative z-10 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/10 modal-header">
-              <div className="flex items-center gap-3">
+            <div className="relative z-10 flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 border-b border-white/10 modal-header">
+              <div className="flex items-center gap-2.5">
                 {Icon && (
                   <div className={`p-2 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}>
                     <Icon className="w-5 h-5 text-white" />
@@ -229,7 +237,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                 )}
                 <div>
                   {title && (
-                    <h2 className="text-xl font-semibold text-white">{title}</h2>
+                    <h2 className="text-lg md:text-xl font-semibold text-white leading-tight">{title}</h2>
                   )}
                   {message && (
                     <p className="text-sm text-white/70 mt-1">{message}</p>
@@ -242,7 +250,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                   variant="ghost"
                   size="icon"
                   onClick={onClose}
-                  className="text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                  className="text-white/50 hover:text-white hover:bg-white/10 transition-colors h-8 w-8 md:h-9 md:w-9"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -250,17 +258,19 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
             </div>
             
             <div className={`relative z-10 flex-1 ${bodyScrollable ? 'overflow-y-auto' : 'overflow-y-hidden'}`}>
-              {children}
+              <div className="w-full max-w-5xl mx-auto px-2 md:px-3 pt-0 pb-1 md:pt-0 md:pb-1">
+                {children}
+              </div>
             </div>
             
             {/* Actions */}
             {(confirmButton || cancelButton) && (
-              <div className="relative z-10 flex items-center justify-end gap-3 px-4 md:px-6 py-3 md:py-4 border-t border-white/10">
+              <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 px-4 md:px-6 py-3 md:py-4 border-t border-white/10 w-full">
                 {cancelButton && (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={cancelButton.onClick}
-                    className="border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
+                    className="h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-black text-white border border-white/15 hover:bg-black/80 hover:text-white"
                   >
                     {cancelButton.text}
                   </Button>
@@ -269,7 +279,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                   <Button
                     onClick={confirmButton.onClick}
                     variant={confirmButton.variant || 'default'}
-                    className={`bg-gradient-to-r ${config.buttonGradient} text-white border-0 shadow-lg ${config.buttonShadow}`}
+                    className={`h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-gradient-to-r ${config.buttonGradient} text-white border-0 shadow-lg ${config.buttonShadow}`}
                   >
                     {confirmButton.text}
                   </Button>

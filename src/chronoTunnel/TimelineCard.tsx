@@ -68,31 +68,22 @@ const TimelineCard = memo(({
       }} 
       className="tunnel-card relative mb-24 md:mb-32"
     >
-      <div className={`flex items-center gap-10 md:gap-14 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} w-full max-w-7xl mx-auto perspective-1000 px-4 md:px-6`}>
-        {/* Year Ghost - Enhanced with mouse-parallax */}
-        <motion.div 
-          className="hidden md:block absolute inset-0 -z-10 overflow-visible pointer-events-none mouse-parallax" 
-          data-depth="0.3" 
-          initial={{
-            opacity: 0
-          }} 
-          animate={{
-            opacity: isActive ? 1 : 0.4
-          }} 
-          transition={{
-            duration: 0.5,
-            ease: [0.16, 1, 0.3, 1]
-          }}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 md:gap-12 lg:gap-16 w-full max-w-[95vw] xl:max-w-[1280px] mx-auto perspective-1000 px-4 md:px-6 overflow-visible">
+        {/* Year column */}
+        <motion.div
+          className="flex-shrink-0 md:w-56 lg:w-64 flex md:items-center justify-start md:justify-end"
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, margin: "-40px" }}
         >
-          <span className={`year-ghost year-ghost-strong absolute text-[8rem] lg:text-[12rem] xl:text-[14rem] font-display font-black leading-none text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.35)]
-              ${isEven ? '-left-2 text-left' : '-right-2 text-right'} top-1/2 -translate-y-1/2`}>
+          <span className="font-display text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.35)]">
             {event.year}
           </span>
         </motion.div>
 
         <motion.div 
-          className={`glass-card px-8 py-4 md:px-12 md:py-6 w-full md:w-[72%] lg:w-[64%] xl:w-[58%] relative z-10 overflow-hidden
-            ${isEven ? 'md:ml-auto' : 'md:mr-auto'}`} 
+          className="glass-card px-8 py-4 md:px-12 md:py-6 w-full flex-1 min-w-0 relative z-10 overflow-hidden md:ml-0 md:mr-0" 
           whileHover={hoverAnimations} 
           transition={{
             type: "spring",
@@ -183,7 +174,7 @@ const TimelineCard = memo(({
             {event.achievements.map((achievement, i) => (
               <motion.li 
                 key={i} 
-                className="achievement-item flex items-start gap-3" 
+                className="achievement-item flex items-start gap-3 break-normal" 
                 initial={{
                   opacity: 0,
                   x: -30,

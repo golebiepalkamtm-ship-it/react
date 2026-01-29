@@ -216,8 +216,8 @@ const TunnelCamera = ({ scrollProgress }: { scrollProgress: MotionValue<number> 
     const startDelay = 0.12;
     const normalized = Math.max((t - startDelay) / (1 - startDelay), 0);
 
-    const startZ = 200;    // dalej od tunelu
-    const endZ = -2000;    // znacznie głębiej w tunelu (dłuższy lot)
+    const startZ = 120;    // bliżej tunelu na starcie
+    const endZ = -80;      // zatrzymaj kamerę wewnątrz długości tunelu (zasięg cząsteczek to ~-95..5)
     const zPos = THREE.MathUtils.lerp(startZ, endZ, normalized);
     camera.position.set(0, 0, zPos);
     camera.up.set(0, 1, 0);

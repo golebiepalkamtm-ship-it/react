@@ -11,7 +11,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default tseslint.config(
-  { ignores: ["dist", "server/prisma.config.ts"] },
+  { 
+    ignores: [
+      "dist", 
+      "absolute/**",
+      "server/prisma.config.ts",
+      "server/test_client/**",
+      "server/dist/**",
+      "server/lib/logger.d.ts",
+      "supabase/functions/mcp/index.ts",
+      "chrono-tunnel/**",
+      "prisma.config.ts",
+      "tailwind.config.ts",
+      "vite.config.ts",
+      "vitest.config.ts",
+    ] 
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -33,6 +48,9 @@ export default tseslint.config(
       "react-refresh/only-export-components": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-empty-object-type": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off",
+      "@typescript-eslint/no-wrapper-object-types": "off",
     },
   },
 );

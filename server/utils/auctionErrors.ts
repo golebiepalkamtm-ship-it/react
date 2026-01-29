@@ -31,7 +31,7 @@ export enum AuctionErrorCodes {
   RACE_CONDITION_DETECTED = 'RACE_CONDITION_DETECTED',
 }
 
-export interface AuctionError {
+export interface AuctionErrorPayload {
   code: AuctionErrorCodes;
   message: string;
   details?: any;
@@ -51,7 +51,7 @@ export class AuctionError extends Error {
     this.timestamp = new Date().toISOString();
   }
 
-  toJSON(): Omit<AuctionError, 'toJSON' | 'name'> {
+  toJSON(): AuctionErrorPayload {
     return {
       code: this.code,
       message: this.message,
@@ -102,7 +102,7 @@ export const handlePrismaError = (error: any): AuctionError => {
   }
 };
 
-export const getErrorMessage = (error: AuctionError): string => {
+export const getErrorMessage = (error: { code: AuctionErrorCodes; message: string }): string => {
   const messages: Record<AuctionErrorCodes, string> = {
     [AuctionErrorCodes.AUCTION_NOT_FOUND]: 'Aukcja nie została znaleziona.',
     [AuctionErrorCodes.AUCTION_NOT_ACTIVE]: 'Aukcja nie jest aktywna.',

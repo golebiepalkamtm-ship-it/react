@@ -25,8 +25,13 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [toasts, setToasts] = useState<ToastConfig[]>([]);
   const [modal, setModal] = useState<Omit<FeedbackModalProps, 'onClose' | 'isOpen'> | null>(null);
 
+  const createId = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  };
+
   const pushToast = useCallback((toast: Omit<ToastConfig, 'id'>) => {
-    const id = crypto.randomUUID();
+    const id = createId();
     setToasts((prev) => [...prev, { ...toast, id }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), toast.duration ?? 3500);
   }, []);

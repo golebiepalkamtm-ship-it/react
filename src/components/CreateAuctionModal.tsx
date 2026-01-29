@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Package, Pill, Home } from 'lucide-react';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
-import CreateAuctionForm from '@/components/CreateAuctionForm';
+import CreateAuctionForm, { type FormControls } from '@/components/CreateAuctionForm';
 
 interface CreateAuctionModalProps {
   isOpen: boolean;
@@ -19,6 +19,16 @@ export const CreateAuctionModal = ({
 }: CreateAuctionModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [category, setCategory] = useState<'pigeons' | 'supplements' | 'accessories'>('pigeons');
+  const [formStep, setFormStep] = useState({ step: 1, total: 1 });
+  const formControlsRef = useRef<FormControls | null>(null);
+  const isPigeonCategory = category === 'pigeons';
+
+  const handleClose = () => {
+    setCurrentStep(1);
+    setCategory('pigeons');
+    setFormStep({ step: 1, total: 1 });
+    onClose();
+  };
 
   const categories = [
     { 
@@ -46,13 +56,8 @@ export const CreateAuctionModal = ({
 
   const handleCategorySelect = (cat: typeof category) => {
     setCategory(cat);
-    setCurrentStep(2);
-  };
-
-  const handleBack = () => {
-    if (currentStep === 2) {
-      setCurrentStep(1);
-    }
+    setCurrentStep(2); // zawsze przechodzimy do formularza
+    setFormStep({ step: 1, total: cat === 'pigeons' ? 3 : 2 });
   };
 
   const renderContent = () => {
@@ -63,9 +68,9 @@ export const CreateAuctionModal = ({
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -50 }}
-          className="p-6"
+          className="p-4"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {categories.map((cat) => {
               const Icon = cat.icon;
               return (
@@ -74,7 +79,7 @@ export const CreateAuctionModal = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleCategorySelect(cat.id as typeof category)}
-                  className="p-6 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all text-left group"
+                  className="p-5 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all text-left group"
                 >
                   <div className={`p-3 rounded-lg bg-gradient-to-br ${cat.color} w-fit mb-4`}>
                     <Icon className="w-6 h-6 text-white" />
@@ -98,11 +103,14 @@ export const CreateAuctionModal = ({
         className="p-3"
       >
         <CreateAuctionForm
+          key={category}
           initialCategory={category}
-          onCancel={onClose}
+          controlsRef={formControlsRef}
+          onStepChange={(step, total) => setFormStep({ step, total })}
+          onCancel={handleClose}
           onSuccess={() => {
             onSuccess();
-            onClose();
+            handleClose();
           }}
         />
       </motion.div>
@@ -112,18 +120,30 @@ export const CreateAuctionModal = ({
   return (
     <UnifiedModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       type="default"
       title={currentStep === 1 ? 'Wybierz kategorię' : 'Nowa aukcja'}
       showCloseButton={true}
       closeOnBackdrop={true}
       closeOnEscape={true}
-      size={currentStep === 1 ? "xl" : "xl"}
+      size={currentStep === 1 ? "lg" : isPigeonCategory ? "xl" : "lg"}
       draggable={true}
       bodyScrollable={false}
       cancelButton={currentStep === 2 ? {
-        text: 'Wróć',
-        onClick: handleBack
+        text: 'Cofnij',
+        onClick: () => {
+          if (formStep.step > 1) {
+            formControlsRef.current?.goBack();
+          } else {
+            setCurrentStep(1); // wróć do wyboru kategorii
+          }
+        }
+      } : undefined}
+      confirmButton={currentStep === 2 ? {
+        text: formStep.step < formStep.total ? 'Dalej' : 'Zapisz',
+        onClick: () => {
+          formControlsRef.current?.submit();
+        }
       } : undefined}
     >
       <AnimatePresence mode="wait">

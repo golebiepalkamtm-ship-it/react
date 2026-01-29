@@ -41,6 +41,20 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
 
     lenis.on('scroll', ScrollTrigger.update);
 
+    // Integracja Lenis + ScrollTrigger (pinning bez "skoków")
+    ScrollTrigger.scrollerProxy(document.body, {
+      scrollTop(value) {
+        if (value !== undefined) {
+          lenis.scrollTo(value, { immediate: true });
+        }
+        return lenis.scroll ?? 0;
+      },
+      getBoundingClientRect() {
+        return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+      },
+      pinType: document.body.style.transform ? 'transform' : 'fixed',
+    });
+
     const raf = (time: number) => {
       lenis.raf(time * 1000);
     };
@@ -54,6 +68,7 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
       document.documentElement.classList.remove('lenis', 'lenis-smooth');
       document.documentElement.style.scrollBehavior = '';
       lenis.off('scroll', ScrollTrigger.update);
+      ScrollTrigger.scrollerProxy(document.body, null as any);
       if (tickerRef.current) {
         gsap.ticker.remove(tickerRef.current);
       }

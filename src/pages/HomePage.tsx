@@ -35,7 +35,6 @@ import PressSection from '@/components/PressSection';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 import {
-  VideoBackground,
   DepthLayer,
   FloatingElement,
   MagneticElement,
@@ -113,18 +112,9 @@ const HeroPremium = () => {
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      <VideoBackground
-        src="/videos/hero-video.mp4"
-        className="z-0"
-        overlayClassName="bg-gradient-to-b from-black/40 via-black/50 to-black/70"
-        scrub={false}
-        fadeIn={false}
-        fadeOut={false}
-      />
-      
       <div 
         ref={videoOverlayRef}
-        className="absolute inset-0 z-[1] bg-gradient-to-b from-transparent via-background/30 to-background/80"
+        className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-background/40 to-background/90"
         style={{ willChange: 'opacity' }}
       />
 
