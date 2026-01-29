@@ -4,6 +4,18 @@ import { FeedbackProvider } from "@/components/ui/feedback/FeedbackProvider";
 import "./index.css";
 import { logger } from '@/lib/logger';
 
+const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
+if (gaId) {
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+  document.head.appendChild(s);
+  (window as any).dataLayer = (window as any).dataLayer || [];
+  const gtag = (...args: any[]) => { (window as any).dataLayer.push(args); };
+  gtag('js', new Date() as any);
+  gtag('config', gaId as any);
+}
+
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     Promise.all([

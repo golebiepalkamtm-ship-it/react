@@ -263,6 +263,27 @@
   }
 }
 
+/* Mobile performance: disable non-composited animations */
+@media (max-width: 768px) {
+  .shimmer,
+  .text-shine {
+    animation: none !important;
+    background-position: initial !important;
+  }
+  .btn-hover-glow::before {
+    transition: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  .btn-hover-glow:hover {
+    box-shadow: none !important;
+  }
+  .card-lift:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
 
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {

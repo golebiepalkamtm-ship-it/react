@@ -18,7 +18,13 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     const isDev = import.meta.env.DEV;
+
+    const enabled = !prefersReducedMotion && !isMobile;
+    if (!enabled) {
+      return;
+    }
 
     const lenis = new Lenis({
       // Bardziej "luxury", miękki i wolniejszy scroll dla całego serwisu
