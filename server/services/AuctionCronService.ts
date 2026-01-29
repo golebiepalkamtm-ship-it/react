@@ -25,6 +25,11 @@ export class AuctionCronService {
    * Starts the cron job
    */
   public start(): void {
+    const disableCron = ['1', 'true', 'yes'].includes(String(process.env.DISABLE_AUCTION_CRON || '').toLowerCase());
+    if (disableCron) {
+      logger.warn('Auction cron job disabled via DISABLE_AUCTION_CRON env flag');
+      return;
+    }
     if (this.interval) {
       logger.warn('Auction cron job already running');
       return;
