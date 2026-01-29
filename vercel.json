@@ -15,10 +15,28 @@
       }
     }
   ],
-  "routes": [
+  "redirects": [
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/(.*)",
+      "destination": "https://www.palkamtm.pl/$1",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "palkamtm.pl"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "destination": "https://www.palkamtm.pl/$1",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "golebiepalkamtm-ship-it-react.vercel.app"
+        }
+      ]
     }
   ]
 }
