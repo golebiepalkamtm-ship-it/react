@@ -34,9 +34,11 @@ export const createAuctionSchema = z.object({
   }).optional(),
   sex: z.string().optional(),
   location: z.string().max(200).optional(),
-  images: z.array(z.string().url('Invalid image URL')).max(20, 'Too many images').optional(),
-  videos: z.array(z.string().url('Invalid video URL')).max(10, 'Too many videos').optional(),
-  documents: z.array(z.string().url('Invalid document URL')).max(10, 'Too many documents').optional(),
+  // Upload service zwraca już absolutne URL, ale środowisko dev może używać lokalnych ścieżek;
+  // dopuszczamy dowolny niepusty string, bez wymuszania url(), by uniknąć fałszywych 400.
+  images: z.array(z.string().trim().min(1, 'Image URL required')).max(20, 'Too many images').optional(),
+  videos: z.array(z.string().trim().min(1, 'Video URL required')).max(10, 'Too many videos').optional(),
+  documents: z.array(z.string().trim().min(1, 'Document URL required')).max(10, 'Too many documents').optional(),
 }).refine((data) => {
   const hasStart = typeof data.startingPrice === 'number';
   const hasBuyNow = typeof data.buyNowPrice === 'number';
