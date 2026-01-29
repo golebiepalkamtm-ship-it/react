@@ -19,9 +19,9 @@ export interface ReviewResponse {
   updatedAt: string;
   reviewer: {
     id: string;
-    firstName?: string;
-    lastName?: string;
-    avatarUrl?: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatarUrl?: string | null;
   };
 }
 
@@ -117,7 +117,12 @@ export class ReviewService {
         rating: review.rating,
         createdAt: review.createdAt.toISOString(),
         updatedAt: review.updatedAt.toISOString(),
-        reviewer: review.reviewer,
+        reviewer: {
+          id: review.reviewer.id,
+          firstName: review.reviewer.first_name,
+          lastName: review.reviewer.last_name,
+          avatarUrl: review.reviewer.avatarUrl ?? null,
+        },
       };
     } catch (error) {
       console.error('Error creating review:', error);
@@ -188,7 +193,12 @@ export class ReviewService {
         rating: review.rating,
         createdAt: review.createdAt.toISOString(),
         updatedAt: review.updatedAt.toISOString(),
-        reviewer: review.reviewer,
+        reviewer: {
+          id: review.reviewer.id,
+          firstName: review.reviewer.first_name,
+          lastName: review.reviewer.last_name,
+          avatarUrl: review.reviewer.avatarUrl ?? null,
+        },
       }));
 
       return {

@@ -1,8 +1,8 @@
 FROM node:22-alpine AS base
 WORKDIR /app
-COPY server/package*.json ./
+COPY package*.json ./
 RUN npm ci --legacy-peer-deps
-COPY server ./
+COPY . ./
 RUN npm run build
 
 FROM node:22-alpine

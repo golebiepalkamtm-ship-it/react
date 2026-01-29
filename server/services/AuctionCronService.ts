@@ -86,12 +86,20 @@ export class AuctionCronService {
             }
           },
           include: {
-            bids: {
-              orderBy: { amount: 'desc' },
-              take: 1
-            },
             seller: true
           }
+        });
+
+        const bids = await prisma.bid.findMany({
+          where: { auctionId: { in: endingAuctions.map(auction => auction.id) } },
+          orderBy: { amount: 'desc' },
+          select: {
+            id: true,
+            amount: true,
+            maxBid: true,
+            bidderId: true,
+            auctionId: true
+          },
         });
 
         if (endingAuctions.length > 0) {
@@ -100,9 +108,9 @@ export class AuctionCronService {
 
         for (const auction of endingAuctions) {
           try {
-            const highestBid = auction.bids[0];
+            const highestBid = bids.find(bid => bid.auctionId === auction.id);
 
-            if (highestBid) {
+            if (highestBid?.bidderId) {
               // --- SCENARIO A: SOLD ---
               const winnerId = highestBid.bidderId;
               const finalPrice = highestBid.amount;
