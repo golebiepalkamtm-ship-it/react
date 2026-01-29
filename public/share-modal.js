@@ -1,21 +1,22 @@
 (function () {
   'use strict';
 
-  var doc = (typeof document === 'object' && document) ? document : null;
-  var win = (typeof window === 'object' && window) ? window : null;
-  if (!doc || !win) return;
+  var doc = typeof document === 'object' ? document : null;
+  var win = typeof window === 'object' ? window : null;
+  if (!doc || !win || typeof doc.addEventListener !== 'function' || typeof win.setTimeout !== 'function') return;
 
-  var isInitialized = false;
-  var raf = win.requestAnimationFrame || function (cb) { win.setTimeout(cb, 16); };
+  var raf = win.requestAnimationFrame || function (cb) { return win.setTimeout(cb, 16); };
+  var modalSel = '[data-share-modal]';
+  var modalContentSel = '[data-share-modal] > div';
 
   function openModal() {
-    var modal = doc.querySelector('[data-share-modal]');
+    var modal = doc.querySelector(modalSel);
     if (!modal) return;
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     raf(function () {
       modal.classList.remove('opacity-0');
-      var modalContent = modal.querySelector('[data-share-modal] > div');
+      var modalContent = modal.querySelector(modalContentSel);
       if (modalContent) {
         modalContent.classList.remove('scale-95');
         modalContent.classList.add('scale-100');
@@ -24,10 +25,10 @@
   }
 
   function closeModal() {
-    var modal = doc.querySelector('[data-share-modal]');
+    var modal = doc.querySelector(modalSel);
     if (!modal) return;
     modal.classList.add('opacity-0');
-    var modalContent = modal.querySelector('[data-share-modal] > div');
+    var modalContent = modal.querySelector(modalContentSel);
     if (modalContent) {
       modalContent.classList.add('scale-95');
       modalContent.classList.remove('scale-100');
@@ -47,42 +48,29 @@
     } else if (target.closest('[data-share-close]')) {
       e.preventDefault();
       closeModal();
-    } else if (target.closest('[data-share-modal]') && !target.closest('[data-share-modal] > div')) {
+    } else if (target.closest(modalSel) && !target.closest(modalContentSel)) {
       closeModal();
     }
   }
 
   function handleKeydown(e) {
-    var modal = doc.querySelector('[data-share-modal]');
-    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+    if (!e || e.key !== 'Escape') return;
+    var modal = doc.querySelector(modalSel);
+    if (modal && !modal.classList.contains('hidden')) {
       closeModal();
     }
   }
 
   function init() {
-    if (isInitialized || !doc || !doc.body) return;
-    try {
-      doc.addEventListener('click', handleClick, false);
-      doc.addEventListener('keydown', handleKeydown, false);
-      isInitialized = true;
-    } catch (err) {
-      try {
-        if (win && typeof win.addEventListener === 'function') {
-          win.addEventListener('click', handleClick, false);
-          win.addEventListener('keydown', handleKeydown, false);
-          isInitialized = true;
-        }
-      } catch (_) {}
-    }
+    doc.removeEventListener('click', handleClick, false);
+    doc.removeEventListener('keydown', handleKeydown, false);
+    doc.addEventListener('click', handleClick, false);
+    doc.addEventListener('keydown', handleKeydown, false);
   }
 
-  if (doc && typeof doc.addEventListener === 'function') {
-    if (doc.readyState === 'loading') {
-      doc.addEventListener('DOMContentLoaded', init, { once: true });
-    } else {
-      init();
-    }
-  } else if (win && typeof win.addEventListener === 'function') {
-    win.addEventListener('load', init, { once: true });
+  if (doc.readyState === 'loading') {
+    doc.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
   }
 })();
