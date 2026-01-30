@@ -13,6 +13,7 @@ import { useChampions, type Champion } from '@/hooks/useChampions';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { ScrollReveal, CountUp, StaggerContainer, staggerItemVariants } from '@/components/premium';
+import { trackMetric } from '@/services/metricsService';
 
 // Modal ze szczegółami championa
 interface ChampionModalProps {
@@ -42,6 +43,18 @@ const ChampionModal = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const hasMultiplePhotos = !!(champion && champion.images.length > 1);
+
+  useEffect(() => {
+    if (champion) {
+      trackMetric('GALLERY_IMAGE', `${champion.id}`).catch(() => {});
+    }
+  }, [champion]);
+
+  useEffect(() => {
+    if (champion && champion.images?.length) {
+      trackMetric('GALLERY_IMAGE', `${champion.id}:${champion.images[currentPhotoIndex] || currentPhotoIndex}`).catch(() => {});
+    }
+  }, [champion, currentPhotoIndex]);
 
   useEffect(() => {
     if (!champion) return;
@@ -340,6 +353,10 @@ export const ChampionsGallery = () => {
     setSelectedIndex(nextIdx);
     setSelectedChampion(champions[nextIdx]);
   }, [champions, selectedIndex]);
+
+  useEffect(() => {
+    trackMetric('GALLERY_IMAGE', 'PAGE').catch(() => {});
+  }, []);
 
   const handleViewPedigree = useCallback((url: string) => {
     setPedigreeUrl(url);

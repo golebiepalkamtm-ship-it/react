@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -13,6 +13,7 @@ import { PageTransition } from "@/components/motion";
 import { SmoothScrollProvider } from "@/components/animations";
 import { UIProviders } from "@/components/ui/UIProviders";
 import "@/utils/diagnostics";
+import { trackMetric } from "@/services/metricsService";
 import {
   LazyIndex,
   LazyAchievements,
@@ -46,6 +47,10 @@ import GlobalParallaxBackground from "@/components/GlobalParallaxBackground";
 const queryClient = new QueryClient();
 
 const App = () => {
+  useEffect(() => {
+    trackMetric('SITE').catch(() => {});
+  }, []);
+
   return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>

@@ -80,78 +80,58 @@ export class AuctionCronService {
     const now = new Date();
 
     try {
-      // Fetch and process within a transaction for ACID compliance
-      await prisma.$transaction(async (tx) => {
-        // 1. Select candidates: Active auctions that have passed their end time
-        const endingAuctions = await tx.auction.findMany({
-          where: {
-            status: AuctionStatus.ACTIVE,
-            endTime: {
-              lte: now
-            }
-          },
-          include: {
-            seller: true
+      // Pobierz kandydatów poza transakcją (krótsza blokada)
+      const endingAuctions = await prisma.auction.findMany({
+        where: {
+          status: AuctionStatus.ACTIVE,
+          endTime: {
+            lte: now
           }
-        });
+        },
+        include: { seller: true },
+        orderBy: { endTime: 'asc' },
+        take: 25, // batch to avoid long transactions
+      });
 
-        const bids = await prisma.bid.findMany({
-          where: { auctionId: { in: endingAuctions.map(auction => auction.id) } },
-          orderBy: { amount: 'desc' },
-          select: {
-            id: true,
-            amount: true,
-            maxBid: true,
-            bidderId: true,
-            auctionId: true
-          },
-        });
+      if (!endingAuctions.length) return;
+      logger.info(`Processing ${endingAuctions.length} ending auctions...`);
 
-        if (endingAuctions.length > 0) {
-          logger.info(`Processing ${endingAuctions.length} ending auctions...`);
-        }
-
-        for (const auction of endingAuctions) {
-          try {
-            const highestBid = bids.find(bid => bid.auctionId === auction.id);
+      for (const auction of endingAuctions) {
+        try {
+          // Krótka transakcja na pojedynczej aukcji z podniesionym timeoutem
+          await prisma.$transaction(async (tx) => {
+            const highestBid = await tx.bid.findFirst({
+              where: { auctionId: auction.id },
+              orderBy: { amount: 'desc' },
+            });
 
             if (highestBid?.bidderId) {
-              // --- SCENARIO A: SOLD ---
               const winnerId = highestBid.bidderId;
               const finalPrice = highestBid.amount;
 
-              // 1. Update Auction Status
               await tx.auction.update({
                 where: { id: auction.id },
                 data: {
                   status: AuctionStatus.ENDED,
-                  winnerId: winnerId,
+                  winnerId,
                   currentPrice: finalPrice
                 }
               });
 
-              // 2. Generate Order/Transaction Record (Payment 'INITIATED')
-              // Using existing Payment model to track the obligation
               await tx.payment.create({
                 data: {
                   auctionId: auction.id,
                   userId: winnerId,
                   amount: finalPrice,
-                  type: PaymentType.BUY_NOW, // Treating winning bid as a purchase obligation
-                  provider: 'P24', // Default provider, user will select later
+                  type: PaymentType.BUY_NOW,
+                  provider: 'P24',
                   status: PaymentStatus.INITIATED
                 }
               });
 
               logger.info(`Auction ${auction.id} sold to ${winnerId} for ${finalPrice}`);
-
-              // 3. Emit Events (Notifications) - executed after DB update success
-              // Note: Ideally, we'd use an event bus, but direct calls work for this monolith
               this.notifyAuctionSold(auction, winnerId, Number(finalPrice));
-              
             } else {
-              // --- SCENARIO B: EXPIRED (No Bids) ---
-              // Using ENDED status but with no winner to indicate expiration
               await tx.auction.update({
                 where: { id: auction.id },
                 data: {
@@ -161,15 +141,13 @@ export class AuctionCronService {
               });
 
               logger.info(`Auction ${auction.id} expired without bids`);
-
               this.notifyAuctionExpired(auction);
             }
-          } catch (err) {
-            logger.error(`Failed to close auction ${auction.id}:`, err);
-            // Continue loop to not block other auctions
-          }
+          }, { timeout: 15000 }); // allow up to 15s for slow DB
+        } catch (err) {
+          logger.error(`Failed to close auction ${auction.id}:`, err);
         }
-      });
+      }
 
     } catch (error) {
       logger.error('CRITICAL: Transaction failed in checkEndingAuctions', error);

@@ -16,6 +16,7 @@ import SellerReviews from "@/components/SellerReviews";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import AccountModal from "@/components/AccountModal";
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
+import { trackMetric } from "@/services/metricsService";
 
 const AuctionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -127,6 +128,12 @@ const AuctionDetail: React.FC = () => {
       setIsCheckoutLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (id) {
+      trackMetric('AUCTION', id).catch(() => {});
+    }
+  }, [id]);
 
   useEffect(() => {
     const run = async () => {

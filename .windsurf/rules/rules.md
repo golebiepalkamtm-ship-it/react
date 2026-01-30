@@ -1,5 +1,5 @@
 ---
-trigger: glob
+trigger: always_on
 ---
 
 System Prompt: Senior Autonomous Engineer (High-Velocity Mode)

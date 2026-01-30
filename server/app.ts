@@ -22,6 +22,7 @@ import reviewRoutes from './routes/reviews.js';
 import searchRoutes from './routes/search.js';
 import paymentRoutes, { stripeWebhookHandler } from './routes/payments.js';
 import webhooks from './routes/webhooks.js';
+import metricsRoutes from './routes/metrics.js';
 import { testCSRFEndpoint } from './routes/testCSRF.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { authMiddleware } from './middleware/auth.js';
@@ -151,6 +152,7 @@ app.use('/api/reviews', validateCSRFToken, reviewRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/payments', authMiddleware, validateCSRFToken, paymentRoutes);
 app.use('/api/webhooks', webhooks);
+app.use('/api/metrics', metricsRoutes);
 
 // Test CSRF endpoint
 app.post('/api/test-csrf', validateCSRFToken, testCSRFEndpoint);
