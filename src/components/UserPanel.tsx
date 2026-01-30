@@ -168,11 +168,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   return createPortal(
     <>
       <motion.div
+        ref={dragConstraintsRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-black/40"
-        onClick={onClose}
+        className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-transparent print:static print:h-auto print:p-0"
       >
         <motion.div
           ref={dragConstraintsRef}
@@ -184,8 +184,12 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             ease: [0.4, 0, 0.2, 1],
             scale: { type: "spring", stiffness: 300, damping: 30 }
           }}
-          className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[90vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gradient-to-br from-slate-50 via-white to-slate-100 rounded-t-3xl md:rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50"
-          onClick={(e) => e.stopPropagation()}
+          className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[90vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
+          drag
+          dragConstraints={dragConstraintsRef}
+          dragMomentum={false}
+          dragElastic={0.1}
+          dragTransition={{ power: 0.1 }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -194,7 +198,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           <motion.div
             className="absolute inset-0 rounded-3xl pointer-events-none"
             style={{
-              background: 'linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.1), transparent)',
+              background: 'linear-gradient(45deg, transparent, rgba(255,255,255,0.07), transparent)',
               backgroundSize: '200% 200%',
             }}
             animate={{
@@ -212,12 +216,12 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
-            className="relative flex-shrink-0 p-6 md:p-8 border-b border-slate-200 bg-white/80 backdrop-blur-sm"
+            className="relative flex-shrink-0 p-6 md:p-8 border-b border-white/10 bg-gray-900/80 backdrop-blur-sm"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <motion.div 
-                  className="relative w-16 h-16 rounded-full bg-gradient-to-br from-gold via-gold-light to-gold flex items-center justify-center shadow-lg shadow-gold/30"
+                  className="relative w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-500 to-gray-600 flex items-center justify-center shadow-lg shadow-black/30"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
@@ -229,12 +233,12 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                       background: 'conic-gradient(from 0deg, transparent, rgba(255,255,255,0.8), transparent)',
                     }}
                   />
-                  <Crown className="w-8 h-8 text-slate-800 relative z-10" />
+                  <Crown className="w-8 h-8 text-white relative z-10" />
                 </motion.div>
 
                 <div className="space-y-1">
                   <motion.div 
-                    className="font-display text-3xl md:text-4xl font-bold text-slate-800"
+                    className="font-display text-3xl md:text-4xl font-bold text-white"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
@@ -242,7 +246,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                     Panel Użytkownika
                   </motion.div>
                   <motion.div
-                    className="text-sm text-slate-600"
+                    className="text-sm text-white/70"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
@@ -254,12 +258,12 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
               <motion.button
                 onClick={onClose}
-                className="p-3 rounded-full bg-slate-100 hover:bg-slate-200 backdrop-blur-sm border border-slate-300 transition-all duration-200 group"
+                className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-200 group"
                 aria-label="Zamknij panel użytkownika"
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
               >
-                <X className="w-5 h-5 text-slate-700 group-hover:text-slate-900 transition-colors" />
+                <X className="w-5 h-5 text-white transition-colors" />
               </motion.button>
             </div>
           </motion.div>
@@ -269,13 +273,13 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-slate-50/80"
+            className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gray-900/70 border-b border-white/5"
           >
             {[
-              { icon: Mail, label: 'Email', value: user?.email ?? '', color: 'from-blue-500 to-cyan-500', glow: 'shadow-blue-500/30' },
-              { icon: Star, label: 'Status', value: profile?.role ?? '-', color: 'from-gold to-gold-dark', glow: 'shadow-gold/30' },
-              { icon: Calendar, label: 'Następny krok', value: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : profile?.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' : profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN' ? 'Konto aktywne' : '-', color: 'from-purple-500 to-pink-500', glow: 'shadow-purple-500/30' },
-              { icon: Phone, label: 'Telefon', value: profile?.phone ?? 'Nie dodano', color: 'from-green-500 to-emerald-500', glow: 'shadow-green-500/30' },
+              { icon: Mail, label: 'Email', value: user?.email ?? '', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
+              { icon: Star, label: 'Status', value: profile?.role ?? '-', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
+              { icon: Calendar, label: 'Następny krok', value: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : profile?.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' : profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN' ? 'Konto aktywne' : '-', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
+              { icon: Phone, label: 'Telefon', value: profile?.phone ?? 'Nie dodano', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
             ].map((card, index) => (
               <motion.div
                 key={card.label}
@@ -283,10 +287,10 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + index * 0.05, type: "spring", stiffness: 200, damping: 20 }}
                 whileHover={{ y: -5, scale: 1.02 }}
-                className={`relative bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 p-4 overflow-hidden group hover:border-slate-300 hover:shadow-lg transition-all duration-300`}
+                className={`relative bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4 overflow-hidden group hover:border-white/20 hover:shadow-lg transition-all duration-300`}
               >
                 <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+                  className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-10 group-hover:opacity-20 transition-opacity duration-300`}
                 />
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
@@ -298,14 +302,14 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                     </motion.div>
                     {card.label}
                   </div>
-                  <div className="text-slate-800 text-sm font-medium break-words line-clamp-2">{card.value}</div>
+                  <div className="text-white text-sm font-medium break-words line-clamp-2">{card.value}</div>
                 </div>
               </motion.div>
             ))}
           </motion.div>
 
           {/* Navigation Tabs */}
-          <div className="flex-shrink-0 flex gap-2 px-6 border-b border-slate-200 bg-white/60 overflow-x-auto scrollbar-hide">
+          <div className="flex-shrink-0 flex gap-2 px-6 border-b border-white/10 bg-gray-900/70 overflow-x-auto scrollbar-hide">
             {[
               { id: 'overview', label: 'Przegląd', icon: User },
               { id: 'profile', label: 'Profil', icon: Settings },
@@ -323,14 +327,14 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 whileTap={{ scale: 0.95 }}
                 className={`relative px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all duration-300 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-gold text-slate-900'
-                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+                    ? 'border-white text-white'
+                    : 'border-transparent text-white/60 hover:text-white hover:border-white/30'
                 }`}
               >
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-gold/10 rounded-t-lg"
+                    className="absolute inset-0 bg-white/5 rounded-t-lg"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}

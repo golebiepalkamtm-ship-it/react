@@ -36,21 +36,21 @@ export const CreateAuctionModal = ({
       label: 'Gołębie', 
       icon: Package, 
       description: 'Aukcje gołębi hodowlanych',
-      color: 'from-blue-500 to-cyan-600'
+      color: 'from-gray-700 to-gray-600'
     },
     { 
       id: 'supplements', 
       label: 'Suplementy', 
       icon: Pill, 
       description: 'Karmy i witaminy',
-      color: 'from-green-500 to-emerald-600'
+      color: 'from-gray-700 to-gray-600'
     },
     { 
       id: 'accessories', 
       label: 'Akcesoria', 
       icon: Home, 
       description: 'Sprzęt hodowlany',
-      color: 'from-purple-500 to-pink-600'
+      color: 'from-gray-700 to-gray-600'
     }
   ];
 
@@ -79,7 +79,7 @@ export const CreateAuctionModal = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleCategorySelect(cat.id as typeof category)}
-                  className="p-5 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all text-left group"
+                  className="p-5 rounded-xl bg-gray-800/80 border border-white/10 hover:border-white/20 hover:bg-gray-800 transition-all text-left group text-white"
                 >
                   <div className={`p-3 rounded-lg bg-gradient-to-br ${cat.color} w-fit mb-4`}>
                     <Icon className="w-6 h-6 text-white" />
@@ -124,11 +124,14 @@ export const CreateAuctionModal = ({
       type="default"
       title={currentStep === 1 ? 'Wybierz kategorię' : 'Nowa aukcja'}
       showCloseButton={true}
-      closeOnBackdrop={true}
+      closeOnBackdrop={false}
       closeOnEscape={true}
       size={currentStep === 1 ? "lg" : isPigeonCategory ? "xl" : "lg"}
       draggable={true}
       bodyScrollable={false}
+      hideGradient
+      backdropClassName="bg-transparent"
+      containerClassName="bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 border border-white/10 text-white shadow-2xl shadow-black/50"
       cancelButton={currentStep === 2 ? {
         text: 'Cofnij',
         onClick: () => {

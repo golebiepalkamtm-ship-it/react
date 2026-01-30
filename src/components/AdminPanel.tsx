@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { 
   X, 
@@ -358,15 +358,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter((user: UserData) => 
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.last_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredAuctions = auctions.filter(auction =>
+  const filteredAuctions = auctions.filter((auction: AuctionData) =>
     auction.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const backdropRef = useRef<HTMLDivElement | null>(null);
 
   if (profile?.role !== 'ADMIN') return null;
 
@@ -385,36 +387,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-black/40"
+          ref={backdropRef}
+          className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-transparent print:static print:h-auto print:p-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
         >
           <motion.div
-            className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[95vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-t-3xl md:rounded-3xl border border-white/20 shadow-2xl"
+            className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[95vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
             initial={{ opacity: 0, scale: 0.9, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 50 }}
             transition={{ duration: 0.4, type: "spring", stiffness: 200, damping: 25 }}
+            drag
+            dragConstraints={backdropRef}
+            dragMomentum={false}
+            dragElastic={0.1}
+            dragTransition={{ power: 0.1 }}
             onClick={(e) => e.stopPropagation()}
-            onMouseMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              mouseX.set((e.clientX - rect.left) / rect.width);
-              mouseY.set((e.clientY - rect.top) / rect.height);
+            style={{
+              backgroundSize: '200% 200%',
+              backgroundPosition: `${backgroundX.get()}% ${backgroundY.get()}%`,
             }}
           >
-            <motion.div
-              className="absolute inset-0 opacity-30 pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.15) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)',
-                x: backgroundX,
-                y: backgroundY,
-              }}
-            />
-
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
             <motion.div
               className="flex-shrink-0 relative flex items-center justify-between p-6 border-b border-white/10"
@@ -531,7 +528,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   whileTap={{ scale: 0.95 }}
                   className={`relative flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all duration-300 whitespace-nowrap ${
                     activeTab === tab.id
-                      ? 'text-navy'
+                      ? 'text-gray-900'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
                 >

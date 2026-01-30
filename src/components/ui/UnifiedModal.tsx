@@ -213,7 +213,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
               stiffness: 400,
               duration: 0.2
             }}
-            className={`relative w-full ${sizeConfig[size]} bg-gray-800/80 backdrop-blur-xl rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-hidden flex flex-col ${containerClassName}`}
+            className={`relative w-full ${sizeConfig[size]} bg-gray-900/90 rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-hidden flex flex-col ${containerClassName}`}
             style={{ cursor: draggable && window.innerWidth >= 768 ? 'move' : 'default' }}
             onMouseDown={(e) => {
               // Tylko na desktop i tylko gdy kliknięto w header

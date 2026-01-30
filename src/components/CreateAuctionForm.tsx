@@ -170,7 +170,7 @@ const DnaDropdown = ({ value, onChange }: DnaDropdownProps) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               style={portalStyle}
-              className="rounded-2xl border border-white/15 bg-slate-950/95 shadow-2xl"
+              className="rounded-2xl border border-white/10 bg-gray-950 shadow-none"
             >
               <div className="py-1">
                 {options.map((option) => {
@@ -334,16 +334,15 @@ const TraitDropdown = ({ label, description, field, icon: Icon, options, value, 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[10000]"
+              className="fixed inset-0 z-[10000] pointer-events-none"
             >
-              <div className="absolute inset-0 bg-black/30" />
               <motion.div
                 ref={portalRef}
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 style={portalStyle}
-                className="rounded-2xl border border-white/15 bg-slate-950/95 shadow-2xl"
+                className="rounded-2xl border border-white/15 bg-gray-950 shadow-2xl pointer-events-auto"
               >
                 <div className="py-1 max-h-52 overflow-y-auto">
                   {options.map((option) => {
