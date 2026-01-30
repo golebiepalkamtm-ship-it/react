@@ -49,7 +49,14 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
     const isDevOrigin = validatedEnv.NODE_ENV === 'development'
       && /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?$/.test(origin);
 
-    if (!isDevOrigin && !allowedOrigins.includes(origin)) {
+    const isWildcardAllowed =
+      validatedEnv.NODE_ENV === 'production' &&
+      (
+        /^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin) ||
+        /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)
+      );
+
+    if (!isDevOrigin && !isWildcardAllowed && !allowedOrigins.includes(origin)) {
       console.warn(`CSRF: Invalid origin ${origin} from IP ${req.ip}`);
       return res.status(403).json({ error: 'CSRF: Invalid origin' });
     }
@@ -59,7 +66,14 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
     const isDevReferer = validatedEnv.NODE_ENV === 'development'
       && /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?/.test(referer);
 
-    if (!isDevReferer && !allowedOrigins.some(allowed => referer.startsWith(allowed))) {
+    const isWildcardAllowedReferer =
+      validatedEnv.NODE_ENV === 'production' &&
+      (
+        /^https?:\/\/([a-z0-9-]+\.)*onrender\.com/i.test(referer) ||
+        /^https?:\/\/([a-z0-9-]+\.)*vercel\.app/i.test(referer)
+      );
+
+    if (!isDevReferer && !isWildcardAllowedReferer && !allowedOrigins.some(allowed => referer.startsWith(allowed))) {
       console.warn(`CSRF: Invalid referer ${referer} from IP ${req.ip}`);
       return res.status(403).json({ error: 'CSRF: Invalid referer' });
     }
@@ -137,7 +151,15 @@ export const validateWebSocketCSRF = (handshake: any, next: (err?: Error) => voi
     ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [])
   ].filter(Boolean);
 
-  if (!origin || !allowedOrigins.includes(origin)) {
+  const isWildcardAllowed =
+    origin &&
+    validatedEnv.NODE_ENV === 'production' &&
+    (
+      /^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin) ||
+      /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)
+    );
+
+  if (!origin || (!isWildcardAllowed && !allowedOrigins.includes(origin))) {
     return next(new Error('WebSocket origin not allowed'));
   }
 

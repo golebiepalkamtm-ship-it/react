@@ -184,12 +184,18 @@ function canViewContact(auction: AuctionEntity | AuctionListEntity, userId?: str
 
 export function serializePublicUser(user: Record<string, unknown> | null, showContact = false) {
   if (!user) return null;
-  const displayName = (user.first_name as string | undefined) || (user.email as string | undefined)?.split('@')[0] || 'Użytkownik';
+  const username = (user.username as string | undefined)?.trim();
+  const displayName = username && username.length > 0 ? username : '';
+
   return {
     id: String(user.id),
     username: displayName,
-    firstName: showContact ? ((user.first_name as string | undefined) ?? (user.firstName as string | undefined) ?? 'Użytkownik') : undefined,
-    lastName: showContact ? ((user.last_name as string | undefined) ?? (user.lastName as string | undefined) ?? '') : undefined,
+    firstName: showContact
+      ? ((user.first_name as string | undefined) ?? (user.firstName as string | undefined) ?? 'Użytkownik')
+      : undefined,
+    lastName: showContact
+      ? ((user.last_name as string | undefined) ?? (user.lastName as string | undefined) ?? '')
+      : undefined,
     // PII removed - email and phone only visible to owner/admin
     email: showContact && (user.role === 'ADMIN' || user.isOwner) ? ((user.email as string | undefined) ?? '') : undefined,
     phoneNumber: showContact && (user.role === 'ADMIN' || user.isOwner) ? ((user.phone as string | undefined) ?? '') : undefined,

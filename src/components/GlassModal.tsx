@@ -17,18 +17,16 @@ const sizeClasses = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
-  full: 'max-w-5xl',
+  full: 'max-w-3xl',
 };
 
-const GlassModal: React.FC<GlassModalProps> = ({ open, onClose, headerImage, title, description, children, size = 'full' }) => {
+const GlassModal: React.FC<GlassModalProps> = ({ open, onClose, headerImage, title, description, children, size = 'lg' }) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
   const previouslyActiveRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
     previouslyActiveRef.current = document.activeElement as HTMLElement | null;
-    // const prevOverflow = document.body.style.overflow;
-    // document.body.style.overflow = 'hidden';
 
     const container = modalRef.current;
     if (container) {
@@ -45,7 +43,6 @@ const GlassModal: React.FC<GlassModalProps> = ({ open, onClose, headerImage, tit
 
     return () => {
       document.removeEventListener('keydown', onKey);
-      // document.body.style.overflow = prevOverflow;
       previouslyActiveRef.current?.focus();
     };
   }, [onClose, open]);
@@ -67,11 +64,10 @@ const GlassModal: React.FC<GlassModalProps> = ({ open, onClose, headerImage, tit
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`relative w-full ${sizeClasses[size]} bg-gradient-to-br from-[#00172D] to-[#002244] rounded-2xl border border-white/20 shadow-2xl overflow-hidden`}
+            className={`relative w-full ${sizeClasses[size]} bg-gradient-to-br from-[#00172D] to-[#002244] rounded-2xl border border-white/20 shadow-2xl`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/0 pointer-events-none" />
-
             {headerImage && (
               <div className="relative">
                 <img src={headerImage} alt={title || 'header'} className="w-full h-36 object-cover" />
@@ -128,9 +124,7 @@ const GlassModal: React.FC<GlassModalProps> = ({ open, onClose, headerImage, tit
                 const container = modalRef.current;
                 if (!container) return;
                 const focusable = Array.from(
-                  container.querySelectorAll<HTMLElement>(
-                    'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-                  )
+                  container.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])')
                 ).filter((el) => el.offsetParent !== null);
                 if (focusable.length === 0) {
                   e.preventDefault();

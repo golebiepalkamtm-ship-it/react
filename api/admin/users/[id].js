@@ -9,15 +9,41 @@ export default async function handler(req, res) {
 
     if (req.method === 'PUT' || req.method === 'PATCH') {
       const body = req.body || (await new Promise((r) => { let data=''; req.on('data',c=>data+=c); req.on('end',()=>r(JSON.parse(data||'{}'))); }));
-      const url = `${supabaseUrl}/rest/v1/users?id=eq.${id}`;
-      const resp = await fetch(url, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-        body: JSON.stringify(body),
-      });
-      if (!resp.ok) return res.status(resp.status).json({ error: 'Failed to update user' });
-      const updated = await resp.json();
-      return res.json({ user: updated?.[0] ?? null });
+      const { password, ...profileBody } = body || {};
+
+      // Update auth password if provided
+      if (password) {
+        const authUrl = `${supabaseUrl}/auth/v1/admin/users/${id}`;
+        const authRes = await fetch(authUrl, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        if (!authRes.ok) return res.status(authRes.status).json({ error: 'Failed to update password' });
+      }
+
+      let updatedUser = null;
+      if (Object.keys(profileBody).length) {
+        const url = `${supabaseUrl}/rest/v1/users?id=eq.${id}`;
+        const resp = await fetch(url, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+          body: JSON.stringify(profileBody),
+        });
+        if (!resp.ok) return res.status(resp.status).json({ error: 'Failed to update user' });
+        const updated = await resp.json();
+        updatedUser = updated?.[0] ?? null;
+      } else {
+        // fetch current profile to return something consistent
+        const url = `${supabaseUrl}/rest/v1/users?id=eq.${id}`;
+        const resp = await fetch(url, { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey } });
+        if (resp.ok) {
+          const current = await resp.json();
+          updatedUser = current?.[0] ?? null;
+        }
+      }
+
+      return res.json({ user: updatedUser });
     }
 
     if (req.method === 'DELETE') {

@@ -273,10 +273,10 @@ router.post('/users', ensureAdmin, async (req, res) => {
     if (!supabaseAdmin) {
       return res.status(500).json({ error: 'Supabase Admin not configured on server' });
     }
-    const { email, password, first_name, last_name, role, phone } = req.body;
+    const { email, password, first_name, last_name, role, phone, username } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
+    if (!email || !password || !username || String(username).trim().length === 0) {
+        return res.status(400).json({ error: 'Email, password i username są wymagane' });
     }
 
     // 1. Create in Supabase Auth
@@ -298,7 +298,6 @@ router.post('/users', ensureAdmin, async (req, res) => {
     }
 
     // 2. Create/Update in Public Schema
-    const username = email.split('@')[0] + '_' + Math.random().toString(36).substring(2, 8);
     const newUser = await prisma!.user.upsert({
         where: { id: authUser.user.id },
         update: {

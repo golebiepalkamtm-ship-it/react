@@ -46,10 +46,12 @@ interface UserData {
   first_name: string;
   last_name: string;
   role: string;
+  username?: string;
   createdAt: string;
   phone?: string;
   isBlocked?: boolean;
   isBanned?: boolean;
+  password?: string; // only for admin edit form
 }
 
 interface AuctionData {
@@ -792,7 +794,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                             <tr className="border-b border-white/10 bg-white/5">
                               <th className="text-left py-4 px-6 text-sm font-medium text-white/70">Użytkownik</th>
                               <th className="text-left py-4 px-6 text-sm font-medium text-white/70">Email</th>
-                              <th className="text-left py-4 px-6 text-sm font-medium text-white/70">Rola</th>
+                              <th className="text-left py-4 px-6 text-sm font-medium text-white/70">Nick</th>
                               <th className="text-left py-4 px-6 text-sm font-medium text-white/70">Data rejestracji</th>
                               <th className="text-right py-4 px-6 text-sm font-medium text-white/70">Akcje</th>
                             </tr>
@@ -823,13 +825,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                                 </td>
                                 <td className="py-4 px-6 text-sm text-white/60">{user.email}</td>
                                 <td className="py-4 px-6">
-                                  <span className={`text-xs px-3 py-1 rounded-full ${
-                                    user.role === 'ADMIN' ? 'bg-gold/20 text-gold' :
-                                    user.role === 'USER_FULL_VERIFIED' ? 'bg-green-500/20 text-green-400' :
-                                    user.role === 'BANNED' ? 'bg-red-500/20 text-red-400' :
-                                    'bg-white/10 text-white/60'
-                                  }`}>
-                                    {user.role}
+                                  <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-white">
+                                    {user.username || 'Brak nicku'}
                                   </span>
                                 </td>
                                 <td className="py-4 px-6 text-sm text-white/60">
@@ -1181,6 +1178,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                             onChange={e => setEditingUser({...editingUser, last_name: e.target.value})}
                           />
                         </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">Nowe hasło (opcjonalnie)</label>
+                        <input
+                          type="password"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                          value={editingUser.password || ''}
+                          onChange={e => setEditingUser({ ...editingUser, password: e.target.value })}
+                          placeholder="Pozostaw puste aby nie zmieniać"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-white/70 mb-2">Rola</label>

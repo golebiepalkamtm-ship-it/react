@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
+import { validatedEnv } from './env.js';
 
 let io: SocketIOServer | null = null;
 
@@ -11,7 +12,13 @@ export const initSocket = (server: HttpServer, allowedOrigins: string[]) => {
         if (!origin) return callback(null, true);
         
         // Check against allowed origins
-        if (allowedOrigins.includes(origin)) {
+        const isWildcardAllowed =
+          validatedEnv.NODE_ENV === 'production' &&
+          (
+            /^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin) ||
+            /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)
+          );
+        if (allowedOrigins.includes(origin) || isWildcardAllowed) {
           return callback(null, true);
         }
         

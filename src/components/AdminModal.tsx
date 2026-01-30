@@ -1,7 +1,7 @@
 import React from 'react';
-import GlassModal from './GlassModal';
 import AdminPage from '@/pages/Admin';
 import { useAuth } from '@/contexts/AuthContext';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 
 interface Props {
   open: boolean;
@@ -14,15 +14,19 @@ const AdminModal: React.FC<Props> = ({ open, onClose }) => {
   if (!profile || profile.role !== 'ADMIN') return null;
 
   return (
-    <GlassModal open={open} onClose={onClose}>
-      <div className="mb-4">
-        <h2 className="font-display text-2xl font-bold text-foreground">Panel administratora</h2>
-        <p className="text-sm text-muted-foreground">Zarządzaj użytkownikami i statystykami</p>
-      </div>
-      <div className="max-h-[60vh] overflow-y-auto">
+    <UnifiedModal
+      isOpen={open}
+      onClose={onClose}
+      title="Panel administratora"
+      message="Zarządzaj użytkownikami, aukcjami i statystykami"
+      size="xl"
+      draggable
+      bodyScrollable
+    >
+      <div className="max-h-[70vh] overflow-y-auto space-y-4 pr-1">
         <AdminPage />
       </div>
-    </GlassModal>
+    </UnifiedModal>
   );
 };
 

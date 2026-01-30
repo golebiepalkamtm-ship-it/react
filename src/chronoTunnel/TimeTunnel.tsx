@@ -581,7 +581,8 @@ const timelineEvents = [
   },
 ];
 
-const SECTION_DEPTH = 520; // px per card segment (wolniejszy scroll)
+const SECTION_DEPTH = 980; // jeszcze większy dystans na kartę = ultra wolny scroll
+const SCROLL_SMOOTHING = 2.2; // dłuższe wygładzenie scrubbingu
 
 export default function TimeTunnel() {
   const visibleEvents = useMemo(() => timelineEvents.filter((e) => e.year <= 2024), []);
@@ -621,13 +622,13 @@ export default function TimeTunnel() {
   useEffect(() => {
     const ctx = gsap.context(() => {
         const tl = gsap.timeline({
-          defaults: { ease: "none" },
+          defaults: { ease: "power2.inOut" },
           scrollTrigger: {
             trigger: containerRef.current,
             scroller: document.body,
             start: "top top",
             end: `+=${totalDistance + extraBuffer}`,
-            scrub: true,
+            scrub: SCROLL_SMOOTHING,
             pin: true,
             onUpdate: (self) => scrollProgress.set(self.progress),
             invalidateOnRefresh: true,
@@ -640,9 +641,9 @@ export default function TimeTunnel() {
       if (endRef.current) tl.set(endRef.current, { autoAlpha: 0 });
       cardsRef.current.forEach((card) => card && tl.set(card, { autoAlpha: 0 }));
 
-        const cardSpacing = 1.9;
-        const cardEnterDuration = 0.6;
-        const cardExitDuration = 0.6;
+        const cardSpacing = 2.8;
+        const cardEnterDuration = 1.05;
+        const cardExitDuration = 1.05;
 
         // Statystyki znikają tuż przed pierwszą kartą
         if (statsRef.current || titleRef.current) {

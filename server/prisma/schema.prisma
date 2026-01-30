@@ -49,7 +49,7 @@ model SavedSearch {
 }
 
 model User {
-  username        String         @unique @default("")
+  username        String         @unique
   id              String         @id @db.Uuid
   email           String?        @unique
   phone           String?

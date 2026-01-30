@@ -33,7 +33,7 @@ const paymentAmountSchema = z.object({
   currency: currencyEnum.default('PLN')
 });
 
-const listingFee = 10; // PLN
+const listingFee = 20; // PLN
 const commissionRate = 0.1; // 10%
 
 router.post('/stripe/checkout', validate(createCheckoutSchema), async (req: any, res) => {
@@ -139,8 +139,14 @@ router.post('/stripe/listing-fee', validate(z.object({
   try {
     if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
     const userId = req.user?.id;
+    const userRole = req.user?.role as string | undefined;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     if (!prisma) return res.status(500).json({ error: 'Database not available' });
+
+    // Admin nie płaci za wystawienie – zwracamy success bez sesji Stripe
+    if (userRole === 'ADMIN') {
+      return res.json({ free: true });
+    }
 
     const { auctionId, successUrl, cancelUrl } = req.body;
     const auction = await db.auction.findUnique({

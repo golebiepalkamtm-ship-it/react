@@ -141,12 +141,12 @@ const ModalRoot: React.FC<ModalRootProps> = ({
   preventClose = false,
   children,
 }) => {
-  const { modal } = useModalStore();
+  const { activeModal } = useModalStore();
   const config = contextConfig[context];
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const currentState = modal?.state || 'closed';
-  const isVisible = isOpen && modal?.state !== 'closed' && modal?.state !== 'exiting';
+  const currentState = activeModal?.state || 'closed';
+  const isVisible = isOpen && activeModal?.state !== 'closed' && activeModal?.state !== 'exiting';
 
   // Keyboard handling (Escape to close)
   useEffect(() => {
@@ -168,25 +168,25 @@ const ModalRoot: React.FC<ModalRootProps> = ({
   }, [isVisible, isClosable, preventClose, onClose]);
 
   const contextValue: ModalContextType = {
-    modalId: modal?.id || '',
+    modalId: activeModal?.id || '',
     context,
     state: currentState,
     isClosable,
-    preventClose: preventClose || modal?.preventClose || false,
+    preventClose: preventClose || activeModal?.preventClose || false,
     onClose,
     config,
     size,
-    progressPercent: modal?.progressPercent,
-    loadingMessage: modal?.loadingMessage,
-    successMessage: modal?.successMessage,
+    progressPercent: activeModal?.progressPercent,
+    loadingMessage: activeModal?.loadingMessage,
+    successMessage: activeModal?.successMessage,
   };
 
   return (
     <ModalContext.Provider value={contextValue}>
       <AnimatePresence mode="wait">
-        {isOpen && modal && modal.state !== 'closed' && (
+        {isOpen && activeModal && activeModal.state !== 'closed' && (
           <motion.div
-            key={`modal-${modal.id}`}
+            key={`modal-${activeModal.id}`}
             initial="hidden"
             animate={currentState === 'exiting' ? 'exit' : 'visible'}
             exit="exit"
@@ -230,7 +230,7 @@ const ModalRoot: React.FC<ModalRootProps> = ({
               />
 
               {/* Content wrapper */}
-              <div className="relative z-10 flex flex-col h-full max-h-[90vh]">
+              <div className="relative z-10 flex flex-col h-full overflow-hidden">
                 {children}
               </div>
             </motion.div>

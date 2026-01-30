@@ -175,15 +175,11 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
 
   return (
     <motion.div
-      drag
-      dragMomentum={false}
-      dragConstraints={{ left: -800, right: 800, top: -400, bottom: 400 }}
-      dragElastic={0.1}
       initial={{ opacity: 0, scale: 0.95, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -20 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move"
+      className="bg-hero-gradient rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl space-y-6"
     >
       {/* Banner dla użytkowników z USER_EMAIL_VERIFIED - wymagane uzupełnienie profilu */}
       {profile.role === 'USER_EMAIL_VERIFIED' && !profileCompleteForSms && (
@@ -618,68 +614,36 @@ const AccountModal: React.FC<Props> = ({ open, onClose }) => {
   const { t } = useLocale();
   const { updateUserProfile, loading: profileSaving, error: profileError } = useProfile();
 
-  if (!open) return null;
+  const modalTitle =
+    profile?.first_name && profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : profile?.name || 'Panel konta';
+
+  const modalSubtitle = profile
+    ? profile.role === 'ADMIN'
+      ? 'Administrator'
+      : profile.role === 'USER_FULL_VERIFIED'
+        ? 'Użytkownik w pełni zweryfikowany'
+        : profile.role === 'USER_EMAIL_VERIFIED'
+          ? 'Email zweryfikowany'
+          : profile.role === 'USER_REGISTERED'
+            ? 'Użytkownik zarejestrowany'
+            : 'Użytkownik'
+    : t('account.status.next');
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm min-h-screen"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="account-modal-title"
-      onClick={onClose}
+    <UnifiedModal
+      isOpen={open}
+      onClose={onClose}
+      title={modalTitle}
+      message={modalSubtitle}
+      size="xl"
+      type="default"
+      draggable
+      bodyScrollable
     >
-      <motion.div
-        drag
-        dragMomentum={false}
-        dragConstraints={{ left: -400, right: 400, top: -200, bottom: 200 }}
-        dragElastic={0.1}
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative z-10 w-full max-w-3xl bg-gradient-to-br from-[#00172D] to-[#002244] rounded-2xl p-4 md:p-6 border border-white/20 shadow-2xl cursor-move overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            e.stopPropagation();
-            onClose();
-          }
-        }}
-      >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/0 pointer-events-none" />
-      <div className="relative flex items-center justify-between mb-6">
-        <div>
-          <h2 id="account-modal-title" className="font-display text-xl font-bold text-white">
-            {profile?.first_name && profile?.last_name 
-              ? `${profile.first_name} ${profile.last_name}`
-              : profile?.name || 'Panel Konta'
-            }
-          </h2>
-          <p className="text-sm text-white/70">
-            {profile?.role === 'ADMIN' ? 'Administrator' :
-             profile?.role === 'USER_FULL_VERIFIED' ? 'Użytkownik zweryfikowany' :
-             profile?.role === 'USER_EMAIL_VERIFIED' ? 'Email zweryfikowany' :
-             profile?.role === 'USER_REGISTERED' ? 'Użytkownik zarejestrowany' :
-             'Użytkownik'}
-          </p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.1, rotate: 90 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={onClose}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-          aria-label="Zamknij panel konta"
-          title="Zamknij panel konta"
-        >
-          <X className="w-5 h-5 text-white" />
-        </motion.button>
-      </div>
       {loading ? (
-        <div className="p-4 text-center text-muted-foreground">Ładowanie…</div>
+        <div className="p-6 text-center text-muted-foreground">Ładowanie…</div>
       ) : user && profile ? (
         <AccountModalContent
           key={profile?.id || 'account-modal'}
@@ -691,7 +655,7 @@ const AccountModal: React.FC<Props> = ({ open, onClose }) => {
           updateUserProfile={updateUserProfile}
         />
       ) : (
-        <div className="text-center space-y-3">
+        <div className="text-center space-y-3 py-6">
           <div className="text-foreground">Zaloguj się, aby zobaczyć panel konta</div>
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -706,8 +670,7 @@ const AccountModal: React.FC<Props> = ({ open, onClose }) => {
           </motion.button>
         </div>
       )}
-      </motion.div>
-    </motion.div>
+    </UnifiedModal>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
   Clock, Gavel, Trophy, MapPin, User, Phone, Mail, Heart, 
@@ -51,6 +52,8 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isCommissionLoading, setIsCommissionLoading] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+
   const imageContainerRef = useRef<HTMLDivElement>(null);
   
   // Wartości motion dla efektu zoomu
@@ -327,7 +330,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                   whileHover="hover"
                   whileTap="tap"
                   className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-muted-foreground hover:text-white"
-                  data-share-open
+                  onClick={() => setIsShareOpen(true)}
                 >
                   <Share2 className="w-5 h-5" />
                 </motion.button>
@@ -476,6 +479,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                       >
                         <Button 
                           onClick={onPlaceBid}
+                          deferInteraction
                           disabled={bidLoading || parseFloat(bidAmount) < minimumBid}
                           className="px-6 py-3 h-full bg-gradient-to-r from-gold to-gold-light text-navy font-semibold hover:shadow-[0_0_20px_rgba(212,175,55,0.5)]"
                         >
@@ -503,6 +507,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                         >
                           <Button 
                             onClick={onBuyNow}
+                            deferInteraction
                             className="w-full bg-gradient-to-r from-gold/80 to-gold-light/80 text-navy font-semibold"
                           >
                             Kup teraz za {auction.buyNowPrice.toLocaleString('pl-PL')} zł
@@ -541,6 +546,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                             setIsCommissionLoading(false);
                           }
                         }}
+                        deferInteraction
                         disabled={isCommissionLoading}
                         className="w-full bg-gradient-to-r from-gold/80 to-gold-light/80 text-navy font-semibold"
                       >
@@ -614,56 +620,69 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
       </div>
 
       {/* Share Modal */}
-      <div 
-        className="fixed inset-0 bg-white/30 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"
-        data-share-modal
-      >
-        <div className="flex items-center justify-center min-h-screen p-4">
-          <div className="bg-background rounded-lg shadow-xl max-w-md w-full p-6 transform scale-95 transition-transform duration-300">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Udostępnij aukcję</h3>
-              <button 
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                data-share-close
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground mb-4">
-                Udostępnij tę aukcję gołębia:
-              </p>
-              
-              <div className="flex flex-col gap-2">
-                <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
-                  <div className="w-5 h-5 bg-blue-500 rounded"></div>
-                  <span>Facebook</span>
-                </button>
-                
-                <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
-                  <div className="w-5 h-5 bg-sky-500 rounded"></div>
-                  <span>Twitter</span>
-                </button>
-                
-                <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
-                  <div className="w-5 h-5 bg-green-500 rounded"></div>
-                  <span>WhatsApp</span>
-                </button>
-                
-                <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+      <AnimatePresence>
+        {isShareOpen && (
+          <motion.div 
+            className="fixed inset-0 bg-white/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsShareOpen(false)}
+          >
+            <motion.div
+              className="bg-background rounded-lg shadow-xl max-w-md w-full p-6"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Udostępnij aukcję</h3>
+                <button 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setIsShareOpen(false)}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  <span>Kopiuj link</span>
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Udostępnij tę aukcję gołębia:
+                </p>
+                
+                <div className="flex flex-col gap-2">
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                    <div className="w-5 h-5 bg-blue-500 rounded"></div>
+                    <span>Facebook</span>
+                  </button>
+                  
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                    <div className="w-5 h-5 bg-sky-500 rounded"></div>
+                    <span>Twitter</span>
+                  </button>
+                  
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                    <div className="w-5 h-5 bg-green-500 rounded"></div>
+                    <span>WhatsApp</span>
+                  </button>
+                  
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                    </svg>
+                    <span>Kopiuj link</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </motion.div>
   );
 };

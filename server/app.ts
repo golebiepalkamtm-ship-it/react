@@ -39,6 +39,7 @@ const allowedOrigins = [
   validatedEnv.CLIENT_URL,
   'https://champion-pigeon-web.onrender.com',
   'https://champion-pigeon-auctions.vercel.app',
+  'https://golebiepalkamtm-ship-it-react-9r004yvro.vercel.app',
   'https://palkamtm.pl',
   'https://www.palkamtm.pl',
   'https://net-pocket.com',
@@ -51,12 +52,15 @@ const isAllowedOrigin = (origin?: string) => {
   if (!origin) return false;
   if (allowedOrigins.includes(origin)) return true;
 
-  // Allow any *.onrender.com frontend hitting the api
-  if (/^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin)) return true;
+  // Allow wildcard hosts only in production
+  if (validatedEnv.NODE_ENV === 'production') {
+    if (/^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin)) return true;
+    if (/^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)) return true;
+  }
 
   // Development convenience: allow localhost/127.x and local LAN host (e.g. 172.22.x.x) to match Vite preview
   if (validatedEnv.NODE_ENV === 'development') {
-    const devHostPattern = /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?$/;
+    const devHostPattern = /^https?:\/\/((localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}))(:\d+)?$/;
     if (devHostPattern.test(origin)) return true;
   }
 

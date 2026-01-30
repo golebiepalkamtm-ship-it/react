@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, type ChangeEvent, type FormEvent, type MutableRefObject } from 'react';
+import { useState, useEffect, useRef, useCallback, type ChangeEvent, type FormEvent, type MutableRefObject, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { auctionService } from '@/services/auctionService';
@@ -6,7 +7,8 @@ import { uploadService } from '@/services/uploadService';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/services/api';
 import type { CreateAuctionRequest } from '@/types/auction';
-import { X, AlertCircle, Loader2, Bird, Check, ChevronRight, ChevronLeft, Upload, Camera, Video, FileText, Sparkles, Eye, Palette, Dumbbell, Heart, Scale, Feather, Ruler, Zap } from 'lucide-react';
+import { X, AlertCircle, Loader2, Bird, Check, ChevronRight, ChevronLeft, ChevronDown, Upload, Camera, Video, FileText, Sparkles, Eye, Palette, Dumbbell, Heart, Scale, Feather, Ruler, Zap, Shield } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import FileUpload from '@/components/FileUpload';
 
@@ -96,6 +98,109 @@ const StepIndicator = ({
   );
 };
 
+interface DnaDropdownProps {
+  value: boolean;
+  onChange: (value: boolean) => void;
+}
+
+const DnaDropdown = ({ value, onChange }: DnaDropdownProps) => {
+  const options = ['Tak', 'Nie'];
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
+  const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
+
+  const updatePortalPosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setPortalStyle({
+      position: 'fixed',
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 12000,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    updatePortalPosition();
+    const handleResize = () => updatePortalPosition();
+    const handleScroll = () => updatePortalPosition();
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (portalRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    document.addEventListener('mousedown', handleClick);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [open, updatePortalPosition]);
+
+  return (
+    <>
+      <div ref={containerRef} className="relative">
+        <div className="flex items-center gap-2 text-xs text-white/60 mb-1">
+          <Shield className="w-3.5 h-3.5 text-gold" />
+          <span className="font-semibold uppercase tracking-wide">8. Certyfikat DNA (Tak/Nie)</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-left text-sm text-white/80 hover:border-gold/60 transition flex items-center gap-2"
+        >
+          <span className="flex-1">{value ? 'Tak' : 'Nie'}</span>
+          <ChevronDown
+            className={`w-4 h-4 text-white/60 transition-transform ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+      </div>
+      {createPortal(
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              ref={portalRef}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              style={portalStyle}
+              className="rounded-2xl border border-white/15 bg-slate-950/95 shadow-2xl"
+            >
+              <div className="py-1">
+                {options.map((option) => {
+                  const selected = value === (option === 'Tak');
+                  return (
+                    <label
+                      key={option}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-white/80 hover:bg-white/5 cursor-pointer select-none"
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      <input
+                        type="radio"
+                        checked={selected}
+                        onChange={() => onChange(option === 'Tak')}
+                        className="h-4 w-4 rounded-full border-white/30 bg-transparent checked:bg-gold checked:border-gold focus:ring-gold"
+                      />
+                      <span className="flex-1">{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </>
+  );
+};
+
 const InputField = ({ 
   label, 
   name, 
@@ -147,6 +252,279 @@ const InputField = ({
   </motion.div>
 );
 
+interface TraitDropdownProps {
+  label: string;
+  description?: string;
+  field: TraitField;
+  icon: LucideIcon;
+  options: string[];
+  value: string[];
+  onChange: (field: TraitField, values: string[]) => void;
+}
+
+const TraitDropdown = ({ label, description, field, icon: Icon, options, value, onChange }: TraitDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
+  const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
+
+  const updatePortalPosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setPortalStyle({
+      position: 'fixed',
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 12000,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    updatePortalPosition();
+    const handleResize = () => updatePortalPosition();
+    const handleScroll = () => updatePortalPosition();
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (portalRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    document.addEventListener('mousedown', handleClick);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [open, updatePortalPosition]);
+
+  const toggleOption = (option: string) => {
+    const next = value.includes(option) ? value.filter((v) => v !== option) : [...value, option];
+    onChange(field, next);
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="flex items-center gap-2 text-xs text-white/60 mb-1">
+        <Icon className="w-3.5 h-3.5 text-gold" />
+        <span className="font-semibold uppercase tracking-wide">{label}</span>
+      </div>
+      {description && <p className="text-[10px] text-white/40 mb-1">{description}</p>}
+
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-left text-sm text-white/80 hover:border-gold/60 transition flex items-center gap-2"
+      >
+        <span className="flex-1 truncate">
+          {value.length ? value.join(', ') : 'Wybierz z listy'}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-white/60 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {createPortal(
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[10000]"
+            >
+              <div className="absolute inset-0 bg-black/30" />
+              <motion.div
+                ref={portalRef}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                style={portalStyle}
+                className="rounded-2xl border border-white/15 bg-slate-950/95 shadow-2xl"
+              >
+                <div className="py-1 max-h-52 overflow-y-auto">
+                  {options.map((option) => {
+                    const selected = value.includes(option);
+                    return (
+                      <label
+                        key={option}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-white/80 hover:bg-white/5 cursor-pointer select-none"
+                        onMouseDown={(e) => e.preventDefault()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleOption(option)}
+                          className="h-4 w-4 rounded border-white/30 bg-transparent checked:bg-gold checked:border-gold focus:ring-gold"
+                        />
+                        <span className="flex-1">{option}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-between border-t border-white/10 px-3 py-2 text-[10px] uppercase tracking-wide text-white/60">
+                  <button type="button" onClick={() => onChange(field, options)} className="hover:text-gold">
+                    zaznacz wszystkie
+                  </button>
+                  <button type="button" onClick={() => onChange(field, [])} className="hover:text-red-400">
+                    wyczyść
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </div>
+  );
+};
+
+type TraitField =
+  | 'colorTraits'
+  | 'eyeTraits'
+  | 'bodyStructureTraits'
+  | 'breastboneTraits'
+  | 'forkTraits'
+  | 'musculatureTraits'
+  | 'backTraits'
+  | 'wingTraits'
+  | 'wingBehaviorTraits'
+  | 'breedingValueTraits'
+  | 'distanceTraits';
+
+interface TraitSelectConfig {
+  label: string;
+  description?: string;
+  field: TraitField;
+  icon: LucideIcon;
+  options: string[];
+}
+
+const traitSelects: TraitSelectConfig[] = [
+  {
+    label: 'Ubarwienie',
+    icon: Palette,
+    field: 'colorTraits',
+    options: [
+      'Niebieska',
+      'Niebiesko-nakrapiana',
+      'Ciemno-nakrapiana',
+      'Ciemna',
+      'Czarna',
+      'Czerwona',
+      'Czerwono-nakrapiana',
+      'Płowa',
+      'Biała',
+      'Szpakowata',
+      'Pstra',
+    ],
+  },
+  {
+    label: 'Oko',
+    icon: Eye,
+    field: 'eyeTraits',
+    options: [
+      'Perłowe',
+      'Pomarańczowe',
+      'Żółte',
+      'Bycze',
+      'Pierścień Vermeyena pełny',
+      'Pierścień Vermeyena niepełny',
+    ],
+  },
+  {
+    label: 'Budowa',
+    icon: Dumbbell,
+    field: 'bodyStructureTraits',
+    options: [
+      'Budowa zwarta',
+      'Budowa średnia',
+      'Budowa długa',
+      'Mostek: Wysoki',
+      'Mostek: Płaski',
+      'Widełki: Zwarte',
+      'Widełki: Otwarte',
+    ],
+  },
+  {
+    label: 'Muskulatura',
+    icon: Heart,
+    field: 'musculatureTraits',
+    options: [
+      'Elastyczna',
+      'Pełna',
+      'Sucha',
+      'Grzbiet: Bardzo mocny',
+      'Grzbiet: Mocny',
+      'Grzbiet: Standardowy',
+    ],
+  },
+  {
+    label: 'Skrzydło i Upierzenie',
+    icon: Feather,
+    field: 'wingTraits',
+    options: [
+      'Pióro jedwabiste',
+      'Pióro suche',
+      'Lotka: Wąska',
+      'Lotka: Szeroka',
+      'Skrzydło: Aktywne',
+      'Skrzydło: Pasywne',
+    ],
+  },
+  {
+    label: 'Wartość hodowlana',
+    icon: Shield,
+    field: 'breedingValueTraits',
+    options: [
+      'Sprawdzony rozpłodowiec',
+      'Sprawdzony lotnik',
+      'Potencjał rozpłodowy',
+    ],
+  },
+  {
+    label: 'Przeznaczenie',
+    icon: Ruler,
+    field: 'distanceTraits',
+    options: [
+      'Krótki dystans',
+      'Średni dystans',
+      'Długi dystans',
+      'Maraton',
+    ],
+  },
+];
+
+const createDefaultPigeon = (): NonNullable<CreateAuctionRequest['pigeon']> => ({
+  ringNumber: '',
+  eyeColor: '',
+  pigeonColor: '',
+  construction: '',
+  vitality: '',
+  muscles: '',
+  shoulders: '',
+  balance: '',
+  feathers: '',
+  length: '',
+  endurance: '',
+  dnaCertificate: false,
+  colorTraits: [],
+  eyeTraits: [],
+  bodyStructureTraits: [],
+  breastboneTraits: [],
+  forkTraits: [],
+  musculatureTraits: [],
+  backTraits: [],
+  wingTraits: [],
+  wingBehaviorTraits: [],
+  breedingValueTraits: [],
+  distanceTraits: [],
+});
+
 const CreateAuctionForm = ({
   onSuccess,
   onCancel,
@@ -166,19 +544,7 @@ const CreateAuctionForm = ({
     sex: 'male',
     location: 'Lubań, Polska',
     images: [],
-    pigeon: {
-      ringNumber: '',
-      eyeColor: '',
-      pigeonColor: '',
-      construction: '',
-      vitality: '',
-      muscles: '',
-      shoulders: '',
-      balance: '',
-      feathers: '',
-      length: '',
-      endurance: '',
-    },
+    pigeon: createDefaultPigeon(),
   });
 
   const [pedigreeFile, setPedigreeFile] = useState<File | null>(null);
@@ -245,14 +611,34 @@ const CreateAuctionForm = ({
     const { name, value } = e.target;
     if (name.startsWith('pigeon.')) {
       const pigeonField = name.replace('pigeon.', '');
-      setFormData(prev => ({
-        ...prev,
-        pigeon: { ...prev.pigeon, [pigeonField]: value }
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => {
+        const snapshot = { ...(prev.pigeon ?? createDefaultPigeon()) };
+        return {
+          ...prev,
+          pigeon: {
+            ...snapshot,
+            [pigeonField]: value,
+          },
+        };
+      });
+      return;
     }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const handleTraitSelect = useCallback((field: TraitField, values: string[]) => {
+    setFormData(prev => {
+      const snapshot = { ...(prev.pigeon ?? createDefaultPigeon()) };
+      return {
+        ...prev,
+        pigeon: {
+          ...snapshot,
+          [field]: values,
+        },
+      };
+    });
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -417,19 +803,6 @@ const CreateAuctionForm = ({
       setLoading(false);
     }
   };
-
-  const pigeonCharacteristics = [
-    { name: 'pigeon.featherColor', label: 'Kolor', icon: Palette, placeholder: 'np. Niebieski' },
-    { name: 'pigeon.eyeColor', label: 'Kolor oka', icon: Eye, placeholder: 'np. Pomarańczowy' },
-    { name: 'pigeon.construction', label: 'Budowa', icon: Dumbbell, placeholder: 'np. Mocna, zwarta' },
-    { name: 'pigeon.vitality', label: 'Witalność', icon: Heart, placeholder: 'np. Doskonała' },
-    { name: 'pigeon.muscles', label: 'Mięśnie', icon: Dumbbell, placeholder: 'np. Silne' },
-    { name: 'pigeon.shoulders', label: 'Plecy', icon: Scale, placeholder: 'np. Szerokie' },
-    { name: 'pigeon.balance', label: 'Balans', icon: Scale, placeholder: 'np. Doskonały' },
-    { name: 'pigeon.feathers', label: 'Upierzenie', icon: Feather, placeholder: 'np. Gęste' },
-    { name: 'pigeon.length', label: 'Długość', icon: Ruler, placeholder: 'np. Średnia' },
-    { name: 'pigeon.endurance', label: 'Wytrzymałość', icon: Zap, placeholder: 'np. Wysoka' },
-  ];
 
   return (
     <motion.form 
@@ -706,23 +1079,25 @@ const CreateAuctionForm = ({
                     >
                       <option value="male" className="bg-slate-900 text-white">Samiec</option>
                       <option value="female" className="bg-slate-900 text-white">Samica</option>
+                      <option value="young" className="bg-slate-900 text-white">Płeć nieustalona (Młody)</option>
                     </select>
                   </div>
                 </motion.div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                {pigeonCharacteristics.map((char, index) => (
-                  <InputField
-                    key={char.name}
-                    label={char.label}
-                    name={char.name}
-                    value={(formData.pigeon as any)?.[char.name.replace('pigeon.', '')] || ''}
-                    onChange={handleChange}
-                    placeholder={char.placeholder}
-                    icon={char.icon}
-                    delay={0.2 + index * 0.03}
-                  />
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-visible">
+                {traitSelects.map((trait) => (
+                  <motion.div key={trait.field} className="relative z-10 overflow-visible">
+                    <TraitDropdown
+                      label={trait.label}
+                      description={trait.description}
+                      field={trait.field}
+                      icon={trait.icon}
+                      options={trait.options}
+                      value={(formData.pigeon?.[trait.field] as string[]) || []}
+                      onChange={handleTraitSelect}
+                    />
+                  </motion.div>
                 ))}
               </div>
             </motion.div>

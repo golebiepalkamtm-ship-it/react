@@ -1,14 +1,11 @@
 (function () {
   'use strict';
-
   var doc = typeof document === 'object' ? document : null;
   var win = typeof window === 'object' ? window : null;
   if (!doc || !win || typeof doc.addEventListener !== 'function' || typeof win.setTimeout !== 'function') return;
-
   var raf = win.requestAnimationFrame || function (cb) { return win.setTimeout(cb, 16); };
   var modalSel = '[data-share-modal]';
   var modalContentSel = '[data-share-modal] > div';
-
   function openModal() {
     var modal = doc.querySelector(modalSel);
     if (!modal) return;
@@ -23,7 +20,6 @@
       }
     });
   }
-
   function closeModal() {
     var modal = doc.querySelector(modalSel);
     if (!modal) return;
@@ -38,9 +34,8 @@
       modal.classList.remove('flex');
     }, 300);
   }
-
   function handleClick(e) {
-    var target = e.target;
+    var target = e && e.target;
     if (!target || !target.closest) return;
     if (target.closest('[data-share-open]')) {
       e.preventDefault();
@@ -52,7 +47,6 @@
       closeModal();
     }
   }
-
   function handleKeydown(e) {
     if (!e || e.key !== 'Escape') return;
     var modal = doc.querySelector(modalSel);
@@ -60,16 +54,21 @@
       closeModal();
     }
   }
-
   function init() {
-    doc.removeEventListener('click', handleClick, false);
-    doc.removeEventListener('keydown', handleKeydown, false);
-    doc.addEventListener('click', handleClick, false);
-    doc.addEventListener('keydown', handleKeydown, false);
+    try {
+      if (!doc || typeof doc.addEventListener !== 'function') return;
+      doc.removeEventListener('click', handleClick, false);
+      doc.removeEventListener('keydown', handleKeydown, false);
+      doc.addEventListener('click', handleClick, false);
+      doc.addEventListener('keydown', handleKeydown, false);
+    } catch (_) {}
   }
-
   if (doc.readyState === 'loading') {
-    doc.addEventListener('DOMContentLoaded', init, { once: true });
+    try {
+      doc.addEventListener('DOMContentLoaded', init, { once: true });
+    } catch (_) {
+      win && win.setTimeout(init, 0);
+    }
   } else {
     init();
   }
