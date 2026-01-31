@@ -16,8 +16,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "downlevelIteration": true,
-    "allowImportingTsExtensions": true
+    "downlevelIteration": true
   },
   "include": ["**/*.ts", "**/*.d.ts", "lib/*.js"],
   "exclude": ["node_modules", "dist", "tests"]
