@@ -12,8 +12,6 @@ const parseOrigin = (input?: string | null) => {
 const STATIC_CLIENT_ORIGINS = [
   validatedEnv.CLIENT_URL,
   'https://champion-pigeon-web.onrender.com',
-  'https://champion-pigeon-auctions.vercel.app',
-  'https://golebiepalkamtm-ship-it-react-9r004yvro.vercel.app',
   'https://palkamtm.pl',
   'https://www.palkamtm.pl',
   'https://net-pocket.com',

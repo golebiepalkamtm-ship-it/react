@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, AlertCircle } from "lucide-react";
@@ -17,9 +17,11 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import AccountModal from "@/components/AccountModal";
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
 import { trackMetric } from "@/services/metricsService";
+import type { Auction } from "@/types/auction";
 
 const AuctionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { session, user, profile } = useAuth();
   const { auction, isLoading: loading, error, refetch: refetchAuction } = useAuction({ auctionId: id || '' });
@@ -39,6 +41,93 @@ const AuctionDetail: React.FC = () => {
 
   const token = session?.access_token ?? null;
   const { placeBid, isLoading: bidLoading, error: bidError, success: bidSuccess } = useBid(id || '');
+
+  // Demo preview for layout stress test (?demo=full)
+  const isDemo = searchParams.get('demo') === 'full';
+  const demoAuction: Auction = {
+    id: 'demo-auction',
+    title: 'SUPER DŁUGI TYTUŁ AUKCJI • GOŁĄB SUPER CHAMPION Z RODOWODEM – NAJLEPSZA LINIA LOTNIKÓW W EUROPIE • WIELOKROTNY LAUREAT • NIESAMOWITA GENETYKA • ODPORNOŚĆ • SZYBKOŚĆ • WYTRZYMAŁOŚĆ • PRECYZJA • WYGRANE MARATONY • LEGENDARNE DNA',
+    description:
+      'Ta aukcja prezentuje wyjątkowego gołębia pocztowego z linii mistrzów. Pełny opis zawiera historię lotów, genealogiczne informacje, wyniki w maratonach, a także szczegółowy opis kondycji, budowy, mięśni, skrzydeł i temperamentu. ' +
+      'W komplecie dokumenty i zdjęcia w wysokiej rozdzielczości. Dodatkowo szczegółowy rodowód oraz wyniki badań zdrowotnych. ' +
+      'Opis celowo jest ekstremalnie długi, aby zweryfikować zachowanie layoutu przy skrajnych przypadkach, sprawdzić line-height, zawijanie tekstu, marginesy, efekt glass i gradienty. ' +
+      'Sekcja uwzględnia: historię lotów (500 km, 700 km, 1000 km), kondycję (VO2 max, tętno spoczynkowe), mięśnie (sprężystość, siła), skrzydła (długość, elastyczność), ' +
+      'temperament (spokój w klatce, agresja w locie), inteligencję nawigacyjną (powroty w trudnych warunkach), odporność (wilgoć, niskie temperatury), ' +
+      'genetykę (linie Janssen, Koopman, Van Loon), oraz pełną listę badań weterynaryjnych. ' +
+      'Ta część tekstu powinna wypełnić kilka linii, aby sprawdzić czy kontener z glassmorphismem utrzymuje czytelność i nie generuje overflow na urządzeniach mobilnych i desktopowych.',
+    startingPrice: 1000,
+    currentPrice: 12500,
+    buyNowPrice: 18000,
+    reservePrice: 15000,
+    endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    snipeThresholdMinutes: 5,
+    snipeExtensionMinutes: 5,
+    minBidIncrement: 200,
+    status: 'active',
+    reserveMet: false,
+    category: 'RACING',
+    pigeon: {
+      ringNumber: 'PL-2024-CHAMP-999999',
+      eyeColor: 'Bursztynowe',
+      pigeonColor: 'Niebieski nakrapiany',
+      construction: 'Mocna, kompaktowa',
+      pedigreeUrl: 'https://example.com/pedigree.pdf',
+      vitality: 'Wysoka',
+      length: 'Średnia',
+      endurance: 'Bardzo wysoka',
+      forkStrength: 'Mocna',
+      forkAlignment: 'Idealna',
+      muscles: 'Sprężyste',
+      shoulders: 'Szerokie',
+      balance: 'Perfekcyjny',
+      back: 'Stabilny',
+      feathers: 'Jedwabiste',
+      purpose: 'Maraton / długie dystanse',
+      gender: 'male',
+      dnaCertificate: true,
+      colorTraits: ['Deep blue', 'Iridescent'],
+      eyeTraits: ['Rich iris', 'Clear circle'],
+      bodyStructureTraits: ['Compact', 'Aerodynamic'],
+      breastboneTraits: ['Strong'],
+      forkTraits: ['Tight'],
+      musculatureTraits: ['Elastic'],
+      backTraits: ['Straight'],
+      wingTraits: ['Long primary'],
+      wingBehaviorTraits: ['Fast return'],
+      breedingValueTraits: ['High'],
+      distanceTraits: ['800+ km']
+    },
+    sex: 'male',
+    location: 'Lubań, Polska',
+    seller: {
+      id: 'seller-demo',
+      username: 'super-seller',
+      firstName: 'Jan',
+      lastName: 'Kowalski',
+      email: 'demo@example.com',
+      phoneNumber: '+48 600 600 600',
+      image: null,
+      rating: 5,
+      salesCount: 123,
+    },
+    images: [
+      '/images/auth-hero.jpg',
+      '/public/hero-pigeon.jpg',
+      '/placeholder.svg',
+      '/images/auth-hero.jpg',
+    ],
+    videos: [],
+    documents: ['/placeholder.svg', '/images/auth-hero.jpg'],
+    bids: [
+      { id: 'b1', amount: 12000, createdAt: new Date().toISOString(), bidder: { id: 'u1', firstName: 'Anna', lastName: 'Nowak' } },
+      { id: 'b2', amount: 11000, createdAt: new Date(Date.now() - 3600 * 1000).toISOString(), bidder: { id: 'u2', firstName: 'Piotr', lastName: 'Zieliński' } },
+    ],
+    _count: { bids: 12, watchlist: 34 },
+  };
+
+  const displayAuction = isDemo ? demoAuction : auction;
+  const isLoadingCurrent = loading && !isDemo;
+  const minimumBidValue = displayAuction ? auctionService.getMinimumBid(displayAuction as any) : 0;
 
   const roleActions = useMemo(() => ({
     'USER_REGISTERED': () => {
@@ -182,6 +271,8 @@ const AuctionDetail: React.FC = () => {
   }, [token, id, isEnded, auction]);
 
   if (loading) {
+    if (isLoadingCurrent && !displayAuction) return <div className="container mx-auto py-12">Ładowanie...</div>;
+    if (!displayAuction) return <div className="container mx-auto py-12 text-red-500">Nie znaleziono aukcji.</div>;
     return (
       <div className="min-h-screen">
         <Header />
@@ -232,20 +323,17 @@ const AuctionDetail: React.FC = () => {
     setShowReviewForm(false);
   };
 
-  const minimumBid = auction ? auctionService.getMinimumBid(auction) : 0;
-  const isNearEnd = auction ? auctionService.isNearEnd(auction) : false;
-
   return (
     <div className="min-h-screen">
       <Header />
       <main className="pt-16 pb-12">
-        {auction && !error && (
+        {displayAuction && !error && (
           <>
             <LuxuryAuctionDetail 
-              auction={auction}
+              auction={displayAuction}
               isWatched={isWatched}
               isEnded={isEnded}
-              minimumBid={minimumBid}
+              minimumBid={minimumBidValue}
               bidAmount={bidAmount}
               bidLoading={bidLoading}
               bidError={bidError?.message || null}
@@ -258,24 +346,26 @@ const AuctionDetail: React.FC = () => {
             />
             
             {/* Sekcja recenzji - tylko dla zakończonych aukcji */}
-            {isEnded && (
+            {isEnded && displayAuction.seller?.id && (
               <div className="container mx-auto px-4 mt-8">
                 <div className="grid lg:grid-cols-2 gap-8">
                   {/* Formularz recenzji - tylko dla zwycięzcy */}
-                  {showReviewForm && !reviewSubmitted && (
+                  {showReviewForm && !reviewSubmitted && displayAuction.seller?.id && (
                     <ReviewForm
-                      auctionId={auction.id}
-                      sellerId={auction.seller.id}
-                      auctionTitle={auction.title}
+                      auctionId={displayAuction.id}
+                      sellerId={displayAuction.seller.id}
+                      auctionTitle={displayAuction.title}
                       onReviewSubmitted={handleReviewSubmitted}
                     />
                   )}
                   
                   {/* Recenzje sprzedającego */}
-                  <SellerReviews
-                    sellerId={auction.seller.id}
-                    sellerName={auction.seller.firstName}
-                  />
+                  {displayAuction.seller?.id && (
+                    <SellerReviews
+                      sellerId={displayAuction.seller.id}
+                      sellerName={displayAuction.seller.firstName}
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -311,11 +401,11 @@ const AuctionDetail: React.FC = () => {
         }}
       />
       
-      {auction && (
+      {displayAuction && (
         <EditAuctionModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          auction={auction}
+          auction={displayAuction}
           onSave={handleAdminUpdate}
           onCancel={handleAdminCancel}
         />

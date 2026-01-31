@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { Clock, Gavel, Eye } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Clock, Gavel, Eye, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LuxuryAuctionTimer } from "@/components/auction/LuxuryAuctionTimer";
 
@@ -13,7 +13,9 @@ interface AuctionListItemProps {
   endTime: string;
   ringNumber?: string;
   watchCount?: number;
+  viewsCount?: number;
   imageFit?: "cover" | "contain";
+  status?: 'active' | 'ended' | 'cancelled';
 }
 
 export const AuctionListItem = ({
@@ -23,11 +25,57 @@ export const AuctionListItem = ({
   currentBid,
   endTime,
   ringNumber,
-  watchCount,
+  watchCount = 0,
+  viewsCount = 0,
   imageFit = "cover",
+  status,
 }: AuctionListItemProps) => {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => navigate(`/auctions/${id}`);
+
+  const parsedEnd = endTime ? new Date(endTime) : undefined;
+  const now = new Date();
+  const isEnded = status === 'ended' || (parsedEnd ? parsedEnd.getTime() <= now.getTime() : false);
+  const isArchived = isEnded && parsedEnd ? now.getTime() - parsedEnd.getTime() > 3600 * 1000 : false;
+  if (isArchived) return null;
+
   return (
-    <div className="group relative flex gap-4 rounded-2xl border border-white/15 bg-black/70 p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:border-gold/30 hover:shadow-[0_0_30px_rgba(212,175,55,0.15)]">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleNavigate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleNavigate();
+        }
+      }}
+      className="group relative flex gap-4 rounded-2xl border border-white/15 bg-black/70 p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:border-gold/30 hover:shadow-[0_0_30px_rgba(212,175,55,0.15)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/70"
+    >
+      {isEnded && (
+        <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-red-500/90 text-white text-xs font-semibold uppercase tracking-wide flex items-center gap-1 shadow-lg shadow-red-500/30">
+          <Clock className="h-3.5 w-3.5" />
+          Aukcja zakończona
+        </div>
+      )}
+      {(typeof watchCount === "number" || typeof viewsCount === "number") && (
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+          {typeof watchCount === "number" && (
+            <div className="px-2.5 py-1 rounded-full bg-white/15 text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow">
+              <Heart className="h-3.5 w-3.5 text-pink-400" />
+              {watchCount}
+            </div>
+          )}
+          {typeof viewsCount === "number" && (
+            <div className="px-2.5 py-1 rounded-full bg-white/15 text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow">
+              <Eye className="h-3.5 w-3.5 text-blue-300" />
+              {viewsCount}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="relative h-28 w-36 overflow-hidden rounded-xl bg-black/40 border border-white/10 shrink-0">
         <img
           src={image || AUCTION_PLACEHOLDER_SRC}
@@ -81,7 +129,10 @@ export const AuctionListItem = ({
               {currentBid.toLocaleString("pl-PL")} zł
             </p>
           </div>
-          <Link to={`/auctions/${id}`}>
+          <Link
+            to={`/auctions/${id}#bid`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <Button
               variant="gold"
               className="bg-gradient-to-r from-gold to-gold-light text-navy shadow-[0_0_20px_rgba(212,175,55,0.35)] transition hover:shadow-[0_0_28px_rgba(212,175,55,0.5)]"

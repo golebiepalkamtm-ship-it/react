@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, Variants } from 'framer-motion';
 import { Clock, Gavel, Trophy, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MagneticButton } from '@/components/effects/MagneticButton';
 import { ChampionCardEffect } from '@/components/effects/ChampionCardEffect';
 import { LuxuryAuctionTimer } from '@/components/auction/LuxuryAuctionTimer';
@@ -32,6 +32,7 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
   featured = false,
   imageFit = 'cover',
 }) => {
+  const navigate = useNavigate();
   // Referencje i stan
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -108,11 +109,20 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
     >
     <motion.div
       ref={cardRef}
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/auctions/${id}`)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigate(`/auctions/${id}`);
+        }
+      }}
       className={`overflow-hidden rounded-2xl border ${
         featured 
           ? 'border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.3)]' 
           : 'border-white/15'
-      } bg-white/10 backdrop-blur-xl`}
+      } bg-white/10 backdrop-blur-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-100px' }}
@@ -220,7 +230,10 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
             </p>
           </div>
           
-          <Link to={`/auctions/${id}`}>
+          <Link
+            to={`/auctions/${id}#bid`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <MagneticButton strength={0.3}>
               <Button 
                 variant="gold" 

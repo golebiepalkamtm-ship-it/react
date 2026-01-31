@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { logger } from '@/lib/logger';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -58,6 +58,9 @@ interface AuthContextType {
   signInWithFacebook: () => Promise<{ user: User | null; error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<{ error: any }>;
+  updatePassword: (password: string) => Promise<{ error: any }>;
+  sendEmailVerification: (email: string) => Promise<{ error: any }>;
   loading: boolean;
   showUserPanel: () => void;
 }
@@ -76,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     }
   });
+  const hasSentOAuthVerification = useRef(false);
 
   const isEmailConfirmed = useCallback((authUser: User) => {
     const u = authUser as any;
@@ -195,6 +199,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       : normalizedOrigin;
   }, []);
 
+  const sendEmailVerification = useCallback(async (email: string) => {
+    const client = supabase;
+    if (!client) return { error: 'Supabase not configured' };
+    const baseUrl = getBaseUrl();
+    const emailRedirectTo =
+      (import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined) ||
+      `${baseUrl}/verify-email`;
+
+    const { error } = await client.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo,
+      },
+    });
+
+    return { error };
+  }, [getBaseUrl]);
+
   const fetchProfile = useCallback(async (authUser: User) => {
     const client = supabase;
     if (!client) {
@@ -202,45 +225,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     try {
-      const queryPromise = client
+      const { data, error } = await client
         .from('users')
         .select('*')
         .eq('id', authUser.id)
         .maybeSingle();
 
-      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
-        setTimeout(() => resolve({ data: null, error: { message: 'Profile fetch timeout' } }), 30000);
-      });
-
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
-
       if (error) {
         logger.error('Error fetching profile:', error);
-        try {
-          const ensured = await ensureProfile(authUser, null);
-          setProfile(ensured);
-        } catch (ensureError) {
-          logger.error('Error ensuring profile after fetch error:', ensureError);
-          setProfile(null);
-        }
+        const ensured = await ensureProfile(authUser, null);
+        setProfile(ensured);
       } else {
-        try {
-          const ensured = await ensureProfile(authUser, (data as Profile | null) ?? null);
-          setProfile(ensured);
-        } catch (ensureError) {
-          logger.error('Error ensuring profile after successful fetch:', ensureError);
-          setProfile(null);
-        }
+        const ensured = await ensureProfile(authUser, (data as Profile | null) ?? null);
+        setProfile(ensured);
       }
     } catch (error) {
       logger.error('Error fetching profile:', error);
-      try {
-        const ensured = await ensureProfile(authUser, null);
-        setProfile(ensured);
-      } catch (ensureError) {
-        logger.error('Error ensuring profile after catch error:', ensureError);
-        setProfile(null);
-      }
+      const ensured = await ensureProfile(authUser, null);
+      setProfile(ensured);
     } finally {
       setLoading(false);
     }
@@ -391,6 +393,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!isInitialized && event === 'INITIAL_SESSION') {
           return;
         }
+        if (event === 'PASSWORD_RECOVERY') {
+          // Supabase recovery flow: enforce reset screen
+          const resetUrl = new URL('/auth?mode=reset', window.location.origin);
+          window.history.replaceState({}, document.title, resetUrl.toString());
+        }
+        if (event === 'SIGNED_IN' && session?.user) {
+          const provider = (session.user as any)?.app_metadata?.provider ?? (session.user as any)?.user_metadata?.provider;
+          const emailVerified = Boolean((session.user as any)?.email_confirmed_at || (session.user as any)?.confirmed_at);
+          const email = session.user.email;
+          if (provider === 'google' && email && !emailVerified && !hasSentOAuthVerification.current) {
+            hasSentOAuthVerification.current = true;
+            const { error } = await sendEmailVerification(email);
+            if (error) {
+              logger.error('Failed to send verification email after Google OAuth', error);
+            } else {
+              logger.info('Verification email sent after Google OAuth');
+            }
+          }
+        }
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -409,7 +430,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     init();
 
     return () => subscription.unsubscribe();
-  }, [clearPendingEmailVerification, fetchProfile, initCSRFToken]);
+  }, [clearPendingEmailVerification, fetchProfile, initCSRFToken, sendEmailVerification]);
 
   const signUp = async (email: string, password: string) => {
     const client = supabase;
@@ -531,6 +552,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!client) return;
     await client.auth.signOut();
     clearPendingEmailVerification();
+  };
+
+  const requestPasswordReset = async (email: string) => {
+    const client = supabase;
+    if (!client) return { error: 'Supabase not configured' };
+    const baseUrl = getBaseUrl();
+    const redirectTo =
+      (import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined) ||
+      `${baseUrl}/auth?mode=reset`;
+
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    return { error };
+  };
+
+  const updatePassword = async (password: string) => {
+    const client = supabase;
+    if (!client) return { error: 'Supabase not configured' };
+    const { error } = await client.auth.updateUser({ password });
+    if (!error) {
+      await refreshSession();
+    }
+    return { error };
   };
 
   const refreshSession = async () => {
@@ -658,6 +704,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithFacebook,
     signOut,
     updateProfile,
+    requestPasswordReset,
+    updatePassword,
+    sendEmailVerification,
     loading,
     showUserPanel,
   };

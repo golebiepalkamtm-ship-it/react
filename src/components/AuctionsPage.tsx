@@ -400,7 +400,8 @@ const AuctionsPage = () => {
                     ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
                     featured={index < 2}
                     imageFit={imageFit}
-                    watchCount={auction._count?.watchlist}
+                    watchCount={auction._count?.watchlist ?? 0}
+                    viewsCount={(auction as any).viewsCount ?? (auction._count as any)?.views ?? 0}
                   />
                 ))}
               </div>
@@ -416,7 +417,10 @@ const AuctionsPage = () => {
                     endTime={auction.endTime}
                     ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
                     imageFit={imageFit}
-                    watchCount={auction._count?.watchlist}
+                    watchCount={auction._count?.watchlist ?? 0}
+                    viewsCount={(auction as any).viewsCount ?? (auction._count as any)?.views ?? 0}
+                    status={auction.status as any}
+                    timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
                   />
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
@@ -49,13 +49,29 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
 }) => {
   const { user, session, profile } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [isImageZoomed] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isCommissionLoading, setIsCommissionLoading] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const galleryItems = useMemo(() => {
+    const items = [
+      ...(auction.images || []),
+      ...(auction.documents || []),
+    ].filter(Boolean);
+    return items.length > 0 ? items : [AUCTION_PLACEHOLDER_SRC];
+  }, [auction.images, auction.documents]);
   
+  useEffect(() => {
+    if (currentImageIndex >= galleryItems.length) {
+      setCurrentImageIndex(0);
+      setLightboxIndex(0);
+    }
+  }, [galleryItems.length, currentImageIndex]);
+
   // Wartości motion dla efektu zoomu
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -67,20 +83,24 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
   
   // Obsługa zmiany zdjęcia
   const nextImage = () => {
-    if (auction.images.length > 1) {
+    if (galleryItems.length > 1) {
+      const next = (lightboxIndex + 1) % galleryItems.length;
       imageSpring.set(100);
       setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % auction.images.length);
+        setLightboxIndex(next);
+        setCurrentImageIndex(next);
         imageSpring.set(0);
       }, 200);
     }
   };
 
   const prevImage = () => {
-    if (auction.images.length > 1) {
+    if (galleryItems.length > 1) {
+      const next = (lightboxIndex - 1 + galleryItems.length) % galleryItems.length;
       imageSpring.set(-100);
       setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev - 1 + auction.images.length) % auction.images.length);
+        setLightboxIndex(next);
+        if (next < auction.images.length) setCurrentImageIndex(next);
         imageSpring.set(0);
       }, 200);
     }
@@ -89,13 +109,6 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
   // Obsługa ruchu myszy dla efektu zoomu
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current || !isImageZoomed) return;
-    
-    const rect = imageContainerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    
-    mouseX.set(x);
-    mouseY.set(y);
   };
   
   // Definicje wariantów animacji
@@ -165,55 +178,88 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Lewa kolumna - zdjęcia */}
         <motion.div variants={itemVariants}>
-          <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]">
+          <div className="relative overflow-hidden rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/6 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.25)]">
             {/* Główne zdjęcie */}
             <div 
               ref={imageContainerRef}
-              className="relative h-[500px] overflow-hidden cursor-zoom-in"
-              onClick={() => setIsImageZoomed(!isImageZoomed)}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={() => {
-                mouseX.set(0);
-                mouseY.set(0);
-                setIsImageZoomed(false);
+              className="relative h-[500px] overflow-hidden cursor-pointer"
+              onClick={() => {
+                setLightboxIndex(currentImageIndex);
+                setIsLightboxOpen(true);
               }}
             >
               <motion.img
                 key={currentImageIndex}
-                src={auction.images[currentImageIndex] || AUCTION_PLACEHOLDER_SRC}
+                src={galleryItems[currentImageIndex] || AUCTION_PLACEHOLDER_SRC}
                 alt={auction.title}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = AUCTION_PLACEHOLDER_SRC;
                 }}
                 className="w-full h-full object-contain"
                 style={{
-                  scale: isImageZoomed ? 1.5 : 1,
-                  x: isImageZoomed ? transformX : 0,
-                  y: isImageZoomed ? transformY : 0,
-                  opacity: imageSpring.get() !== 0 ? 0.5 : 1,
-                  translateX: imageSpring
+                  scale: 1,
+                  x: 0,
+                  y: 0,
+                  opacity: 1,
+                  translateX: 0
                 }}
                 transition={{ duration: 0.2 }}
               />
-              
-              {/* Overlay z informacją o powiększeniu */}
-              <AnimatePresence>
-                {!isImageZoomed && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.8 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-white/85 text-navy text-sm flex items-center gap-2 shadow-lg border border-white/40"
+
+      {/* Fullscreen Lightbox */}
+      <AnimatePresence>
+        {isLightboxOpen && galleryItems.length > 0 && (
+          <motion.div
+            className="fixed inset-0 z-[1200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            <motion.div
+              className="relative w-full h-full flex items-center justify-center"
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.94, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={galleryItems[lightboxIndex] || AUCTION_PLACEHOLDER_SRC}
+                alt={auction.title}
+                className="max-h-[90vh] max-w-[90vw] w-auto h-auto object-contain rounded-2xl shadow-2xl"
+              />
+              {/* Close */}
+              <button
+                onClick={() => setIsLightboxOpen(false)}
+                className="absolute top-4 right-4 rounded-full bg-white/15 border border-white/30 text-white p-2 hover:bg-white/25 transition"
+              >
+                ×
+              </button>
+              {/* Prev/Next */}
+              {galleryItems.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setLightboxIndex((prev) => (prev - 1 + galleryItems.length) % galleryItems.length)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/15 border border-white/30 text-white p-3 hover:bg-white/25 transition"
                   >
-                    <Eye className="w-4 h-4" />
-                    Kliknij, aby powiększyć
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    ‹
+                  </button>
+                  <button
+                    onClick={() => setLightboxIndex((prev) => (prev + 1) % galleryItems.length)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/15 border border-white/30 text-white p-3 hover:bg-white/25 transition"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
             </div>
             
             {/* Przyciski nawigacji */}
-            {auction.images.length > 1 && (
+            {galleryItems.length > 1 && (
               <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 flex justify-between px-4 pointer-events-none">
                 <motion.button
                   variants={buttonVariants}
@@ -240,13 +286,17 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             
             {/* Miniatury */}
             <div className="flex gap-2 p-4 overflow-x-auto">
-              {auction.images.map((img: string, index: number) => (
+              {galleryItems.map((img: string, index: number) => (
                 <motion.div
                   key={index}
                   className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer border-2 ${
                     index === currentImageIndex ? 'border-gold' : 'border-transparent'
-                  }`}
-                  onClick={() => setCurrentImageIndex(index)}
+                  } ${index >= (auction.images?.length || 0) ? 'bg-black/30' : ''}`}
+                  onClick={() => {
+                    setCurrentImageIndex(index);
+                    setLightboxIndex(index);
+                    setIsLightboxOpen(true);
+                  }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -266,7 +316,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
           {/* Informacje o gołębiu */}
           <motion.div 
             variants={itemVariants}
-            className="mt-6 p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
+            className="mt-6 p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.2)]"
           >
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="font-display text-xl font-semibold">Cechy gołębia</h3>
@@ -295,13 +345,36 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
               <p className="text-muted-foreground">Brak uzupełnionych cech.</p>
             )}
           </motion.div>
+
+          {/* Rodowód */}
+          {auction.documents && auction.documents.length > 0 && (
+            <motion.div
+              variants={itemVariants}
+              className="mt-6 p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.18)]"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display text-xl font-semibold">Rodowód</h3>
+                <span className="text-xs px-3 py-1 rounded-full bg-white/10 border border-white/20 text-muted-foreground">
+                  Dokument
+                </span>
+              </div>
+              <div className="w-full rounded-xl overflow-hidden border border-white/15 bg-black/20 backdrop-blur">
+                <img
+                  src={auction.documents[0]}
+                  alt="Rodowód"
+                  className="w-full h-auto object-contain"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                />
+              </div>
+            </motion.div>
+          )}
         </motion.div>
         
         {/* Prawa kolumna - informacje o aukcji */}
         <div className="min-w-0">
           <motion.div 
             variants={itemVariants}
-            className="p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
+            className="p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/6 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.22)]"
           >
             <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
               <h1 className="font-display text-3xl font-bold leading-tight break-words text-balance">
@@ -387,8 +460,10 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                 <div className="flex items-center gap-3">
                   <User className="w-5 h-5 text-gold" />
                   <div>
-                    <p className="font-semibold text-foreground">{auction.seller?.firstName || 'Brak nazwy'}</p>
-                    <p className="text-sm text-muted-foreground">Sprzedawca</p>
+                    <p className="font-semibold text-foreground">{auction.seller?.firstName || auction.seller?.username || 'Brak danych'}</p>
+                    {auction.seller?.firstName || auction.seller?.username ? (
+                      <p className="text-sm text-muted-foreground">Sprzedawca</p>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -589,7 +664,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
             {/* Historia licytacji */}
             <motion.div 
               variants={itemVariants}
-              className="mt-6 p-6 rounded-2xl border border-white/20 bg-white/12 backdrop-blur-xl shadow-[0_10px_40px_rgba(255,255,255,0.12)]"
+              className="mt-6 p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/6 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.2)]"
             >
               <h3 className="font-display text-xl font-semibold mb-4">Historia licytacji</h3>
               {auction?.bids && auction.bids.length > 0 ? (

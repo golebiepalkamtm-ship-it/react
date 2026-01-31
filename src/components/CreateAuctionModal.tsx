@@ -36,21 +36,21 @@ export const CreateAuctionModal = ({
       label: 'Gołębie', 
       icon: Package, 
       description: 'Aukcje gołębi hodowlanych',
-      color: 'from-gray-700 to-gray-600'
+      color: 'from-blue-600 to-blue-500'
     },
     { 
       id: 'supplements', 
       label: 'Suplementy', 
       icon: Pill, 
       description: 'Karmy i witaminy',
-      color: 'from-gray-700 to-gray-600'
+      color: 'from-green-600 to-green-500'
     },
     { 
       id: 'accessories', 
       label: 'Akcesoria', 
       icon: Home, 
       description: 'Sprzęt hodowlany',
-      color: 'from-gray-700 to-gray-600'
+      color: 'from-purple-600 to-purple-500'
     }
   ];
 
@@ -82,7 +82,7 @@ export const CreateAuctionModal = ({
                   className="p-5 rounded-xl bg-gray-800/80 border border-white/10 hover:border-white/20 hover:bg-gray-800 transition-all text-left group text-white"
                 >
                   <div className={`p-3 rounded-lg bg-gradient-to-br ${cat.color} w-fit mb-4`}>
-                    <Icon className="w-6 h-6 text-white" />
+                    <Icon className="w-12 h-12 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">{cat.label}</h3>
                   <p className="text-sm text-white/60">{cat.description}</p>

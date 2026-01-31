@@ -30,8 +30,8 @@ export function useAuctions(filters: AuctionFilters = {}): UseAuctionsResult {
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    initialData: [],
-    placeholderData: [],
+    initialData: undefined,
+    placeholderData: undefined,
   });
 
   const auctionsWithFallback = useMemo(() => {

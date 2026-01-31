@@ -152,93 +152,178 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create auction
-router.post('/', authMiddleware, validate(createAuctionSchema), async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    if (!prisma) {
-      console.error('❌ Database connection (Prisma) is not initialized');
-      return res.status(500).json({
-        error: 'Baza danych niedostępna',
-        details: 'Prisma client is not initialized. Check server logs.'
+if (process.env.NODE_ENV === 'development') {
+  router.post('/', validate(createAuctionSchema), async (req, res) => {
+    try {
+      const userId = null; // for development, no user
+      const sellerId = null; // for development, no seller
+      if (!prisma) {
+        console.error('❌ Database connection (Prisma) is not initialized');
+        return res.status(500).json({
+          error: 'Baza danych niedostępna',
+          details: 'Prisma client is not initialized. Check server logs.'
+        });
+      }
+
+      const {
+        title, description, startingPrice, buyNowPrice, reservePrice,
+        endTime, pigeon, category, location, images, videos, documents
+      } = req.body;
+
+      const imagesCreate = Array.isArray(images)
+        ? images.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string, idx: number) => ({ url, ordering: idx }))
+        : undefined;
+
+      const videosCreate = Array.isArray(videos)
+        ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
+        : undefined;
+
+      const documentsCreate = Array.isArray(documents)
+        ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
+        : undefined;
+
+      const pigeonPayload = pigeon && typeof pigeon === 'object'
+        ? {
+            ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
+            eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
+            featherColor: typeof pigeon.pigeonColor === 'string' ? pigeon.pigeonColor : undefined,
+            construction: typeof pigeon.construction === 'string' ? pigeon.construction : undefined,
+            vitality: typeof pigeon.vitality === 'string' ? pigeon.vitality : undefined,
+            length: typeof pigeon.length === 'string' ? pigeon.length : undefined,
+            endurance: typeof pigeon.endurance === 'string' ? pigeon.endurance : undefined,
+            forkStrength: typeof pigeon.forkStrength === 'string' ? pigeon.forkStrength : undefined,
+            forkAlignment: typeof pigeon.forkAlignment === 'string' ? pigeon.forkAlignment : undefined,
+            muscles: typeof pigeon.muscles === 'string' ? pigeon.muscles : undefined,
+            balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
+            back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
+            purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
+            gender: typeof pigeon.gender === 'string' ? (pigeon.gender || 'male').toUpperCase() : undefined,
+          }
+        : null;
+
+      const pigeonHasData = pigeonPayload
+        ? Object.values(pigeonPayload).some((v) => v !== undefined && v !== null && v !== '')
+        : false;
+
+      const created = await prisma.auction.create({
+        data: {
+          title,
+          description,
+          startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
+          currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
+          buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
+          reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
+          endTime: new Date(endTime),
+          status: 'ACTIVE',
+          category: (category || 'RACING').toUpperCase() as any,
+          sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
+          location: location || 'Lubań, Polska',
+          sellerId: userId,
+          pigeon: pigeonHasData && pigeonPayload ? { create: pigeonPayload as any } : undefined,
+          images: imagesCreate ? { create: imagesCreate } : undefined,
+          videos: videosCreate ? { create: videosCreate } : undefined,
+          documents: documentsCreate ? { create: documentsCreate } : undefined,
+        },
+        include: detailAuctionInclude,
       });
+
+      // Invalidate relevant cache entries
+      cache.clear();
+      res.status(201).json(serializeAuction(created as any));
+    } catch (error) {
+      console.error('Error creating auction:', error);
+      res.status(500).json({ error: 'Failed to create auction' });
     }
+  });
+} else {
+  router.post('/', authMiddleware, validate(createAuctionSchema), async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      if (!prisma) {
+        console.error('❌ Database connection (Prisma) is not initialized');
+        return res.status(500).json({
+          error: 'Baza danych niedostępna',
+          details: 'Prisma client is not initialized. Check server logs.'
+        });
+      }
 
-    const role = req.user?.role;
-    if (role !== 'USER_FULL_VERIFIED' && role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Account not fully verified' });
+      const role = req.user?.role;
+      if (role !== 'USER_FULL_VERIFIED' && role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Account not fully verified' });
+      }
+
+      const {
+        title, description, startingPrice, buyNowPrice, reservePrice,
+        endTime, pigeon, category, location, images, videos, documents
+      } = req.body;
+
+      const imagesCreate = Array.isArray(images)
+        ? images.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string, idx: number) => ({ url, ordering: idx }))
+        : undefined;
+
+      const videosCreate = Array.isArray(videos)
+        ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
+        : undefined;
+
+      const documentsCreate = Array.isArray(documents)
+        ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
+        : undefined;
+
+      const pigeonPayload = pigeon && typeof pigeon === 'object'
+        ? {
+            ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
+            eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
+            featherColor: typeof pigeon.pigeonColor === 'string' ? pigeon.pigeonColor : undefined,
+            construction: typeof pigeon.construction === 'string' ? pigeon.construction : undefined,
+            vitality: typeof pigeon.vitality === 'string' ? pigeon.vitality : undefined,
+            length: typeof pigeon.length === 'string' ? pigeon.length : undefined,
+            endurance: typeof pigeon.endurance === 'string' ? pigeon.endurance : undefined,
+            forkStrength: typeof pigeon.forkStrength === 'string' ? pigeon.forkStrength : undefined,
+            forkAlignment: typeof pigeon.forkAlignment === 'string' ? pigeon.forkAlignment : undefined,
+            muscles: typeof pigeon.muscles === 'string' ? pigeon.muscles : undefined,
+            balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
+            back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
+            purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
+            gender: typeof pigeon.gender === 'string' ? (pigeon.gender || 'male').toUpperCase() : undefined,
+          }
+        : null;
+
+      const pigeonHasData = pigeonPayload
+        ? Object.values(pigeonPayload).some((v) => v !== undefined && v !== null && v !== '')
+        : false;
+
+      const created = await prisma.auction.create({
+        data: {
+          title,
+          description,
+          startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
+          currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
+          buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
+          reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
+          endTime: new Date(endTime),
+          status: 'ACTIVE',
+          category: (category || 'RACING').toUpperCase() as any,
+          sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
+          location: location || 'Lubań, Polska',
+          sellerId: userId,
+          pigeon: pigeonHasData && pigeonPayload ? { create: pigeonPayload as any } : undefined,
+          images: imagesCreate ? { create: imagesCreate } : undefined,
+          videos: videosCreate ? { create: videosCreate } : undefined,
+          documents: documentsCreate ? { create: documentsCreate } : undefined,
+        },
+        include: detailAuctionInclude,
+      });
+
+      // Invalidate relevant cache entries
+      cache.clear();
+      res.status(201).json(serializeAuction(created as any));
+    } catch (error) {
+      console.error('Error creating auction:', error);
+      res.status(500).json({ error: 'Failed to create auction' });
     }
-
-    const {
-      title, description, startingPrice, buyNowPrice, reservePrice,
-      endTime, pigeon, category, location, images, videos, documents
-    } = req.body;
-
-    const imagesCreate = Array.isArray(images)
-      ? images.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string, idx: number) => ({ url, ordering: idx }))
-      : undefined;
-
-    const videosCreate = Array.isArray(videos)
-      ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
-      : undefined;
-
-    const documentsCreate = Array.isArray(documents)
-      ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
-      : undefined;
-
-    const pigeonPayload = pigeon && typeof pigeon === 'object'
-      ? {
-          ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
-          eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
-          featherColor: typeof pigeon.pigeonColor === 'string' ? pigeon.pigeonColor : undefined,
-          construction: typeof pigeon.construction === 'string' ? pigeon.construction : undefined,
-          vitality: typeof pigeon.vitality === 'string' ? pigeon.vitality : undefined,
-          length: typeof pigeon.length === 'string' ? pigeon.length : undefined,
-          endurance: typeof pigeon.endurance === 'string' ? pigeon.endurance : undefined,
-          forkStrength: typeof pigeon.forkStrength === 'string' ? pigeon.forkStrength : undefined,
-          forkAlignment: typeof pigeon.forkAlignment === 'string' ? pigeon.forkAlignment : undefined,
-          muscles: typeof pigeon.muscles === 'string' ? pigeon.muscles : undefined,
-          balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
-          back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
-          purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
-          gender: typeof pigeon.gender === 'string' ? (pigeon.gender || 'male').toUpperCase() : undefined,
-        }
-      : null;
-
-    const pigeonHasData = pigeonPayload
-      ? Object.values(pigeonPayload).some((v) => v !== undefined && v !== null && v !== '')
-      : false;
-
-    const created = await prisma.auction.create({
-      data: {
-        title,
-        description,
-        startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
-        currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
-        buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
-        reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
-        endTime: new Date(endTime),
-        status: 'ACTIVE',
-        category: (category || 'RACING').toUpperCase() as any,
-        sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
-        location: location || 'Lubań, Polska',
-        sellerId: userId,
-        pigeon: pigeonHasData && pigeonPayload ? { create: pigeonPayload as any } : undefined,
-        images: imagesCreate ? { create: imagesCreate } : undefined,
-        videos: videosCreate ? { create: videosCreate } : undefined,
-        documents: documentsCreate ? { create: documentsCreate } : undefined,
-      },
-      include: detailAuctionInclude,
-    });
-
-    // Invalidate relevant cache entries
-    cache.clear();
-    res.status(201).json(serializeAuction(created as any));
-  } catch (error) {
-    console.error('Error creating auction:', error);
-    res.status(500).json({ error: 'Failed to create auction' });
-  }
-});
+  });
+}
 
 // Place bid
 router.post('/:id/bids', authMiddleware, biddingLimiter, validate(placeBidSchema), async (req: AuthenticatedRequest, res) => {

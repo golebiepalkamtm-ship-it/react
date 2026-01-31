@@ -22,11 +22,11 @@ function sanitizeCallbackUrl(callbackUrl: string | null): string {
   return callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
 }
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "forgot" | "reset";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, profile, loading, signUp, signIn, signInWithGoogle, signInWithFacebook } = useAuth();
+  const { user, profile, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, requestPasswordReset, updatePassword } = useAuth();
   const { pushToast } = useFeedback();
   const reduceMotion = useReducedMotion();
 
@@ -76,19 +76,26 @@ export default function Auth() {
     console.log('Auth useEffect:', { loading, user: !!user, profile: profile?.role, modalOpen, hasShownOAuthSuccess: hasShownOAuthSuccess.current });
     
     // Po OAuth callback - jeśli user jest zalogowany i nie pokazaliśmy jeszcze modalu sukcesu
-    if (!loading && user && profile && !modalOpen && !hasShownOAuthSuccess.current) {
+    if (!loading && user && !modalOpen && !hasShownOAuthSuccess.current) {
       // Sprawdź czy to powrót z OAuth (brak błędu w URL i user właśnie się zalogował)
       const isOAuthReturn = !query.get("error") && user;
       
       if (isOAuthReturn) {
         console.log('OAuth success detected, showing success modal');
         hasShownOAuthSuccess.current = true;
-        const successMessage = profile.role === "USER_REGISTERED"
-          ? "Twoje konto zostało utworzone. Sprawdź swoją skrzynkę email, aby zweryfikować adres."
-          : profile.role === "USER_EMAIL_VERIFIED"
-            ? "Zalogowano pomyślnie! Uzupełnij swój profil, aby w pełni korzystać z serwisu."
-            : "Zalogowano pomyślnie! Witamy w serwisie.";
-        const action = profile.role === "ADMIN" ? 'close' : 'redirect';
+        const role = profile?.role ?? "USER_REGISTERED";
+        const provider = (user as any)?.app_metadata?.provider ?? (user as any)?.user_metadata?.provider;
+        const emailVerified = Boolean((user as any)?.email_confirmed_at || (user as any)?.confirmed_at);
+
+        const successMessage =
+          provider === "google" && emailVerified
+            ? "Zalogowano przez Google. Twój email jest już potwierdzony przez dostawcę, więc nie wysyłamy dodatkowego linku. Możesz korzystać z serwisu."
+            : role === "USER_REGISTERED"
+              ? "Twoje konto zostało utworzone. Sprawdź swoją skrzynkę (także SPAM), aby zweryfikować email."
+              : role === "USER_EMAIL_VERIFIED"
+                ? "Zalogowano pomyślnie! Uzupełnij swój profil, aby w pełni korzystać z serwisu."
+                : "Zalogowano pomyślnie! Witamy w serwisie.";
+        const action = role === "ADMIN" ? 'close' : 'redirect';
         showModal('success', 'Logowanie zakończone!', successMessage, action);
       }
     }
@@ -177,7 +184,14 @@ export default function Auth() {
 
     pushToast({
       tone: 'info',
-      title: mode === "register" ? "Rejestrowanie..." : "Logowanie...",
+      title:
+        mode === "register"
+          ? "Rejestrowanie..."
+          : mode === "forgot"
+            ? "Wysyłanie linku resetującego..."
+            : mode === "reset"
+              ? "Aktualizowanie hasła..."
+              : "Logowanie...",
       message: "Proszę czekać...",
     });
 
@@ -209,7 +223,7 @@ export default function Auth() {
           `Twoje konto zostało utworzone pomyślnie!\n\nWysłaliśmy email weryfikacyjny na adres:\n${cleanEmail}\n\nSprawdź swoją skrzynkę odbiorczą oraz folder SPAM.\nKliknij link w wiadomości, aby aktywować konto.`,
           'close'
         );
-      } else {
+      } else if (mode === "login") {
         const { error } = await signIn(cleanEmail, password);
         
         if (error) {
@@ -228,6 +242,45 @@ export default function Auth() {
         
         const action = profile?.role === 'ADMIN' ? 'close' : 'redirect';
         showModal('success', 'Zalogowano pomyślnie!', 'Witamy w serwisie. Kliknij OK, aby przejść dalej.', action);
+      } else if (mode === "forgot") {
+        const { error } = await requestPasswordReset(cleanEmail);
+        if (error) {
+          showModal('error', 'Błąd resetu hasła', error.message || 'Nie udało się wysłać maila resetującego', 'close');
+          setIsSubmitting(false);
+          return;
+        }
+
+        showModal(
+          'success',
+          'Sprawdź skrzynkę',
+          `Wysłaliśmy link do resetu hasła na adres:\n${cleanEmail}\n\nLink jest ważny tylko raz. Po kliknięciu zostaniesz przekierowany na stronę zmiany hasła.`,
+          'close'
+        );
+      } else if (mode === "reset") {
+        if (password.length < 6) {
+          showModal('error', 'Błąd walidacji', 'Hasło musi mieć co najmniej 6 znaków', 'close');
+          setIsSubmitting(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          showModal('error', 'Błąd walidacji', 'Hasła nie są takie same', 'close');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { error } = await updatePassword(password);
+        if (error) {
+          showModal('error', 'Błąd zmiany hasła', error.message || 'Nie udało się ustawić nowego hasła', 'close');
+          setIsSubmitting(false);
+          return;
+        }
+
+        showModal(
+          'success',
+          'Hasło zaktualizowane',
+          'Twoje hasło zostało zmienione. Zaloguj się nowym hasłem.',
+          'redirect'
+        );
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : mode === "register" ? "Nie udało się zarejestrować" : "Nie udało się zalogować";
@@ -326,30 +379,32 @@ export default function Auth() {
               </p>
             </div>
 
-            {/* Przełącznik */}
-            <div className="relative bg-white/5 rounded-xl p-1 mb-4 backdrop-blur-sm border border-white/10">
-              <motion.div
-                className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/15 rounded-lg shadow-lg border border-white/10"
-                animate={{ x: mode === "register" ? "calc(100% + 4px)" : 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
-              <div className="relative flex">
-                <button
-                  onClick={() => switchMode("login")}
-                  className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-white" : "text-white/60 hover:text-white/80"}`}
-                  type="button"
-                >
-                  Logowanie
-                </button>
-                <button
-                  onClick={() => switchMode("register")}
-                  className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-white" : "text-white/60 hover:text-white/80"}`}
-                  type="button"
-                >
-                  Rejestracja
-                </button>
+            {/* Przełącznik - ukryj dla trybów reset/forgot */}
+            {['login', 'register'].includes(mode) && (
+              <div className="relative bg-white/5 rounded-xl p-1 mb-4 backdrop-blur-sm border border-white/10">
+                <motion.div
+                  className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/15 rounded-lg shadow-lg border border-white/10"
+                  animate={{ x: mode === "register" ? "calc(100% + 4px)" : 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+                <div className="relative flex">
+                  <button
+                    onClick={() => switchMode("login")}
+                    className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-white" : "text-white/60 hover:text-white/80"}`}
+                    type="button"
+                  >
+                    Logowanie
+                  </button>
+                  <button
+                    onClick={() => switchMode("register")}
+                    className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-white" : "text-white/60 hover:text-white/80"}`}
+                    type="button"
+                  >
+                    Rejestracja
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Social */}
             <div className="space-y-2 mb-4">
@@ -439,33 +494,35 @@ export default function Auth() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-white" htmlFor="password">
-                  Hasło
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    autoComplete={mode === "login" ? "current-password" : "new-password"}
-                    required
-                    className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+              {(mode === "login" || mode === "register" || mode === "reset") && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white" htmlFor="password">
+                    Hasło
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete={mode === "login" ? "current-password" : "new-password"}
+                      required
+                      className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {mode === "register" && (
+              {(mode === "register" || mode === "reset") && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-white" htmlFor="confirmPassword">
                     Potwierdź hasło
@@ -495,10 +552,24 @@ export default function Auth() {
 
               {mode === "login" && (
                 <div className="flex justify-end">
-                  <a href="#" className="text-sm text-gold hover:text-gold/80 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => switchMode("forgot")}
+                    className="text-sm text-gold hover:text-gold/80 transition-colors"
+                  >
                     Zapomniałeś hasła?
-                  </a>
+                  </button>
                 </div>
+              )}
+              {mode === "forgot" && (
+                <p className="text-xs text-white/70">
+                  Podaj email powiązany z kontem. Wyślemy jednorazowy link do zmiany hasła.
+                </p>
+              )}
+              {mode === "reset" && (
+                <p className="text-xs text-white/70">
+                  Ustal nowe hasło dla swojego konta. Po zapisaniu zostaniesz zalogowany.
+                </p>
               )}
 
               <Button
@@ -510,10 +581,18 @@ export default function Auth() {
                 {isSubmitting
                   ? mode === "login"
                     ? "Logowanie…"
-                    : "Rejestrowanie…"
+                    : mode === "register"
+                      ? "Rejestrowanie…"
+                      : mode === "forgot"
+                        ? "Wysyłanie…"
+                        : "Zapisywanie…"
                   : mode === "login"
                     ? "Zaloguj się"
-                    : "Utwórz konto"}
+                    : mode === "register"
+                      ? "Utwórz konto"
+                      : mode === "forgot"
+                        ? "Wyślij link resetujący"
+                        : "Ustaw nowe hasło"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
 
@@ -525,11 +604,25 @@ export default function Auth() {
                       Zarejestruj się
                     </button>
                   </>
-                ) : (
+                ) : mode === "register" ? (
                   <>
                     Masz już konto?{" "}
                     <button className="text-gold hover:underline" type="button" onClick={() => switchMode("login")}>
                       Zaloguj się
+                    </button>
+                  </>
+                ) : mode === "forgot" ? (
+                  <>
+                    Pamiętasz hasło?{" "}
+                    <button className="text-gold hover:underline" type="button" onClick={() => switchMode("login")}>
+                      Wróć do logowania
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Masz problem?{" "}
+                    <button className="text-gold hover:underline" type="button" onClick={() => switchMode("forgot")}>
+                      Wyślij nowy link resetu
                     </button>
                   </>
                 )}

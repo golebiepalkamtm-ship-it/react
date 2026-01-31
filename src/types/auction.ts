@@ -78,7 +78,7 @@ export interface Auction {
   pigeon: Pigeon;
   sex: 'male' | 'female' | 'young';
   location: string;
-  seller: Seller;
+  seller?: Seller;
   images: string[];
   videos: string[];
   documents: string[];
