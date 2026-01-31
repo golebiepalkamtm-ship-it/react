@@ -1,6 +1,6 @@
 import { prisma } from '../lib/db.js';
 import NotificationManager from './NotificationManager.js';
-import logger from '../lib/logger.ts';
+import logger from '../lib/logger';
 import { Prisma, PaymentType, PaymentStatus, AuctionStatus } from '@prisma/client';
 
 /**

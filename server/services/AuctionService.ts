@@ -2,7 +2,7 @@ import { prisma } from '../lib/db.js';
 import { getIO } from '../lib/socket.js';
 import NotificationManager from './NotificationManager.js';
 import { smsService } from '../lib/sms.js';
-import logger from '../lib/logger.ts';
+import logger from '../lib/logger';
 import { AuctionErrorCodes, createAuctionError } from '../utils/auctionErrors.js';
 import { Prisma } from '@prisma/client';
 import type { Bid, Auction, User } from '@prisma/client';

@@ -12,12 +12,12 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": false,
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["**/*.ts", "**/*.d.ts", "lib/*.js"],
   "exclude": ["node_modules", "dist", "tests"]

@@ -4,13 +4,15 @@ const alreadySent = new Set<string>();
 
 const key = (scope: MetricScope, targetId?: string) => `${scope}:${targetId ?? 'global'}`;
 
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
 export async function trackMetric(scope: MetricScope, targetId?: string) {
   const memoKey = key(scope, targetId);
   if (alreadySent.has(memoKey)) return;
   alreadySent.add(memoKey);
 
   try {
-    const res = await fetch('/api/metrics/track', {
+    const res = await fetch(`${baseUrl}/api/metrics/track`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

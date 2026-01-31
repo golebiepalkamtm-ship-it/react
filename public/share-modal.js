@@ -57,6 +57,11 @@
   function init() {
     try {
       if (!doc || typeof doc.addEventListener !== 'function') return;
+
+      // Check if there are any elements that would use the modal
+      var hasShareElements = doc.querySelector('[data-share-open], [data-share-close], [data-share-modal]');
+      if (!hasShareElements) return;
+
       doc.removeEventListener('click', handleClick, false);
       doc.removeEventListener('keydown', handleKeydown, false);
       doc.addEventListener('click', handleClick, false);
