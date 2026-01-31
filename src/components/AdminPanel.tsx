@@ -257,6 +257,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'delete' | 'verify') => {
     if (!session?.access_token) return;
+    if (userId === profile?.id && (action === 'ban' || action === 'delete')) {
+      toast.error('Nie możesz wykonać tej akcji na swoim koncie.');
+      return;
+    }
     try {
       if (action === 'delete') {
          if (!confirm('Czy na pewno chcesz usunąć tego użytkownika? To operacja nieodwracalna.')) return;
@@ -284,7 +288,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     if (!editingUser || !session?.access_token) return;
 
     try {
-      await apiClient.patch(`/admin/users/${editingUser.id}`, editingUser, session.access_token);
+      const { password, ...payload } = editingUser;
+      await apiClient.patch(`/admin/users/${editingUser.id}`, payload, session.access_token);
+      if (password) {
+        await apiClient.patch(`/admin/users/${editingUser.id}/password`, { password }, session.access_token);
+      }
       toast.success('Użytkownik zaktualizowany');
       setEditingUser(null);
       fetchData();
@@ -394,7 +402,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[95vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
+            className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-visible pointer-events-auto bg-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
             initial={{ opacity: 0, scale: 0.9, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 50 }}

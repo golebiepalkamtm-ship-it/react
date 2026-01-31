@@ -110,6 +110,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
   const modalPos = useRef({ x: 0, y: 0 });
+  const previousBodyOverflow = useRef<string | null>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -120,12 +121,17 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      if (typeof document !== 'undefined') {
+        previousBodyOverflow.current = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+      }
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      if (typeof document !== 'undefined' && previousBodyOverflow.current !== null) {
+        document.body.style.overflow = previousBodyOverflow.current;
+      }
     };
   }, [isOpen, closeOnEscape, onClose]);
 
@@ -171,6 +177,8 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (draggable && window.innerWidth >= 768) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -189,7 +197,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4"
+          className="fixed inset-0 z-50 flex items-start justify-center p-0 md:p-4 overflow-y-auto"
         >
           {/* Backdrop */}
           <motion.div
@@ -213,7 +221,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
               stiffness: 400,
               duration: 0.2
             }}
-            className={`relative w-full ${sizeConfig[size]} bg-gray-900/90 rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-hidden flex flex-col ${containerClassName}`}
+            className={`relative w-full ${sizeConfig[size]} bg-gray-900/90 rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-visible flex flex-col ${containerClassName}`}
             style={{ cursor: draggable && window.innerWidth >= 768 ? 'move' : 'default' }}
             onMouseDown={(e) => {
               // Tylko na desktop i tylko gdy kliknięto w header
@@ -257,7 +265,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
               )}
             </div>
             
-            <div className={`relative z-10 flex-1 ${bodyScrollable ? 'overflow-y-auto' : 'overflow-y-hidden'}`}>
+            <div className={`relative z-10 flex-1 ${bodyScrollable ? 'overflow-auto' : 'overflow-hidden'}`}>
               <div className="w-full max-w-5xl mx-auto px-2 md:px-3 pt-0 pb-1 md:pt-0 md:pb-1">
                 {children}
               </div>

@@ -521,7 +521,7 @@ const Header = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div 
-            className="md:hidden absolute top-full left-0 right-0 bg-hero-gradient/95 backdrop-blur-md border-t border-primary/20"
+            className="md:hidden absolute top-full left-0 right-0 bg-hero-gradient border-t border-primary/20"
             initial={{ opacity: 0, height: 0, y: -20 }}
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0, y: -20 }}

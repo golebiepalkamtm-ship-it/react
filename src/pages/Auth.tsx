@@ -39,6 +39,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -269,7 +270,7 @@ export default function Auth() {
             muted
             loop
             playsInline
-            className="absolute inset-0 w-full h-full object-contain scale-[0.78] translate-x-[10%]"
+            className="absolute inset-0 w-full h-full object-contain scale-[0.78] translate-x-[10%] translate-y-16 sm:translate-y-24 lg:translate-y-32"
           />
 
           <div className="absolute inset-0 pointer-events-none">
@@ -286,19 +287,19 @@ export default function Auth() {
             initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.6 }}
-            className="absolute top-32 right-[36%] sm:top-36 sm:right-[36%] z-30 drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+            className="absolute top-20 left-[10%] sm:top-36 sm:left-[14%] z-30 drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)] max-w-[240px] sm:max-w-[320px] lg:max-w-[420px]"
             style={{ perspective: 1200 }}
           >
             <motion.div
-              className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-2xl px-6 py-5 shadow-[0_30px_80px_rgba(0,0,0,0.4)] text-right"
+              className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-2xl px-6 py-5 shadow-[0_30px_80px_rgba(0,0,0,0.4)] flex flex-col items-center text-center"
               whileHover={reduceMotion ? undefined : { rotateX: -6, rotateY: 6, scale: 1.02 }}
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
               style={{ transformStyle: "preserve-3d" }}
             >
-              <h1 className="font-display text-5xl xl:text-6xl text-white tracking-tight">
+              <h1 className="font-display text-4xl sm:text-5xl xl:text-6xl text-white tracking-tight leading-tight text-center whitespace-nowrap">
                 Pałka <span className="text-gold">MTM</span>
               </h1>
-              <p className="text-white/80 mt-3 text-lg tracking-wide font-light">
+              <p className="text-white/80 mt-2 text-base sm:text-lg tracking-wide font-light text-center">
                 Mistrzowie sprintu
               </p>
             </motion.div>
@@ -401,19 +402,19 @@ export default function Auth() {
             <form className="space-y-3" onSubmit={onSubmit}>
               {mode === "register" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white" htmlFor="name">
-                    Imię i nazwisko
+                  <label className="text-sm font-medium text-white" htmlFor="username">
+                    Nick (wyświetlana nazwa)
                   </label>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                     <Input
-                      id="name"
+                      id="username"
                       type="text"
-                      value={email.split("@")[0]}
-                      onChange={() => {}}
-                      placeholder="Jan Kowalski"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="np. champion-123"
                       className="pl-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                      disabled
+                      required
                     />
                   </div>
                 </div>

@@ -397,6 +397,39 @@ export default function Account() {
         <div className="container mx-auto px-4 space-y-6">
           <motion.div
             className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] p-6 md:p-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+
+            <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 items-center">
+              <div className="order-2 lg:order-1 relative h-[520px] sm:h-[640px] lg:h-[780px] pt-32 sm:pt-44 lg:pt-56 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/10 via-transparent to-gold/5 blur-3xl" />
+                <video
+                  src="/pigeon-tlo-Picsart-BackgroundRemover.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="relative w-full h-full object-contain translate-y-24 sm:translate-y-36 lg:translate-y-48"
+                />
+              </div>
+
+              <div className="order-1 lg:order-2 space-y-4">
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-light to-gold">
+                  {t("account.title")}
+                </h2>
+                <p className="text-white/70 leading-relaxed">
+                  Płynne intro z sylwetką gołębia zostało obniżone, aby nie kolidowało z nagłówkiem i lepiej eksponowało sekcję statusu konta.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] p-6 md:p-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}

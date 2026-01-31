@@ -12,6 +12,11 @@ import type { LucideIcon } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import FileUpload from '@/components/FileUpload';
 
+const MAX_IMAGE_FILES = 10;
+const MAX_IMAGE_SIZE_MB = 20;
+const MAX_VIDEO_FILES = 2;
+const MAX_VIDEO_SIZE_MB = 50;
+
 export interface FormControls {
   goBack: () => void;
   submit: () => void;
@@ -691,6 +696,24 @@ const CreateAuctionForm = ({
       return;
     }
 
+    const startingPriceNumber = Number(formData.startingPrice ?? 0);
+    const buyNowPriceNumber = Number(formData.buyNowPrice ?? 0);
+
+    if (isBidding && (!startingPriceNumber || startingPriceNumber <= 0)) {
+      setError('Cena wywoławcza musi być większa niż 0.');
+      return;
+    }
+
+    if (isBuyNow && (!buyNowPriceNumber || buyNowPriceNumber <= 0)) {
+      setError('Cena Kup Teraz musi być większa niż 0.');
+      return;
+    }
+
+    if (isBidding && isBuyNow && buyNowPriceNumber < startingPriceNumber) {
+      setError('Cena Kup Teraz musi być większa lub równa cenie wywoławczej.');
+      return;
+    }
+
     if (isPigeonCategory) {
       const ringNumber = formData.pigeon?.ringNumber?.trim();
       if (!ringNumber) {
@@ -701,8 +724,12 @@ const CreateAuctionForm = ({
         return;
       }
     } else {
-      // Dla kategorii innych niż gołębie, usuń dane gołębia lub ustaw wartości domyślne/puste
-      formData.pigeon = undefined;
+      setFormData((prev) => ({ ...prev, pigeon: undefined }));
+    }
+
+    if (!formData.category) {
+      setError('Wybierz kategorię aukcji.');
+      return;
     }
 
     if (!session?.access_token) {
@@ -729,34 +756,36 @@ const CreateAuctionForm = ({
 
       const imageUrls: string[] = [];
       if (pigeonFiles.length > 0) {
-        if (pigeonFiles.length > 20) {
-          throw new Error('Zbyt wiele zdjęć (max 20).');
+        if (pigeonFiles.length > MAX_IMAGE_FILES) {
+          throw new Error(`Zbyt wiele zdjęć (max ${MAX_IMAGE_FILES}).`);
         }
         toast.loading(`Przesyłam zdjęcia (0/${pigeonFiles.length})...`, { id: toastId });
         for (let i = 0; i < pigeonFiles.length; i++) {
           const file = pigeonFiles[i];
-          if (file.size > 5 * 1024 * 1024) {
-            throw new Error('Każde zdjęcie musi być <= 5MB.');
+          if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+            throw new Error(`Każde zdjęcie musi być <= ${MAX_IMAGE_SIZE_MB}MB.`);
           }
           toast.loading(`Przesyłam zdjęcia (${i + 1}/${pigeonFiles.length})...`, { id: toastId });
           const res = await uploadService.uploadImage(file, token);
           imageUrls.push(res.url);
         }
+      } else {
+        throw new Error('Dodaj co najmniej jedno zdjęcie.');
       }
 
       const videoUrls: string[] = [];
       if (videoFiles.length > 0) {
-        if (videoFiles.length > 10) {
-          throw new Error('Zbyt wiele filmów (max 10).');
+        if (videoFiles.length > MAX_VIDEO_FILES) {
+          throw new Error(`Zbyt wiele filmów (max ${MAX_VIDEO_FILES}).`);
         }
         toast.loading(`Przesyłam filmy (0/${videoFiles.length})...`, { id: toastId });
         for (let i = 0; i < videoFiles.length; i++) {
           const file = videoFiles[i];
-          if (file.size > 20 * 1024 * 1024) {
-            throw new Error('Każdy film musi być <= 20MB.');
+          if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+            throw new Error(`Każdy film musi być <= ${MAX_VIDEO_SIZE_MB}MB.`);
           }
           toast.loading(`Przesyłam filmy (${i + 1}/${videoFiles.length})...`, { id: toastId });
-          const res = await uploadService.uploadImage(file, token);
+          const res = await uploadService.uploadVideo(file, token);
           videoUrls.push(res.url);
         }
       }
@@ -768,12 +797,19 @@ const CreateAuctionForm = ({
 
       const ringNumber = formData.pigeon?.ringNumber?.trim();
 
+      const mapCategory = (category: string): CreateAuctionRequest['category'] => {
+        if (category === 'pigeons') return 'RACING';
+        if (category === 'supplements') return 'SHOW';
+        if (category === 'accessories') return 'BREEDING';
+        return category as CreateAuctionRequest['category'];
+      };
+
       const auctionData: CreateAuctionRequest = {
         title: formData.title || '',
         description: formData.description || '',
-        startingPrice: isBidding ? (Number(formData.startingPrice) || 100) : undefined,
-        buyNowPrice: isBuyNow ? (Number(formData.buyNowPrice) || undefined) : undefined,
-        category: formData.category || 'RACING', // Default to RACING if generic
+        startingPrice: isBidding ? startingPriceNumber : undefined,
+        buyNowPrice: isBuyNow ? buyNowPriceNumber : undefined,
+        category: mapCategory(formData.category || 'RACING'),
         sex: formData.sex as 'male' | 'female',
         location: formData.location || 'Lubań, Polska',
         images: imageUrls,
@@ -785,11 +821,6 @@ const CreateAuctionForm = ({
           gender: formData.sex as 'male' | 'female',
         } : {},
       };
-
-      // Mapowanie kategorii z formularza na enum API
-      if (auctionData.category === 'pigeons') auctionData.category = 'RACING';
-      if (auctionData.category === 'supplements') auctionData.category = 'SHOW'; // Tymczasowe mapowanie
-      if (auctionData.category === 'accessories') auctionData.category = 'BREEDING'; // Tymczasowe mapowanie
 
       await auctionService.createAuction(auctionData, token);
       
@@ -1078,7 +1109,6 @@ const CreateAuctionForm = ({
                     >
                       <option value="male" className="bg-slate-900 text-white">Samiec</option>
                       <option value="female" className="bg-slate-900 text-white">Samica</option>
-                      <option value="young" className="bg-slate-900 text-white">Płeć nieustalona (Młody)</option>
                     </select>
                   </div>
                 </motion.div>

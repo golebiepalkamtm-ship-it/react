@@ -53,7 +53,6 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'security' | 'auctions'>('overview');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const dragConstraintsRef = useRef(null);
   const [firstName, setFirstName] = useState(profile?.first_name ?? '');
   const [lastName, setLastName] = useState(profile?.last_name ?? '');
@@ -142,16 +141,16 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
     }
   };
 
-  const handleDragEnd = useCallback((event: any, info: PanInfo) => {
-    const { offset, velocity } = info;
-    const swipeThreshold = 50;
-    const velocityThreshold = 500;
-    
-    if (Math.abs(offset.y) > swipeThreshold || Math.abs(velocity.y) > velocityThreshold) {
-      onClose();
-    }
-    setIsDragging(false);
-  }, [onClose]);
+  useEffect(() => {
+    if (!profile) return;
+    setFirstName(profile.first_name ?? '');
+    setLastName(profile.last_name ?? '');
+    setStreet(profile.street ?? '');
+    setPostalCode(profile.postal_code ?? '');
+    setCity(profile.city ?? '');
+    setCountry(profile.country ?? '');
+    setPhone(profile.phone ?? '');
+  }, [profile]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -184,7 +183,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             ease: [0.4, 0, 0.2, 1],
             scale: { type: "spring", stiffness: 300, damping: 30 }
           }}
-          className="relative w-full md:max-w-7xl h-[100vh] md:h-auto md:max-h-[90vh] flex flex-col overflow-y-auto scrollbar-hide pointer-events-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
+          className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-visible pointer-events-auto bg-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
           drag
           dragConstraints={dragConstraintsRef}
           dragMomentum={false}
@@ -216,7 +215,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
-            className="relative flex-shrink-0 p-6 md:p-8 border-b border-white/10 bg-gray-900/80 backdrop-blur-sm"
+            className="relative flex-shrink-0 p-6 md:p-8 border-b border-white/10 bg-gray-900"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
