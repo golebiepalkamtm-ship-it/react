@@ -1,12 +1,13 @@
 FROM node:22-alpine AS base
 WORKDIR /app
 # Invalidate cache
-COPY package*.json ./
+COPY server/package*.json ./
+COPY server/package-lock.json ./
 RUN npm ci --legacy-peer-deps
 RUN npm install -g typescript
-COPY prisma ./prisma
+COPY server/prisma ./prisma
 RUN npx prisma generate
-COPY . ./
+COPY server ./
 RUN tsc --skipLibCheck
 
 FROM node:22-alpine
