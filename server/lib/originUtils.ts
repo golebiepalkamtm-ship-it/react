@@ -14,6 +14,7 @@ const STATIC_CLIENT_ORIGINS = [
   'https://champion-pigeon-web.onrender.com',
   'https://palkamtm.pl',
   'https://www.palkamtm.pl',
+  'https://server-production-0e43.up.railway.app',
   'https://net-pocket.com',
   'https://www.net-pocket.com',
   'https://api.net-pocket.com',
