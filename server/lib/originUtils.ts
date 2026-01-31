@@ -73,7 +73,8 @@ const isProdWildcardOrigin = (origin: string) =>
   validatedEnv.NODE_ENV === 'production' && PROD_WILDCARD_PATTERNS.some(pattern => pattern.test(origin));
 
 export const isAllowedOrigin = (origin?: string) => {
-  if (!origin) return false;
+  // Allow requests with no origin (mobile apps, curl, etc.)
+  if (!origin) return true;
   if (origin === validatedEnv.API_URL) return true; // Allow self
   if (getAllowedOrigins().includes(origin)) return true;
   return isDevOrigin(origin) || isProdWildcardOrigin(origin);
