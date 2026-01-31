@@ -6,7 +6,7 @@ import { validate } from '../middleware/validation.js';
 import { z } from 'zod';
 
 // Import types from Prisma client
-import type { Payment, PaymentStatus, PaymentProvider, PaymentType } from '@prisma/client';
+// import type { Payment, PaymentStatus, PaymentProvider, PaymentType } from '@prisma/client';
 
 const router: Router = express.Router();
 
