@@ -15,6 +15,20 @@
       }
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://server-production-0e43.up.railway.app/api/$1"
+    },
+    {
+      "source": "/socket.io/(.*)",
+      "destination": "https://server-production-0e43.up.railway.app/socket.io/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
   "redirects": [
     {
       "source": "/(.*)",
@@ -24,17 +38,6 @@
         {
           "type": "host",
           "value": "palkamtm.pl"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "destination": "https://www.palkamtm.pl/$1",
-      "permanent": true,
-      "has": [
-        {
-          "type": "host",
-          "value": "golebiepalkamtm-ship-it-react.vercel.app"
         }
       ]
     }
