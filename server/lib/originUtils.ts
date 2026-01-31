@@ -74,6 +74,7 @@ const isProdWildcardOrigin = (origin: string) =>
 
 export const isAllowedOrigin = (origin?: string) => {
   if (!origin) return false;
+  if (origin === validatedEnv.API_URL) return true; // Allow self
   if (getAllowedOrigins().includes(origin)) return true;
   return isDevOrigin(origin) || isProdWildcardOrigin(origin);
 };
