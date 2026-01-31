@@ -3,6 +3,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps
 RUN npm install -g typescript
+COPY prisma ./prisma
+RUN npx prisma generate
 COPY . ./
 RUN tsc --skipLibCheck
 
