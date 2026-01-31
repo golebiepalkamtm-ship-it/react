@@ -12,7 +12,8 @@ export async function trackMetric(scope: MetricScope, targetId?: string) {
   alreadySent.add(memoKey);
 
   try {
-    const res = await fetch(`${baseUrl}/api/metrics/track`, {
+    const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+    const res = await fetch(`${cleanBaseUrl}/metrics/track`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
