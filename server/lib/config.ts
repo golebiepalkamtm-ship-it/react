@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import logger from './logger.js';
+import logger from './logger.ts';
 
 // Schema walidacji zmiennych środowiskowych
 const envSchema = z.object({

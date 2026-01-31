@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
-import logger from '../lib/logger.js';
+import logger from '../lib/logger.ts';
 
 // Redis store (optional - uncomment if you have Redis)
 // import RedisStore from 'rate-limit-redis';

@@ -16,12 +16,14 @@ if (gaId) {
   gtag('config', gaId as any);
 }
 
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    Promise.all([
-      navigator.serviceWorker.getRegistrations().then((regs) => Promise.all(regs.map((r) => r.unregister()))),
-      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-    ]).catch(() => {});
+    navigator.serviceWorker.register('/sw-vite.js', { scope: '/' })
+      .then(registration => {
+        console.log('SW registered: ', registration);
+      }).catch(registrationError => {
+        console.log('SW registration failed: ', registrationError);
+      });
   });
 }
 

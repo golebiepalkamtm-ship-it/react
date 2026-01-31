@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { z } from 'zod';
-import logger from '../lib/logger.js';
+import logger from '../lib/logger.ts';
 import { bidRateLimiter } from '../middleware/rateLimit.js';
 import { verifyJWTTokenWithRole } from '../utils/tokenVerifier.js';
 import { validatedEnv } from '../lib/env.js';
