@@ -730,22 +730,29 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
                 </p>
                 
                 <div className="flex flex-col gap-2">
-                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}>
                     <div className="w-5 h-5 bg-blue-500 rounded"></div>
                     <span>Facebook</span>
                   </button>
                   
-                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`, '_blank')}>
                     <div className="w-5 h-5 bg-sky-500 rounded"></div>
                     <span>Twitter</span>
                   </button>
                   
-                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank')}>
                     <div className="w-5 h-5 bg-green-500 rounded"></div>
                     <span>WhatsApp</span>
                   </button>
                   
-                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left">
+                  <button className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left" onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(window.location.href);
+                      alert('Link skopiowany do schowka!');
+                    } catch (err) {
+                      console.error('Błąd kopiowania:', err);
+                    }
+                  }}>
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
                     </svg>

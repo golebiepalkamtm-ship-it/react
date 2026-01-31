@@ -630,51 +630,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { data, error } = await client
       .from('users')
-      .update(safeUpdates) // Use update, not upsert
-      .eq('id', user.id)
+      .upsert({ id: user.id, ...safeUpdates })
       .select('*')
       .maybeSingle();
 
-    if (!error && !data) {
-      logger.warn('User profile missing during update, attempting to create...', { userId: user.id });
-      
-      // Calculate correct initial role based on verification status
-      const userWithVerifications: UserWithVerifications = {
-        id: user.id,
-        email: user.email,
-        email_confirmed_at: (user as any).email_confirmed_at || (user as any).confirmed_at,
-        phone: user.phone,
-        phone_confirmed_at: (user as any).phone_confirmed_at,
-        role: 'USER_REGISTERED'
-      };
-      const calculatedRole = calculateRole(userWithVerifications);
-      
-      // Prepare insert payload
-      const insertPayload = {
-        id: user.id,
-        email: user.email,
-        role: calculatedRole,
-        ...safeUpdates
-      };
-      
-      const insertResult = await client
-        .from('users')
-        .insert(insertPayload)
-        .select('*')
-        .single();
-        
-      if (insertResult.error) {
-        logger.error('Error creating missing profile:', insertResult.error);
-        throw insertResult.error;
-      }
-      
-      // Success
-      await refreshSession();
-      return;
-    }
-
     if (error) {
-      logger.error('Error updating profile:', { error, payload });
+      logger.error('Error upserting profile:', { error, payload });
       // Re-throw so callers can show a friendly message
       throw error;
     }

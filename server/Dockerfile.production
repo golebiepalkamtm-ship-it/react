@@ -42,6 +42,9 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
+# Run metrics migration
+RUN node scripts/run-metrics-migration.js
+
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001

@@ -487,60 +487,62 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
               {t('account.security.title')}
             </h3>
             <div className="mt-4 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-white flex items-center gap-2">
-                  <Lock className="w-3 h-3" />
-                  Nowe hasło
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Nowe hasło"
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-white flex items-center gap-2">
-                  <Lock className="w-3 h-3" />
-                  Potwierdź hasło
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Potwierdź hasło"
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
-                />
-              </div>
-              <AnimatePresence>
-                {passError && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg overflow-hidden"
-                  >
-                    <p className="text-red-400 text-sm">{passError}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={passSaving}
-                  onClick={onChangePassword}
-                  className="px-6 py-2 bg-gold text-navy hover:bg-gold/90 hover:shadow-lg hover:shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+              <form onSubmit={async (e) => { e.preventDefault(); await onChangePassword(); }}>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Lock className="w-3 h-3" />
+                    Nowe hasło
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Nowe hasło"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Lock className="w-3 h-3" />
+                    Potwierdź hasło
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Potwierdź hasło"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                  />
+                </div>
+                <AnimatePresence>
+                  {passError && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg overflow-hidden"
+                    >
+                      <p className="text-red-400 text-sm">{passError}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
                 >
-                  <Shield className="w-4 h-4" />
-                  {passSaving ? 'Zapisywanie…' : 'Zmień hasło'}
-                </motion.button>
-              </motion.div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={passSaving}
+                    type="submit"
+                    className="px-6 py-2 bg-gold text-navy hover:bg-gold/90 hover:shadow-lg hover:shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <Shield className="w-4 h-4" />
+                    {passSaving ? 'Zapisywanie…' : 'Zmień hasło'}
+                  </motion.button>
+                </motion.div>
+              </form>
             </div>
           </motion.div>
         )}
