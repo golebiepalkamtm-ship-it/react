@@ -1,16 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
+import { getSupabaseOrigins, getStripeOrigins, getFontOrigins, getGoogleAuthOrigins } from '../lib/originUtils.js';
 
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' blob: https://*.supabase.co https://accounts.google.com https://www.google.com https://www.gstatic.com;
-    script-src-elem 'self' 'unsafe-eval' blob: https://*.supabase.co https://accounts.google.com https://www.google.com https://www.gstatic.com;
-    worker-src 'self' blob: data: https://*.supabase.co;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com;
-    style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com;
-    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://www.google.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.cdn.example.com;
-    img-src 'self' data: https: blob: https://*.supabase.co https://*.cdn.example.com;
-    frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://maps.google.com https://www.google.com https://accounts.google.com;
-    font-src 'self' data: https: https://fonts.gstatic.com https://fonts.googleapis.com;
+    script-src 'self' 'unsafe-eval' blob: ${getSupabaseOrigins().join(' ')} ${getGoogleAuthOrigins().join(' ')};
+    script-src-elem 'self' 'unsafe-eval' blob: ${getSupabaseOrigins().join(' ')} ${getGoogleAuthOrigins().join(' ')};
+    worker-src 'self' blob: data: ${getSupabaseOrigins().join(' ')};
+    style-src 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
+    style-src-elem 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
+    connect-src 'self' ${getSupabaseOrigins().concat('wss://*.supabase.co').join(' ')} ${getGoogleAuthOrigins().join(' ')} ${getFontOrigins().join(' ')} ${getStripeOrigins().join(' ')};
+    img-src 'self' data: https: blob: ${getSupabaseOrigins().join(' ')};
+    frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://maps.google.com ${getGoogleAuthOrigins().join(' ')} ${getStripeOrigins().join(' ')};
+    font-src 'self' data: https: ${getFontOrigins().join(' ')};
     object-src 'none';
     base-uri 'self';
     form-action 'self';

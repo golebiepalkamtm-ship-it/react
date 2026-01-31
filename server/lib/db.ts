@@ -67,6 +67,12 @@ console.log('📡 Database Connection Check:', {
   prismaInitialized: !!prisma
 });
 
+// Fail-fast in production if DATABASE_URL is missing
+if (process.env.NODE_ENV === 'production' && !validatedEnv.DATABASE_URL) {
+  console.error('❌ CRITICAL: DATABASE_URL is required in production but not provided');
+  process.exit(1);
+}
+
 // Use validated environment variables
 const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } = validatedEnv;
 

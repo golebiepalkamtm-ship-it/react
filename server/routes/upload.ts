@@ -7,6 +7,7 @@ import type { AuthenticatedRequest } from '../middleware/unifiedAuth.js';
 import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { validatedEnv } from '../lib/env.js';
+import logger from '../lib/logger.js';
 
 const router: Router = express.Router();
 
@@ -50,21 +51,25 @@ allowedMimeTypes.forEach(mime => {
   }
 });
 
-const DANGEROUS_EXTENSIONS = ['.html', '.htm', '.js', '.jsx', '.ts', '.tsx', '.svg', '.php', '.asp', '.aspx', '.jsp', '.py', '.rb', '.pl', '.sh', '.bat', '.cmd', '.exe', '.msi', '.deb', '.rpm', '.dmg', '.app'];
-
 const MIME_MAGIC_NUMBERS: { [key: string]: Buffer } = {
   'image/jpeg': Buffer.from([0xFF, 0xD8, 0xFF]),
   'image/png': Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
   'image/webp': Buffer.from([0x52, 0x49, 0x46, 0x46]),
-  'application/pdf': Buffer.from([0x25, 0x50, 0x44, 0x46])
+  'application/pdf': Buffer.from([0x25, 0x50, 0x44, 0x46]),
+  'video/mp4': Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70]), // ftyp
+  'video/webm': Buffer.from([0x1A, 0x45, 0xDF, 0xA3]) // EBML
 };
 
+const DANGEROUS_EXTENSIONS = [
+  '.html', '.htm', '.js', '.jsx', '.ts', '.tsx', '.svg', '.php', '.asp', '.aspx', '.jsp', '.py', '.rb', '.pl', '.sh', '.bat', '.cmd', '.exe', '.msi', '.deb', '.rpm', '.dmg', '.app'
+];
+
 function sanitizeFilename(filename: string): string {
+  // Remove path separators and dangerous characters
   return filename
-    .replace(/[^a-zA-Z0-9.-]/g, '_')
-    .replace(/_{2,}/g, '_')
-    .replace(/^_|_$/g, '')
-    .toLowerCase();
+    .replace(/[<>:"/\\|?*]/g, '')
+    .replace(/\.\./g, '')
+    .substring(0, 255);
 }
 
 function validateFileType(buffer: Buffer, mimetype: string): boolean {
@@ -80,7 +85,7 @@ function validateFileType(buffer: Buffer, mimetype: string): boolean {
 }
 
 function containsMaliciousContent(buffer: Buffer, mimetype: string): boolean {
-  const content = buffer.toString('utf8', 0, Math.min(1024, buffer.length));
+  const content = buffer.toString('utf8', 0, Math.min(16384, buffer.length)); // 16 KB
   
   if (mimetype === 'image/svg+xml' || content.includes('<svg')) {
     return content.includes('<script') || content.includes('javascript:') || content.includes('onload=');
@@ -188,7 +193,7 @@ router.post('/image', unifiedAuthMiddleware, upload.single('file'), async (req: 
       });
     }
   } catch (err) {
-    console.error('Image upload error:', err);
+    logger.error('Image upload error', { error: err instanceof Error ? err.message : err });
     res.status(500).json({ error: 'Upload failed' });
   }
 });
@@ -205,7 +210,7 @@ router.post('/document', unifiedAuthMiddleware, upload.single('file'), async (re
 
     if (!req.user?.userId) return res.status(401).json({ error: 'Unauthorized' });
     if (!supabase) {
-      console.error('Supabase not configured');
+      logger.error('Supabase not configured');
       return res.status(500).json({ error: 'Supabase not configured' });
     }
     

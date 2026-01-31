@@ -1,5 +1,14 @@
 import { validatedEnv } from './env.js';
 
+const parseOrigin = (input?: string | null) => {
+  if (!input) return null;
+  try {
+    return new URL(input).origin;
+  } catch {
+    return null;
+  }
+};
+
 const STATIC_CLIENT_ORIGINS = [
   validatedEnv.CLIENT_URL,
   'https://champion-pigeon-web.onrender.com',
@@ -80,11 +89,23 @@ export const isAllowedReferer = (referer?: string) => {
   }
 };
 
-const parseOrigin = (input?: string | null) => {
-  if (!input) return null;
-  try {
-    return new URL(input).origin;
-  } catch {
-    return null;
-  }
-};
+export const getCsrfSkipPaths = () => [
+  '/api/webhooks/stripe',
+  '/api/health',
+  '/api/breeder-meetings',
+  '/api/upload/image', // Zawężone do konkretnych tras
+  '/api/upload/document',
+  '/socket.io/'
+];
+
+export const getCorsOptions = () => ({
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    console.warn(`CORS blocked origin: ${origin}`);
+    return callback(new Error('CORS: Origin not allowed'));
+  },
+  credentials: true,
+  maxAge: 86400
+});
+
+export const getCsrfAllowedOrigins = () => getAllowedOrigins();

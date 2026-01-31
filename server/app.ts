@@ -29,6 +29,7 @@ import { authMiddleware } from './middleware/auth.js';
 import { cspMiddleware } from './middleware/csp.js';
 import { validateCSRFToken, setCSRFToken } from './middleware/csrf.js';
 import { validatedEnv } from './lib/env.js';
+import { getCorsOptions, getAllowedOrigins } from './lib/originUtils.js';
 import AuctionCronService from './services/AuctionCronService.js';
 
 const app: Application = express();
@@ -36,46 +37,8 @@ const app: Application = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const allowedOrigins = [
-  validatedEnv.CLIENT_URL,
-  'https://champion-pigeon-web.onrender.com',
-  'https://champion-pigeon-auctions.vercel.app',
-  'https://golebiepalkamtm-ship-it-react-9r004yvro.vercel.app',
-  'https://palkamtm.pl',
-  'https://www.palkamtm.pl',
-  'https://net-pocket.com',
-  'https://www.net-pocket.com',
-  'https://api.net-pocket.com',
-  ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [])
-].filter(Boolean);
-
-const isAllowedOrigin = (origin?: string) => {
-  if (!origin) return false;
-  if (allowedOrigins.includes(origin)) return true;
-
-  // Allow wildcard hosts only in production
-  if (validatedEnv.NODE_ENV === 'production') {
-    if (/^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin)) return true;
-    if (/^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)) return true;
-  }
-
-  // Development convenience: allow localhost/127.x and local LAN host (e.g. 172.22.x.x) to match Vite preview
-  if (validatedEnv.NODE_ENV === 'development') {
-    const devHostPattern = /^https?:\/\/((localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}))(:\d+)?$/;
-    if (devHostPattern.test(origin)) return true;
-  }
-
-  return false;
-};
-
 const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin) return callback(null, true);
-    if (isAllowedOrigin(origin)) return callback(null, true);
-    console.warn(`CORS blocked origin: ${origin}`);
-    return callback(new Error('CORS: Origin not allowed'));
-  },
-  credentials: true,
+  ...getCorsOptions(),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
     'Origin',
@@ -116,7 +79,14 @@ app.use(cookieParser());
 app.set('trust proxy', 1); // Fix X-Forwarded-For warning
 app.use(globalLimiter);
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public'), {
+  setHeaders: (res, path) => {
+    // No-cache for sourcemaps in production
+    if (validatedEnv.NODE_ENV === 'production' && path.endsWith('.map')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -176,5 +146,5 @@ app.use(errorHandler);
 const auctionCronService = AuctionCronService.getInstance();
 auctionCronService.start();
 
-export { allowedOrigins };
+export { getAllowedOrigins as allowedOrigins };
 export default app;

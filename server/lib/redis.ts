@@ -8,7 +8,8 @@ const hasRedisConfig = Boolean(
   validatedEnv.REDIS_PORT
 );
 
-let redisClient: RedisClientType | null = null;
+let redisClient: any | null = null;
+let isRedisReady = false;
 
 const createRedisClient = () => {
   if (!hasRedisConfig) return null;
@@ -29,20 +30,28 @@ const createRedisClient = () => {
 
   client.on('error', (err) => {
     logger.error('Redis client error', { error: err.message });
+    isRedisReady = false;
   });
 
   client.on('reconnecting', () => {
     logger.warn('Redis client reconnecting');
+    isRedisReady = false;
   });
 
   client.on('ready', () => {
     logger.info('Redis client ready');
+    isRedisReady = true;
+  });
+
+  client.on('end', () => {
+    isRedisReady = false;
   });
 
   client
     .connect()
     .catch((err) => {
       logger.error('Redis connection failed', { error: err.message });
+      isRedisReady = false;
     });
 
   return client;
@@ -51,4 +60,5 @@ const createRedisClient = () => {
 redisClient = createRedisClient();
 
 export const isRedisEnabled = () => Boolean(redisClient);
+export const getRedisReady = () => isRedisReady;
 export default redisClient;

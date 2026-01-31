@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { validatedEnv } from '../lib/env.js';
 import { AuthenticatedRequest } from './unifiedAuth.js';
+import { getCsrfSkipPaths, getCsrfAllowedOrigins, isAllowedOrigin, isAllowedReferer } from '../lib/originUtils.js';
 
 export function generateCSRFToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -14,27 +15,39 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
   }
 
   // Skip CSRF for specific paths (webhooks, health checks, etc.)
-  const skipCSRFPaths = [
-    '/api/webhooks/stripe',
-    '/api/health',
-    '/api/breeder-meetings',
-    '/api/upload', // File uploads handled by multer with different security
-    '/socket.io/'
-  ];
+  const skipCSRFPaths = getCsrfSkipPaths();
   
   if (skipCSRFPaths.some(path => req.path.startsWith(path))) {
+    // Even for skipped paths, validate Origin/Referer and X-Requested-With for multipart/form-data
+    if (req.get('Content-Type')?.includes('multipart/form-data')) {
+      const origin = req.get('Origin');
+      const referer = req.get('Referer');
+      const xRequestedWith = req.get('X-Requested-With');
+
+      if (!origin && !referer) {
+        return res.status(403).json({ error: 'CSRF: Missing Origin or Referer for multipart upload' });
+      }
+
+      if (origin && !isAllowedOrigin(origin)) {
+        console.warn(`CSRF: Invalid origin ${origin} for multipart`);
+        return res.status(403).json({ error: 'CSRF: Invalid origin' });
+      }
+
+      if (referer && !isAllowedReferer(referer)) {
+        console.warn(`CSRF: Invalid referer ${referer} for multipart`);
+        return res.status(403).json({ error: 'CSRF: Invalid referer' });
+      }
+
+      // Require X-Requested-With for multipart uploads
+      if (xRequestedWith !== 'XMLHttpRequest') {
+        return res.status(403).json({ error: 'CSRF: Missing X-Requested-With header for multipart upload' });
+      }
+    }
     return next();
   }
 
-  // Get allowed origins from environment
-  const allowedOrigins = [
-    validatedEnv.CLIENT_URL,
-    'https://champion-pigeon-web.onrender.com',
-    'https://champion-pigeon-auctions.vercel.app',
-    'https://palkamtm.pl',
-    'https://www.palkamtm.pl',
-    ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [])
-  ].filter(Boolean);
+  // Get allowed origins from originUtils
+  const allowedOrigins = getCsrfAllowedOrigins();
 
   // Enhanced Origin/Referer validation
   const origin = req.get('Origin');
@@ -45,38 +58,14 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
     return res.status(403).json({ error: 'CSRF: Missing Origin header for API request' });
   }
 
-  if (origin) {
-    const isDevOrigin = validatedEnv.NODE_ENV === 'development'
-      && /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?$/.test(origin);
-
-    const isWildcardAllowed =
-      validatedEnv.NODE_ENV === 'production' &&
-      (
-        /^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin) ||
-        /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)
-      );
-
-    if (!isDevOrigin && !isWildcardAllowed && !allowedOrigins.includes(origin)) {
-      console.warn(`CSRF: Invalid origin ${origin} from IP ${req.ip}`);
-      return res.status(403).json({ error: 'CSRF: Invalid origin' });
-    }
+  if (origin && !isAllowedOrigin(origin)) {
+    console.warn(`CSRF: Invalid origin ${origin} from IP ${req.ip}`);
+    return res.status(403).json({ error: 'CSRF: Invalid origin' });
   }
 
-  if (referer) {
-    const isDevReferer = validatedEnv.NODE_ENV === 'development'
-      && /^https?:\/\/((localhost|127\.0\.0\.1|172\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d+)?/.test(referer);
-
-    const isWildcardAllowedReferer =
-      validatedEnv.NODE_ENV === 'production' &&
-      (
-        /^https?:\/\/([a-z0-9-]+\.)*onrender\.com/i.test(referer) ||
-        /^https?:\/\/([a-z0-9-]+\.)*vercel\.app/i.test(referer)
-      );
-
-    if (!isDevReferer && !isWildcardAllowedReferer && !allowedOrigins.some(allowed => referer.startsWith(allowed))) {
-      console.warn(`CSRF: Invalid referer ${referer} from IP ${req.ip}`);
-      return res.status(403).json({ error: 'CSRF: Invalid referer' });
-    }
+  if (referer && !isAllowedReferer(referer)) {
+    console.warn(`CSRF: Invalid referer ${referer} from IP ${req.ip}`);
+    return res.status(403).json({ error: 'CSRF: Invalid referer' });
   }
 
   // Check X-Requested-With header (traditional CSRF protection)
@@ -143,23 +132,8 @@ export const validateStateChange = (req: Request, res: Response, next: NextFunct
 // CSRF protection for WebSocket connections
 export const validateWebSocketCSRF = (handshake: any, next: (err?: Error) => void) => {
   const origin = handshake.headers.origin;
-  const allowedOrigins = [
-    validatedEnv.CLIENT_URL,
-    'https://champion-pigeon-web.onrender.com',
-    'https://palkamtm.pl',
-    'https://www.palkamtm.pl',
-    ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [])
-  ].filter(Boolean);
 
-  const isWildcardAllowed =
-    origin &&
-    validatedEnv.NODE_ENV === 'production' &&
-    (
-      /^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin) ||
-      /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)
-    );
-
-  if (!origin || (!isWildcardAllowed && !allowedOrigins.includes(origin))) {
+  if (!origin || !isAllowedOrigin(origin)) {
     return next(new Error('WebSocket origin not allowed'));
   }
 
