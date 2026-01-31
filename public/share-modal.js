@@ -56,7 +56,7 @@
   }
   function init() {
     try {
-      if (!doc || typeof doc.addEventListener !== 'function') return;
+      if (!doc || typeof doc.addEventListener !== 'function' || !doc.querySelector) return;
 
       // Check if there are any elements that would use the modal
       var hasShareElements = doc.querySelector('[data-share-open], [data-share-close], [data-share-modal]');

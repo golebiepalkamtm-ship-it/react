@@ -4,7 +4,7 @@ const alreadySent = new Set<string>();
 
 const key = (scope: MetricScope, targetId?: string) => `${scope}:${targetId ?? 'global'}`;
 
-const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
 export async function trackMetric(scope: MetricScope, targetId?: string) {
   const memoKey = key(scope, targetId);
