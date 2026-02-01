@@ -84,9 +84,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await client
         .from('users')
-        .select('*')
+        .select('id, username, email, avatar_url, role')
         .eq('id', authUser.id)
-        .maybeSingle();
+        .eq('isBlocked', false)
+        .eq('isBanned', false)
+        .single();
 
       if (error) {
         logger.error('Error fetching profile:', error);

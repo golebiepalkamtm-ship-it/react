@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 
 export type ModalState = 'closed' | 'entering' | 'active' | 'loading_internal' | 'success_feedback' | 'exiting';

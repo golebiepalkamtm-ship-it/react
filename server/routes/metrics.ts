@@ -7,7 +7,7 @@ const router: Router = express.Router();
 
 const trackSchema = z.object({
   scope: z.enum(['SITE', 'AUCTION', 'GALLERY_IMAGE']),
-  targetId: z.string().trim().min(1).optional(),
+  targetId: z.string().trim().min(1).optional().nullable(),
 });
 
 /**
@@ -21,19 +21,21 @@ router.post('/track', globalLimiter, async (req, res) => {
     }
     const { scope, targetId } = parsed.data;
 
+    // FIX: Poprawne obsłużenie wartości null
+    const whereCondition = targetId 
+      ? { scope, targetId }
+      : { scope, targetId: null };
+
     const result = await prisma.metric.upsert({
       where: {
-        metrics_scope_target_id_key: {
-          scope,
-          targetId: (targetId ?? null) as any,
-        },
+        metrics_scope_target_id_key: whereCondition,
       },
       update: {
         count: { increment: 1 },
       },
       create: {
         scope,
-        targetId: (targetId ?? null) as any,
+        targetId,
         count: 1,
       },
     });
