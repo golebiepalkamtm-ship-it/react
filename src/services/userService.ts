@@ -44,9 +44,15 @@ export const userService = {
     try {
       if (!supabase) return null;
       
+      // Always include updated_at to prevent constraint violations
+      const updatesWithTimestamp = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+      
       const { data, error } = await supabase
         .from('users')
-        .update(updates)
+        .update(updatesWithTimestamp)
         .eq('id', userId)
         .select()
         .single();
