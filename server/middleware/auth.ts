@@ -49,7 +49,7 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
     const rateLimitKey = `auth:${clientIP}`;
     
     const tokenVerifier = getTokenVerifier();
-    const verificationResult = await tokenVerifier.verifyJWTTokenWithRole(token, rateLimitKey);
+    const verificationResult = await tokenVerifier.verifyTokenWithRole(token, rateLimitKey);
     
     req.user = {
       id: verificationResult.userId,
