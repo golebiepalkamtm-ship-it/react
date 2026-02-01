@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, memo } from 'react';
 
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
@@ -32,7 +32,7 @@ interface LuxuryAuctionDetailProps {
   onEdit?: () => void;
 }
 
-export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
+export const LuxuryAuctionDetail = memo<LuxuryAuctionDetailProps>(({
   auction,
   isWatched,
   isEnded,
@@ -316,7 +316,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
           {/* Informacje o gołębiu */}
           <motion.div 
             variants={itemVariants}
-            className="mt-6 p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.2)]"
+            className="mt-6 p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/6 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.2)]"
           >
             <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="font-display text-xl font-semibold">Cechy gołębia</h3>
@@ -350,7 +350,7 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
           {auction.documents && auction.documents.length > 0 && (
             <motion.div
               variants={itemVariants}
-              className="mt-6 p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.18)]"
+              className="mt-6 p-6 rounded-2xl border border-white/25 bg-gradient-to-br from-white/10 via-white/6 to-white/10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.18)]"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display text-xl font-semibold">Rodowód</h3>
@@ -767,6 +767,6 @@ export const LuxuryAuctionDetail: React.FC<LuxuryAuctionDetailProps> = ({
 
     </motion.div>
   );
-};
+});
 
 export default LuxuryAuctionDetail;

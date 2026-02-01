@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
@@ -150,7 +150,7 @@ const AuctionDetail: React.FC = () => {
     'ADMIN': () => true,
   }), []);
 
-  const checkAccess = () => {
+  const checkAccess = useCallback(() => {
     if (!user) {
       navigate('/auth?mode=login&callbackUrl=' + encodeURIComponent(window.location.pathname));
       return false;
@@ -162,9 +162,9 @@ const AuctionDetail: React.FC = () => {
       return action();
     }
     return false;
-  };
+  }, [navigate, profile, roleActions]);
 
-  const handleBid = async () => {
+  const handleBid = useCallback(async () => {
     if (!checkAccess()) return;
     if (!token || !auction) return;
     
@@ -175,8 +175,8 @@ const AuctionDetail: React.FC = () => {
     if (!bidError) {
       setBidAmount('');
     }
-  };
-  
+  }, [checkAccess, token, auction, placeBid, bidAmount, bidError]);
+
   const handleAdminUpdate = async (data: { currentPrice?: number; buyNowPrice?: number; endTime?: string }) => {
     if (!token || !id) return;
     try {
@@ -199,7 +199,7 @@ const AuctionDetail: React.FC = () => {
     }
   };
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = useCallback(async () => {
     if (!checkAccess()) return;
     if (!token || !auction || !auction.buyNowPrice) return;
     setIsCheckoutLoading(true);
@@ -216,7 +216,22 @@ const AuctionDetail: React.FC = () => {
     } finally {
       setIsCheckoutLoading(false);
     }
-  };
+  }, [checkAccess, token, auction, id]);
+
+  const toggleWatch = useCallback(async () => {
+    if (!token || !id) return;
+    try {
+      if (isWatched) {
+        const r = await auctionService.removeFromWatchlist(id, token);
+        setIsWatched(!!r.watched);
+      } else {
+        const r = await auctionService.addToWatchlist(id, token);
+        setIsWatched(!!r.watched);
+      }
+    } catch {
+      console.warn('Failed to toggle watchlist');
+    }
+  }, [token, id, isWatched]);
 
   useEffect(() => {
     if (id) {
@@ -237,20 +252,21 @@ const AuctionDetail: React.FC = () => {
     run();
   }, [token, id]);
 
-  const toggleWatch = async () => {
-    if (!token || !id) return;
-    try {
-      if (isWatched) {
-        const r = await auctionService.removeFromWatchlist(id, token);
-        setIsWatched(!!r.watched);
-      } else {
-        const r = await auctionService.addToWatchlist(id, token);
-        setIsWatched(!!r.watched);
-      }
-    } catch {
-      console.warn('Failed to toggle watchlist');
-    }
-  };
+  const luxuryAuctionDetailProps = useMemo(() => ({
+    auction: displayAuction,
+    isWatched,
+    isEnded,
+    minimumBid: minimumBidValue,
+    bidAmount,
+    bidLoading,
+    bidError: bidError?.message || null,
+    bidSuccess,
+    onBidAmountChange: setBidAmount,
+    onPlaceBid: handleBid,
+    onBuyNow: handleBuyNow,
+    onToggleWatch: toggleWatch,
+    onEdit: () => setIsEditModalOpen(true),
+  }), [displayAuction, isWatched, isEnded, minimumBidValue, bidAmount, bidLoading, bidError, bidSuccess, setBidAmount, handleBid, handleBuyNow, toggleWatch]);
 
   useEffect(() => {
     if (!token || !id || !isEnded || !auction) return;
@@ -329,21 +345,7 @@ const AuctionDetail: React.FC = () => {
       <main className="pt-16 pb-12">
         {displayAuction && !error && (
           <>
-            <LuxuryAuctionDetail 
-              auction={displayAuction}
-              isWatched={isWatched}
-              isEnded={isEnded}
-              minimumBid={minimumBidValue}
-              bidAmount={bidAmount}
-              bidLoading={bidLoading}
-              bidError={bidError?.message || null}
-              bidSuccess={bidSuccess}
-              onBidAmountChange={(value) => setBidAmount(value)}
-              onPlaceBid={handleBid}
-              onBuyNow={handleBuyNow}
-              onToggleWatch={toggleWatch}
-              onEdit={() => setIsEditModalOpen(true)}
-            />
+            <LuxuryAuctionDetail {...luxuryAuctionDetailProps} />
             
             {/* Sekcja recenzji - tylko dla zakończonych aukcji */}
             {isEnded && displayAuction.seller?.id && (

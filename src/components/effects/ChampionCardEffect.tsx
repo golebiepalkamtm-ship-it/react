@@ -68,6 +68,7 @@ export const ChampionCardEffect = ({
           rotateX,
           rotateY,
           transformStyle: 'preserve-3d',
+          willChange: 'transform, opacity',
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}

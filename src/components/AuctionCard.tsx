@@ -21,6 +21,7 @@ interface AuctionCardProps {
   status?: 'active' | 'ended' | 'cancelled';
   watchCount?: number;
   viewsCount?: number;
+  onToggleWatch?: () => void;
 }
 
 const AuctionCard = ({
@@ -36,6 +37,7 @@ const AuctionCard = ({
   status,
   watchCount = 0,
   viewsCount = 0,
+  onToggleWatch,
 }: AuctionCardProps) => {
   const navigate = useNavigate();
 
@@ -83,7 +85,13 @@ const AuctionCard = ({
       </div>
       {/* Counters */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        <div className="px-2.5 py-1 rounded-full bg-white/15 text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow">
+        <div 
+          className="px-2.5 py-1 rounded-full bg-white/15 text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleWatch?.();
+          }}
+        >
           <Heart className="w-3.5 h-3.5 text-pink-400" />
           {watchCount ?? 0}
         </div>
