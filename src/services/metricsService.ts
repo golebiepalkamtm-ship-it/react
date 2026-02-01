@@ -22,10 +22,17 @@ export async function trackMetric(scope: MetricScope, targetId?: string) {
       credentials: 'include',
     });
     if (!res.ok) {
-      throw new Error(`Tracking failed: ${res.status}`);
+      // Silently handle metrics errors - don't log to console in production
+      if (import.meta.env.DEV) {
+        console.warn('Metrics track error:', res.status);
+      }
+      return;
     }
     return res.json();
   } catch (error) {
-    console.warn('Metrics track error', error);
+    // Silently handle metrics errors - don't log to console in production
+    if (import.meta.env.DEV) {
+      console.warn('Metrics track error', error);
+    }
   }
 }
