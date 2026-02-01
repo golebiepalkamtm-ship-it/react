@@ -1,6 +1,5 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { MotionValue } from "framer-motion";
 
@@ -17,7 +16,7 @@ const createRng = (seed: number) => {
 
 const PARTICLE_COUNT = 10000;
 
-const CosmicBackground = () => {
+const CosmicBackground = ({ THREE }: { THREE: any }) => {
   const pointsRef = useRef<THREE.Points>(null!);
 
   const particles = useMemo(() => {
@@ -97,7 +96,7 @@ const CosmicBackground = () => {
   );
 };
 
-const PortalRing = ({ scrollProgress }: { scrollProgress: MotionValue<number> }) => {
+const PortalRing = ({ scrollProgress, THREE }: { scrollProgress: MotionValue<number>, THREE: any }) => {
   const pointsRef = useRef<THREE.Points>(null!);
   const PARTICLE_COUNT = 20000; // Increased for visibility
   const TUNNEL_LENGTH = 100;
@@ -232,6 +231,18 @@ interface CosmicPortalProps {
 }
 
 const CosmicPortal = ({ scrollProgress }: CosmicPortalProps) => {
+  const [THREE, setTHREE] = useState<any>(null);
+
+  useEffect(() => {
+    const loadThree = async () => {
+      const { default: three } = await import('three');
+      setTHREE(three);
+    };
+    loadThree();
+  }, []);
+
+  if (!THREE) return <div className="absolute inset-0 bg-navy" />;
+
   return (
     <div className="fixed inset-0 pointer-events-none -z-5 bg-black">
       <Canvas
@@ -255,10 +266,10 @@ const CosmicPortal = ({ scrollProgress }: CosmicPortalProps) => {
         <pointLight position={[0, 0, 0]} intensity={0.8} distance={20} color="#FFD700" />
         
         {/* We keep CosmicBackground for deep space feeling */}
-        <CosmicBackground />
+        <CosmicBackground THREE={THREE} />
         
         {/* The main warp tunnel */}
-        <PortalRing scrollProgress={scrollProgress} />
+        <PortalRing scrollProgress={scrollProgress} THREE={THREE} />
         
         <EffectComposer>
           <Bloom 

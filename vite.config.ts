@@ -30,9 +30,17 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     sourcemap: mode !== 'production', // Disable source maps in production
-    chunkSizeWarningLimit: 1000, // Zwiększ limit ostrzeżenia do 1000kB
     rollupOptions: {
       output: {
+        manualChunks: (id) => {
+          if (id.includes('three/examples/jsm')) return 'three-examples';
+          if (id.includes('three-mesh-bvh')) return 'three-bvh';
+          if (id.includes('three/addons')) return 'three-addons';
+          if (id.includes('three')) return 'three-core';
+          if (id.includes('postprocessing')) return 'three-postprocessing';
+          if (id.includes('bvh')) return 'three-bvh';
+          if (id.includes('lucide')) return 'lucide-icons';
+        },
         manualChunks: {
           // React core
           "react-vendor": ["react", "react-dom", "react-router-dom", "react-router-hash-link"],
@@ -51,6 +59,7 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
+    chunkSizeWarningLimit: 800,
     // Enable worker support
     worker: {
       format: 'es',

@@ -11,14 +11,13 @@ export interface TokenVerificationResult {
 
 export interface TokenVerifierOptions {
   supabaseUrl: string;
-  supabaseAnonKey?: string;
-  supabaseServiceKey?: string;
+  supabaseKey: string;
   cacheTTL?: number;
   rateLimitWindow?: number;
   rateLimitMax?: number;
 }
 
-class TokenVerifier {
+export class TokenVerifier {
   private supabaseUrl: string;
   private supabaseKey: string;
   private cache: Map<string, { data: TokenVerificationResult; expiresAt: number }>;
@@ -29,11 +28,8 @@ class TokenVerifier {
   private supabaseClient: SupabaseClient;
 
   constructor(options: TokenVerifierOptions) {
-    const urlNoTrailingSlash = options.supabaseUrl.replace(/\/+$/, '');
-    this.supabaseUrl = urlNoTrailingSlash.endsWith('/auth/v1')
-      ? urlNoTrailingSlash.slice(0, -'/auth/v1'.length)
-      : urlNoTrailingSlash;
-    this.supabaseKey = options.supabaseServiceKey || options.supabaseAnonKey || '';
+    this.supabaseUrl = options.supabaseUrl;
+    this.supabaseKey = options.supabaseKey;
     this.cacheTTL = options.cacheTTL || 5 * 60 * 1000; // 5 minutes
     this.rateLimitWindow = options.rateLimitWindow || 60 * 1000; // 1 minute
     this.rateLimitMax = options.rateLimitMax || 100; // 100 requests per minute
@@ -216,10 +212,6 @@ class TokenVerifier {
 let tokenVerifier: TokenVerifier | null = null;
 
 export function initializeTokenVerifier(options: TokenVerifierOptions): void {
-  if (!options.supabaseUrl || !options.supabaseAnonKey && !options.supabaseServiceKey) {
-    throw new Error('Supabase URL and at least one key are required');
-  }
-  
   tokenVerifier = new TokenVerifier(options);
 }
 

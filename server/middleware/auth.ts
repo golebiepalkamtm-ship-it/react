@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/db.js';
-import { initializeTokenVerifier, verifyJWTTokenWithRole, getTokenVerifier } from '../utils/tokenVerifier.js';
+import { TokenVerifier } from '../utils/tokenVerifier.js';
 import { calculateRole, UserWithVerifications } from '../types/roles.js';
 
 export const initializeAuth = () => {
@@ -13,13 +13,10 @@ export const initializeAuth = () => {
     throw new Error('Auth service not configured');
   }
 
-  initializeTokenVerifier({
-    supabaseUrl,
-    supabaseAnonKey,
-    supabaseServiceKey,
+  const tokenVerifier = new TokenVerifier({
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     cacheTTL: 5 * 60 * 1000, // 5 minutes
-    rateLimitWindow: 60 * 1000, // 1 minute
-    rateLimitMax: 100 // 100 requests per minute
   });
 };
 
@@ -41,7 +38,7 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
     const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
     const rateLimitKey = `auth:${clientIP}`;
     
-    const verificationResult = await verifyJWTTokenWithRole(token, rateLimitKey);
+    const verificationResult = await tokenVerifier.verifyJWTTokenWithRole(token, rateLimitKey);
     
     req.user = {
       id: verificationResult.userId,

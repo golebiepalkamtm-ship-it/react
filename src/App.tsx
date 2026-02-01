@@ -42,9 +42,9 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GlobalParallaxBackground from "@/components/GlobalParallaxBackground";
 
-
-
 const queryClient = new QueryClient();
+
+const CosmicPortal = React.lazy(() => import('@/chronoTunnel/CosmicPortal'));
 
 const App = () => {
   useEffect(() => {

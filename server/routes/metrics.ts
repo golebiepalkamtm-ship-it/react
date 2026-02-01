@@ -23,9 +23,9 @@ router.post('/track', globalLimiter, async (req, res) => {
 
     const result = await prisma.metric.upsert({
       where: {
-        scope_targetId: { 
-          scope, 
-          targetId: targetId ?? null 
+        metrics_scope_target_id_key: {
+          scope,
+          targetId,
         },
       },
       update: {
@@ -33,7 +33,7 @@ router.post('/track', globalLimiter, async (req, res) => {
       },
       create: {
         scope,
-        targetId: targetId ?? null,
+        targetId,
         count: 1,
       },
     });
