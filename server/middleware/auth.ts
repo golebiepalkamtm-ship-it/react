@@ -2,22 +2,32 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/db.js';
 import { TokenVerifier } from '../utils/tokenVerifier.js';
 import { calculateRole, UserWithVerifications } from '../types/roles.js';
+import { validatedEnv } from '../lib/env.js';
+
+let tokenVerifier: TokenVerifier | null = null;
 
 export const initializeAuth = () => {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = validatedEnv.SUPABASE_URL;
+  const supabaseAnonKey = validatedEnv.SUPABASE_ANON_KEY;
+  const supabaseServiceKey = validatedEnv.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || (!supabaseAnonKey && !supabaseServiceKey)) {
     console.error('Supabase environment variables missing');
     throw new Error('Auth service not configured');
   }
 
-  const tokenVerifier = new TokenVerifier({
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  tokenVerifier = new TokenVerifier({
+    supabaseUrl: validatedEnv.SUPABASE_URL,
+    supabaseKey: validatedEnv.SUPABASE_SERVICE_ROLE_KEY,
     cacheTTL: 5 * 60 * 1000, // 5 minutes
   });
+};
+
+export const getTokenVerifier = () => {
+  if (!tokenVerifier) {
+    throw new Error('TokenVerifier not initialized');
+  }
+  return tokenVerifier;
 };
 
 export interface AuthenticatedRequest extends Request {
@@ -38,6 +48,7 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
     const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
     const rateLimitKey = `auth:${clientIP}`;
     
+    const tokenVerifier = getTokenVerifier();
     const verificationResult = await tokenVerifier.verifyJWTTokenWithRole(token, rateLimitKey);
     
     req.user = {

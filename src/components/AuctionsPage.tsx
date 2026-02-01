@@ -34,7 +34,7 @@ const AuctionsPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [gridCols, setGridCols] = useState(1);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [imageFit, setImageFit] = useState<'cover' | 'contain'>('contain');
+  const imageFit: 'cover' | 'contain' = 'cover';
   
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
@@ -236,27 +236,6 @@ const AuctionsPage = () => {
                 <div className="flex items-center rounded-xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-1">
                   <Button
                     type="button"
-                    variant={imageFit === 'cover' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setImageFit('cover')}
-                    className="rounded-lg"
-                  >
-                    Cover
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={imageFit === 'contain' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setImageFit('contain')}
-                    className="rounded-lg"
-                  >
-                    Contain
-                  </Button>
-                </div>
-
-                <div className="flex items-center rounded-xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-1">
-                  <Button
-                    type="button"
                     variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
@@ -388,21 +367,28 @@ const AuctionsPage = () => {
 
           {!isLoading && filteredAuctions.length > 0 && (
             viewMode === "grid" ? (
-              <div className="grid gap-8" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
+              <div className="grid gap-8 items-stretch" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
                 {filteredAuctions.map((auction, index) => (
-                  <LuxuryAuctionCard
-                    key={auction.id || `auction-${index}`}
-                    id={auction.id}
-                    title={auction.title}
-                    image={getFirstImage(auction.images)}
-                    currentBid={auction.currentPrice}
-                    endTime={auction.endTime}
-                    ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                    featured={index < 2}
-                    imageFit={imageFit}
-                    watchCount={auction._count?.watchlist ?? 0}
-                    viewsCount={(auction as any).viewsCount ?? (auction._count as any)?.views ?? 0}
-                  />
+                  <div key={auction.id || `auction-${index}`} className="h-full flex">
+                    <LuxuryAuctionCard
+                      id={auction.id}
+                      title={auction.title}
+                      image={getFirstImage(auction.images)}
+                      currentBid={auction.currentPrice}
+                      endTime={auction.endTime}
+                      ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
+                      featured={index < 2}
+                      imageFit={imageFit}
+                      watchCount={auction._count?.watchlist ?? 0}
+                      viewsCount={
+                        typeof (auction as any).viewsCount === 'number'
+                          ? (auction as any).viewsCount
+                          : typeof (auction._count as any)?.views === 'number'
+                            ? (auction._count as any)?.views
+                            : 0
+                      }
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -418,9 +404,14 @@ const AuctionsPage = () => {
                     ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
                     imageFit={imageFit}
                     watchCount={auction._count?.watchlist ?? 0}
-                    viewsCount={(auction as any).viewsCount ?? (auction._count as any)?.views ?? 0}
+                    viewsCount={
+                      typeof (auction as any).viewsCount === 'number'
+                        ? (auction as any).viewsCount
+                        : typeof (auction._count as any)?.views === 'number'
+                          ? (auction._count as any)?.views
+                          : 0
+                    }
                     status={auction.status as any}
-                    timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
                   />
                 ))}
               </div>

@@ -162,7 +162,7 @@ const AuctionDetail: React.FC = () => {
       return action();
     }
     return false;
-  }, [navigate, profile, roleActions]);
+  }, [navigate, profile, roleActions, user]);
 
   const handleBid = useCallback(async () => {
     if (!checkAccess()) return;

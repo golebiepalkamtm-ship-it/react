@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, Variants } from 'framer-motion';
-import { Clock, Gavel, Trophy, Eye } from 'lucide-react';
+import { Clock, Gavel, Trophy, Eye, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { MagneticButton } from '@/components/effects/MagneticButton';
@@ -17,6 +17,7 @@ interface LuxuryAuctionCardProps {
   endTime: string;
   ringNumber?: string;
   watchCount?: number;
+  viewsCount?: number;
   featured?: boolean;
   imageFit?: 'cover' | 'contain';
 }
@@ -28,7 +29,8 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
   currentBid,
   endTime,
   ringNumber,
-  watchCount,
+  watchCount = 0,
+  viewsCount = 0,
   featured = false,
   imageFit = 'cover',
 }) => {
@@ -104,7 +106,7 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
 
   return (
     <ChampionCardEffect
-      className="relative w-full max-w-sm mx-auto"
+      className="relative w-full h-full"
       glowColor="rgba(212, 175, 55, 0.3)"
     >
     <motion.div
@@ -118,7 +120,7 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
           navigate(`/auctions/${id}`);
         }
       }}
-      className={`overflow-hidden rounded-2xl border ${
+      className={`overflow-hidden rounded-2xl border h-full min-h-[520px] flex flex-col ${
         featured 
           ? 'border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.3)]' 
           : 'border-white/15'
@@ -159,8 +161,20 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Liczniki watch/views */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <div className="px-2.5 py-1 rounded-full bg-white/12 backdrop-blur-xl text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow">
+          <Heart className="w-3.5 h-3.5 text-pink-400" />
+          {watchCount ?? 0}
+        </div>
+        <div className="px-2.5 py-1 rounded-full bg-white/12 backdrop-blur-xl text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow">
+          <Eye className="w-3.5 h-3.5 text-blue-300" />
+          {viewsCount ?? 0}
+        </div>
+      </div>
+
       {/* Kontener zdjęcia */}
-      <div className="relative h-64 overflow-hidden">
+      <div className="relative h-72 overflow-hidden">
         <motion.img
           src={image || AUCTION_PLACEHOLDER_SRC}
           alt={title}
@@ -182,21 +196,21 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
 
       {/* Zawartość karty */}
       <motion.div 
-        className="p-6"
+        className="p-6 flex-1 flex flex-col"
         variants={contentVariants}
       >
         <motion.div 
-          className="flex flex-col gap-3 mb-4"
+          className="flex flex-col gap-2 mb-2 min-h-[120px]"
           variants={itemVariants}
         >
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-display text-xl text-foreground font-semibold mb-1 line-clamp-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-display text-xl text-foreground font-semibold mb-1 break-words">
                 {title}
               </h3>
               <p className="text-muted-foreground text-sm">{ringNumber}</p>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col gap-2 mt-24 shrink-0">
               <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-white/12 backdrop-blur-xl border border-white/25">
                 <LuxuryAuctionTimer endTime={endTime} />
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -206,19 +220,13 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
                   </span>
                 </div>
               </div>
-              {watchCount && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/12 backdrop-blur-xl border border-white/20">
-                  <Eye className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground text-sm">{watchCount}</span>
-                </div>
-              )}
             </div>
           </div>
         </motion.div>
 
         {/* Aktualna oferta i przycisk */}
         <motion.div 
-          className="flex items-end justify-between pt-4 border-t border-white/10"
+          className="flex items-end justify-between pt-4 border-t border-white/10 mt-auto"
           variants={itemVariants}
         >
           <div>

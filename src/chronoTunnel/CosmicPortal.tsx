@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { MotionValue } from "framer-motion";
@@ -16,8 +16,10 @@ const createRng = (seed: number) => {
 
 const PARTICLE_COUNT = 10000;
 
-const CosmicBackground = ({ THREE }: { THREE: any }) => {
-  const pointsRef = useRef<THREE.Points>(null!);
+type ThreeModule = typeof import("three");
+
+const CosmicBackground = ({ THREE }: { THREE: ThreeModule }) => {
+  const pointsRef = useRef<import("three").Points>(null!);
 
   const particles = useMemo(() => {
     const rng = createRng(1337);
@@ -56,7 +58,7 @@ const CosmicBackground = ({ THREE }: { THREE: any }) => {
     }
 
     return { positions, colors, sizes };
-  }, []);
+  }, [THREE.Color]);
 
   useFrame(() => {
     if (pointsRef.current) {
@@ -96,8 +98,8 @@ const CosmicBackground = ({ THREE }: { THREE: any }) => {
   );
 };
 
-const PortalRing = ({ scrollProgress, THREE }: { scrollProgress: MotionValue<number>, THREE: any }) => {
-  const pointsRef = useRef<THREE.Points>(null!);
+const PortalRing = ({ scrollProgress, THREE }: { scrollProgress: MotionValue<number>; THREE: ThreeModule }) => {
+  const pointsRef = useRef<import("three").Points>(null!);
   const PARTICLE_COUNT = 20000; // Increased for visibility
   const TUNNEL_LENGTH = 100;
   const TUNNEL_RADIUS = 12; // Slightly tighter tunnel
@@ -141,9 +143,9 @@ const PortalRing = ({ scrollProgress, THREE }: { scrollProgress: MotionValue<num
     }
 
     return { positions, colors, sizes, initialZ };
-  }, []);
+  }, [THREE.Color]);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (pointsRef.current) {
       // Rotate the entire tunnel slowly
       pointsRef.current.rotation.z -= 0.001;
@@ -207,7 +209,7 @@ const PortalRing = ({ scrollProgress, THREE }: { scrollProgress: MotionValue<num
   );
 };
 
-const TunnelCamera = ({ scrollProgress }: { scrollProgress: MotionValue<number> }) => {
+const TunnelCamera = ({ scrollProgress, THREE }: { scrollProgress: MotionValue<number>; THREE: ThreeModule }) => {
   useFrame(({ camera }) => {
     const t = scrollProgress.get(); // 0-1
 
@@ -231,11 +233,11 @@ interface CosmicPortalProps {
 }
 
 const CosmicPortal = ({ scrollProgress }: CosmicPortalProps) => {
-  const [THREE, setTHREE] = useState<any>(null);
+  const [THREE, setTHREE] = useState<ThreeModule | null>(null);
 
   useEffect(() => {
     const loadThree = async () => {
-      const { default: three } = await import('three');
+      const three = await import("three");
       setTHREE(three);
     };
     loadThree();
@@ -259,7 +261,7 @@ const CosmicPortal = ({ scrollProgress }: CosmicPortalProps) => {
         <color attach="background" args={["#0a0015"]} />
         <fogExp2 attach="fog" args={["#0a0015", 0.02]} />
        
-        <TunnelCamera scrollProgress={scrollProgress} />
+        <TunnelCamera scrollProgress={scrollProgress} THREE={THREE} />
 
         <ambientLight intensity={0.2} color="#330066" />
         <directionalLight position={[10, 10, 5]} intensity={0.6} color="#ffffff" />

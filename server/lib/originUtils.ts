@@ -75,7 +75,7 @@ const isProdWildcardOrigin = (origin: string) =>
 export const isAllowedOrigin = (origin?: string) => {
   // Allow requests with no origin (mobile apps, curl, etc.)
   if (!origin) return true;
-  if (origin === validatedEnv.CLIENT_URL) return true; // Allow self
+  if (parseOrigin(origin) === parseOrigin(validatedEnv.CLIENT_URL)) return true; // Allow self
   if (getAllowedOrigins().includes(origin)) return true;
   return isDevOrigin(origin) || isProdWildcardOrigin(origin);
 };

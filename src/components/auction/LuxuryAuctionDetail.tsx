@@ -195,7 +195,7 @@ export const LuxuryAuctionDetail = memo<LuxuryAuctionDetailProps>(({
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = AUCTION_PLACEHOLDER_SRC;
                 }}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 style={{
                   scale: 1,
                   x: 0,
