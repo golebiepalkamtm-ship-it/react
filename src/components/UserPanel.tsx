@@ -54,6 +54,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dragConstraintsRef = useRef(null);
+  const [username, setUsername] = useState(profile?.username ?? '');
   const [firstName, setFirstName] = useState(profile?.first_name ?? '');
   const [lastName, setLastName] = useState(profile?.last_name ?? '');
   const [street, setStreet] = useState(profile?.street ?? '');
@@ -85,6 +86,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const onSaveProfile = async () => {
     try {
       await updateUserProfile({
+        username: username.trim(),
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         name: `${firstName.trim()} ${lastName.trim()}`.trim(),
@@ -143,6 +145,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (!profile) return;
+    setUsername(profile.username ?? '');
     setFirstName(profile.first_name ?? '');
     setLastName(profile.last_name ?? '');
     setStreet(profile.street ?? '');
@@ -567,6 +570,20 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
+                          <label className="text-sm font-medium text-white/90 mb-2 block">Nick</label>
+                          <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Nazwa użytkownika"
+                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                          />
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.25 }}
+                        >
                           <label className="text-sm font-medium text-white/90 mb-2 block">Imię</label>
                           <input
                             type="text"
@@ -579,7 +596,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.25 }}
+                          transition={{ delay: 0.3 }}
                         >
                           <label className="text-sm font-medium text-white/90 mb-2 block">Nazwisko</label>
                           <input
@@ -593,7 +610,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.3 }}
+                          transition={{ delay: 0.35 }}
                         >
                           <label className="text-sm font-medium text-white/90 mb-2 block">Telefon</label>
                           <input

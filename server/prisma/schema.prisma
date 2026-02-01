@@ -356,11 +356,11 @@ model Reference {
 model Metric {
   id        String      @id @default(uuid()) @db.Uuid
   scope     MetricScope
-  targetId  String?
+  targetId  String?     @map("target_id")
   count     Int         @default(0)
   updatedAt DateTime    @updatedAt @map("updated_at")
   createdAt DateTime    @default(now()) @map("created_at")
 
-  @@unique([scope, targetId])
+  @@unique([scope, targetId], name: "metrics_scope_target_id_key")
   @@map("metrics")
 }
