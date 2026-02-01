@@ -3,18 +3,23 @@ import { logger } from '@/lib/logger';
 
 export interface UserProfile {
   id: string;
-  email?: string;
-  name?: string;
-  first_name?: string;
-  last_name?: string;
-  avatar_url?: string;
-  role?: string;
-  phone?: string;
-  city?: string;
-  street?: string;
-  postal_code?: string;
-  country?: string;
-  created_at?: string;
+  username: string;
+  email: string | null;
+  phone: string | null;
+  name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  street: string | null;
+  postal_code: string | null;
+  city: string | null;
+  country: string | null;
+  isBlocked: boolean;
+  isBanned: boolean;
+  blockedUntil: Date | null;
+  bannedUntil: Date | null;
+  trustScore: number;
+  role: string;
+  avatarUrl: string | null;
 }
 
 export const userService = {
@@ -26,16 +31,18 @@ export const userService = {
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single();
-        
-      if (error) {
-        logger.error('Error fetching user profile:', error);
+        .eq('isBlocked', false)
+        .eq('isBanned', false)
+        .single();  // FIX: Użycie single() dla pojedynczego obiektu
+
+      if (error || !data) {
+        logger.error('Error fetching user profile', error);
         return null;
       }
-      
-      return data;
+
+      return data as UserProfile;
     } catch (error) {
-      logger.error('Error in getProfile:', error);
+      logger.error('Unexpected error in getProfile', error);
       return null;
     }
   },
@@ -44,7 +51,6 @@ export const userService = {
     try {
       if (!supabase) return null;
       
-      // Always include updated_at to prevent constraint violations
       const updatesWithTimestamp = {
         ...updates,
         updated_at: new Date().toISOString()
@@ -54,18 +60,18 @@ export const userService = {
         .from('users')
         .update(updatesWithTimestamp)
         .eq('id', userId)
-        .select()
-        .single();
-        
-      if (error) {
-        logger.error('Error updating user profile:', error);
-        throw error;
+        .eq('isBlocked', false)
+        .eq('isBanned', false);
+
+      if (error || !data) {
+        logger.error('Error updating user profile', error);
+        return null;
       }
-      
-      return data;
+
+      return data[0] as UserProfile;  // FIX: Poprawne zwracanie zaktualizowanego profilu
     } catch (error) {
-      logger.error('Error in updateProfile:', error);
-      throw error;
+      logger.error('Unexpected error in updateProfile', error);
+      return null;
     }
   }
 };

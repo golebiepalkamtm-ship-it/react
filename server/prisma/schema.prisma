@@ -362,5 +362,6 @@ model Metric {
   createdAt DateTime    @default(now()) @map("created_at")
 
   @@unique([scope, targetId], name: "metrics_scope_target_id_key")
+  @@index([targetId], name: "metrics_target_id_idx")
   @@map("metrics")
 }
