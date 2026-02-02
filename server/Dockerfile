@@ -18,7 +18,7 @@ RUN npx prisma generate
 COPY . .
 
 # 5. Kompilujemy TypeScript
-RUN tsc --skipLibCheck
+RUN npx tsc --skipLibCheck
 
 # Etap 2: Obraz produkcyjny
 FROM node:22-alpine
