@@ -8,7 +8,7 @@ RUN npm install -g typescript
 COPY server/prisma ./prisma
 RUN npx prisma generate
 COPY server ./
-RUN tsc --skipLibCheck
+RUN npx tsc --skipLibCheck
 
 FROM node:22-alpine
 WORKDIR /app
