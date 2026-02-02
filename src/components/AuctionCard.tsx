@@ -10,7 +10,7 @@ const AUCTION_PLACEHOLDER_SRC = "/placeholder.svg";
 
 interface AuctionCardProps {
   id: string;
-  name: string;
+  title: string;
   image: string;
   currentBid: number;
   timeLeft: string;
@@ -26,7 +26,7 @@ interface AuctionCardProps {
 
 const AuctionCard = ({
   id,
-  name,
+  title,
   image,
   currentBid,
   timeLeft,
@@ -105,7 +105,7 @@ const AuctionCard = ({
       <div className="relative h-64 overflow-hidden">
         <img
           src={image || AUCTION_PLACEHOLDER_SRC}
-          alt={name}
+          alt={title}
           loading="lazy"
           decoding="async"
           onError={(e) => {
@@ -129,7 +129,7 @@ const AuctionCard = ({
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="font-display text-xl text-foreground font-semibold mb-1">
-              {name}
+              {title}
             </h3>
             <p className="text-muted-foreground text-sm">{ringNumber}</p>
           </div>
