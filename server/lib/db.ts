@@ -1,6 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
 import { validatedEnv } from './env.js'
 
 // Global interface for Prisma to prevent multiple instances in dev
@@ -14,11 +12,13 @@ let prisma: PrismaClient;
 const hasDbUrl = !!process.env.DATABASE_URL;
 
 try {
-  const adapter = new PrismaPg({ connectionString: validatedEnv.DATABASE_URL });
-
   const prismaOptions: any = {
-    adapter,
     log: process.env.NODE_ENV === 'production' ? ['error', 'warn'] : ['query', 'info', 'warn', 'error'],
+    datasources: {
+        db: {
+            url: validatedEnv.DATABASE_URL
+        }
+    }
   };
 
   if (!hasDbUrl && process.env.NODE_ENV === 'production') {
