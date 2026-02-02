@@ -1,3 +1,4 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { PrismaClient } from '@prisma/client'
 import { validatedEnv } from './env.js'
 
