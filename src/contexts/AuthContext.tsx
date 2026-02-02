@@ -626,9 +626,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     delete (safeUpdates as any).email;
 
     // Construct payload with ID and Email (critical for upserting if row is missing)
+    // Always update updated_at to satisfy NOT NULL constraint and ensure freshness
     const payload: any = { 
       id: user.id, 
       email: user.email,
+      updated_at: new Date().toISOString(),
       ...safeUpdates 
     };
     
