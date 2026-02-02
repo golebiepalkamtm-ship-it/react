@@ -625,7 +625,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     delete (safeUpdates as any).id;
     delete (safeUpdates as any).email;
 
-    const payload: Partial<Profile> & { id: string } = { id: user.id, ...safeUpdates };
+    // Construct payload with ID and Email (critical for upserting if row is missing)
+    const payload: any = { 
+      id: user.id, 
+      email: user.email,
+      ...safeUpdates 
+    };
     
     if (payload.username) {
       payload.username = sanitizeUsername(payload.username);
@@ -636,7 +641,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { data, error } = await client
       .from('users')
-      .upsert({ id: user.id, ...safeUpdates })
+      .upsert(payload)
       .select('*')
       .maybeSingle();
 
