@@ -957,12 +957,42 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
       </motion.div>
 
       <UnifiedModal
+        isOpen={showSmsAuth}
+        onClose={() => setShowSmsAuth(false)}
+        title={null as any}
+        showCloseButton={true}
+        size="md"
+        type="default"
+      >
+        <PhoneVerification 
+          onVerified={() => {
+            setShowSmsAuth(false);
+            setFeedbackType('success');
+            setFeedbackTitle('Sukces');
+            setFeedbackMessage('Numer telefonu został zweryfikowany pomyślnie.');
+            setFeedbackOpen(true);
+          }}
+          initialPhone={phone}
+          lockPhone={false}
+          embedded={true}
+        />
+      </UnifiedModal>
+
+      <UnifiedModal
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
         type={feedbackType}
         title={feedbackTitle}
         message={feedbackMessage}
-        confirmButton={{ text: 'OK', onClick: () => setFeedbackOpen(false) }}
+        confirmButton={{ 
+          text: feedbackType === 'success' && feedbackMessage.includes('weryfikację SMS') ? 'Weryfikuj SMS' : 'OK', 
+          onClick: () => {
+            setFeedbackOpen(false);
+            if (feedbackType === 'success' && feedbackMessage.includes('weryfikację SMS')) {
+              setShowSmsAuth(true);
+            }
+          } 
+        }}
         showCloseButton={true}
         closeOnBackdrop={true}
         closeOnEscape={true}
