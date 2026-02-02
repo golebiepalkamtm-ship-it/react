@@ -23,6 +23,7 @@ import searchRoutes from './routes/search.js';
 import paymentRoutes, { stripeWebhookHandler } from './routes/payments.js';
 import webhooks from './routes/webhooks.js';
 import metricsRoutes from './routes/metrics.js';
+import proxyRoutes from './routes/proxy.js';
 import { testCSRFEndpoint } from './routes/testCSRF.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { authMiddleware } from './middleware/auth.js';
