@@ -7,7 +7,7 @@ const router: Router = express.Router();
 
 const trackSchema = z.object({
   scope: z.enum(['SITE', 'AUCTION', 'GALLERY_IMAGE']),
-  targetId: z.string().trim().min(1).optional().nullable(),
+  targetId: z.string().trim().min(1).optional(),
 });
 
 /**
@@ -20,13 +20,14 @@ router.post('/track', globalLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Invalid payload' });
     }
     const { scope, targetId } = parsed.data;
+    const effectiveTargetId = targetId ?? 'global';
 
     // Use correct unique constraint for upsert
     const result = await prisma.metric.upsert({
       where: {
         metrics_scope_target_id_key: {
           scope,
-          targetId: (targetId ?? null) as string,
+          targetId: effectiveTargetId,
         },
       },
       update: {
@@ -34,7 +35,7 @@ router.post('/track', globalLimiter, async (req, res) => {
       },
       create: {
         scope,
-        targetId: targetId ?? null,
+        targetId: effectiveTargetId,
         count: 1,
       },
     });
