@@ -98,7 +98,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
       });
       setFeedbackType('success');
       setFeedbackTitle('Zapisano');
-      setFeedbackMessage('Profil został zaktualizowany.');
+      setFeedbackMessage('Profil został zaktualizowany. Teraz musisz wykonać weryfikację SMS, aby w pełni aktywować konto.');
       setFeedbackOpen(true);
     } catch (err) {
       console.error('Profile save failed:', err);
