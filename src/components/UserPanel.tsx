@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
+import PhoneVerification from '@/components/auth/PhoneVerification';
 
 interface UserPanelProps {
   onClose: () => void;
