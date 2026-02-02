@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import GlassModal from '@/components/GlassModal';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/sonner';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import { paymentService } from '@/services/paymentService';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, CreditCard } from 'lucide-react';
@@ -21,10 +21,26 @@ interface PaymentModalProps {
 const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }: PaymentModalProps) => {
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   const handlePay = async () => {
     if (!session?.access_token) {
-      toast.error('Musisz być zalogowany, aby opłacić.');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd płatności',
+        message: 'Musisz być zalogowany, aby opłacić.'
+      });
       return;
     }
     try {
@@ -40,10 +56,20 @@ const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }:
       if (payload.url) {
         window.location.href = payload.url;
       } else {
-        toast.error('Brak adresu płatności.');
+        setFeedbackModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Błąd płatności',
+          message: 'Brak adresu płatności.'
+        });
       }
     } catch (err: any) {
-      toast.error(err?.message || 'Nie udało się zainicjować płatności.');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd płatności',
+        message: err?.message || 'Nie udało się zainicjować płatności.'
+      });
     } finally {
       setLoading(false);
     }
@@ -88,6 +114,17 @@ const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }:
           )}
         </Button>
       </div>
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: "OK",
+          onClick: () => setFeedbackModal(prev => ({ ...prev, isOpen: false }))
+        }}
+      />
     </GlassModal>
   );
 };

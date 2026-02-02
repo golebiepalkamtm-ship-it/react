@@ -1,9 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Camera, MapPin, MessageSquare, Plus, Star, Trophy, User, X } from 'lucide-react';
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { referenceService } from "@/services/referenceService";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 
 interface Achievement {
   pigeon: string;
@@ -21,7 +20,6 @@ interface AddReferenceFormProps {
 }
 
 export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps) {
-  const { error: showError, success: showSuccess } = useOptimizedToast();
   const [formData, setFormData] = useState({
     breederName: '',
     location: '',
@@ -42,6 +40,18 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
   const [error, setError] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+    onClose?: () => void;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     return () => {
@@ -156,7 +166,12 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
     if ((formData.testimonial ?? '').trim().length < 20) {
       const msg = 'Opinia jest za krótka — podaj co najmniej 20 znaków.';
       setError(msg);
-      showError({ message: msg });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: msg
+      });
       return;
     }
 
@@ -183,7 +198,12 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
 
       await referenceService.addReferenceWithFiles(body);
 
-      showSuccess({ message: 'Referencja została dodana pomyślnie!', duration: 4000 });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Referencja została dodana pomyślnie!'
+      });
 
       if (onSuccess) {
         onSuccess();
@@ -191,7 +211,12 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd';
       setError(errorMessage);
-      showError({ message: errorMessage, duration: 5000 });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: errorMessage
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -238,6 +263,17 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
           </motion.div>
         )}
       </AnimatePresence>
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: 'OK',
+          onClick: () => setFeedbackModal(prev => ({ ...prev, isOpen: false }))
+        }}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Podstawowe informacje */}
@@ -635,6 +671,27 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
           </motion.button>
         </motion.div>
       </form>
+
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => {
+          setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+          if (feedbackModal.onClose) feedbackModal.onClose();
+        }}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: 'OK',
+          onClick: () => {
+            setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+            if (feedbackModal.onClose) feedbackModal.onClose();
+          }
+        }}
+        showCloseButton={true}
+        closeOnBackdrop={true}
+        closeOnEscape={true}
+      />
     </motion.div>
   );
 }

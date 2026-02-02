@@ -2,7 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { X, AlertCircle, Loader2, Check, Sparkles, Camera, Video, Wrench, Package } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import FileUpload from '@/components/FileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { uploadService } from '@/services/uploadService';
@@ -70,6 +70,18 @@ const CreateAccessoryAuctionForm = ({ onSuccess, onCancel }: CreateAccessoryAuct
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+    onClose?: () => void;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -98,14 +110,19 @@ const CreateAccessoryAuctionForm = ({ onSuccess, onCancel }: CreateAccessoryAuct
     try {
       setLoading(true);
       setError(null);
+      setFeedbackModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Tworzenie aukcji',
+        message: 'Przygotowuję dane aukcji...'
+      });
 
-      const toastId = toast.loading('Przygotowuję dane aukcji...');
       const token = session?.access_token ?? null;
 
       const imageUrls: string[] = [];
       if (files.length > 0) {
         for (let i = 0; i < files.length; i++) {
-          toast.loading(`Przesyłam zdjęcia (${i + 1}/${files.length})...`, { id: toastId });
+          setFeedbackModal(prev => ({ ...prev, message: `Przesyłam zdjęcia (${i + 1}/${files.length})...` }));
           const res = await uploadService.uploadImage(files[i], token);
           imageUrls.push(res.url);
         }
@@ -114,13 +131,13 @@ const CreateAccessoryAuctionForm = ({ onSuccess, onCancel }: CreateAccessoryAuct
       const videoUrls: string[] = [];
       if (videoFiles.length > 0) {
         for (let i = 0; i < videoFiles.length; i++) {
-          toast.loading(`Przesyłam filmy (${i + 1}/${videoFiles.length})...`, { id: toastId });
+          setFeedbackModal(prev => ({ ...prev, message: `Przesyłam filmy (${i + 1}/${videoFiles.length})...` }));
           const res = await uploadService.uploadImage(videoFiles[i], token);
           videoUrls.push(res.url);
         }
       }
 
-      toast.loading('Tworzę aukcję...', { id: toastId });
+      setFeedbackModal(prev => ({ ...prev, message: 'Finalizuję tworzenie aukcji...' }));
 
       const endTime = new Date();
       endTime.setDate(endTime.getDate() + 7);
@@ -145,11 +162,22 @@ const CreateAccessoryAuctionForm = ({ onSuccess, onCancel }: CreateAccessoryAuct
 
       await auctionService.createAuction(auctionData, token);
 
-      toast.success('Aukcja akcesoriów została utworzona!', { id: toastId });
-      onSuccess?.();
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces!',
+        message: 'Aukcja akcesoriów została utworzona pomyślnie.'
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Błąd tworzenia aukcji');
-      toast.error('Nie udało się utworzyć aukcji.', { id: 'accessory-error' });
+      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Błąd tworzenia aukcji';
+      setError(errorMessage);
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: 'Nie udało się utworzyć aukcji: ' + errorMessage
+      });
     } finally {
       setLoading(false);
     }
@@ -432,6 +460,23 @@ const CreateAccessoryAuctionForm = ({ onSuccess, onCancel }: CreateAccessoryAuct
           </Button>
         </motion.div>
       </motion.div>
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => {
+          setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+          if (feedbackModal.onClose) feedbackModal.onClose();
+        }}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: feedbackModal.onClose ? "OK" : "Zamknij",
+          onClick: () => {
+            setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+            if (feedbackModal.onClose) feedbackModal.onClose();
+          }
+        }}
+      />
     </motion.form>
   );
 };

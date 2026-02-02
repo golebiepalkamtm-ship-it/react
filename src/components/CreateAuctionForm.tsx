@@ -9,7 +9,7 @@ import { apiClient } from '@/services/api';
 import type { CreateAuctionRequest } from '@/types/auction';
 import { X, AlertCircle, Loader2, Bird, Check, ChevronRight, ChevronLeft, ChevronDown, Upload, Camera, Video, FileText, Sparkles, Eye, Palette, Dumbbell, Heart, Scale, Feather, Ruler, Zap, Shield } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import FileUpload from '@/components/FileUpload';
 
 const MAX_IMAGE_FILES = 10;
@@ -563,6 +563,19 @@ const CreateAuctionForm = ({
   const isAccessoryCategory = formData.category === 'accessories';
   const totalSteps = isPigeonCategory ? 3 : 2;
 
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    message: string;
+    onClose?: () => void;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
+
   const steps = isPigeonCategory
     ? [
         { step: 1, label: 'Podstawowe', icon: Bird },
@@ -653,40 +666,55 @@ const CreateAuctionForm = ({
 
     if (!user) {
       setError('Musisz być zalogowany');
-      toast('Musisz się zalogować, aby utworzyć aukcję.', {
-        description: 'Zaloguj się i spróbuj ponownie.',
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: 'Musisz się zalogować, aby utworzyć aukcję. Zaloguj się i spróbuj ponownie.'
       });
       return;
     }
 
     if (!profile) {
       setError('Ładowanie profilu...');
-      toast('Ładuję Twój profil…', {
-        description: 'Poczekaj chwilę i spróbuj ponownie.',
+      setFeedbackModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Ładowanie',
+        message: 'Ładuję Twój profil... Poczekaj chwilę i spróbuj ponownie.'
       });
       return;
     }
 
     if (profile.role === 'USER_REGISTERED') {
       setError('Musisz potwierdzić email, aby tworzyć aukcje.');
-      toast('Najpierw potwierdź email.', {
-        description: 'Wejdź w link w emailu weryfikacyjnym, a potem spróbuj ponownie.',
+      setFeedbackModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Wymagana weryfikacja',
+        message: 'Najpierw potwierdź email. Wejdź w link w emailu weryfikacyjnym, a potem spróbuj ponownie.'
       });
       return;
     }
 
     if (profile.role === 'USER_EMAIL_VERIFIED') {
       setError('Musisz zweryfikować numer telefonu, aby tworzyć aukcje.');
-      toast('Dokończ weryfikację konta.', {
-        description: 'Uzupełnij profil i zweryfikuj numer telefonu, aby móc tworzyć aukcje.',
+      setFeedbackModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Wymagana weryfikacja',
+        message: 'Dokończ weryfikację konta. Uzupełnij profil i zweryfikuj numer telefonu, aby móc tworzyć aukcje.'
       });
       return;
     }
 
     if (profile.role !== 'ADMIN' && profile.role !== 'USER_FULL_VERIFIED') {
       setError('Brak uprawnień do tworzenia aukcji.');
-      toast('Brak uprawnień do tworzenia aukcji.', {
-        description: 'Dokończ weryfikację konta (email + telefon) i spróbuj ponownie.',
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Brak uprawnień',
+        message: 'Brak uprawnień do tworzenia aukcji. Dokończ weryfikację konta (email + telefon) i spróbuj ponownie.'
       });
       return;
     }
@@ -718,8 +746,11 @@ const CreateAuctionForm = ({
       const ringNumber = formData.pigeon?.ringNumber?.trim();
       if (!ringNumber) {
         setError('Podaj numer obrączki gołębia.');
-        toast('Brakuje numeru obrączki.', {
-          description: 'Uzupełnij numer obrączki (ringNumber), aby utworzyć aukcję.',
+        setFeedbackModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Brak danych',
+          message: 'Brakuje numeru obrączki. Uzupełnij numer obrączki (ringNumber), aby utworzyć aukcję.'
         });
         return;
       }
@@ -734,8 +765,11 @@ const CreateAuctionForm = ({
 
     if (!session?.access_token) {
       setError('Brak tokenu sesji. Zaloguj się ponownie.');
-      toast('Sesja wygasła lub jest niekompletna.', {
-        description: 'Wyloguj się i zaloguj ponownie, a potem spróbuj jeszcze raz.',
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Sesja wygasła',
+        message: 'Sesja wygasła lub jest niekompletna. Wyloguj się i zaloguj ponownie, a potem spróbuj jeszcze raz.'
       });
       return;
     }
@@ -744,12 +778,18 @@ const CreateAuctionForm = ({
       setLoading(true);
       setError(null);
       
-      const toastId = toast.loading('Przygotowuję dane aukcji...');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Przygotowywanie',
+        message: 'Przygotowuję dane aukcji...'
+      });
+
       const token = session.access_token;
 
       let pedigreeUrl = '';
       if (pedigreeFile) {
-        toast.loading('Przesyłam rodowód...', { id: toastId });
+        setFeedbackModal(prev => ({ ...prev, message: 'Przesyłam rodowód...' }));
         const res = await uploadService.uploadDocument(pedigreeFile, token);
         pedigreeUrl = res.url;
       }
@@ -759,13 +799,13 @@ const CreateAuctionForm = ({
         if (pigeonFiles.length > MAX_IMAGE_FILES) {
           throw new Error(`Zbyt wiele zdjęć (max ${MAX_IMAGE_FILES}).`);
         }
-        toast.loading(`Przesyłam zdjęcia (0/${pigeonFiles.length})...`, { id: toastId });
+        setFeedbackModal(prev => ({ ...prev, message: `Przesyłam zdjęcia (0/${pigeonFiles.length})...` }));
         for (let i = 0; i < pigeonFiles.length; i++) {
           const file = pigeonFiles[i];
           if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
             throw new Error(`Każde zdjęcie musi być <= ${MAX_IMAGE_SIZE_MB}MB.`);
           }
-          toast.loading(`Przesyłam zdjęcia (${i + 1}/${pigeonFiles.length})...`, { id: toastId });
+          setFeedbackModal(prev => ({ ...prev, message: `Przesyłam zdjęcia (${i + 1}/${pigeonFiles.length})...` }));
           const res = await uploadService.uploadImage(file, token);
           imageUrls.push(res.url);
         }
@@ -778,19 +818,19 @@ const CreateAuctionForm = ({
         if (videoFiles.length > MAX_VIDEO_FILES) {
           throw new Error(`Zbyt wiele filmów (max ${MAX_VIDEO_FILES}).`);
         }
-        toast.loading(`Przesyłam filmy (0/${videoFiles.length})...`, { id: toastId });
+        setFeedbackModal(prev => ({ ...prev, message: `Przesyłam filmy (0/${videoFiles.length})...` }));
         for (let i = 0; i < videoFiles.length; i++) {
           const file = videoFiles[i];
           if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
             throw new Error(`Każdy film musi być <= ${MAX_VIDEO_SIZE_MB}MB.`);
           }
-          toast.loading(`Przesyłam filmy (${i + 1}/${videoFiles.length})...`, { id: toastId });
+          setFeedbackModal(prev => ({ ...prev, message: `Przesyłam filmy (${i + 1}/${videoFiles.length})...` }));
           const res = await uploadService.uploadVideo(file, token);
           videoUrls.push(res.url);
         }
       }
 
-      toast.loading('Tworzę aukcję...', { id: toastId });
+      setFeedbackModal(prev => ({ ...prev, message: 'Tworzę aukcję...' }));
       
       const endTime = new Date();
       endTime.setDate(endTime.getDate() + 7);
@@ -824,11 +864,21 @@ const CreateAuctionForm = ({
 
       await auctionService.createAuction(auctionData, token);
       
-      toast.success('Aukcja została utworzona pomyślnie!', { id: toastId });
-      onSuccess?.();
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Aukcja została utworzona pomyślnie!',
+        onClose: onSuccess
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Błąd podczas tworzenia aukcji');
-      toast.error('Nie udało się utworzyć aukcji. Spróbuj ponownie.');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: 'Nie udało się utworzyć aukcji. Spróbuj ponownie.'
+      });
     } finally {
       setLoading(false);
     }
@@ -1226,6 +1276,24 @@ const CreateAuctionForm = ({
         )}
       </AnimatePresence>
 
+      {/* Feedback Modal */}
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => {
+          setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+          if (feedbackModal.onClose) feedbackModal.onClose();
+        }}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: feedbackModal.onClose ? "OK" : "Zamknij",
+          onClick: () => {
+            setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+            if (feedbackModal.onClose) feedbackModal.onClose();
+          }
+        }}
+      />
     </motion.form>
   );
 };

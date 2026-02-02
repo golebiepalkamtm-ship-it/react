@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SmartImage } from '@/components/ui/SmartImage';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileVerification } from '@/hooks/useProfileVerification';
 import { AlertCircle, Camera, CheckCircle, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { meetingsService } from '@/services/meetingsService';
-import { useOptimizedToast } from '@/hooks/use-optimized-toast';
 
 interface AddBreederMeetingFormProps {
   onSuccess?: () => void;
@@ -19,7 +19,6 @@ interface AddBreederMeetingFormProps {
 export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = false }: AddBreederMeetingFormProps) {
   const { user, loading } = useAuth();
   const { canBid, missingFields } = useProfileVerification();
-  const { success: showSuccess, error: showError } = useOptimizedToast();
   const verificationLoading = false;
   const canAddPhotos = !!canBid;
   const navigate = useNavigate();
@@ -36,6 +35,17 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +73,12 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
       setSubmitStatus('success');
       setFormData({ title: '', description: '', location: '', date: '', images: [] });
       setPreviewImages([]);
-      showSuccess({ message: 'Spotkanie zostało dodane pomyślnie!' });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Spotkanie zostało dodane pomyślnie!'
+      });
       if (onSuccess) {
         onSuccess();
       }
@@ -71,7 +86,12 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
       const errorMsg = err instanceof Error ? err.message : 'Wystąpił błąd podczas wysyłania formularza';
       setSubmitStatus('error');
       setErrorMessage(errorMsg);
-      showError({ message: errorMsg });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: errorMsg
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -220,6 +240,17 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
     return (
       <div className="py-4">
         {content}
+        <UnifiedModal
+          isOpen={feedbackModal.isOpen}
+          onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+          type={feedbackModal.type}
+          title={feedbackModal.title}
+          message={feedbackModal.message}
+          confirmButton={{
+            text: 'OK',
+            onClick: () => setFeedbackModal(prev => ({ ...prev, isOpen: false }))
+          }}
+        />
       </div>
     );
   }
@@ -261,6 +292,17 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
       </motion.div>
 
       {content}
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: 'OK',
+          onClick: () => setFeedbackModal(prev => ({ ...prev, isOpen: false }))
+        }}
+      />
     </motion.div>
   );
 }

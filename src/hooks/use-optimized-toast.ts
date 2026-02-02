@@ -6,12 +6,21 @@ interface ToastOptions {
 }
 
 export const useOptimizedToast = () => {
-  const { pushToast } = useFeedback();
+  const { openModal, closeModal } = useFeedback();
 
-  const success = ({ message }: ToastOptions) => pushToast({ tone: "success", title: message });
-  const error = ({ message }: ToastOptions) => pushToast({ tone: "error", title: message });
-  const warning = ({ message }: ToastOptions) => pushToast({ tone: "error", title: message });
-  const info = ({ message }: ToastOptions) => pushToast({ tone: "info", title: message });
+  const showModal = (tone: 'success' | 'error' | 'info', message: string) => {
+    openModal({
+      tone,
+      title: tone === 'success' ? 'Sukces' : tone === 'error' ? 'Błąd' : 'Informacja',
+      message,
+      actions: [{ label: 'OK', onClick: closeModal }]
+    });
+  };
+
+  const success = ({ message }: ToastOptions) => showModal("success", message);
+  const error = ({ message }: ToastOptions) => showModal("error", message);
+  const warning = ({ message }: ToastOptions) => showModal("error", message);
+  const info = ({ message }: ToastOptions) => showModal("info", message);
 
   return {
     success,

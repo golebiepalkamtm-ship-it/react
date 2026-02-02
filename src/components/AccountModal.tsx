@@ -6,9 +6,8 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { useProfile } from '@/hooks/useProfile';
 import type { Profile } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { toast } from '@/components/ui/sonner';
 import { reviewService } from '@/services/reviewService';
-import { UnifiedModal } from '@/components/ui/UnifiedModal';
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import PhoneVerification from '@/components/auth/PhoneVerification';
 
 interface Props {
@@ -165,7 +164,10 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
       }
       setNewPassword('');
       setConfirmPassword('');
-      toast('Hasło zostało zmienione', { description: 'Twoje nowe hasło jest już aktywne.' });
+      setFeedbackOpen(true);
+      setFeedbackType('success');
+      setFeedbackTitle('Hasło zmienione');
+      setFeedbackMessage('Twoje hasło zostało pomyślnie zmienione.');
     } catch (err: any) {
       setPassError(err?.message ?? 'Wystąpił błąd przy zmianie hasła');
     } finally {

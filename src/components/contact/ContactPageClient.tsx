@@ -1,10 +1,8 @@
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import GoogleMap from '@/components/contact/GoogleMap';
-import { Text3D } from '@/components/ui/Text3D';
-import { UnifiedButton } from '@/components/ui/UnifiedButton';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { contactService } from "@/services/contactService";
 
 // Scroll reveal hook - removed
@@ -70,7 +68,6 @@ function GoldenCard({ children, className = '' }: GoldenCardProps) {
 }
 
 export default function ContactPageClient() {
-  const { success: showSuccess, error: showError } = useOptimizedToast();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -78,6 +75,9 @@ export default function ContactPageClient() {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +85,7 @@ export default function ContactPageClient() {
 
     try {
       await contactService.submitContactForm(formData);
-      showSuccess({ message: 'Wiadomość została wysłana pomyślnie!', duration: 4000 });
+      setShowSuccessModal(true);
       setFormData({
         fullName: '',
         email: '',
@@ -94,7 +94,8 @@ export default function ContactPageClient() {
       });
     } catch (error) {
       console.error('Error sending message:', error);
-      showError({ message: error instanceof Error ? error.message : 'Wystąpił błąd podczas wysyłania wiadomości', duration: 5000 });
+      setErrorMessage(error instanceof Error ? error.message : 'Wystąpił błąd podczas wysyłania wiadomości');
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -124,9 +125,9 @@ export default function ContactPageClient() {
                   <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center border-2 border-amber-400/50 bg-gradient-to-br from-amber-500/20 to-amber-700/20">
                     <Phone className="w-8 h-8 text-amber-300" />
                   </div>
-                  <Text3D variant="glow" intensity="medium" className="text-xl font-bold mb-4">
+                  <h3 className="text-xl font-bold mb-4">
                     Telefon
-                  </Text3D>
+                  </h3>
                   <p className="text-white/90 mb-4">75 722 47 29</p>
                 </div>
                 <p className="text-white/60 text-sm">Dostępny 8:00 - 20:00</p>
@@ -137,9 +138,9 @@ export default function ContactPageClient() {
                   <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center border-2 border-amber-400/50 bg-gradient-to-br from-amber-500/20 to-amber-700/20">
                     <Mail className="w-8 h-8 text-amber-300" />
                   </div>
-                  <Text3D variant="gradient" intensity="medium" className="text-xl font-bold mb-4">
+                  <h3 className="text-xl font-bold mb-4">
                     Email
-                  </Text3D>
+                  </h3>
                   <p className="text-white/90 mb-4">kontakt@palkamtm.pl</p>
                 </div>
                 <p className="text-white/60 text-sm">Odpowiadamy w ciągu 24h</p>
@@ -150,9 +151,9 @@ export default function ContactPageClient() {
                   <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center border-2 border-amber-400/50 bg-gradient-to-br from-amber-500/20 to-amber-700/20">
                     <MapPin className="w-8 h-8 text-amber-300" />
                   </div>
-                  <Text3D variant="neon" intensity="medium" className="text-xl font-bold mb-4">
+                  <h3 className="text-xl font-bold mb-4">
                     Adres
-                  </Text3D>
+                  </h3>
                   <p className="text-white/90 mb-4">
                     Pałka MTM
                     <br />
@@ -175,13 +176,9 @@ export default function ContactPageClient() {
           {/* Contact Form */}
           <section className="magictime twisterInDown" style={{ animationDuration: '1s', animationDelay: '1.7s' }}>
             <GoldenCard>
-              <Text3D
-                variant="shimmer"
-                intensity="high"
-                className="text-3xl md:text-4xl font-bold mb-8 text-center"
-              >
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">
                 Napisz do nas
-              </Text3D>
+              </h2>
 
               <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -265,17 +262,15 @@ export default function ContactPageClient() {
                 </div>
 
                 <div className="text-center">
-                  <UnifiedButton
+                  <Button
                     type="submit"
-                    variant="primary"
+                    variant="gold"
                     size="lg"
-                    intensity="high"
-                    glow={false}
                     className="px-12"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Wysyłanie...' : 'Wyślij wiadomość'}
-                  </UnifiedButton>
+                  </Button>
                 </div>
               </form>
             </GoldenCard>
@@ -284,13 +279,9 @@ export default function ContactPageClient() {
           {/* Additional Info */}
           <section className="magictime twisterInUp" style={{ animationDuration: '1s', animationDelay: '2.2s' }}>
             <GoldenCard>
-              <Text3D
-                variant="glow"
-                intensity="medium"
-                className="text-2xl md:text-3xl font-bold mb-6 text-center"
-              >
+              <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
                 Godziny Pracy
-              </Text3D>
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-20 xl:gap-24">
                 <div className="text-center rounded-xl border border-white/5 bg-black/20 p-5">
                   <h4 className="text-lg font-semibold uppercase tracking-[0.3em] text-white/60 mb-4">Hodowla</h4>
@@ -309,6 +300,24 @@ export default function ContactPageClient() {
           </section>
         </div>
       </div>
+
+      <UnifiedModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        type="success"
+        title="Wiadomość Wysłana"
+        message="Dziękujemy za kontakt! Twoja wiadomość została wysłana pomyślnie. Odpowiemy najszybciej jak to możliwe."
+        confirmButton={{ text: "OK", onClick: () => setShowSuccessModal(false) }}
+      />
+
+      <UnifiedModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        type="error"
+        title="Błąd Wysyłania"
+        message={errorMessage}
+        confirmButton={{ text: "Zamknij", onClick: () => setShowErrorModal(false) }}
+      />
     </>
   );
 }

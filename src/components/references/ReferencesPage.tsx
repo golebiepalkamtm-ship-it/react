@@ -20,7 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import AccountModal from '@/components/AccountModal';
-import { useOptimizedToast } from '@/hooks/use-optimized-toast';
+
 
 
 interface ReferenceCardProps {
@@ -138,13 +138,23 @@ function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardPro
 export function ReferencesPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const { info: showInfo } = useOptimizedToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [references, setReferences] = useState<Reference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
+  const [infoModal, setInfoModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
   
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -196,7 +206,12 @@ export function ReferencesPage() {
     }
 
     if (!profile) {
-      showInfo({ message: 'Ładowanie profilu...', duration: 2000 });
+      setInfoModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Informacja',
+        message: 'Ładowanie profilu...'
+      });
       return;
     }
 
@@ -204,7 +219,12 @@ export function ReferencesPage() {
     if (action) {
       action();
     } else {
-      showInfo({ message: 'Brak uprawnień do dodawania referencji.', duration: 5000 });
+      setInfoModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Brak uprawnień',
+        message: 'Brak uprawnień do dodawania referencji.'
+      });
     }
   };
 
@@ -697,6 +717,18 @@ export function ReferencesPage() {
       <AccountModal 
         open={isAccountOpen} 
         onClose={() => setIsAccountOpen(false)} 
+      />
+
+      <UnifiedModal
+        isOpen={infoModal.isOpen}
+        onClose={() => setInfoModal(prev => ({ ...prev, isOpen: false }))}
+        type={infoModal.type}
+        title={infoModal.title}
+        message={infoModal.message}
+        confirmButton={{
+          text: 'OK',
+          onClick: () => setInfoModal(prev => ({ ...prev, isOpen: false }))
+        }}
       />
 
       <UnifiedModal

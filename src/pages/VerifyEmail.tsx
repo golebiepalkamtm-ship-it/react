@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,6 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile, loading } = useAuth();
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
@@ -21,25 +19,14 @@ const VerifyEmail = () => {
   // Check if verified based on user state OR url param
   const isVerified = (user && (user.email_confirmed_at || user.confirmed_at || profile?.role !== 'USER_REGISTERED')) || verifiedParam === 'true';
 
-  useEffect(() => {
-    if (isVerified) {
-      setShowSuccessModal(true);
-    }
-  }, [isVerified]);
-
-  useEffect(() => {
-    if (error) {
-      setShowErrorModal(true);
-    }
-  }, [error]);
+  const showSuccessModal = isVerified;
+  const showErrorModal = Boolean(error);
 
   const handleSuccessClose = () => {
-    setShowSuccessModal(false);
     navigate('/account');
   };
 
   const handleErrorClose = () => {
-    setShowErrorModal(false);
     navigate('/auth');
   };
 
@@ -64,7 +51,7 @@ const VerifyEmail = () => {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "outCirc" }}
+          transition={{ duration: 0.5, ease: "circOut" }}
           className="relative z-10 max-w-md w-full bg-card/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl text-center mt-20"
         >
           <div className="flex justify-center mb-6">

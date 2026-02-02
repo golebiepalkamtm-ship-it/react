@@ -55,7 +55,7 @@ const GlassModal: React.FC<GlassModalProps> = ({ open, onClose, headerImage, tit
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="absolute inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm min-h-screen"
+          className="absolute inset-0 z-[100] flex items-start justify-center p-4 bg-transparent min-h-screen"
           onClick={onClose}
           style={{ top: window.scrollY }}
         >

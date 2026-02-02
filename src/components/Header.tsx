@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, Shield, CheckCircle, AlertCircle } from "lucide-react";
-import { toast } from "@/components/ui/sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import UserPanel from './UserPanel';
 import AdminPanel from './AdminPanel';
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { fadeInDown, iconMicro } from "@/components/motion";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 
 const Header = () => {
   const { user, profile } = useAuth();
@@ -14,6 +14,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [isHeaderAdminPanelOpen, setIsHeaderAdminPanelOpen] = useState(false);
+  const [verificationSuccessModalOpen, setVerificationSuccessModalOpen] = useState(false);
   
   // Debug log
   useEffect(() => {
@@ -37,22 +38,22 @@ const Header = () => {
     return () => window.removeEventListener('showUserPanel', handleShowUserPanel);
   }, []);
 
+  const shouldOpenFromLocation = Boolean(location.state?.openAccount);
+  const shouldShowVerificationFromLocation = Boolean(location.state?.showVerificationSuccess);
+  const isAccountModalOpen = showAccountModal || (shouldOpenFromLocation && !shouldShowVerificationFromLocation);
+  const isVerificationModalOpen = verificationSuccessModalOpen || (shouldOpenFromLocation && shouldShowVerificationFromLocation);
+
   useEffect(() => {
-    if (location.state?.openAccount) {
-      // Odłóż ustawienie stanu na mikro-tick, aby uniknąć ostrzeżenia lintra o setState w efekcie
-      setTimeout(() => setShowAccountModal(true), 0);
-      if (location.state?.showVerificationSuccess) {
-        setTimeout(() => {
-           toast.success("Email zweryfikowany pomyślnie!", {
-             description: "Prosimy o uzupełnienie danych profilowych, aby móc w pełni korzystać z serwisu.",
-             duration: 5000,
-           });
-        }, 500);
-      }
-      // Wyczyść state nawigacji zgodnie z API React Router
+    if (shouldOpenFromLocation) {
       navigate(".", { replace: true, state: undefined });
     }
-  }, [location, navigate]);
+  }, [shouldOpenFromLocation, navigate]);
+
+  const handleVerificationModalClose = () => {
+    setVerificationSuccessModalOpen(false);
+    setShowAccountModal(true);
+    navigate(".", { replace: true, state: undefined });
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -459,8 +460,8 @@ const Header = () => {
         </motion.nav>
 
         <AnimatePresence>
-          {showAccountModal && (
-            <UserPanel onClose={() => setShowAccountModal(false)} />
+          {isAccountModalOpen && (
+            <UserPanel isOpen={isAccountModalOpen} onClose={() => setShowAccountModal(false)} />
           )}
           {isHeaderAdminPanelOpen && (
             <AdminPanel 
@@ -631,6 +632,21 @@ const Header = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <UnifiedModal
+        isOpen={isVerificationModalOpen}
+        onClose={handleVerificationModalClose}
+        type="success"
+        title="Email zweryfikowany pomyślnie!"
+        message="Prosimy o uzupełnienie danych profilowych, aby móc w pełni korzystać z serwisu."
+        confirmButton={{
+          text: "OK",
+          onClick: handleVerificationModalClose
+        }}
+        showCloseButton={true}
+        closeOnBackdrop={true}
+        closeOnEscape={true}
+        size="md"
+      />
     </motion.header>
   );
 };

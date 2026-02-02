@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MapPin, Phone, Mail, Clock, Send, Navigation, Copy, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { contactService } from "@/services/contactService";
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -140,10 +140,20 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
 };
 
 const GoogleMapCard = () => {
-  const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
   const address = "ul. Stawowa 6, 59-800 Lubań";
 
   const mouseX = useMotionValue(0);
@@ -169,25 +179,29 @@ const GoogleMapCard = () => {
 
   const handleCopyAddress = () => {
     if (!navigator.clipboard) {
-      toast({
+      setModalState({
+        isOpen: true,
+        type: 'error',
         title: "Błąd",
-        description: "Schowek jest niedostępny w Twojej przeglądarce lub na niezabezpieczonej stronie.",
-        variant: "destructive",
+        message: "Schowek jest niedostępny w Twojej przeglądarce lub na niezabezpieczonej stronie."
       });
       return;
     }
     navigator.clipboard.writeText(address).then(() => {
-      toast({
+      setModalState({
+        isOpen: true,
+        type: 'success',
         title: "Skopiowano!",
-        description: "Adres został pomyślnie skopiowany do schowka.",
+        message: "Adres został pomyślnie skopiowany do schowka."
       });
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2500);
     }, (err) => {
-      toast({
+      setModalState({
+        isOpen: true,
+        type: 'error',
         title: "Błąd kopiowania",
-        description: "Nie udało się skopiować adresu.",
-        variant: "destructive",
+        message: "Nie udało się skopiować adresu."
       });
       console.error('Failed to copy address: ', err);
     });
@@ -239,6 +253,17 @@ const GoogleMapCard = () => {
           </Button>
         </div>
       </motion.div>
+      <UnifiedModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        confirmButton={{
+          text: "OK",
+          onClick: () => setModalState(prev => ({ ...prev, isOpen: false }))
+        }}
+      />
     </motion.div>
   );
 };
@@ -326,9 +351,11 @@ const StyledContactCard = ({ info, index }: { info: ContactInfoItem; index: numb
 };
 
 const ContactSection = () => {
-  const { toast } = useToast();
   const [formData, setFormData] = useState({ fullName: '', email: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -366,17 +393,11 @@ const ContactSection = () => {
     setIsSubmitting(true);
     try {
       await contactService.submitContactForm(formData);
-      toast({
-        title: "Wiadomość wysłana!",
-        description: "Dziękujemy za kontakt. Odpowiemy najszybciej jak to możliwe.",
-      });
+      setShowSuccessModal(true);
       setFormData({ fullName: '', email: '', subject: '', message: '' });
     } catch (error) {
-      toast({
-        title: "Błąd wysyłania",
-        description: "Nie udało się wysłać wiadomości. Spróbuj ponownie później.",
-        variant: "destructive",
-      });
+      setErrorMessage("Nie udało się wysłać wiadomości. Spróbuj ponownie później.");
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -417,6 +438,24 @@ const ContactSection = () => {
           </div>
         </div>
       </div>
+
+      <UnifiedModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        type="success"
+        title="Wiadomość Wysłana"
+        message="Dziękujemy za kontakt! Twoja wiadomość została wysłana pomyślnie. Odpowiemy najszybciej jak to możliwe."
+        confirmButton={{ text: "OK", onClick: () => setShowSuccessModal(false) }}
+      />
+
+      <UnifiedModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        type="error"
+        title="Błąd Wysyłania"
+        message={errorMessage}
+        confirmButton={{ text: "Zamknij", onClick: () => setShowErrorModal(false) }}
+      />
     </section>
   );
 };

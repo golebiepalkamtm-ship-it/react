@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Search, SlidersHorizontal, Plus, X, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/components/ui/sonner";
 import AuctionCard from "./AuctionCard";
 import { LuxuryAuctionCard } from "@/components/auction/LuxuryAuctionCard";
 import { AuctionListItem } from "@/components/auction/AuctionListItem";
@@ -19,7 +18,6 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { useAuctionFilters } from "@/hooks/useAuctionFilters";
 import { auctionService } from "@/services/auctionService";
 import { resolveAuctionImage } from "@/utils/image";
-import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import AdvancedSearch from "@/components/AdvancedSearch";
 import { canCreateAuction } from "@/components/ProtectedRoute";
 import type { AuctionSortBy } from "@/types/auction";
@@ -28,7 +26,6 @@ import { CreateAuctionModal } from "@/components/CreateAuctionModal";
 const AuctionsPage = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const { success: showSuccess, error: showError } = useOptimizedToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<AuctionSortBy>("newest");
   const [showFilters, setShowFilters] = useState(false);
@@ -50,6 +47,20 @@ const AuctionsPage = () => {
   const [isAuctionModalOpen, setIsAuctionModalOpen] = useState(false);
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
+
+  // UnifiedModal state
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    message: string;
+    onClose?: () => void;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   const filters = useMemo(() => ({
     searchTerm,
@@ -103,13 +114,23 @@ const AuctionsPage = () => {
     console.log('🔍 handleCreateAuctionClick called', { user: !!user, profile: profile?.role });
      
     if (!user) {
-      toast("Musisz się zalogować.", { description: "Za chwilę przeniosę Cię do logowania." });
-      setTimeout(() => navigate("/auth?mode=login"), 350);
+      setFeedbackModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Wymagane logowanie',
+        message: 'Musisz się zalogować. Za chwilę przeniosę Cię do logowania.'
+      });
+      setTimeout(() => navigate("/auth?mode=login"), 2000);
       return;
     }
  
     if (!profile) {
-      toast('Ładuję profil…', { description: 'Poczekaj i spróbuj ponownie.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Ładowanie profilu',
+        message: 'Poczekaj i spróbuj ponownie.'
+      });
       return;
     }
  
@@ -119,7 +140,12 @@ const AuctionsPage = () => {
       console.log('🔍 Executing action for role:', profile.role);
       action();
     } else {
-      toast('Brak uprawnień.', { description: 'Dokończ weryfikację konta.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Brak uprawnień',
+        message: 'Dokończ weryfikację konta.'
+      });
     }
   };
 
@@ -157,13 +183,23 @@ const AuctionsPage = () => {
     // Listen for openCategorySelector event from UserPanel
     const handleOpenCategorySelector = () => {
       if (!user) {
-        toast("Musisz się zalogować.", { description: "Za chwilę przeniosę Cię do logowania." });
-        setTimeout(() => navigate("/auth?mode=login"), 350);
+        setFeedbackModal({
+          isOpen: true,
+          type: 'info',
+          title: 'Wymagane logowanie',
+          message: 'Musisz się zalogować, aby dodać aukcję. Za chwilę nastąpi przekierowanie.'
+        });
+        setTimeout(() => navigate("/auth?mode=login"), 2000);
         return;
       }
 
       if (!profile) {
-        toast('Ładuję profil…', { description: 'Poczekaj i spróbuj ponownie.' });
+        setFeedbackModal({
+          isOpen: true,
+          type: 'info',
+          title: 'Ładowanie profilu',
+          message: 'Poczekaj chwilę i spróbuj ponownie.'
+        });
         return;
       }
 
@@ -171,7 +207,12 @@ const AuctionsPage = () => {
       if (action) {
         action();
       } else {
-        toast('Brak uprawnień.', { description: 'Dokończ weryfikację konta.' });
+        setFeedbackModal({
+          isOpen: true,
+          type: 'warning',
+          title: 'Brak uprawnień',
+          message: 'Dokończ weryfikację konta, aby móc dodawać aukcje.'
+        });
       }
     };
     
@@ -558,6 +599,24 @@ const AuctionsPage = () => {
         cancelButton={{
           text: 'Anuluj',
           onClick: () => setShowVerificationModal(false)
+        }}
+      />
+      {/* Feedback Modal */}
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => {
+          setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+          if (feedbackModal.onClose) feedbackModal.onClose();
+        }}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: feedbackModal.onClose ? "Przejdź" : "OK",
+          onClick: () => {
+            setFeedbackModal(prev => ({ ...prev, isOpen: false }));
+            if (feedbackModal.onClose) feedbackModal.onClose();
+          }
         }}
       />
     </>

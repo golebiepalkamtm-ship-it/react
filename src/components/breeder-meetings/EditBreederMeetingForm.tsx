@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { AlertCircle, Camera, CheckCircle, Upload, X, Trash2 } from 'lucide-react';
-import { useOptimizedToast } from '@/hooks/use-optimized-toast';
 import { meetingsService } from '@/services/meetingsService';
 import { SmartImage } from '@/components/ui/SmartImage';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 
 interface EditBreederMeetingFormProps {
   meeting: {
@@ -20,8 +20,6 @@ interface EditBreederMeetingFormProps {
 }
 
 export default function EditBreederMeetingForm({ meeting, onSuccess, onCancel }: EditBreederMeetingFormProps) {
-  const { success: showSuccess, error: showError } = useOptimizedToast();
-
   const [formData, setFormData] = useState({
     title: meeting.name || '',
     description: meeting.description || '',
@@ -35,6 +33,17 @@ export default function EditBreederMeetingForm({ meeting, onSuccess, onCancel }:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +57,12 @@ export default function EditBreederMeetingForm({ meeting, onSuccess, onCancel }:
         const msg = 'Dodaj minimum jedno zdjęcie (pozostaw istniejące lub dodaj nowe).';
         setErrorMessage(msg);
         setSubmitStatus('error');
-        showError({ message: msg });
+        setFeedbackModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Błąd',
+          message: msg
+        });
         setIsSubmitting(false);
         return;
       }
@@ -63,13 +77,23 @@ export default function EditBreederMeetingForm({ meeting, onSuccess, onCancel }:
       });
 
       setSubmitStatus('success');
-      showSuccess({ message: 'Spotkanie zostało zaktualizowane.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Spotkanie zostało zaktualizowane.'
+      });
       onSuccess?.();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Wystąpił błąd podczas zapisu.';
       setSubmitStatus('error');
       setErrorMessage(msg);
-      showError({ message: msg });
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: msg
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -226,6 +250,17 @@ export default function EditBreederMeetingForm({ meeting, onSuccess, onCancel }:
           </button>
         </div>
       </form>
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: 'OK',
+          onClick: () => setFeedbackModal(prev => ({ ...prev, isOpen: false }))
+        }}
+      />
     </div>
   );
 }

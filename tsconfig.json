@@ -9,6 +9,7 @@
     "strict": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   }
 }

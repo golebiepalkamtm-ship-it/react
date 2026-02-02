@@ -3,12 +3,10 @@ import { User, MapPin, Star, Shield, Settings, X, Calendar, Phone, Mail, Lock, S
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { useLocale } from '@/contexts/LocaleContext';
 import { useProfile } from '@/hooks/useProfile';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/sonner';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import PhoneVerification from '@/components/auth/PhoneVerification';
 
@@ -20,7 +18,6 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const { user, profile, signOut } = useAuth();
   const { t } = useLocale();
   const { updateUserProfile, loading: profileSaving, error: profileError } = useProfile();
-  const { success: showSuccess, error: showError } = useOptimizedToast();
   const navigate = useNavigate();
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -136,9 +133,16 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
       }
       setNewPassword('');
       setConfirmPassword('');
-      showSuccess({ message: 'Hasło zostało zmienione' });
+      setFeedbackType('success');
+      setFeedbackTitle('Hasło zmienione');
+      setFeedbackMessage('Twoje hasło zostało pomyślnie zaktualizowane.');
+      setFeedbackOpen(true);
     } catch (err: any) {
       setPassError(err?.message ?? 'Wystąpił błąd przy zmianie hasła');
+      setFeedbackType('error');
+      setFeedbackTitle('Błąd zmiany hasła');
+      setFeedbackMessage(err?.message ?? 'Wystąpił błąd przy zmianie hasła');
+      setFeedbackOpen(true);
     } finally {
       setPassSaving(false);
     }

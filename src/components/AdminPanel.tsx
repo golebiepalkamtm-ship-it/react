@@ -13,14 +13,11 @@ import {
   Trash2,
   TrendingUp,
   DollarSign,
-  Clock,
   UserCheck,
   Edit,
   Save,
-  XCircle,
   Plus,
   Activity,
-  Zap,
   Crown,
   Eye,
   RefreshCw,
@@ -31,7 +28,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/components/ui/sonner';
+import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import { apiClient } from '@/services/api';
 import { createPortal } from 'react-dom';
 
@@ -207,6 +204,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     endTime: ''
   });
 
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    confirmLabel?: string;
+    cancelLabel?: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
+
+  const closeFeedbackModal = () => {
+    setFeedbackModal(prev => ({ ...prev, isOpen: false, onConfirm: undefined }));
+  };
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const backgroundX = useTransform(mouseX, [0, 1], [-10, 10]);
@@ -228,7 +244,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error("Error fetching admin data:", error);
       const errorMessage = error instanceof Error ? error.message : 'Nieznany błąd';
-      toast.error(`Błąd pobierania danych administratora: ${errorMessage}`);
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: `Błąd pobierania danych administratora: ${errorMessage}`
+      });
     } finally {
       setLoading(false);
     }
@@ -258,28 +279,64 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'delete' | 'verify') => {
     if (!session?.access_token) return;
     if (userId === profile?.id && (action === 'ban' || action === 'delete')) {
-      toast.error('Nie możesz wykonać tej akcji na swoim koncie.');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: 'Nie możesz wykonać tej akcji na swoim koncie.'
+      });
       return;
     }
-    try {
-      if (action === 'delete') {
-         if (!confirm('Czy na pewno chcesz usunąć tego użytkownika? To operacja nieodwracalna.')) return;
-         await apiClient.delete(`/admin/users/${userId}`, session.access_token);
-         toast.success('Użytkownik usunięty');
-      } else {
-        let role = '';
-        if (action === 'ban') role = 'BANNED';
-        if (action === 'unban') role = 'USER_REGISTERED';
-        if (action === 'verify') role = 'USER_FULL_VERIFIED';
+
+    const performAction = async () => {
+      try {
+        if (action === 'delete') {
+           await apiClient.delete(`/admin/users/${userId}`, session.access_token!);
+           setFeedbackModal({
+             isOpen: true,
+             type: 'success',
+             title: 'Sukces',
+             message: 'Użytkownik usunięty'
+           });
+        } else {
+          let role = '';
+          if (action === 'ban') role = 'BANNED';
+          if (action === 'unban') role = 'USER_REGISTERED';
+          if (action === 'verify') role = 'USER_FULL_VERIFIED';
+          
+          await apiClient.patch(`/admin/users/${userId}`, { role }, session.access_token!);
+          setFeedbackModal({
+            isOpen: true,
+            type: 'success',
+            title: 'Sukces',
+            message: 'Rola użytkownika zaktualizowana'
+          });
+        }
         
-        await apiClient.patch(`/admin/users/${userId}`, { role }, session.access_token);
-        toast.success('Rola użytkownika zaktualizowana');
+        fetchData();
+      } catch (error) {
+        console.error('Error performing user action:', error);
+        setFeedbackModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Błąd',
+          message: 'Błąd akcji użytkownika'
+        });
       }
-      
-      fetchData();
-    } catch (error) {
-      console.error('Error performing user action:', error);
-      toast.error('Błąd akcji użytkownika');
+    };
+
+    if (action === 'delete') {
+      setFeedbackModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Potwierdzenie',
+        message: 'Czy na pewno chcesz usunąć tego użytkownika? To operacja nieodwracalna.',
+        onConfirm: performAction,
+        confirmLabel: 'Usuń',
+        cancelLabel: 'Anuluj'
+      });
+    } else {
+      await performAction();
     }
   };
 
@@ -293,30 +350,74 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       if (password) {
         await apiClient.patch(`/admin/users/${editingUser.id}/password`, { password }, session.access_token);
       }
-      toast.success('Użytkownik zaktualizowany');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Użytkownik zaktualizowany'
+      });
       setEditingUser(null);
       fetchData();
     } catch (error) {
-      toast.error('Błąd aktualizacji użytkownika');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: 'Błąd aktualizacji użytkownika'
+      });
     }
   };
 
   const handleAuctionAction = async (auctionId: string, action: 'end' | 'delete') => {
     if (!session?.access_token) return;
-    try {
-      if (action === 'delete') {
-        if (!confirm('Czy na pewno chcesz usunąć tę aukcję?')) return;
-        await apiClient.delete(`/admin/auctions/${auctionId}`, session.access_token);
-        toast.success('Aukcja usunięta');
-      } else if (action === 'end') {
-        await apiClient.patch(`/admin/auctions/${auctionId}`, { status: 'ENDED' }, session.access_token);
-        toast.success('Aukcja zakończona');
+    const performAction = async () => {
+      try {
+        if (action === 'delete') {
+          await apiClient.delete(`/admin/auctions/${auctionId}`, session.access_token);
+          setFeedbackModal({
+            isOpen: true,
+            type: 'success',
+            title: 'Sukces',
+            message: 'Aukcja usunięta'
+          });
+        } else if (action === 'end') {
+          await apiClient.patch(`/admin/auctions/${auctionId}`, { status: 'ENDED' }, session.access_token);
+          setFeedbackModal({
+            isOpen: true,
+            type: 'success',
+            title: 'Sukces',
+            message: 'Aukcja zakończona'
+          });
+        }
+        fetchData();
+      } catch (error) {
+        console.error('Error performing auction action:', error);
+        setFeedbackModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Błąd',
+          message: 'Błąd akcji aukcji'
+        });
       }
-      fetchData();
-    } catch (error) {
-      console.error('Error performing auction action:', error);
-      toast.error('Błąd akcji aukcji');
+    };
+
+    if (action === 'delete') {
+      setFeedbackModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Potwierdzenie',
+        message: 'Czy na pewno chcesz usunąć tę aukcję? Ta operacja jest nieodwracalna.',
+        onConfirm: () => {
+          closeFeedbackModal();
+          void performAction();
+        },
+        confirmLabel: 'Usuń',
+        cancelLabel: 'Anuluj'
+      });
+      return;
     }
+
+    await performAction();
   };
 
   const handleSaveAuction = async (e: React.FormEvent) => {
@@ -325,11 +426,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
     try {
       await apiClient.patch(`/admin/auctions/${editingAuction.id}`, editingAuction, session.access_token);
-      toast.success('Aukcja zaktualizowana');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Aukcja zaktualizowana'
+      });
       setEditingAuction(null);
       fetchData();
     } catch (error) {
-      toast.error('Błąd aktualizacji aukcji');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: 'Błąd aktualizacji aukcji'
+      });
     }
   };
 
@@ -338,13 +449,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     if (!session?.access_token) return;
     try {
       await apiClient.post('/admin/users', newUser, session.access_token);
-      toast.success('Użytkownik utworzony pomyślnie');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Użytkownik utworzony pomyślnie'
+      });
       setIsCreatingUser(false);
       setNewUser({ email: '', password: '', first_name: '', last_name: '', role: 'USER_REGISTERED', phone: '' });
       fetchData();
     } catch (error) {
       console.error(error);
-      toast.error('Błąd tworzenia użytkownika');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd',
+        message: 'Błąd tworzenia użytkownika'
+      });
     }
   };
 
@@ -353,7 +474,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     if (!session?.access_token) return;
     try {
       await apiClient.post('/admin/auctions', newAuction, session.access_token);
-      toast.success('Aukcja utworzona pomyślnie');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Aukcja utworzona pomyślnie'
+      });
       setIsCreatingAuction(false);
       setNewAuction({ 
         title: '', description: '', startingPrice: 0, buyNowPrice: 0, 
@@ -362,7 +488,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       fetchData();
     } catch (error) {
        console.error(error);
-       toast.error('Błąd tworzenia aukcji');
+       setFeedbackModal({
+         isOpen: true,
+         type: 'error',
+         title: 'Błąd',
+         message: 'Błąd tworzenia aukcji'
+       });
     }
   };
 
@@ -392,6 +523,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   ];
 
   return createPortal(
+    <>
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -1549,6 +1681,33 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         </motion.div>
       )}
     </AnimatePresence>
+    <UnifiedModal
+      isOpen={feedbackModal.isOpen}
+      onClose={closeFeedbackModal}
+      type={feedbackModal.type}
+      title={feedbackModal.title}
+      message={feedbackModal.message}
+      confirmButton={
+        feedbackModal.onConfirm
+          ? {
+              text: feedbackModal.confirmLabel || 'OK',
+              onClick: feedbackModal.onConfirm,
+            }
+          : {
+              text: 'OK',
+              onClick: closeFeedbackModal,
+            }
+      }
+      cancelButton={
+        feedbackModal.cancelLabel
+          ? {
+              text: feedbackModal.cancelLabel,
+              onClick: closeFeedbackModal,
+            }
+          : undefined
+      }
+    />
+    </>
   , document.body);
 };
 

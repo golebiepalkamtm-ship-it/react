@@ -3,9 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Send, Shield, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { useLocale } from '@/contexts/LocaleContext';
-import { toast } from '@/components/ui/sonner';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import { apiClient } from '@/services/api';
 
@@ -25,6 +23,18 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
   const [error, setError] = useState('');
   const { updateProfile, profile, user, session } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  const [feedbackModal, setFeedbackModal] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'info';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     setPhone(initialPhone ?? '');
@@ -39,10 +49,20 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
       await apiClient.post('/auth/otp/send', { phone }, session?.access_token || undefined);
 
       setStep('otp');
-      toast.success(t('phone.sending_success') || 'Kod został wysłany');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: t('phone.sending_success') || 'Kod został wysłany',
+        message: 'Sprawdź swoje wiadomości SMS.'
+      });
     } catch (err: any) {
       setError(err.message);
-      toast.error(err.message);
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd wysyłania',
+        message: err.message
+      });
     } finally {
       setLoading(false);
     }
@@ -59,7 +79,6 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
       // Odśwież profil w AuthContext
       await updateProfile({}); 
       
-      toast.success(t('phone.verified'));
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -67,7 +86,12 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
       }, 1200);
     } catch (err: any) {
       setError(err.message);
-      toast.error(err.message);
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd weryfikacji',
+        message: err.message
+      });
     } finally {
       setLoading(false);
     }
@@ -79,10 +103,20 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
 
     try {
       await apiClient.post('/auth/otp/send', { phone }, session?.access_token || undefined);
-      toast.success('Kod został wysłany ponownie');
+      setFeedbackModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Sukces',
+        message: 'Kod został wysłany ponownie'
+      });
     } catch (err: any) {
       setError(err.message);
-      toast.error(err.message);
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Błąd wysyłania',
+        message: err.message
+      });
     } finally {
       setLoading(false);
     }
@@ -266,6 +300,18 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
             setShowSuccess(false);
             onVerified();
           }
+        }}
+      />
+      
+      <UnifiedModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+        type={feedbackModal.type}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        confirmButton={{
+          text: 'OK',
+          onClick: () => setFeedbackModal(prev => ({ ...prev, isOpen: false }))
         }}
       />
     </motion.div>
