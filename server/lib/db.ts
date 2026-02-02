@@ -14,7 +14,7 @@ let prisma: PrismaClient;
 const hasDbUrl = !!process.env.DATABASE_URL;
 
 try {
-  const adapter = validatedEnv.DIRECT_URL ? new PrismaPg({ connectionString: validatedEnv.DIRECT_URL }) : undefined;
+  const adapter = new PrismaPg({ connectionString: validatedEnv.DATABASE_URL });
 
   const prismaOptions: any = {
     adapter,
