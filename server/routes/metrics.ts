@@ -23,6 +23,7 @@ router.post('/track', globalLimiter, async (req, res) => {
     const effectiveTargetId = targetId ?? 'global';
 
     // Use correct unique constraint for upsert
+    // Note: targetId is TEXT in DB (altered from UUID) to support 'global'
     const result = await prisma.metric.upsert({
       where: {
         metrics_scope_target_id_key: {
@@ -43,7 +44,12 @@ router.post('/track', globalLimiter, async (req, res) => {
     return res.json({ ok: true, count: result.count });
   } catch (error) {
     console.error('❌ Metrics track error:', error);
-    return res.status(500).json({ error: 'Metrics tracking failed' });
+    // Return more details in dev, generic error in prod
+    const message = process.env.NODE_ENV === 'development' 
+      ? `Metrics tracking failed: ${(error as Error).message}`
+      : 'Metrics tracking failed';
+      
+    return res.status(500).json({ error: message });
   }
 });
 
