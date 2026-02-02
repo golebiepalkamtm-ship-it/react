@@ -9,7 +9,7 @@ import { CheckCircle, Mail, XCircle } from 'lucide-react';
 const VerifyEmail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
@@ -26,6 +26,17 @@ const VerifyEmail = () => {
       return () => clearTimeout(timer);
     }
   }, [isVerified, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dark-950 flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <div className="text-white">Weryfikacja...</div>
+        </main>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     if (error) {

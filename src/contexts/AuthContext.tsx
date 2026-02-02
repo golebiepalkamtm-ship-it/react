@@ -270,18 +270,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         // Inicjalizuj CSRF token na starcie
         await initCSRFToken();
+        
+        // Helper to parse params from Search OR Hash
+        const getParams = () => {
+          const url = new URL(window.location.href);
+          const searchParams = url.searchParams;
+          const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+          
+          return {
+            tokenHash: searchParams.get('token_hash') || hashParams.get('token_hash'),
+            type: searchParams.get('type') || hashParams.get('type'),
+            code: searchParams.get('code') || hashParams.get('code'),
+            errorParam: searchParams.get('error') || hashParams.get('error'),
+            errorDescription: searchParams.get('error_description') || hashParams.get('error_description'),
+            errorCode: searchParams.get('error_code') || hashParams.get('error_code'),
+          };
+        };
+
+        const { tokenHash, type, code, errorParam, errorDescription, errorCode } = getParams();
         const currentUrl = new URL(window.location.href);
-        const code = currentUrl.searchParams.get('code');
-        const tokenHash = currentUrl.searchParams.get('token_hash');
-        const type = currentUrl.searchParams.get('type');
-        const errorParam = currentUrl.searchParams.get('error');
-        const errorDescription = currentUrl.searchParams.get('error_description');
-        const errorCode = currentUrl.searchParams.get('error_code');
 
         // Handle email verification callback (token_hash + type=email)
         if (tokenHash && type === 'email') {
           logger.info('Email verification callback detected');
-          const { data, error } = await client.auth.verifyOtp({
+          const { error } = await client.auth.verifyOtp({
             token_hash: tokenHash,
             type: 'email',
           });
@@ -303,23 +315,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const verifyUrl = new URL('/verify-email', window.location.origin);
             verifyUrl.searchParams.set('verified', 'true');
             window.location.href = verifyUrl.toString();
-            return;
-          }
-        }
-          
-          logger.info('Email verified successfully', { user: data.session?.user?.email });
-          
-          // Clean up URL params
-          currentUrl.searchParams.delete('token_hash');
-          currentUrl.searchParams.delete('type');
-          window.history.replaceState({}, document.title, currentUrl.toString());
-          
-          isInitialized = true;
-          if (data.session) {
-            setSession(data.session);
-            setUser(data.session.user);
-            clearPendingEmailVerification();
-            void fetchProfile(data.session.user);
             return;
           }
         }
