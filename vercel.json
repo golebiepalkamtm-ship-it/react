@@ -6,15 +6,6 @@
     "NPM_CONFIG_IGNORE_SCRIPTS": "1",
     "npm_config_ignore_scripts": "1"
   },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

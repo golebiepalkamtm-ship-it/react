@@ -33,11 +33,13 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Three.js & 3D (Check this before generic react)
+            // Three.js & 3D (Split for better caching)
             if (id.includes('three') || id.includes('@react-three') || id.includes('postprocessing') || id.includes('cobe')) {
                if (id.includes('examples/jsm')) return 'three-examples';
                if (id.includes('three-mesh-bvh')) return 'three-bvh';
-               return 'three-vendor';
+               if (id.includes('@react-three/drei')) return 'three-drei'; // Split drei
+               if (id.includes('@react-three/fiber')) return 'three-fiber'; // Split fiber
+               return 'three-core';
             }
 
             // Supabase

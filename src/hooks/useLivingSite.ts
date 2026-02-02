@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
-import Lenis from '@studio-freight/lenis';
+import Lenis from 'lenis';
 
 interface LivingSiteConfig {
   lerp?: number;
