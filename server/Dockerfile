@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 
 # 2. Instalujemy zależności
-RUN apk add --no-cache openssl compat-openssl1.1
+RUN apk add --no-cache openssl
 RUN npm install --legacy-peer-deps
 
 # 3. Generujemy klienta Prisma
