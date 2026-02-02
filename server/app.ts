@@ -123,6 +123,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/payments', authMiddleware, validateCSRFToken, paymentRoutes);
 app.use('/api/webhooks', webhooks);
 app.use('/api/metrics', metricsRoutes);
+app.use('/api/proxy', proxyRoutes);
 
 // Test CSRF endpoint
 app.post('/api/test-csrf', validateCSRFToken, testCSRFEndpoint);
