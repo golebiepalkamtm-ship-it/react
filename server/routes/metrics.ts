@@ -21,14 +21,14 @@ router.post('/track', globalLimiter, async (req, res) => {
     }
     const { scope, targetId } = parsed.data;
 
-    // FIX: Poprawne typowanie dla wartości null
-    const whereCondition = {
-      scope,
-      targetId: targetId ?? null,
-    };
-
+    // Use correct unique constraint for upsert
     const result = await prisma.metric.upsert({
-      where: whereCondition as any,
+      where: {
+        metrics_scope_target_id_key: {
+          scope,
+          targetId: targetId as string | null,
+        },
+      },
       update: {
         count: { increment: 1 },
       },
