@@ -19,6 +19,7 @@ RUN npx tsc --skipLibCheck
 FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production
+RUN apk add --no-cache openssl1.1-compat
 COPY --from=base /app ./
 EXPOSE 8001
 CMD ["node", "dist/bootstrap.js"]

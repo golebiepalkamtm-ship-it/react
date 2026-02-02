@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 import { validatedEnv } from './env.js'
 
 // Global interface for Prisma to prevent multiple instances in dev
@@ -7,21 +9,12 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// Use standard PrismaClient without adapter to avoid DATABASE_URL issues
+// Use PostgreSQL adapter for Prisma 7.x
 let prisma: PrismaClient;
 
 const hasDbUrl = !!process.env.DATABASE_URL;
 
 try {
-  const prismaOptions: any = {
-    log: process.env.NODE_ENV === 'production' ? ['error', 'warn'] : ['query', 'info', 'warn', 'error'],
-    datasources: {
-        db: {
-            url: validatedEnv.DATABASE_URL
-        }
-    }
-  };
-
   if (!hasDbUrl && process.env.NODE_ENV === 'production') {
     console.error('❌ CRITICAL: DATABASE_URL is not set in environment variables!');
   }
@@ -46,6 +39,15 @@ try {
     // So we leave the patch commented out for now.
   }
 
+  // Create PostgreSQL adapter for Prisma 7.x
+  const connectionString = validatedEnv.DATABASE_URL;
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+
+  const prismaOptions = {
+    adapter
+  };
+
   if (process.env.NODE_ENV === 'production') {
     prisma = new PrismaClient(prismaOptions);
   } else {
@@ -54,7 +56,7 @@ try {
     }
     prisma = global.prisma;
   }
-  console.log('✅ Prisma Client initialized');
+  console.log('✅ Prisma Client initialized with PostgreSQL adapter');
 } catch (err) {
   console.error('❌ Prisma client initialization failed critical error:', err);
   prisma = new Proxy({} as PrismaClient, {
