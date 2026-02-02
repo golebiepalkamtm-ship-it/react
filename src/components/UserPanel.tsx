@@ -175,7 +175,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1000] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-transparent pointer-events-none print:static print:h-auto print:p-0"
+        className="fixed inset-0 z-[50] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-transparent pointer-events-none print:static print:h-auto print:p-0"
       >
         <motion.div
           ref={dragConstraintsRef}
