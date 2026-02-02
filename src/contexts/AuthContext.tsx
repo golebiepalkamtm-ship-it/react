@@ -632,8 +632,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...safeUpdates 
     };
     
-    if (payload.username) {
-      payload.username = sanitizeUsername(payload.username);
+    // Validate username if present in updates
+    if ('username' in safeUpdates) {
+      if (typeof payload.username === 'string') {
+        payload.username = sanitizeUsername(payload.username);
+      }
       if (!payload.username || payload.username.length < 3) {
         throw new Error('Nazwa użytkownika jest nieprawidłowa (min. 3 znaki, tylko litery/cyfry i myślniki).');
       }
