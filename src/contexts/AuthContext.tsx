@@ -121,9 +121,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (appMeta?.role === 'ADMIN' || existingProfile.role === 'ADMIN') {
         newRole = 'ADMIN';
       }
-      // 2. Fix users stuck in USER_REGISTERED despite verification
-      else if (existingProfile.role === 'USER_REGISTERED' && isEmailVerified) {
-        newRole = isPhoneVerified ? 'USER_FULL_VERIFIED' : 'USER_EMAIL_VERIFIED';
+      // 2. Fix users stuck in USER_REGISTERED despite verification OR upgrade to FULL_VERIFIED
+      else if (isEmailVerified) {
+        if (isPhoneVerified && existingProfile.role !== 'USER_FULL_VERIFIED') {
+          newRole = 'USER_FULL_VERIFIED';
+        } else if (existingProfile.role === 'USER_REGISTERED') {
+          newRole = 'USER_EMAIL_VERIFIED';
+        }
       }
 
       if (newRole && newRole !== existingProfile.role) {
