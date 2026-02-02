@@ -28,7 +28,9 @@ router.post('/track', globalLimiter, async (req, res) => {
     };
 
     const result = await prisma.metric.upsert({
-      where: whereCondition,
+      where: {
+        metrics_scope_target_id_key: whereCondition,
+      },
       update: {
         count: { increment: 1 },
       },
