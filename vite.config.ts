@@ -33,29 +33,40 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes('three/examples/jsm')) return 'three-examples';
-          if (id.includes('three-mesh-bvh')) return 'three-bvh';
-          if (id.includes('three/addons')) return 'three-addons';
-          if (id.includes('three')) return 'three-core';
-          if (id.includes('postprocessing')) return 'three-postprocessing';
-          if (id.includes('bvh')) return 'three-bvh';
-          if (id.includes('lucide')) return 'lucide-icons';
-        },
-        manualChunks: {
-          // React core
-          "react-vendor": ["react", "react-dom", "react-router-dom", "react-router-hash-link"],
-          // Three.js i 3D - to są bardzo duże biblioteki
-          "three-vendor": ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing", "postprocessing", "cobe"],
-          // Animacje
-          "animations": ["framer-motion", "motion", "gsap", "@gsap/react", "aos", "lottie-web", "vanilla-tilt", "splitting", "canvas-confetti", "react-lottie-player", "react-tsparticles"],
-          // UI Components
-          "ui-vendor": ["@radix-ui/react-dialog", "@radix-ui/react-slot", "@radix-ui/react-toast", "@radix-ui/react-tooltip", "sonner", "lucide-react", "class-variance-authority", "clsx", "tailwind-merge"],
-          // State management & Data fetching
-          "data-vendor": ["@tanstack/react-query", "zustand", "zod", "socket.io-client"],
-          // Supabase
-          "supabase": ["@supabase/supabase-js"],
-          // Carousel
-          "carousel": ["embla-carousel-react", "embla-carousel-autoplay", "@tanstack/react-virtual"],
+          if (id.includes('node_modules')) {
+            // Three.js & 3D (Check this before generic react)
+            if (id.includes('three') || id.includes('@react-three') || id.includes('postprocessing') || id.includes('cobe')) {
+               if (id.includes('examples/jsm')) return 'three-examples';
+               if (id.includes('three-mesh-bvh')) return 'three-bvh';
+               return 'three-vendor';
+            }
+
+            // Supabase
+            if (id.includes('@supabase')) return 'supabase';
+
+            // Animations
+            if (id.includes('framer-motion') || id.includes('motion') || id.includes('gsap') || id.includes('aos') || id.includes('lottie') || id.includes('vanilla-tilt') || id.includes('splitting') || id.includes('canvas-confetti') || id.includes('tsparticles')) {
+               return 'animations';
+            }
+
+            // UI (Radix, Lucide, etc)
+            if (id.includes('@radix-ui') || id.includes('sonner') || id.includes('lucide') || id.includes('class-variance-authority') || id.includes('clsx') || id.includes('tailwind-merge')) {
+               return 'ui-vendor';
+            }
+
+            // Data & State
+            if (id.includes('@tanstack') || id.includes('zustand') || id.includes('zod') || id.includes('socket.io')) {
+               return 'data-vendor';
+            }
+
+            // Carousel
+            if (id.includes('embla')) return 'carousel';
+
+            // React Core (Catch-all for other react stuff)
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+               return 'react-vendor';
+            }
+          }
         },
       },
     },
