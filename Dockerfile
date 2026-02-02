@@ -1,5 +1,5 @@
 FROM node:22-alpine AS base
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl openssl1.1-compat
 WORKDIR /app
 # Invalidate cache
 COPY server/package*.json ./
