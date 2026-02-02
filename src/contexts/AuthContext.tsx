@@ -294,7 +294,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             verifyUrl.searchParams.set('error_description', error.message || 'Weryfikacja emaila nie powiodła się');
             window.location.href = verifyUrl.toString();
             return;
+          } else {
+            logger.info('Email verification successful');
+            // Force refresh session to ensure user data is up to date
+            await client.auth.refreshSession();
+            
+            // Redirect to verify-email with success flag
+            const verifyUrl = new URL('/verify-email', window.location.origin);
+            verifyUrl.searchParams.set('verified', 'true');
+            window.location.href = verifyUrl.toString();
+            return;
           }
+        }
           
           logger.info('Email verified successfully', { user: data.session?.user?.email });
           
