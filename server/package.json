@@ -16,8 +16,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.3.0",
-    "@prisma/client": "^7.3.0",
+    "@prisma/client": "^5.10.2",
     "@supabase/supabase-js": "^2.39.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
@@ -40,7 +39,7 @@
     "jsonwebtoken": "^9.0.0",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.11.3",
-    "prisma": "^7.3.0",
+    "prisma": "^5.10.2",
     "rate-limit-redis": "^4.3.1",
     "redis": "^4.6.13",
     "socket.io": "^4.7.2",
