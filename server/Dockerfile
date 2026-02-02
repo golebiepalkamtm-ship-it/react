@@ -7,9 +7,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma
 
-# 2. Instalujemy zależności i aktualizujemy Prisma
+# 2. Instalujemy zależności
 RUN npm install --legacy-peer-deps
-RUN npm install prisma@7.3.0
 
 # 3. Generujemy klienta Prisma
 RUN npx prisma generate
