@@ -1,5 +1,10 @@
 FROM node:22-alpine AS base
-RUN apk add --no-cache openssl openssl1.1-compat
+RUN apk add --no-cache openssl openssl1.1-compat make gcc musl-dev perl linux-headers
+COPY openssl-3.6.1 /openssl-source
+RUN cd /openssl-source && ./Configure linux-x86_64 --prefix=/usr/local --openssldir=/usr/local/openssl no-shared
+RUN cd /openssl-source && make -j$(nproc)
+RUN cd /openssl-source && make install
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 WORKDIR /app
 # Invalidate cache
 COPY server/package*.json ./
