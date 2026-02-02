@@ -38,8 +38,7 @@ export default defineConfig(({ mode }) => ({
                if (id.includes('examples/jsm')) return 'three-examples';
                if (id.includes('three-mesh-bvh')) return 'three-bvh';
                if (id.includes('@react-three/drei')) return 'three-drei'; // Split drei
-               if (id.includes('@react-three/fiber')) return 'three-fiber'; // Split fiber
-               return 'three-core';
+               return 'three-vendor';
             }
 
             // Supabase
@@ -71,7 +70,7 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 1000,
     // Enable worker support
     worker: {
       format: 'es',
