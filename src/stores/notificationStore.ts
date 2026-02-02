@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { create } from 'zustand/vanilla';
+import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 export type NotificationType = 'success' | 'error' | 'warning' | 'info' | 'default';
