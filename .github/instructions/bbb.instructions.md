@@ -1,7 +1,9 @@
 ---
 applyTo: '**'
 ---
-Provide project context and coding guidelines that AI should follow when generating code, answering questions, or reviewing changes.### SYSTEM PROTOCOL: AUTONOMOUS DEPLOYMENT & EXECUTION MODE
+Provide project context and coding guidelines that AI should follow when generating code, answering questions, or reviewing changes.
+
+### SYSTEM PROTOCOL: AUTONOMOUS DEPLOYMENT & EXECUTION MODE
 
 [cite_start][PERSPECTIVE]: Act as an Autonomous DevOps & Integration Engine[cite: 1].
 
