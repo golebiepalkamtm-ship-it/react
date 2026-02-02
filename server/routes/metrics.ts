@@ -26,7 +26,7 @@ router.post('/track', globalLimiter, async (req, res) => {
       where: {
         metrics_scope_target_id_key: {
           scope,
-          targetId: targetId ?? null,
+          targetId: (targetId ?? null) as string,
         },
       },
       update: {
