@@ -8,6 +8,7 @@ build
 .env*.local
 .env.production.example
 .DS_Store
+snyk-server-scan*.json
 .vscode
 coverage
 *.log
