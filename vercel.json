@@ -20,6 +20,20 @@
       "destination": "/index.html"
     }
   ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, s-maxage=60, stale-while-revalidate=300" }
+      ]
+    },
+    {
+      "source": "/auction/:id",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, s-maxage=30, stale-while-revalidate=300" }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/(.*)",

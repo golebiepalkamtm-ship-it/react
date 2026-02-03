@@ -397,7 +397,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes - set up BEFORE init to catch OAuth callback
     const { data: { subscription } } = client.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        console.log('🔄 Auth state change:', { event, hasSession: !!session, isInitialized });
+        logger.debug && logger.debug('Auth state change', { event, hasSession: !!session, isInitialized });
         
         // Skip duplicate processing during initial OAuth exchange
         if (!isInitialized && event === 'INITIAL_SESSION') {

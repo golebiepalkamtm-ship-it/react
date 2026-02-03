@@ -81,7 +81,6 @@ export default function Auth() {
       const isOAuthReturn = !query.get("error") && user;
       
       if (isOAuthReturn) {
-        console.log('OAuth success detected, showing success modal');
         hasShownOAuthSuccess.current = true;
         const role = profile?.role ?? "USER_REGISTERED";
         const provider = (user as any)?.app_metadata?.provider ?? (user as any)?.user_metadata?.provider;
@@ -134,6 +133,7 @@ export default function Auth() {
       const cleanParams = new URLSearchParams();
       if (mode) cleanParams.set("mode", mode);
       if (callbackUrl && callbackUrl !== "/") cleanParams.set("callbackUrl", callbackUrl);
+      // strip sensitive params from URL without noisy console output
       window.history.replaceState({}, "", `/auth?${cleanParams.toString()}`);
     }
   }, [query, mode, callbackUrl, modalOpen]);
