@@ -24,9 +24,14 @@ export const errorHandler = (
 
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   
+  // Avoid echoing raw error messages in production to mitigate XSS / info-leak.
+  const isProd = process.env.NODE_ENV === 'production';
+  const escapeHtml = (s: string) => s.replace(/[&<>\"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] || c));
+  const safeMessage = isProd ? 'Internal server error' : escapeHtml(String(error.message || 'Unknown error'));
+
   res.status(statusCode).json({
-    error: error.message,
-    stack: process.env.NODE_ENV === 'production' ? null : error.stack,
+    error: safeMessage,
+    stack: isProd ? null : error.stack,
     timestamp: new Date().toISOString(),
     path: req.originalUrl,
     method: req.method

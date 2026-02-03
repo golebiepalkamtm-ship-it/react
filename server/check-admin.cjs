@@ -41,8 +41,16 @@ async function createAdminUser() {
       return;
     }
 
-    const adminEmail = 'superadmin@palkamtm.pl';
-    const adminPassword = 'admin123';
+    // Read admin credentials from environment to avoid hardcoding secrets in repo.
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      console.error('ADMIN_EMAIL and ADMIN_PASSWORD must be set in environment to run this script');
+      return;
+    }
+
+    // Do not log secrets
 
     // Najpierw sprawdź czy użytkownik już istnieje w Supabase Auth i usuń go
     const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
@@ -87,8 +95,6 @@ async function createAdminUser() {
 
     console.log('✅ Administrator utworzony od nowa!');
     console.log('Email:', adminEmail);
-    console.log('Hasło:', adminPassword);
-
   } catch (error) {
     console.error('Błąd:', error.message);
   } finally {
