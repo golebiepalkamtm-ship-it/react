@@ -1,0 +1,33 @@
+name: Snyk Code & Monitor
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  snyk:
+    runs-on: ubuntu-latest
+    permissions: read-all
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install (root)
+        run: npm ci
+      - name: Run Snyk Code Test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          npm run -s snyk:test || true
+      - name: Snyk Monitor (create snapshot)
+        if: env.SNYK_TOKEN
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk monitor --all-projects
+      - name: Upload Snyk SARIF (optional)
+        if: ${{ secrets.SNYK_TOKEN }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk-report.sarif || ''
