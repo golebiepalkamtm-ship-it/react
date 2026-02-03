@@ -85,9 +85,14 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
 export function setCSRFToken(req: Request, res: Response): string {
   const token = generateCSRFToken();
   
-  // Set secure CSRF cookie
+  // Set CSRF cookie.
+  // NOTE: for cross-origin SPAs the frontend must be able to read the token to
+  // implement the double-submit-cookie pattern — that requires httpOnly=false
+  // in development/tests. In production we set httpOnly=true and rely on the
+  // frontend obtaining the token via a protected endpoint or via a short-lived
+  // header response to avoid exposing secrets to JS long-term.
   res.cookie('csrf-token', token, {
-    httpOnly: false, // Frontend needs to read this for X-CSRF-Token header
+    httpOnly: validatedEnv.NODE_ENV === 'production', // dev/test: readable by client for double-submit
     secure: validatedEnv.NODE_ENV === 'production',
     sameSite: validatedEnv.NODE_ENV === 'production' ? 'none' : 'strict',
     maxAge: 2 * 60 * 60 * 1000, // 2 hours

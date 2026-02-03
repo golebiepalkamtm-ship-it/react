@@ -13,6 +13,8 @@
     "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix --ext .ts,.tsx,.js,.jsx",
     "preview": "vite preview",
     "test": "vitest",
+    "snyk:test": "snyk code test || true",
+    "snyk:monitor": "snyk monitor || true",
     "audit": "npm audit --audit-level=moderate",
     "prisma:generate": "prisma generate --schema=./server/prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema=./server/prisma/schema.prisma",
