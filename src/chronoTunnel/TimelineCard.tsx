@@ -148,7 +148,7 @@ const TimelineCard = memo(({
 
           {/* Title with premium animation */}
           <motion.h3 
-            className="text-2xl md:text-3xl font-semibold text-foreground mb-4 leading-tight tracking-tight" 
+            className="text-2xl md:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 mb-5 leading-tight tracking-tight drop-shadow-[0_2px_10px_rgba(251,191,36,0.3)]" 
             initial={{
               opacity: 0,
               y: 20
@@ -170,7 +170,7 @@ const TimelineCard = memo(({
           </motion.h3>
 
           {/* Achievements List with Staggered Reveal */}
-          <ul className="space-y-1 text-sm md:text-base text-muted-foreground">
+          <ul className="space-y-2 text-sm md:text-base lg:text-lg text-foreground/90">
             {event.achievements.map((achievement, i) => (
               <motion.li 
                 key={i} 
@@ -196,7 +196,7 @@ const TimelineCard = memo(({
                 }}
               >
                 <motion.span 
-                  className="text-primary mt-1 text-base"
+                  className="text-amber-400 mt-1.5 text-sm drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
                   initial={{
                     scale: 0,
                     rotate: -180

@@ -50,30 +50,71 @@ const HeroPremium = () => {
   const videoOverlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Inicjalizuj tylko animację hero text split (h1)
+    const timer = setTimeout(() => {
+      import('@/lib/gsapAnimations').then(({ initHeroTextSplit, initMagneticElements }) => {
+        initHeroTextSplit();
+        initMagneticElements();
+        ScrollTrigger.refresh();
+      });
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (!heroRef.current || !contentRef.current) return;
 
     const content = contentRef.current;
-    const children = content.children;
+    const badge = content.querySelector('.inline-flex'); // Badge
+    const paragraph = content.querySelector('p');
+    const button = content.querySelector('a');
+    const stats = content.querySelectorAll('.hero-stat-item');
+    
+    const ctx = gsap.context(() => {
+      // Timeline dla elementów hero (poza h1 który ma data-split-text)
+      const tl = gsap.timeline({
+        defaults: { ease: 'expo.out' },
+      });
+      
+      // Badge
+      if (badge) {
+        gsap.set(badge, { opacity: 0, y: 30 });
+        tl.to(badge, { opacity: 1, y: 0, duration: 1 }, 0.3);
+      }
+      
+      // Paragraph (po h1 split-text animation)
+      if (paragraph) {
+        gsap.set(paragraph, { opacity: 0, y: 40 });
+        tl.to(paragraph, { opacity: 1, y: 0, duration: 1.2 }, 1.5);
+      }
+      
+      // Button
+      if (button) {
+        gsap.set(button, { opacity: 0, y: 30, scale: 0.95 });
+        tl.to(button, { opacity: 1, y: 0, scale: 1, duration: 1 }, 1.8);
+      }
+      
+      // Stats with stagger
+      if (stats.length > 0) {
+        gsap.set(stats, { opacity: 0, y: 50, scale: 0.9 });
+        tl.to(stats, { 
+          opacity: 1, 
+          y: 0, 
+          scale: 1, 
+          duration: 1,
+          stagger: 0.15,
+        }, 2.2);
+      }
+    }, content);
 
-    gsap.set(children, { opacity: 0, y: 60 });
-
-    const tl = gsap.timeline({
-      defaults: { ease: gsapEasings.heroReveal, duration: 1.2 },
-    });
-
-    tl.to(children, {
-      opacity: 1,
-      y: 0,
-      stagger: 0.15,
-      delay: 0.3,
-    });
-
+    // Parallax on scroll
     const parallaxTl = gsap.timeline({
       scrollTrigger: {
         trigger: heroRef.current,
         start: 'top top',
         end: 'bottom top',
-        scrub: 1.5,
+        scrub: 2,
       },
     });
 
@@ -82,7 +123,7 @@ const HeroPremium = () => {
       .to(videoOverlayRef.current, { opacity: 0.8 }, 0);
 
     return () => {
-      tl.kill();
+      ctx.revert();
       parallaxTl.kill();
     };
   }, []);
@@ -124,69 +165,59 @@ const HeroPremium = () => {
           </span>
         </MagneticElement>
 
-        <div className="mb-6 flex flex-wrap items-center justify-start gap-2 md:gap-4">
-          <PremiumTextReveal
-            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white"
-            as="h1"
-            splitBy="chars"
-            animation="slide"
-            stagger={0.03}
-            duration={0.8}
-            scrub={false}
-          >
-            Pałka
-          </PremiumTextReveal>
-          
-          <span 
-            className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-gold"
-          >
-            MTM
-          </span>
+        <h1 
+          data-split-text
+          className="text-3xl md:text-4xl lg:text-6xl font-bold font-display text-white mb-6"
+        >
+          Pałka MTM - Geny Zwycięzców
+        </h1>
 
-          <span className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white">
-            - Geny Zwycięzców
-          </span>
-        </div>
-
-        <p className="text-xl md:text-2xl text-white/70 max-w-2xl mb-12 leading-relaxed">
-          Wyniki budowane przez pokolenia.
-          <br className="hidden md:block" />
-          Topowe gołębie pocztowe z Dolnego Śląska.
+        <p 
+          className="text-xl md:text-2xl text-white/70 max-w-2xl mb-12 leading-relaxed"
+        >
+          Wyniki budowane przez pokolenia. Topowe gołębie pocztowe z Dolnego Śląska.
         </p>
 
         <div className="flex flex-col sm:flex-row items-start justify-start gap-4 mb-20">
-          <MagneticElement strength={0.15}>
-            <Link
-              to="/champions"
-              className="group flex items-center gap-3 px-8 py-4 bg-gold text-navy rounded-full font-semibold text-lg hover:bg-gold-light transition-all shadow-lg shadow-gold/20"
-              style={{ willChange: 'transform' }}
-            >
-              <span>Zobacz Championy</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </MagneticElement>
+          <Link
+            to="/champions"
+            data-magnetic
+            data-magnetic-strength="0.3"
+            className="group flex items-center gap-3 px-8 py-4 bg-gold text-navy rounded-full font-semibold text-lg hover:bg-gold-light transition-all shadow-lg shadow-gold/20"
+            style={{ willChange: 'transform' }}
+          >
+            <span>Zobacz Championy</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto">
+        <div 
+          className="grid grid-cols-3 gap-8 max-w-3xl mx-auto hero-stats"
+        >
           {[
             { icon: Trophy, value: 150, suffix: '+', label: 'Mistrzostw' },
             { icon: Award, value: 45, suffix: '+', label: 'Lat Doświadczenia' },
             { icon: Zap, value: 3, suffix: '', label: 'Pokolenia Hodowców' },
           ].map((stat, i) => (
-            <MagneticElement key={stat.label} strength={0.08}>
-              <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/30 transition-colors">
-                <stat.icon className="w-6 h-6 text-gold mx-auto mb-2" />
-                <div className="text-3xl md:text-4xl font-bold text-white mb-1">
-                  <CountUp 
-                    end={stat.value} 
-                    duration={2.5} 
-                    delay={0.5 + i * 0.2}
-                    suffix={stat.suffix}
-                  />
+            <div 
+              key={stat.label}
+              className="hero-stat-item"
+            >
+              <MagneticElement strength={0.08}>
+                <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/30 transition-colors">
+                  <stat.icon className="w-6 h-6 text-gold mx-auto mb-2" />
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-1">
+                    <CountUp 
+                      end={stat.value} 
+                      duration={2.5} 
+                      delay={0.5 + i * 0.2}
+                      suffix={stat.suffix}
+                    />
+                  </div>
+                  <div className="text-white/70 text-sm">{stat.label}</div>
                 </div>
-                <div className="text-white/70 text-sm">{stat.label}</div>
-              </div>
-            </MagneticElement>
+              </MagneticElement>
+            </div>
           ))}
         </div>
       </div>
@@ -247,8 +278,8 @@ const FeatureCardPremium = memo(({
     gsap.to(glowRef.current, {
       '--glow-x': `${glowX}%`,
       '--glow-y': `${glowY}%`,
-      duration: 0.3,
-      ease: 'power2.out',
+      duration: 0.5,
+      ease: 'expo.out',
     });
   }, [mouseX, mouseY]);
 
@@ -324,6 +355,8 @@ const FeatureCardPremium = memo(({
 FeatureCardPremium.displayName = 'FeatureCardPremium';
 
 const FeaturesSectionPremium = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  
   const features: FeatureData[] = [
     {
       icon: Trophy,
@@ -342,14 +375,64 @@ const FeaturesSectionPremium = () => {
     },
   ];
 
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    
+    const section = sectionRef.current;
+    const header = section.querySelector('.features-header');
+    const cards = section.querySelectorAll('.feature-card-item');
+    
+    const ctx = gsap.context(() => {
+      // Header animation
+      const headerTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 80%',
+          end: 'top 30%',
+          scrub: 1.5,
+        }
+      });
+      
+      if (header) {
+        headerTl.fromTo(header,
+          { y: 60, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: 'expo.out' }
+        );
+      }
+      
+      // Cards animation with stagger
+      if (cards.length > 0) {
+        gsap.fromTo(cards,
+          { y: 80, opacity: 0, scale: 0.92 },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
+            ease: 'expo.out',
+            stagger: 0.12,
+            scrollTrigger: {
+              trigger: cards[0],
+              start: 'top 85%',
+              end: 'top 35%',
+              scrub: 1.5,
+            }
+          }
+        );
+      }
+    }, section);
+    
+    return () => ctx.revert();
+  }, []);
+
   return (
     <SeamlessSection 
       className="py-24 px-4 relative overflow-hidden"
       transitionIn="fade"
       data-section="features"
     >
-      <div className="max-w-6xl mx-auto">
-        <RevealOnScroll direction="up" className="mb-16">
+      <div ref={sectionRef} className="max-w-6xl mx-auto">
+        <div className="features-header mb-16">
           <span className="inline-block px-4 py-1 border border-gold/30 rounded-full text-xs tracking-[0.2em] text-gold/70 uppercase mb-4">
             Dlaczego my
           </span>
@@ -359,54 +442,86 @@ const FeaturesSectionPremium = () => {
           <p className="text-white/70 max-w-xl leading-relaxed">
             Od ponad 50 lat dostarczamy championów hodowcom na całym świecie.
           </p>
-        </RevealOnScroll>
+        </div>
 
-        <RevealOnScroll 
-          direction="up" 
-          stagger={0.15}
-          className="grid md:grid-cols-3 gap-8"
-        >
+        <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div key={index}>
+            <div key={index} className="feature-card-item">
               <FeatureCardPremium feature={feature} index={index} />
             </div>
           ))}
-        </RevealOnScroll>
+        </div>
       </div>
     </SeamlessSection>
   );
 };
 
 const CTASectionPremium = () => {
+  const ctaRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (!ctaRef.current) return;
+    
+    const section = ctaRef.current;
+    const heading = section.querySelector('h2');
+    const paragraph = section.querySelector('p');
+    const button = section.querySelector('a');
+    
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 80%',
+          end: 'top 30%',
+          scrub: 1.5,
+        }
+      });
+      
+      if (heading) tl.fromTo(heading,
+        { y: 80, opacity: 0, scale: 0.95 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'expo.out' }
+      );
+      
+      if (paragraph) tl.fromTo(paragraph,
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' },
+        '-=0.2'
+      );
+      
+      if (button) tl.fromTo(button,
+        { y: 40, opacity: 0, scale: 0.9 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'expo.out' },
+        '-=0.15'
+      );
+    }, section);
+    
+    return () => ctx.revert();
+  }, []);
+  
   return (
     <SeamlessSection className="py-24 px-4" transitionIn="fade" data-section="cta">
-      <RevealOnScroll direction="up" className="max-w-4xl mx-auto text-center">
-        <PremiumTextReveal
-          className="text-3xl md:text-4xl font-bold font-display gold-text mb-6"
-          as="h2"
-          splitBy="words"
-          animation="slide"
-          stagger={0.1}
-          scrub={false}
+      <div ref={ctaRef} className="max-w-4xl mx-auto text-center">
+        <h2
+          className="text-3xl md:text-4xl font-bold font-display text-gold mb-6"
         >
           Gotowy na swojego Championa?
-        </PremiumTextReveal>
+        </h2>
         
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
           Przeglądaj naszą ekskluzywną kolekcję i znajdź idealnego gołębia
           dla swojej hodowli.
         </p>
         
-        <MagneticElement strength={0.2}>
-          <Link
-            to="/champions"
-            className="group inline-flex items-center gap-2 px-8 py-4 bg-gold text-background rounded-full font-semibold hover:bg-gold-light transition-colors shadow-lg shadow-gold/20"
-          >
-            <span>Eksploruj Galerię</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </MagneticElement>
-      </RevealOnScroll>
+        <Link
+          to="/champions"
+          data-magnetic
+          data-magnetic-strength="0.4"
+          className="group inline-flex items-center gap-2 px-8 py-4 bg-gold text-background rounded-full font-semibold hover:bg-gold-light transition-colors shadow-lg shadow-gold/20"
+        >
+          <span>Eksploruj Galerię</span>
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
     </SeamlessSection>
   );
 };

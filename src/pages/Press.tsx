@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Newspaper, Calendar, Filter, ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 import { PressService, PressArticle } from '@/services/pressService';
 import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
+import { gsap } from '@/lib/gsapConfig';
 
 const PressArticleCard = ({ article, index }: { article: PressArticle; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -51,7 +52,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
   return (
     <motion.div
       ref={cardRef}
-      className="relative group h-full"
+      className="relative group h-full press-card"
       style={{ perspective: '1000px', opacity, y, scale }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
@@ -150,6 +151,7 @@ const PressPage = () => {
   const [loading, setLoading] = useState(true);
   
   const heroRef = useRef<HTMLDivElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
   
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -159,6 +161,77 @@ const PressPage = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
+
+  // Inicjalizacja animacji tekstu hero
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      import('@/lib/gsapAnimations').then(({ initHeroTextSplit }) => {
+        initHeroTextSplit();
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Animacje GSAP dla hero i scroll
+  useEffect(() => {
+    if (!heroRef.current || !heroContentRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const heroContent = heroContentRef.current;
+      const children = heroContent?.children;
+
+      if (children) {
+        gsap.set(children, { opacity: 0, y: 60 });
+        
+        gsap.to(children, {
+          opacity: 1,
+          y: 0,
+          stagger: 0.25,
+          duration: 1.8,
+          ease: 'power3.out',
+          delay: 0.5,
+        });
+      }
+
+      // Parallax scroll dla hero
+      if (heroContent) {
+        gsap.to(heroContent, {
+          y: 150,
+          opacity: 0.3,
+          scale: 0.95,
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.5,
+          },
+        });
+      }
+
+      // Animacja press cards
+      const pressCards = document.querySelectorAll('.press-card');
+      pressCards.forEach((card) => {
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: card,
+              start: 'top bottom-=100',
+              end: 'top center',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, [pressArticles]);
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -218,19 +291,13 @@ const PressPage = () => {
 
       <Header />
 
-      <motion.section 
+      <section 
         ref={heroRef}
-        className="relative min-h-[50vh] flex items-center justify-center z-10 pt-20"
-        style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
+        className="relative min-h-[70vh] flex items-center justify-center z-10 pt-20"
       >
         <div className="absolute inset-0 overflow-hidden" />
 
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+        <div ref={heroContentRef} className="relative z-10 container mx-auto px-4 text-center">
             <motion.div 
               className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
               animate={{ 
@@ -241,18 +308,12 @@ const PressPage = () => {
               <Newspaper className="w-10 h-10 text-gold" />
             </motion.div>
 
-            <motion.h1 
-              className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6"
-              style={{
-                background: 'linear-gradient(135deg, #fff 0%, #d4af37 50%, #fff 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                color: 'transparent',
-                textShadow: '0 0 60px rgba(212,175,55,0.5)',
-              }}
+            <h1 
+              data-split-text
+              className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-gold mb-6"
             >
-              PRASA I MEDIA
-            </motion.h1>
+              Prasa i Media
+            </h1>
 
             <motion.p 
               className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12"
@@ -295,9 +356,8 @@ const PressPage = () => {
               <span className="text-white/40 text-sm uppercase tracking-widest">Przewijaj</span>
               <ChevronDown className="w-6 h-6 text-gold/60" />
             </motion.div>
-          </motion.div>
         </div>
-      </motion.section>
+      </section>
 
       <section className="relative z-10 py-8">
         <div className="container mx-auto px-4">

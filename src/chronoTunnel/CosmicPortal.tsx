@@ -146,15 +146,19 @@ const PortalRing = ({ scrollProgress }: { scrollProgress: MotionValue<number> })
 
   useFrame(() => {
     if (pointsRef.current) {
-      // Rotate the entire tunnel slowly
-      pointsRef.current.rotation.z -= 0.001;
+      // Rotate the entire tunnel - faster for more dynamic feel
+      pointsRef.current.rotation.z -= 0.002;
 
       // Sync with scroll:
       // - karty w TimeTunnel lecą "do przodu"
       // - ściany tunelu przesuwamy w przeciwną stronę, żeby wzmocnić efekt
       const scroll = scrollProgress.get(); // 0 to 1
-      const travelDistance = 400; // Total travel distance (szybsze tło przy dłuższym locie)
-      const offset = scroll * travelDistance; // odwrócenie kierunku ruchu cząsteczek
+      // Szybszy start - easing dla natychmiastowego ruchu
+      const easedScroll = scroll < 0.2 
+        ? scroll * 3 // 3x szybciej na początku
+        : 0.6 + (scroll - 0.2) * 0.5; // potem wolniej
+      const travelDistance = 600; // Zwiększona odległość dla szybszego efektu lotu
+      const offset = easedScroll * travelDistance; // odwrócenie kierunku ruchu cząsteczek
 
       const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
       const maxZ = 5; // Camera Z
@@ -212,16 +216,20 @@ const TunnelCamera = ({ scrollProgress }: { scrollProgress: MotionValue<number> 
   useFrame(({ camera }) => {
     const t = scrollProgress.get(); // 0-1
 
-    // Delay wejścia do tunelu, żeby był dalej
-    const startDelay = 0.12;
-    const normalized = Math.max((t - startDelay) / (1 - startDelay), 0);
+    // Szybki start - bez opóźnienia, użyj easing dla przyspieszenia na początku
+    const eased = t < 0.3 
+      ? t * 2.5 * t  // Szybkie przyspieszenie na początku (quadratic)
+      : 0.225 + (t - 0.3) * 1.1; // Liniowy ruch potem
+    const normalized = Math.min(eased, 1);
 
-    const startZ = 120;    // bliżej tunelu na starcie
-    const endZ = -80;      // zatrzymaj kamerę wewnątrz długości tunelu (zasięg cząsteczek to ~-95..5)
+    const startZ = 150;    // dalej od tunelu na starcie dla większego efektu wejścia
+    const endZ = -150;     // głębiej w tunel - przelot na wylot
     const zPos = THREE.MathUtils.lerp(startZ, endZ, normalized);
     camera.position.set(0, 0, zPos);
     camera.up.set(0, 1, 0);
-    camera.lookAt(0, 0, 0);
+    // Kamera zawsze patrzy "do przodu" w kierunku lotu (ujemne Z)
+    // zamiast patrzeć na punkt centralny który powoduje obrót
+    camera.lookAt(0, 0, zPos - 100);
   });
 
   return null;
@@ -233,7 +241,7 @@ interface CosmicPortalProps {
 
 const CosmicPortal = ({ scrollProgress }: CosmicPortalProps) => {
   return (
-    <div className="fixed inset-0 pointer-events-none -z-5 bg-black">
+    <div className="absolute inset-0 pointer-events-none bg-black">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 75 }}
         gl={{ 

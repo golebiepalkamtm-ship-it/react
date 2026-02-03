@@ -18,10 +18,10 @@ let lenis: Lenis | null = null;
 /**
  * Initialize Lenis smooth scroll
  * 
- * @param lerp - Smoothness factor (0.05 = ultra smooth, 0.1 = very smooth, 0.5 = snappier)
- * @param duration - Scroll duration in seconds (2.0 = very smooth, 1.2 = fluid, 1.0 = responsive)
+ * @param lerp - Smoothness factor (0.03 = ultra płynny, 0.05 = bardzo płynny, 0.1 = standardowy)
+ * @param duration - Scroll duration in seconds (2.5 = ultra płynny, 2.0 = bardzo płynny, 1.5 = standardowy)
  */
-export const initSmoothScroll = (lerp: number = 0.05, duration: number = 2.0) => {
+export const initSmoothScroll = (lerp: number = 0.035, duration: number = 2.5) => {
   console.log('🎨 [Lenis] Initializing smooth scroll...');
   
   // Add lenis classes to html element BEFORE Lenis init
@@ -33,16 +33,16 @@ export const initSmoothScroll = (lerp: number = 0.05, duration: number = 2.0) =>
   
   console.log('🎨 [Lenis] Added classes to <html>');
   
-  // Initialize Lenis with custom settings
+  // Initialize Lenis with custom settings - ULTRA SMOOTH
   lenis = new Lenis({
-    lerp,           // Smoothness: lower = smoother (0.05-0.2 recommended)
-    duration,       // Duration: higher = more fluid (1.5-2.5 recommended)
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing for natural feel
+    lerp,           // Niższy = wolniejszy, bardziej płynący (0.03-0.05)
+    duration,       // Wyższy = dłuższa animacja scrolla (2.0-3.0)
+    easing: (t) => 1 - Math.pow(1 - t, 4), // Płynniejszy ease-out
     orientation: 'vertical',
     gestureOrientation: 'vertical',
     smoothWheel: true,
-    wheelMultiplier: 1,
-    touchMultiplier: 2,
+    wheelMultiplier: 0.8,  // Wolniejszy scroll kółkiem myszy
+    touchMultiplier: 1.5,  // Trochę wolniejszy dotyk
     infinite: false,
     autoRaf: false, // Wyłączamy auto RAF bo używamy GSAP ticker
   });

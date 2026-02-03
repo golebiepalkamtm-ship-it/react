@@ -28,12 +28,16 @@ gsap.config({
 gsap.ticker.fps(60);
 gsap.ticker.lagSmoothing(500, 33); // Limit lag compensation to maintain smooth 60fps
 
-// Override reduced motion check (for development - respects user preference in production)
-if (import.meta.env.DEV) {
-  // Force enable animations in dev mode
-  gsap.defaults({ ease: "power2.out" });
-  ScrollTrigger.config({ ignoreMobileResize: true });
-}
+// Premium defaults - expo.out dla luksusowego, wybrzmiewającego ruchu
+gsap.defaults({ 
+  ease: "expo.out",
+  duration: 1.2 
+});
+
+ScrollTrigger.config({ 
+  ignoreMobileResize: true,
+  anticipatePin: 1 // Smooth pinning
+});
 
 // Export pre-configured GSAP
 export { gsap, ScrollTrigger };

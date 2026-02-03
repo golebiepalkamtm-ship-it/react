@@ -22,7 +22,7 @@ export const Carousel3D = () => {
   const items = useMemo(() => champions, [champions]);
   const activeChampion = items[activeIndex];
 
-  // Callback ref dla animacji zoom-in/fade-in (odwrotnie niż Hero)
+  // Callback ref dla animacji - JEDNA prosta płynna animacja
   const setCarouselRef = useCallback((node: HTMLElement | null) => {
     // Cleanup previous animation
     if (animationRef.current) {
@@ -33,35 +33,64 @@ export const Carousel3D = () => {
     if (node) {
       console.log('🎪 Carousel3D: Ref attached to node');
       
-      const animation = gsap.fromTo(node,
-        {
-          scale: 0.5,
-          opacity: 0,
-          y: 250,
-        },
-        {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: node,
-            start: 'top 90%',
-            end: 'top 20%',
-            scrub: 2,
-            id: 'carousel3d-parallax',
-          }
+      // Ustaw will-change dla GPU acceleration
+      node.style.willChange = 'transform, opacity';
+      
+      // JEDNA timeline z całą animacją - wejście, pauza, wyjście
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: node,
+          start: 'top 95%',    // Zaczyna bardzo wcześnie
+          end: 'bottom 5%',    // Kończy bardzo późno
+          scrub: 2,            // Płynna interpolacja
+          id: 'carousel3d-main',
         }
+      });
+      
+      // Faza 1: Wejście (0% - 25% timeline)
+      tl.fromTo(node, 
+        { 
+          opacity: 0.3, 
+          scale: 0.92,
+          y: 60,
+        },
+        { 
+          opacity: 1, 
+          scale: 1,
+          y: 0,
+          duration: 0.25,
+          ease: 'power1.out',
+        },
+        0
       );
       
-      animationRef.current = animation;
+      // Faza 2: Trzymanie w pełni widoczne (25% - 75% timeline)
+      // Pusty segment - element pozostaje w miejscu
+      tl.to(node, {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.5,
+        ease: 'none',
+      });
+      
+      // Faza 3: Wyjście (75% - 100% timeline)
+      tl.to(node, {
+        opacity: 0.4,
+        scale: 0.94,
+        y: -40,
+        duration: 0.25,
+        ease: 'power1.in',
+      });
+      
+      animationRef.current = tl;
       
       setTimeout(() => {
         ScrollTrigger.refresh();
         console.log('✅ Carousel3D: ScrollTrigger refreshed');
       }, 100);
       
-      console.log('✅ Carousel3D: Animation created', animation);
+      console.log('✅ Carousel3D: Animation created', tl);
     }
   }, []);
 
@@ -74,6 +103,8 @@ export const Carousel3D = () => {
       if (resumeTimeoutRef.current) {
         window.clearTimeout(resumeTimeoutRef.current);
       }
+      // Cleanup ScrollTrigger
+      ScrollTrigger.getById('carousel3d-main')?.kill();
     };
   }, []);
 
@@ -199,13 +230,38 @@ export const Carousel3D = () => {
           transition={{ duration: 0.8 }}
         >
           <span className="inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-primary mb-4">
-            <Trophy className="w-4 h-4" />
+            <motion.div
+              animate={{ 
+                scale: [1, 1.15, 1],
+                opacity: [0.8, 1, 0.8]
+              }}
+              transition={{ 
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <Trophy className="w-4 h-4" />
+            </motion.div>
             Pałka M.T.M
-            <Trophy className="w-4 h-4" />
+            <motion.div
+              animate={{ 
+                scale: [1, 1.15, 1],
+                opacity: [0.8, 1, 0.8]
+              }}
+              transition={{ 
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1.25
+              }}
+            >
+              <Trophy className="w-4 h-4" />
+            </motion.div>
           </span>
           <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-light">
             <span className="text-foreground">Galeria </span>
-            <span className="text-gradient-gold">Mistrzów</span>
+            <span className="text-gold">Mistrzów</span>
           </h2>
         </motion.div>
       </div>

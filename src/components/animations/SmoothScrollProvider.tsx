@@ -21,20 +21,18 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     const isDev = import.meta.env.DEV;
 
-    const enabled = !prefersReducedMotion && !isMobile;
-    if (!enabled) {
-      return;
-    }
+    const duration = prefersReducedMotion && !isDev ? 0.9 : isMobile ? 2.8 : 2.4;
+    const wheelMultiplier = prefersReducedMotion ? 0.35 : isMobile ? 0.32 : 0.45;
+    const touchMultiplier = prefersReducedMotion ? 0.85 : isMobile ? 1.0 : 1.2;
 
     const lenis = new Lenis({
-      // Bardziej "luxury", miękki i wolniejszy scroll dla całego serwisu
-      duration: prefersReducedMotion && !isDev ? 1.0 : 2.4,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -9 * t)), // nieco łagodniejsza krzywa
+      duration,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -9 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
-      smoothWheel: !prefersReducedMotion || isDev,
-      wheelMultiplier: prefersReducedMotion ? 0.35 : 0.45,
-      touchMultiplier: prefersReducedMotion ? 0.8 : 1.2,
+      smoothWheel: true,
+      wheelMultiplier,
+      touchMultiplier,
       infinite: false,
       autoRaf: false,
       syncTouch: true,
@@ -45,15 +43,15 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
     document.documentElement.classList.add('lenis', 'lenis-smooth');
     document.documentElement.style.scrollBehavior = 'auto';
 
-    lenis.on('scroll', ScrollTrigger.update);
+    const handleScroll = () => ScrollTrigger.update();
+    lenis.on('scroll', handleScroll);
 
-    // Integracja Lenis + ScrollTrigger (pinning bez "skoków")
     ScrollTrigger.scrollerProxy(document.body, {
       scrollTop(value) {
         if (value !== undefined) {
           lenis.scrollTo(value, { immediate: true });
         }
-        return lenis.scroll ?? 0;
+        return lenis.scroll;
       },
       getBoundingClientRect() {
         return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
@@ -65,15 +63,17 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
       lenis.raf(time * 1000);
     };
     tickerRef.current = raf;
-
     gsap.ticker.add(raf);
-
     gsap.ticker.lagSmoothing(0);
+
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+    });
 
     return () => {
       document.documentElement.classList.remove('lenis', 'lenis-smooth');
       document.documentElement.style.scrollBehavior = '';
-      lenis.off('scroll', ScrollTrigger.update);
+      lenis.off('scroll', handleScroll);
       ScrollTrigger.scrollerProxy(document.body, null as any);
       if (tickerRef.current) {
         gsap.ticker.remove(tickerRef.current);

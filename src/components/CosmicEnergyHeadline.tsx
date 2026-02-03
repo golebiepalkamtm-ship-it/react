@@ -17,45 +17,34 @@ const CosmicEnergyHeadline = ({
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
-
-      gsap.set(containerRef.current, { perspective: 1200 });
+      // Ustaw początkowy stan - taki sam jak w initHeroTextSplit
       gsap.set(charRefs.current, {
         opacity: 0,
-        scale: 0.8,
-        z: -200,
-        filter: "blur(30px) brightness(0.7)",
+        y: 120,
+        rotateX: -90,
+        rotateY: 10,
+        scale: 0.5,
+        transformOrigin: '50% 100% -50',
+        filter: 'blur(10px)',
       });
 
-      tl.to(charRefs.current, {
+      // Animuj - taki sam efekt jak na stronie głównej
+      gsap.to(charRefs.current, {
         opacity: 1,
+        y: 0,
+        rotateX: 0,
+        rotateY: 0,
         scale: 1,
-        z: 0,
-        filter: "blur(0px) brightness(1)",
-        duration: 1.2,
+        filter: 'blur(0px)',
+        duration: 1.8,
+        ease: 'expo.out',
         stagger: {
-          each: 0.03,
-          from: "center",
+          amount: 1.2,
+          from: 'start',
+          ease: 'power3.out'
         },
-      })
-        .to(
-          charRefs.current,
-          {
-            filter: "brightness(1.6)",
-            duration: 0.12,
-            stagger: { each: 0.02, from: "random" },
-          },
-          "<0.65"
-        )
-        .to(
-          charRefs.current,
-          {
-            filter: "brightness(1)",
-            duration: 0.2,
-            stagger: { each: 0.02, from: "edges" },
-          },
-          "<"
-        );
+        delay: 0.6,
+      });
     }, containerRef);
 
     return () => ctx.revert();
@@ -64,26 +53,27 @@ const CosmicEnergyHeadline = ({
   return (
     <div
       ref={containerRef}
-      className={`relative select-none pointer-events-none mix-blend-overlay ${className}`}
+      className={`relative select-none pointer-events-none ${className}`}
+      style={{ perspective: 1200 }}
       aria-label={text}
     >
-      <div className="flex flex-wrap justify-center gap-1 md:gap-1.5 text-center">
+      <h1 className="flex flex-wrap justify-center text-center">
         {characters.map((char, idx) => (
           <span
             key={`${char}-${idx}`}
             ref={(el) => {
               if (el) charRefs.current[idx] = el;
             }}
-            className="inline-block text-[2.8rem] md:text-[3.6rem] lg:text-[4.4rem] font-black leading-none font-[\'Inter\',sans-serif] bg-gradient-to-br from-[#D4AF37] via-[#C18E1F] to-[#8C6A12] bg-clip-text text-transparent drop-shadow-[0_0_24px_rgba(212,175,55,0.45)]"
+            className="inline-block text-3xl md:text-4xl lg:text-6xl font-bold font-display text-gold"
             style={{
-              textShadow:
-                "1px 0px 8px rgba(193,142,31,0.7), -1px -1px 8px rgba(140,106,18,0.55)",
+              textShadow: '0 0 40px hsl(45 80% 55% / 0.4), 0 0 80px hsl(45 80% 55% / 0.2)',
+              filter: 'drop-shadow(0 0 20px hsl(45 80% 55% / 0.3))',
             }}
           >
             {char === " " ? "\u00A0" : char}
           </span>
         ))}
-      </div>
+      </h1>
     </div>
   );
 };

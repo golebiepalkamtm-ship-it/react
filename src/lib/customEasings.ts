@@ -15,25 +15,41 @@
 import { gsap } from '@/lib/gsapConfig';
 
 export const customBezierCurves = {
-  luxuryOut: 'cubic-bezier(0.16, 1, 0.3, 1)',
-  luxuryInOut: 'cubic-bezier(0.87, 0, 0.13, 1)',
-  dramaticOut: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  elasticOut: 'cubic-bezier(0.68, -0.6, 0.32, 1.6)',
-  smoothReveal: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-  heroText: 'cubic-bezier(0.075, 0.82, 0.165, 1)',
-  softBounce: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-  cinematicReveal: 'cubic-bezier(0.7, 0, 0.84, 0)',
+  // Ultra-smooth agency-level curves
+  agencyPremium: 'cubic-bezier(0.19, 1, 0.22, 1)',      // Awwwards favorite
+  luxuryOut: 'cubic-bezier(0.16, 1, 0.3, 1)',           // Original
+  luxuryInOut: 'cubic-bezier(0.87, 0, 0.13, 1)',        // Original
+  dramaticOut: 'cubic-bezier(0.22, 1, 0.36, 1)',        // Original
+  elasticOut: 'cubic-bezier(0.68, -0.6, 0.32, 1.6)',    // Original
+  smoothReveal: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', // Original
+  heroText: 'cubic-bezier(0.075, 0.82, 0.165, 1)',      // Original
+  softBounce: 'cubic-bezier(0.34, 1.56, 0.64, 1)',      // Original
+  cinematicReveal: 'cubic-bezier(0.7, 0, 0.84, 0)',     // Original
+  
+  // Nowe premium curves
+  ultraSmooth: 'cubic-bezier(0.215, 0.61, 0.355, 1)',   // Super płynne
+  appleMagic: 'cubic-bezier(0.4, 0.0, 0.2, 1)',         // iOS-style
+  materialDesign: 'cubic-bezier(0.4, 0.0, 0.6, 1)',     // Google Material
+  swiftOut: 'cubic-bezier(0.55, 0, 0.1, 1)',            // Szybki start, długi easing
+  elegantSlide: 'cubic-bezier(0.33, 1, 0.68, 1)',       // Bardzo elegancki
 };
 
 export const gsapEasings = {
-  luxuryPower: 'power4.out',
-  heroReveal: 'expo.out',
-  smoothSlide: 'power3.out',
-  springy: 'back.out(1.7)',
-  elastic: 'elastic.out(1, 0.3)',
-  bounce: 'bounce.out',
-  slowMo: 'slow(0.7, 0.7, false)',
-  anticipate: 'power2.inOut',
+  // Premium GSAP easings - wybrzmiewające, luksusowe
+  luxuryPower: 'power4.out',      // Najdłuższe wybrzmiewanie
+  heroReveal: 'expo.out',         // Eksponencjalne, bardzo dramatyczne
+  smoothSlide: 'power3.out',      // Smooth ale mocne
+  springy: 'back.out(1.7)',       // Sprężyste z overshoot
+  elastic: 'elastic.out(1, 0.3)', // Elastyczne
+  bounce: 'bounce.out',           // Bounce
+  slowMo: 'slow(0.7, 0.7, false)',// Slow motion
+  anticipate: 'power2.inOut',     // Anticipation
+  
+  // Nowe ultra-premium
+  ultraExpo: 'expo.out',          // Główny easing dla agencji
+  circ: 'circ.out',               // Circular, bardzo gładki
+  sine: 'sine.inOut',             // Sinusoidal, naturalny
+  customBack: 'back.out(2)',      // Silniejszy overshoot
 };
 
 export const exponentialOut = (t: number, power: number = 10): number => {
@@ -117,29 +133,46 @@ export const createStaggerConfig = (options: {
 
 export const motionPresets = {
   heroReveal: {
-    duration: 1.4,
-    ease: gsapEasings.heroReveal,
-    stagger: createStaggerConfig({ amount: 0.6, from: 'start' }),
+    duration: 1.8,
+    ease: gsapEasings.ultraExpo,
+    stagger: createStaggerConfig({ 
+      amount: 1.0, 
+      from: 'start',
+      ease: 'power2.inOut'
+    }),
   },
   cardFloat: {
-    duration: 0.8,
+    duration: 1.4,
     ease: gsapEasings.luxuryPower,
     y: -15,
   },
   textSplit: {
-    duration: 0.7,
-    ease: gsapEasings.springy,
-    stagger: createStaggerConfig({ amount: 0.4, from: 'start' }),
+    duration: 1.2,
+    ease: gsapEasings.ultraExpo,
+    stagger: createStaggerConfig({ 
+      amount: 0.6, 
+      from: 'start',
+      ease: 'sine.inOut'
+    }),
   },
   imageParallax: {
     duration: 1.2,
     ease: 'none',
-    scrub: 1.5,
+    scrub: 1.8, // Zwiększone dla ultra-smooth efektu
   },
   sectionFade: {
-    duration: 1,
-    ease: gsapEasings.smoothSlide,
-    y: 60,
+    duration: 1.6,
+    ease: gsapEasings.ultraExpo,
+    y: 100,
     opacity: 0,
+  },
+  clipReveal: {
+    duration: 2.2,
+    ease: gsapEasings.ultraExpo,
+    scrub: 1.5,
+  },
+  magneticHover: {
+    duration: 0.7,
+    ease: gsapEasings.circ,
   },
 };

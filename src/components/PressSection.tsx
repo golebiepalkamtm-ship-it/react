@@ -185,35 +185,54 @@ const PressSection = () => {
     const ctaButton = section.querySelector('.cta-button');
     
     const ctx = gsap.context(() => {
+      // Timeline główna z płynnym scrub
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top 70%',
-          toggleActions: 'play none none reverse',
+          start: 'top 85%',
+          end: 'top 20%',
+          scrub: 1.5, // Płynna interpolacja
           invalidateOnRefresh: true,
         }
       });
 
-      if (headerBadge) tl.fromTo(headerBadge, { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' });
-      if (headerTitle) tl.fromTo(headerTitle, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.3');
-      if (headerDesc) tl.fromTo(headerDesc, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }, '-=0.4');
+      if (headerBadge) tl.fromTo(headerBadge, 
+        { y: -50, opacity: 0, scale: 0.8 }, 
+        { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
+      );
+      if (headerTitle) tl.fromTo(headerTitle, 
+        { y: 80, opacity: 0, skewY: 3 }, 
+        { y: 0, opacity: 1, skewY: 0, duration: 0.4, ease: 'expo.out' }, 
+        '-=0.2'
+      );
+      if (headerDesc) tl.fromTo(headerDesc, 
+        { y: 50, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }, 
+        '-=0.2'
+      );
 
       if (cards.length > 0) {
         tl.fromTo(cards, {
-          y: 100,
+          y: 120,
           opacity: 0,
-          scale: 0.9
+          scale: 0.85,
+          rotateX: -15,
         }, {
           y: 0,
           opacity: 1,
           scale: 1,
-          duration: 1,
-          ease: 'back.out(1.4)',
-          stagger: 0.2
-        }, '-=0.5');
+          rotateX: 0,
+          duration: 0.5,
+          ease: 'expo.out',
+          stagger: 0.15
+        }, '-=0.2');
       }
       
-      if (ctaButton) tl.fromTo(ctaButton, { y: 60, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2)' }, '-=0.3');
+      if (ctaButton) tl.fromTo(ctaButton, 
+        { y: 80, opacity: 0, scale: 0.9 }, 
+        { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'expo.out' }, 
+        '-=0.2'
+      );
       
     }, section);
     

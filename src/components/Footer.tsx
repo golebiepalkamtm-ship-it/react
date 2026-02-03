@@ -31,7 +31,7 @@ const Footer = () => {
     ],
   };
 
-  // GSAP WOW animations
+  // GSAP Premium animations with scrub
   useEffect(() => {
     if (!footerRef.current) return;
     
@@ -42,74 +42,71 @@ const Footer = () => {
     const bottomBar = footer.querySelector('.footer-bottom');
     
     const ctx = gsap.context(() => {
+      // Main timeline with smooth scrub
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: footer,
           start: 'top 90%',
-          toggleActions: 'play none none reverse',
+          end: 'top 30%',
+          scrub: 1.5,
           invalidateOnRefresh: true,
           refreshPriority: -4,
         }
       });
 
-      // Brand section - dramatic entrance from left
+      // Brand section - smooth slide from left
       if (brand) {
         tl.fromTo(brand,
           { 
-            x: -200, 
+            x: -100, 
             opacity: 0, 
-            rotateY: 30,
-            scale: 0.8
+            scale: 0.9
           },
           { 
             x: 0, 
             opacity: 1, 
-            rotateY: 0,
             scale: 1,
-            duration: 1, 
-            ease: 'power3.out'
+            duration: 0.4, 
+            ease: 'expo.out'
           }
         );
       }
 
-      // Columns - cascade in from bottom with stagger
+      // Columns - cascade with stagger
       if (columns.length > 0) {
-        columns.forEach((col, index) => {
-          tl.fromTo(col,
-            { 
-              y: 80, 
-              opacity: 0, 
-              scale: 0.9
-            },
-            { 
-              y: 0, 
-              opacity: 1, 
-              scale: 1,
-              duration: 0.7, 
-              ease: 'back.out(1.5)'
-            },
-            index === 0 ? '-=0.6' : '-=0.5'
-          );
-        });
+        tl.fromTo(columns,
+          { 
+            y: 60, 
+            opacity: 0, 
+            scale: 0.95
+          },
+          { 
+            y: 0, 
+            opacity: 1, 
+            scale: 1,
+            duration: 0.3, 
+            ease: 'expo.out',
+            stagger: 0.1
+          },
+          '-=0.2'
+        );
       }
 
-      // Social icons - explode from center
+      // Social icons - smooth fade in
       if (socialIcons.length > 0) {
         tl.fromTo(socialIcons,
           { 
-            scale: 0, 
+            y: 30,
             opacity: 0, 
-            rotateZ: -180
           },
           { 
-            scale: 1, 
+            y: 0,
             opacity: 1, 
-            rotateZ: 0,
-            duration: 0.5, 
-            ease: 'back.out(2)',
-            stagger: 0.1
+            duration: 0.3, 
+            ease: 'expo.out',
+            stagger: 0.08
           },
-          '-=0.3'
+          '-=0.15'
         );
       }
 
@@ -117,16 +114,16 @@ const Footer = () => {
       if (bottomBar) {
         tl.fromTo(bottomBar,
           { 
-            y: 40, 
+            y: 30, 
             opacity: 0 
           },
           { 
             y: 0, 
             opacity: 1, 
-            duration: 0.6, 
+            duration: 0.3, 
             ease: 'power2.out'
           },
-          '-=0.2'
+          '-=0.1'
         );
       }
       

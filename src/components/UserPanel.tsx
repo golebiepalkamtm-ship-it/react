@@ -191,7 +191,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             ease: [0.4, 0, 0.2, 1],
             scale: { type: "spring", stiffness: 300, damping: 30 }
           }}
-          className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-visible pointer-events-auto bg-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
+          className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-hidden pointer-events-auto bg-gray-900 rounded-3xl border border-white/15 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
           drag
           dragConstraints={dragConstraintsRef}
           dragMomentum={false}
@@ -201,20 +201,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           onMouseLeave={() => setIsHovered(false)}
         >
 
-          {/* Animated border glow */}
-          <motion.div
+          {/* Animated border glow - disabled */}
+          <div
             className="absolute inset-0 rounded-3xl pointer-events-none"
             style={{
-              background: 'linear-gradient(45deg, transparent, rgba(255,255,255,0.07), transparent)',
-              backgroundSize: '200% 200%',
-            }}
-            animate={{
-              backgroundPosition: isHovered ? ['0% 0%', '100% 100%', '0% 0%'] : '0% 0%',
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'linear',
+              background: 'transparent',
             }}
           />
 
@@ -223,7 +214,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
-            className="relative flex-shrink-0 p-6 md:p-8 border-b border-white/10 bg-gray-900"
+            className="relative flex-shrink-0 p-6 md:p-8 border-b border-white/10 bg-gray-900 rounded-t-3xl"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">

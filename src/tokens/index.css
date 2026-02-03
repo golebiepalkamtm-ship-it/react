@@ -33,33 +33,33 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--foreground);
-  background-color: hsl(225, 55%, 5%);
+  background-color: hsl(30, 20%, 5%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   
-  /* Golden Dispersed Gradient on Navy Background */
+  /* Golden Dispersed Gradient Background */
   background-image: 
     /* Main golden glow - center top */
-    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(212, 175, 55, 0.2) 0%, rgba(184, 134, 11, 0.1) 30%, transparent 60%),
+    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(212, 175, 55, 0.25) 0%, rgba(184, 134, 11, 0.12) 30%, transparent 60%),
     /* Secondary golden glow - left */
-    radial-gradient(ellipse 60% 70% at 10% 50%, rgba(218, 165, 32, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 70% at 10% 50%, rgba(218, 165, 32, 0.15) 0%, transparent 50%),
     /* Secondary golden glow - right */
-    radial-gradient(ellipse 60% 70% at 90% 40%, rgba(255, 193, 37, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 70% at 90% 40%, rgba(255, 193, 37, 0.12) 0%, transparent 50%),
     /* Warm golden glow - bottom center */
-    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(205, 133, 63, 0.15) 0%, rgba(139, 90, 43, 0.06) 40%, transparent 70%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(205, 133, 63, 0.18) 0%, rgba(139, 90, 43, 0.08) 40%, transparent 70%),
     /* Dispersed golden particles - scattered */
-    radial-gradient(circle 200px at 25% 25%, rgba(255, 215, 0, 0.06) 0%, transparent 100%),
-    radial-gradient(circle 150px at 75% 60%, rgba(218, 165, 32, 0.05) 0%, transparent 100%),
-    radial-gradient(circle 180px at 40% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 100%),
-    radial-gradient(circle 120px at 85% 15%, rgba(255, 193, 37, 0.04) 0%, transparent 100%),
+    radial-gradient(circle 200px at 25% 25%, rgba(255, 215, 0, 0.08) 0%, transparent 100%),
+    radial-gradient(circle 150px at 75% 60%, rgba(218, 165, 32, 0.06) 0%, transparent 100%),
+    radial-gradient(circle 180px at 40% 80%, rgba(212, 175, 55, 0.07) 0%, transparent 100%),
+    radial-gradient(circle 120px at 85% 15%, rgba(255, 193, 37, 0.05) 0%, transparent 100%),
     /* Subtle grid overlay */
-    linear-gradient(rgba(212, 175, 55, 0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 175, 55, 0.012) 1px, transparent 1px),
-    /* Base navy gradient */
+    linear-gradient(rgba(212, 175, 55, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.015) 1px, transparent 1px),
+    /* Base dark gradient with warm undertone */
     linear-gradient(180deg, 
-      hsl(230, 50%, 8%) 0%, 
-      hsl(225, 55%, 6%) 50%,
-      hsl(220, 60%, 4%) 100%
+      hsl(35, 25%, 6%) 0%, 
+      hsl(30, 20%, 4%) 50%,
+      hsl(25, 18%, 3%) 100%
     );
   background-size: 
     100% 100%,

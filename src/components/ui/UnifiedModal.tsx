@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, XCircle, AlertTriangle, Info, LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -189,7 +190,9 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
     }
   }, [draggable, isOpen]);
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -297,6 +300,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

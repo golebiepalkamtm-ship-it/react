@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, Variants } from 'framer-motion';
 import { Clock, Gavel, Trophy, Eye, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,13 +32,28 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
   watchCount = 0,
   viewsCount = 0,
   featured = false,
-  imageFit = 'cover',
+  imageFit = 'contain',
 }) => {
   const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const endTimestamp = useMemo(() => new Date(endTime).getTime(), [endTime]);
+  const isEnded = Number.isFinite(endTimestamp) && endTimestamp <= now;
+  const isFinalCall =
+    Number.isFinite(endTimestamp) && endTimestamp - now < 24 * 60 * 60 * 1000 && endTimestamp > now;
+  const statusLabel = isEnded ? 'Zakończona' : isFinalCall ? 'Final Call' : 'Live';
+  const statusTone = isEnded ? 'bg-red-500/90 text-white' : isFinalCall ? 'bg-gold/90 text-navy' : 'bg-emerald-500/80 text-navy';
+  const statusIcon = isEnded ? <Clock className="w-3.5 h-3.5" /> : isFinalCall ? <Gavel className="w-3.5 h-3.5" /> : <Trophy className="w-3.5 h-3.5" />;
+
   // Referencje i stan
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  
+
   // Wartości motion dla efektu 3D
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -120,11 +135,11 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
           navigate(`/auctions/${id}`);
         }
       }}
-      className={`overflow-hidden rounded-2xl border h-full min-h-[520px] flex flex-col ${
+      className={`group/auction overflow-hidden rounded-[28px] border h-full min-h-[560px] flex flex-col transition-all duration-300 ${
         featured 
-          ? 'border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.3)]' 
-          : 'border-white/15'
-      } bg-white/10 backdrop-blur-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60`}
+          ? 'border-gold/40 shadow-[0_35px_90px_rgba(7,6,27,0.65)]'
+          : 'border-white/10 shadow-[0_25px_75px_rgba(4,5,18,0.65)]'
+      } bg-gradient-to-b from-white/[0.08] via-white/[0.03] to-transparent backdrop-blur-2xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-100px' }}
@@ -133,9 +148,9 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
       whileTap="tap"
     >
       {/* Efekt gradientu na krawędziach - wzmocnione oświetlenie */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/25 via-transparent to-gold/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="absolute inset-0 rounded-[28px] bg-gradient-to-br from-gold/25 via-transparent to-gold/15 opacity-0 group-hover/auction:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <motion.div 
-        className="absolute inset-0 rounded-2xl opacity-0 pointer-events-none"
+        className="absolute inset-0 rounded-[28px] opacity-0 pointer-events-none"
         animate={{ 
           opacity: isHovered ? 0.6 : 0,
           background: `radial-gradient(
@@ -153,7 +168,7 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-gradient-to-r from-gold to-gold-light text-navy text-xs font-semibold uppercase tracking-wide flex items-center gap-1"
+            className="absolute top-4 left-4 z-20 px-3 py-1.5 rounded-full bg-gradient-to-r from-gold to-gold-light text-navy text-[11px] font-semibold uppercase tracking-[0.3em] flex items-center gap-1.5 shadow-[0_15px_35px_rgba(212,175,55,0.35)]"
           >
             <Trophy className="w-3 h-3" />
             Wyróżnione
@@ -161,27 +176,25 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Liczniki watch/views */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        <div className="px-2.5 py-1 rounded-full bg-white/12 backdrop-blur-xl text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow">
-          <Heart className="w-3.5 h-3.5 text-pink-400" />
-          {watchCount ?? 0}
-        </div>
-        <div className="px-2.5 py-1 rounded-full bg-white/12 backdrop-blur-xl text-white text-xs font-semibold flex items-center gap-1 border border-white/20 shadow">
-          <Eye className="w-3.5 h-3.5 text-blue-300" />
-          {viewsCount ?? 0}
-        </div>
-      </div>
+      {/* Status badge */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`absolute top-4 right-4 z-20 flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide ${statusTone} shadow-lg`}
+      >
+        {statusIcon}
+        {statusLabel}
+      </motion.div>
 
       {/* Kontener zdjęcia */}
-      <div className="relative h-72 overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-b-[40px] rounded-t-[28px]">
         <motion.img
           src={image || AUCTION_PLACEHOLDER_SRC}
           alt={title}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).src = AUCTION_PLACEHOLDER_SRC;
           }}
-          className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-3 bg-black/15' : 'object-cover'} transition-all duration-500`}
+          className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-6 bg-black/15' : 'object-cover'} transition-all duration-700`}
           loading="lazy"
           style={{ 
             scale: isHovered ? 1.05 : 1,
@@ -196,47 +209,68 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
 
       {/* Zawartość karty */}
       <motion.div 
-        className="p-6 flex-1 flex flex-col"
+        className="p-6 flex-1 flex flex-col gap-5"
         variants={contentVariants}
       >
-        <motion.div 
-          className="flex flex-col gap-2 mb-2 min-h-[120px]"
-          variants={itemVariants}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <h3
-                className="font-display text-[1.5rem] leading-snug text-foreground font-semibold mb-1 break-words line-clamp-2 text-balance tracking-tight"
-                title={title}
-              >
-                {title}
-              </h3>
-              <p className="text-muted-foreground text-sm truncate">{ringNumber}</p>
+        <motion.div className="flex flex-col gap-4" variants={itemVariants}>
+          <div className="min-w-0 space-y-2">
+            <h3
+              className="font-display text-[1.7rem] leading-snug text-foreground font-semibold break-words line-clamp-2 text-balance tracking-tight"
+              title={title}
+            >
+              {title}
+            </h3>
+            <p className="text-sm uppercase tracking-[0.35em] text-muted-foreground">
+              {ringNumber || "Numer weryfikowany"}
+            </p>
+          </div>
+          
+          <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-xl flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/60">
+              <span>Countdown</span>
+              <Clock className="h-4 w-4 text-gold" />
             </div>
-            <div className="flex flex-col gap-2 mt-24 shrink-0">
-              <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-white/12 backdrop-blur-xl border border-white/25">
-                <LuxuryAuctionTimer endTime={endTime} />
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="w-3.5 h-3.5 text-gold" />
-                  <span className="leading-tight">
-                    {new Date(endTime).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })}
-                  </span>
-                </div>
-              </div>
+            <LuxuryAuctionTimer endTime={endTime} />
+            <p className="text-xs text-muted-foreground">
+              {new Date(endTime).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })}
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div className="grid gap-4 md:grid-cols-3" variants={itemVariants}>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Obserwujących</p>
+            <div className="mt-1 flex items-center gap-2 text-white">
+              <Heart className="h-4 w-4 text-pink-400" />
+              <span className="text-lg font-semibold">{watchCount ?? 0}</span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Wyświetlenia</p>
+            <div className="mt-1 flex items-center gap-2 text-white">
+              <Eye className="h-4 w-4 text-sky-300" />
+              <span className="text-lg font-semibold">{viewsCount ?? 0}</span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Status</p>
+            <div className="mt-1 flex items-center gap-2 text-white">
+              {statusIcon}
+              <span className="text-lg font-semibold">{statusLabel}</span>
             </div>
           </div>
         </motion.div>
 
         {/* Aktualna oferta i przycisk */}
         <motion.div 
-          className="flex items-end justify-between pt-4 border-t border-white/10 mt-auto"
+          className="flex flex-col gap-4 border-t border-white/10 pt-4 mt-auto lg:flex-row lg:items-center lg:justify-between"
           variants={itemVariants}
         >
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+            <p className="text-xs text-muted-foreground uppercase tracking-[0.35em] mb-1">
               Aktualna oferta
             </p>
-            <p className="font-display text-2xl text-foreground font-bold">
+            <p className="font-display text-3xl text-foreground font-bold">
               {currentBid.toLocaleString('pl-PL')} zł
             </p>
           </div>
@@ -244,12 +278,16 @@ export const LuxuryAuctionCard: React.FC<LuxuryAuctionCardProps> = ({
           <Link
             to={`/auctions/${id}#bid`}
             onClick={(e) => e.stopPropagation()}
+            className="w-full lg:w-auto"
+            aria-label={`Przejdź do licytacji aukcji ${title}`}
           >
             <MagneticButton strength={0.3}>
               <Button 
                 variant="gold" 
-                size="default" 
-                className="bg-gradient-to-r from-gold to-gold-light text-navy hover:shadow-[0_0_15px_rgba(212,175,55,0.5)]"
+                size="lg" 
+                className={`w-full justify-center rounded-2xl bg-gradient-to-r from-gold to-gold-light text-navy shadow-[0_15px_40px_rgba(212,175,55,0.45)] transition-all ${
+                  isFinalCall ? "animate-pulse" : ""
+                }`}
               >
                 <Gavel className="w-4 h-4 mr-2" />
                 Licytuj

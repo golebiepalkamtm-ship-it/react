@@ -114,20 +114,29 @@ const HeroPremium = () => {
     >
       <div 
         ref={videoOverlayRef}
-        className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-background/40 to-background/90"
+        className="absolute inset-0 z-[1] bg-gradient-to-b from-black/20 via-background/15 to-background/40"
         style={{ willChange: 'opacity' }}
       />
 
+      {/* Dodatkowe efekty świetlne dla rozjaśnienia */}
+      <div className="absolute inset-0 z-[0]">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gold/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-gold/12 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-gold/12 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] bg-gold/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-radial from-gold/5 via-transparent to-transparent" />
+      </div>
+
       <FloatingElement amplitude={15} frequency={0.3} phase={0}>
         <div 
-          className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold/10 blur-3xl"
+          className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold/15 blur-3xl"
           style={{ willChange: 'transform' }}
         />
       </FloatingElement>
       
       <FloatingElement amplitude={20} frequency={0.25} phase={0.5}>
         <div 
-          className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl"
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-gold/12 blur-3xl"
           style={{ willChange: 'transform' }}
         />
       </FloatingElement>
@@ -258,8 +267,8 @@ const FeatureCardPremium = memo(({
     gsap.to(glowRef.current, {
       '--glow-x': `${x}%`,
       '--glow-y': `${y}%`,
-      duration: 0.3,
-      ease: 'power2.out',
+      duration: 0.5,
+      ease: 'expo.out',
     });
   }, []);
 

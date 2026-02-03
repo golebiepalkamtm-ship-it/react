@@ -6,6 +6,8 @@
  */
 
 export { PageTransition } from "./PageTransition";
+export { PageTransitionOverlay } from "./PageTransitionOverlay";
+export { GSAPPageTransition, usePageTransition } from "./GSAPPageTransition";
 export { RevealOnScroll, Reveal } from "./RevealOnScroll";
 export { StaggeredList, StaggeredItem } from "./StaggeredList";
 

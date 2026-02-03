@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import AccountModal from '@/components/AccountModal';
+import { gsap } from '@/lib/gsapConfig';
 
 
 
@@ -51,7 +52,7 @@ function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardPro
       ref={cardRef}
       style={{ opacity, y }}
       className={`
-        group cursor-pointer rounded-2xl border p-6 transition-all duration-500
+        reference-card group cursor-pointer rounded-2xl border p-6 transition-all duration-500
         ${isActive 
           ? 'border-gold/60 bg-gradient-to-br from-gold-dark/40 via-zinc-900/90 to-gold-dark/30 shadow-[0_0_60px_rgba(212,175,55,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] scale-[1.02]' 
           : 'border-gold/20 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 hover:border-gold/40 hover:shadow-[0_0_30px_rgba(212,175,55,0.15)]'
@@ -158,6 +159,7 @@ export function ReferencesPage() {
   
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
   
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -174,6 +176,67 @@ export function ReferencesPage() {
 
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
+
+  // Animacje GSAP dla hero i scroll
+  useEffect(() => {
+    if (!heroRef.current || !heroContentRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const heroContent = heroContentRef.current;
+      const children = heroContent?.children;
+
+      if (children) {
+        gsap.set(children, { opacity: 0, y: 60 });
+        
+        gsap.to(children, {
+          opacity: 1,
+          y: 0,
+          stagger: 0.25,
+          duration: 1.8,
+          ease: 'power3.out',
+          delay: 0.5,
+        });
+      }
+
+      // Parallax scroll dla hero
+      if (heroContent) {
+        gsap.to(heroContent, {
+          y: 150,
+          opacity: 0.3,
+          scale: 0.95,
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.5,
+          },
+        });
+      }
+
+      // Animacja reference cards
+      const refCards = document.querySelectorAll('.reference-card');
+      refCards.forEach((card) => {
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: card,
+              start: 'top bottom-=100',
+              end: 'top center',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, [references]);
 
   const roleActions = useMemo(() => ({
     'USER_REGISTERED': () => {
@@ -344,19 +407,13 @@ export function ReferencesPage() {
   return (
     <div ref={containerRef} className="min-h-screen relative overflow-hidden">
 
-      <motion.section 
+      <section 
         ref={heroRef}
-        className="relative min-h-[50vh] flex items-center justify-center z-10 pt-20"
-        style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
+        className="relative min-h-[70vh] flex items-center justify-center z-10 pt-20"
       >
         <div className="absolute inset-0 overflow-hidden" />
 
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+        <div ref={heroContentRef} className="relative z-10 container mx-auto px-4 text-center">
             <motion.div 
               className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
               animate={{ 
@@ -368,14 +425,7 @@ export function ReferencesPage() {
             </motion.div>
 
             <motion.h1 
-              className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6"
-              style={{
-                background: 'linear-gradient(135deg, #fff 0%, #d4af37 50%, #fff 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                color: 'transparent',
-                textShadow: '0 0 60px rgba(212,175,55,0.5)',
-              }}
+              className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6 text-gold"
             >
               REFERENCJE
             </motion.h1>
@@ -442,9 +492,8 @@ export function ReferencesPage() {
               <span className="text-white/40 text-sm uppercase tracking-widest">Przewijaj</span>
               <ChevronDown className="w-6 h-6 text-gold/60" />
             </motion.div>
-          </motion.div>
         </div>
-      </motion.section>
+      </section>
 
       {currentRef && (
         <section className="relative z-10 py-20">

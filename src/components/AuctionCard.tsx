@@ -32,7 +32,7 @@ const AuctionCard = ({
   timeLeft,
   ringNumber,
   featured = false,
-  imageFit = 'cover',
+  imageFit = 'contain',
   endTime,
   status,
   watchCount = 0,
@@ -114,14 +114,6 @@ const AuctionCard = ({
           className={`w-full h-full ${imageFit === 'contain' ? 'object-contain p-3 bg-black/15' : 'object-cover'} transition-[filter] duration-300 group-hover:brightness-[1.03]`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/40 via-transparent to-transparent" />
-        
-        {/* Time Badge */}
-        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-          <Clock className="w-4 h-4 text-primary" />
-          <span className="text-foreground text-sm font-medium">
-            {timeLeft}
-          </span>
-        </div>
       </div>
 
       {/* Content */}
@@ -134,7 +126,15 @@ const AuctionCard = ({
             >
               {title}
             </h3>
-            <p className="text-muted-foreground text-sm truncate">{ringNumber}</p>
+            <p className="text-muted-foreground text-sm truncate mb-2">{ringNumber}</p>
+            
+            {/* Time Badge */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] w-fit">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-foreground text-sm font-medium">
+                {timeLeft}
+              </span>
+            </div>
           </div>
         </div>
 

@@ -9,7 +9,7 @@ import { LocaleProvider } from "@/contexts/LocaleContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import { PageTransition } from "@/components/motion";
+import { GSAPPageTransition } from "@/components/motion";
 import { SmoothScrollProvider } from "@/components/animations";
 import { UIProviders } from "@/components/ui/UIProviders";
 import "@/utils/diagnostics";
@@ -42,6 +42,9 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GlobalParallaxBackground from "@/components/GlobalParallaxBackground";
 
+// GSAP Demo - direct import (not lazy)
+const GSAPDemo = React.lazy(() => import('@/pages/GSAPDemo'));
+
 const queryClient = new QueryClient();
 
 const CosmicPortal = React.lazy(() => import('@/chronoTunnel/CosmicPortal'));
@@ -69,7 +72,12 @@ const App = () => {
                     v7_relativeSplatPath: true,
                   }}
                 >
-                <PageTransition>
+                <GSAPPageTransition 
+                  defaultStyle="reveal"
+                  duration={0.9}
+                  primaryColor="#0a0a0f"
+                  accentColor="#B8860B"
+                >
                   <Suspense fallback={<LoadingSpinner />}>
                     <Routes>
                     <Route path="/" element={<LazyIndex />} />
@@ -102,6 +110,7 @@ const App = () => {
                     {/* Showcase / demo routes */}
                     <Route path="/homepage" element={<LazyHomePage />} />
                     <Route path="/homepage-premium" element={<LazyHomePagePremium />} />
+                    <Route path="/gsap-demo" element={<GSAPDemo />} />
                     {/* Living Web / GSAP demo wyłączone */}
                     {/* <Route path="/homepage-livingweb" element={<LazyHomePageLivingWeb />} /> */}
                     {/* <Route path="/livingweb-showcase" element={<LazyLivingWebShowcase />} /> */}
@@ -113,7 +122,7 @@ const App = () => {
                     <Route path="*" element={<LazyNotFound />} />
                     </Routes>
                   </Suspense>
-                </PageTransition>
+                </GSAPPageTransition>
               </BrowserRouter>
             </TooltipProvider>
           </SmoothScrollProvider>

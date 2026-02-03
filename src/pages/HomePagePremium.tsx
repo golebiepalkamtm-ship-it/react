@@ -224,8 +224,8 @@ const FeatureCardPremium = memo(({
     gsap.to(glowRef.current, {
       '--glow-x': `${x}%`,
       '--glow-y': `${y}%`,
-      duration: 0.3,
-      ease: 'power2.out',
+      duration: 0.5,
+      ease: 'expo.out',
     });
   }, []);
 

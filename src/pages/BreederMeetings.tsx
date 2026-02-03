@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { FullscreenImageModal } from '@/components/ui/FullscreenImageModal';
@@ -12,6 +12,7 @@ import { useOptimizedToast } from '@/hooks/use-optimized-toast';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import AccountModal from '@/components/AccountModal';
 import { useNavigate } from 'react-router-dom';
+import { gsap } from '@/lib/gsapConfig';
 
 interface BreederMeeting {
   id: string;
@@ -49,7 +50,9 @@ export default function BreederMeetings() {
   const [verificationMessage, setVerificationMessage] = useState({ title: '', message: '' });
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   
-  const triggerButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
 
   const roleActions = useMemo(() => ({
     'USER_REGISTERED': () => {
@@ -73,6 +76,78 @@ export default function BreederMeetings() {
       setIsFormOpen(true); 
     },
   }), []);
+
+  // Inicjalizacja animacji GSAP
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      import('@/lib/gsapAnimations').then(({ initHeroTextSplit }) => {
+        initHeroTextSplit();
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Animacje GSAP dla hero i scroll
+  useEffect(() => {
+    if (!heroRef.current || !heroContentRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const heroContent = heroContentRef.current;
+      const children = heroContent?.children;
+
+      if (children) {
+        // Animacja wejścia elementów
+        gsap.set(children, { opacity: 0, y: 60 });
+        
+        gsap.to(children, {
+          opacity: 1,
+          y: 0,
+          stagger: 0.25,
+          duration: 1.8,
+          ease: 'power3.out',
+          delay: 0.5,
+        });
+      }
+
+      // Parallax scroll dla hero
+      if (heroContent) {
+        gsap.to(heroContent, {
+          y: 150,
+          opacity: 0.3,
+          scale: 0.95,
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.5,
+          },
+        });
+      }
+
+      // Animacja wejścia kart spotkań
+      const meetingCards = document.querySelectorAll('.animate-meeting-card');
+      meetingCards.forEach((card, index) => {
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: card,
+              start: 'top bottom-=100',
+              end: 'top center',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, [breederMeetings]);
 
   useEffect(() => {
     const fetchBreederMeetings = async () => {
@@ -135,22 +210,27 @@ export default function BreederMeetings() {
       </div>
       <Header />
       <main className="relative z-10">
-        <section className="relative overflow-hidden text-center">
-          <div className="relative z-10 container mx-auto px-4 pt-4 pb-2 md:pt-6 md:pb-4">
-            <div className="mx-auto max-w-4xl">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <Users className="w-8 h-8 text-gold" />
+        <section ref={heroRef} className="relative overflow-hidden text-center min-h-[70vh] flex items-center">
+          <div className="relative z-10 container mx-auto px-4 py-20 md:py-32">
+            <div ref={heroContentRef} className="mx-auto max-w-4xl">
+              <div className="flex items-center justify-center gap-2 mb-8">
+                <Users className="w-12 h-12 md:w-16 md:h-16 text-gold" />
               </div>
-              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Spotkania z <span className="text-gradient-gold">hodowcami</span></h1>
-              <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+              <h1 
+                data-split-text
+                className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-gold leading-tight mb-6"
+              >
+                Spotkania z Hodowcami
+              </h1>
+              <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto mb-12">
                 Galeria zdjęć z naszych spotkań z hodowcami gołębi pocztowych
               </p>
 
-              <div className="mt-8 flex items-center justify-center gap-3">
+              <div className="flex items-center justify-center gap-3">
                 <Button
                   ref={triggerButtonRef}
                   onClick={handleAddMeeting}
-                  className="bg-gold text-navy hover:bg-gold/90"
+                  className="bg-gold text-navy hover:bg-gold/90 text-lg px-8 py-6"
                 >
                   Dodaj spotkanie
                 </Button>
@@ -168,8 +248,8 @@ export default function BreederMeetings() {
                   className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
                 >
                   <div className="mb-6">
-                    <h3 className="text-2xl md:text-3xl font-bold text-foreground text-center">
-                      <span className="text-gradient-gold">{meeting.name}</span>
+                    <h3 className="text-2xl md:text-3xl font-bold text-gold text-center">
+                      {meeting.name}
                     </h3>
                   </div>
 
@@ -218,6 +298,7 @@ export default function BreederMeetings() {
         size="xl"
         draggable={true}
         bodyScrollable={true}
+        backdropClassName="bg-black/60 backdrop-blur-sm"
       >
         <AddBreederMeetingForm
           embedded
@@ -249,6 +330,7 @@ export default function BreederMeetings() {
         type="warning"
         title={verificationMessage.title}
         message={verificationMessage.message}
+        backdropClassName="bg-black/60 backdrop-blur-sm"
         confirmButton={{
           text: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : 'Uzupełnij profil',
           onClick: () => {
@@ -272,6 +354,7 @@ export default function BreederMeetings() {
         type="info"
         title="Wymagane logowanie"
         message="Aby dodać spotkanie z hodowcą, musisz się zalogować. Po zamknięciu tego komunikatu przeniosę Cię do strony logowania."
+        backdropClassName="bg-black/60 backdrop-blur-sm"
         confirmButton={{
           text: 'Przejdź do logowania',
           onClick: () => {

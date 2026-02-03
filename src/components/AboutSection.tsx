@@ -183,55 +183,55 @@ const AboutSection = () => {
     const section = sectionRef.current;
     const leftContent = leftContentRef.current;
     
-    console.log('📌 AboutSection: Pinning section, cards:', cards.length);
+    console.log('📌 AboutSection: Setting up animations, cards:', cards.length);
 
-    // Daj chwilę na renderowanie
     const ctx = gsap.context(() => {
-      // Ustaw karty jako niewidoczne na start
-      gsap.set(cards, {
-        y: 150,
-        rotateX: 60,
-        opacity: 0,
-        transformOrigin: 'bottom center',
-      });
-
-      // Ustaw tekst po lewej jako niewidoczny
-      gsap.set(leftContent, {
-        x: -100,
-        opacity: 0,
-      });
-
-      // Stwórz timeline dla animacji
-      const tl = gsap.timeline({
+      // USUNIĘTY PIN - zamiast tego używamy płynnego scrub
+      
+      // Timeline dla lewej kolumny
+      const leftTl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top top',
-          end: '+=250%',
-          pin: true,
-          scrub: 0.5,
-          id: 'about-section-pin',
-          anticipatePin: 1,
+          start: 'top 80%',
+          end: 'top 20%',
+          scrub: 1.5,
+          id: 'about-left',
         }
       });
+      
+      leftTl.fromTo(leftContent,
+        { x: -80, opacity: 0 },
+        { x: 0, opacity: 1, duration: 1, ease: 'expo.out' }
+      );
 
-      // Faza 1: Tekst po lewej wjeżdża na początku
-      tl.to(leftContent, {
-        x: 0,
-        opacity: 1,
-        duration: 1.5,
-        ease: 'power2.out',
-      }, 0);
-
-      // Faza 2-5: Karty pojawiają się jedna po drugiej
-      cards.forEach((card, i) => {
-        tl.to(card, {
-          y: 0,
-          rotateX: 0,
-          opacity: 1,
-          duration: 1,
-          ease: 'power2.out',
-        }, 1.5 + (i * 0.8)); // Karty zaczynają po tekście
+      // Timeline dla kart - cascade reveal
+      const cardsTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: cardsContainerRef.current,
+          start: 'top 85%',
+          end: 'top 25%',
+          scrub: 1.5,
+          id: 'about-cards',
+        }
       });
+      
+      cardsTl.fromTo(cards,
+        { 
+          y: 100, 
+          opacity: 0, 
+          scale: 0.9,
+          rotateX: 15,
+        },
+        { 
+          y: 0, 
+          opacity: 1, 
+          scale: 1,
+          rotateX: 0,
+          duration: 0.5,
+          ease: 'expo.out',
+          stagger: 0.15,
+        }
+      );
 
     }, section);
 

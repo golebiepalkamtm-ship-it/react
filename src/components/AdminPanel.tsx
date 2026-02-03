@@ -534,7 +534,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-visible pointer-events-auto bg-gray-950 rounded-t-3xl md:rounded-3xl border border-white/10 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
+            className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-hidden pointer-events-auto bg-gray-900 rounded-t-3xl md:rounded-3xl border border-white/15 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
             initial={{ opacity: 0, scale: 0.9, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 50 }}
@@ -554,7 +554,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
             <motion.div
-              className="flex-shrink-0 relative flex items-center justify-between p-6 border-b border-white/10"
+              className="flex-shrink-0 relative flex items-center justify-between p-6 border-b border-white/15 rounded-t-3xl"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}

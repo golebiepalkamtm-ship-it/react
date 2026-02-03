@@ -38,7 +38,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
     <motion.div
       ref={cardRef}
       className="relative group h-full"
-      style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
+      style={{ perspective: 1000 }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -48,10 +48,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
         style={{
           rotateX,
           rotateY,
-          transformStyle: 'preserve-3d',
         }}
-        whileHover={{ scale: 1.02 }}
-        transition={{ scale: { duration: 0.2 } }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
         <motion.div 
@@ -60,9 +57,9 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
           animate={{ opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3 }}
           transition={{ duration: 2, repeat: Infinity }}
         />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent pointer-events-none" />
         
-        <div className="relative z-10">
+        <div className="relative z-20">
           <h3 className="font-display text-2xl text-foreground font-semibold mb-6">
             Wyślij wiadomość
           </h3>
@@ -74,7 +71,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground relative z-30"
                   placeholder="Jan Kowalski"
                   required
                 />
@@ -85,7 +82,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground"
+                  className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground relative z-30"
                   placeholder="twoj@email.pl"
                   required
                 />
@@ -97,7 +94,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
                 type="text"
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground"
+                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground relative z-30"
                 placeholder="Temat wiadomości"
                 required
               />
@@ -108,27 +105,27 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 rows={5}
-                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all text-foreground resize-none relative z-30"
                 placeholder="Napisz nam o swoich zainteresowaniach..."
                 required
               />
             </div>
-            <MagneticButton strength={0.3}>
+            <div className="relative z-40">
               <Button 
                 type="submit"
                 variant="gold" 
                 size="lg" 
-                className="w-full shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_50px_rgba(212,175,55,0.7)] relative z-30" 
+                className="w-full shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_50px_rgba(212,175,55,0.7)]" 
                 disabled={isSubmitting}
               >
                 <Send className="w-4 h-4 mr-2" />
                 {isSubmitting ? 'Wysyłanie...' : 'Wyślij wiadomość'}
               </Button>
-            </MagneticButton>
+            </div>
           </form>
         </div>
         <motion.div 
-          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
+          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent pointer-events-none"
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
           transition={{ duration: 1, delay: 0.1 }}
@@ -363,27 +360,57 @@ const ContactSection = () => {
     if (!section) return;
 
     const cards = section.querySelectorAll(".contact-card-reveal");
+    const header = section.querySelector('h2');
+    const subtext = section.querySelector('p');
     
-    gsap.fromTo(cards, 
-      { y: 50, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: 'power3.out',
+    const ctx = gsap.context(() => {
+      // Header animation
+      const headerTl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top 80%',
-          toggleActions: 'play none none none'
+          start: 'top 85%',
+          end: 'top 40%',
+          scrub: 1.5,
         }
-      }
-    );
+      });
+      
+      if (header) headerTl.fromTo(header, 
+        { y: 80, opacity: 0, skewY: 2 },
+        { y: 0, opacity: 1, skewY: 0, duration: 0.5, ease: 'expo.out' }
+      );
+      if (subtext) headerTl.fromTo(subtext,
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
+        '-=0.3'
+      );
+      
+      // Cards animation with stagger
+      gsap.fromTo(cards, 
+        { y: 100, opacity: 0, scale: 0.9, rotateY: -10 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          rotateY: 0,
+          duration: 1.2,
+          stagger: 0.15,
+          ease: 'expo.out',
+          scrollTrigger: {
+            trigger: cards[0],
+            start: 'top 85%',
+            end: 'top 30%',
+            scrub: 1.5,
+          }
+        }
+      );
+    }, section);
+    
+    return () => ctx.revert();
   }, []);
 
   const contactInfo: ContactInfoItem[] = [
     { icon: MapPin, label: "Adres", value: "ul. Stawowa 6", detail: "59-800 Lubań, Polska", href: `https://www.google.com/maps/search/?api=1&query=ul.+Stawowa+6,+59-800+Lubań` },
-    { icon: Phone, label: "Telefon", value: "+48 123 456 789", detail: "Dostępny Pon-Pt, 9-17", action: 'call' },
+    { icon: Phone, label: "Telefon", value: "75 722 47 29", detail: "Dostępny Pon-Pt, 9-17", action: 'call' },
     { icon: Mail, label: "Email", value: "kontakt@palkamtm.pl", detail: "Odpowiadamy w 24h", action: 'mail' },
     { icon: Clock, label: "Godziny pracy", value: "9:00 - 17:00", detail: "Poniedziałek - Piątek" },
   ];

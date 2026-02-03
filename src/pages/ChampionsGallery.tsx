@@ -4,9 +4,9 @@
  * - Awwwards-level animations
  * - Premium text reveals and hover effects
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { X, Trophy, Calendar, Award, Sparkles, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { X, Trophy, Calendar, Award, Sparkles, Star } from 'lucide-react';
 import { ChampionCard } from '@/components/gallery/ChampionCard';
 import { PedigreeModal } from '@/components/gallery/PedigreeModal';
 import { useChampions, type Champion } from '@/hooks/useChampions';
@@ -43,6 +43,8 @@ const ChampionModal = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const hasMultiplePhotos = !!(champion && champion.images.length > 1);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const currentImageSrc = champion?.images?.[currentPhotoIndex] ?? '';
 
   useEffect(() => {
     if (champion) {
@@ -82,7 +84,7 @@ const ChampionModal = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-4 px-4"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -97,6 +99,14 @@ const ChampionModal = ({
         className="relative w-full h-full max-w-none max-h-none overflow-hidden bg-card border-0 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {champion?.images?.[currentPhotoIndex] && (
+          <img
+            src={currentImageSrc}
+            alt={`Zdjęcie ${champion?.name}`}
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover -z-10 pointer-events-none"
+          />
+        )}
         {/* Close button - improved positioning and styling */}
         <button
           onClick={onClose}
@@ -106,50 +116,9 @@ const ChampionModal = ({
           <X className="w-6 h-6 text-foreground" />
         </button>
 
-        {/* Champion navigation */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (hasPrevChampion) onPrevChampion();
-            }}
-            disabled={!hasPrevChampion}
-            className={`px-3 py-2 rounded-full border text-sm font-medium transition-all duration-200 backdrop-blur-sm ${
-              hasPrevChampion
-                ? 'bg-card/80 hover:bg-card border-border hover:scale-105'
-                : 'bg-card/40 border-border/50 opacity-60 cursor-not-allowed'
-            }`}
-            aria-label="Poprzedni champion"
-            type="button"
-          >
-            Poprzedni
-          </button>
-          <div className="px-3 py-2 rounded-full bg-card/80 border border-border text-sm font-semibold">
-            {championIndex + 1} / {totalChampions}
-          </div>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (hasNextChampion) onNextChampion();
-            }}
-            disabled={!hasNextChampion}
-            className={`px-3 py-2 rounded-full border text-sm font-medium transition-all duration-200 backdrop-blur-sm ${
-              hasNextChampion
-                ? 'bg-card/80 hover:bg-card border-border hover:scale-105'
-                : 'bg-card/40 border-border/50 opacity-60 cursor-not-allowed'
-            }`}
-            aria-label="Następny champion"
-            type="button"
-          >
-            Następny
-          </button>
-        </div>
-
         <div className="grid grid-cols-10 h-full">
-          {/* Image - rozszerzona szerokość (80%) aby „czarna strona” sięgała do nawigacji */}  
-          <div className="col-span-10 lg:col-span-8 relative h-full min-h-[400px] lg:min-h-full bg-muted/20 flex items-center justify-center">
+          {/* Image - rozszerzona szerokość (80%) aby „czarna strona" sięgała do nawigacji */}  
+          <div className="col-span-10 lg:col-span-8 relative h-full min-h-[400px] lg:min-h-full bg-muted/20 flex items-start justify-center pt-16">
             {imageLoading && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -169,21 +138,25 @@ const ChampionModal = ({
               <>
                 {console.log('Loading image:', champion.images[currentPhotoIndex], 'for champion:', champion.name)}
                 {champion.images?.[currentPhotoIndex] ? (
-                  <img
-                    src={champion.images[currentPhotoIndex]}
-                    alt={champion.name}
-                    className={`w-full h-full object-contain ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                    onError={() => {
-                      console.error('Failed to load image:', champion.images[currentPhotoIndex]);
-                      setImageError(true);
-                      setImageLoading(false);
-                    }}
-                    onLoad={() => {
-                      console.log('Successfully loaded image:', champion.images[currentPhotoIndex]);
-                      setImageLoading(false);
-                      setImageError(false);
-                    }}
-                  />
+                  <div className="w-full h-full flex items-start justify-center">
+                    <img
+                      key={champion.images[currentPhotoIndex]}
+                      src={currentImageSrc}
+                      alt={champion.name}
+                      className={`w-full h-screen object-contain object-top ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                      style={{width: '100%', height: '100vh', objectPosition: 'top center'}}
+                      onError={() => {
+                        console.error('Failed to load image:', champion.images[currentPhotoIndex]);
+                        setImageError(true);
+                        setImageLoading(false);
+                      }}
+                      onLoad={() => {
+                        console.log('Successfully loaded image:', champion.images[currentPhotoIndex]);
+                        setImageLoading(false);
+                        setImageError(false);
+                      }}
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-950">
                     <Trophy className="w-24 h-24 text-gold/30" />
@@ -193,41 +166,37 @@ const ChampionModal = ({
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-card/50 via-transparent to-transparent lg:bg-gradient-to-r pointer-events-none" />
 
-            {/* Navigation arrows (zawsze widoczne, zmieniają championa) */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (hasPrevChampion) onPrevChampion();
-              }}
-              disabled={!hasPrevChampion}
-              className={`absolute left-4 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full border-2 shadow-xl transition-all duration-200 backdrop-blur-sm cursor-pointer ${
-                hasPrevChampion
-                  ? 'bg-black/70 hover:bg-black/90 border-white/30 hover:scale-110'
-                  : 'bg-black/30 border-white/10 opacity-60 cursor-not-allowed'
-              }`}
-              type="button"
-              aria-label="Poprzedni champion"
-            >
-              <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (hasNextChampion) onNextChampion();
-              }}
-              disabled={!hasNextChampion}
-              className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full border-2 shadow-xl transition-all duration-200 backdrop-blur-sm cursor-pointer ${
-                hasNextChampion
-                  ? 'bg-black/70 hover:bg-black/90 border-white/30 hover:scale-110'
-                  : 'bg-black/30 border-white/10 opacity-60 cursor-not-allowed'
-              }`}
-              type="button"
-              aria-label="Następny champion"
-            >
-              <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
-            </button>
+            {/* Photo navigation arrows */}
+            {hasMultiplePhotos && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentPhotoIndex((prev) => (prev - 1 + champion.images.length) % champion.images.length);
+                    setImageLoading(true);
+                    setImageError(false);
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-black/70 border border-white/20 transition-all"
+                  aria-label="Poprzednie zdjęcie"
+                  type="button"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentPhotoIndex((prev) => (prev + 1) % champion.images.length);
+                    setImageLoading(true);
+                    setImageError(false);
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-black/70 border border-white/20 transition-all"
+                  aria-label="Następne zdjęcie"
+                  type="button"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </>
+            )}
 
             {/* Photo indicator */}
             {hasMultiplePhotos && (
@@ -258,14 +227,14 @@ const ChampionModal = ({
             )}
 
             {/* Badge */}
-            <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5 bg-card/90 backdrop-blur-sm rounded-full border border-gold/40 shadow-lg">
+            <div className="absolute top-16 left-6 flex items-center gap-2 px-3 py-1.5 bg-card/90 backdrop-blur-sm rounded-full border border-gold/40 shadow-lg">
               <Trophy className="w-4 h-4 text-gold" />
               <span className="text-sm font-medium text-gold">Champion</span>
             </div>
           </div>
 
           {/* Content - 2/10 columns (20%) */}
-          <div className="col-span-10 lg:col-span-2 p-6 lg:p-8 overflow-y-auto h-full">
+          <div className="col-span-10 lg:col-span-2 pt-16 px-6 lg:px-8 overflow-y-auto h-full">
 
             {/* Pigeon Number */}
             <div className="mb-4">
@@ -358,6 +327,16 @@ export const ChampionsGallery = () => {
     trackMetric('GALLERY_IMAGE', 'PAGE').catch(() => {});
   }, []);
 
+  // Inicjalizacja animacji tekstu hero
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      import('@/lib/gsapAnimations').then(({ initHeroTextSplit }) => {
+        initHeroTextSplit();
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleViewPedigree = useCallback((url: string) => {
     setPedigreeUrl(url);
     setIsPedigreeOpen(true);
@@ -382,35 +361,54 @@ export const ChampionsGallery = () => {
 
         <motion.section 
           ref={heroRef}
-          className="relative pt-8 pb-20 px-4 overflow-hidden"
+          className="relative pt-20 md:pt-32 pb-24 md:pb-32 px-4 overflow-hidden min-h-[70vh] flex items-center"
           style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
         >
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gold/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-gold/10 rounded-full" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-gold/5 rounded-full" />
-          </div>
-
           <div className="container mx-auto text-center relative z-10">
             <ScrollReveal delay={0}>
               <motion.span
                 className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-gold/20 to-gold-dark/20 border border-gold/30 text-gold text-sm font-medium tracking-widest uppercase mb-8"
                 whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(212,175,55,0.3)" }}
               >
-                <Star className="w-4 h-4" />
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.15, 1],
+                    opacity: [0.8, 1, 0.8]
+                  }}
+                  transition={{ 
+                    duration: 2.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <Star className="w-4 h-4" />
+                </motion.div>
                 Ekskluzywna Kolekcja
-                <Star className="w-4 h-4" />
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.15, 1],
+                    opacity: [0.8, 1, 0.8]
+                  }}
+                  transition={{ 
+                    duration: 2.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 1.25
+                  }}
+                >
+                  <Star className="w-4 h-4" />
+                </motion.div>
               </motion.span>
             </ScrollReveal>
 
-            <ScrollReveal delay={0.1}>
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6">
-                <span className="text-gold">Galeria</span>
-                <br />
-                <span className="text-white">Championów</span>
+            <div className="mb-6">
+              <h1 
+                data-split-text
+                className="font-display text-3xl md:text-4xl lg:text-6xl font-bold text-gold"
+              >
+                Galeria Championów
               </h1>
-            </ScrollReveal>
+            </div>
 
             <ScrollReveal delay={0.2}>
               <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12">

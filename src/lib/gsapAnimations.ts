@@ -36,6 +36,8 @@ import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 export const initHeroTextSplit = () => {
   const heroTitles = document.querySelectorAll('[data-split-text]');
   
+  console.log('🔤 initHeroTextSplit: found', heroTitles.length, 'elements');
+  
   heroTitles.forEach((title) => {
     if (title.getAttribute('data-animated') === 'true') return;
     
@@ -50,24 +52,34 @@ export const initHeroTextSplit = () => {
     
     const charElements = title.querySelectorAll('.char');
     
+    console.log('🔤 Animating', charElements.length, 'characters');
+    
+    // Premium hero animation - widoczna z dużym efektem
     gsap.fromTo(charElements, 
       {
         opacity: 0,
-        y: 50,
-        rotateX: -40,
+        y: 120,
+        rotateX: -90,
+        rotateY: 10,
+        scale: 0.5,
+        transformOrigin: '50% 100% -50',
+        filter: 'blur(10px)',
       },
       {
         opacity: 1,
         y: 0,
         rotateX: 0,
-        duration: 0.6,
-        ease: 'back.out(1.7)',
-        stagger: 0.02,
-        scrollTrigger: {
-          trigger: title,
-          start: 'top 85%',
-          toggleActions: 'play none none reverse',
+        rotateY: 0,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: 1.8,
+        ease: 'expo.out',
+        stagger: {
+          amount: 1.2,
+          from: 'start',
+          ease: 'power3.out'
         },
+        delay: 0.6, // Dłuższe opóźnienie żeby użytkownik zobaczył start
       }
     );
     
@@ -101,16 +113,18 @@ export const initImageParallax = () => {
       { 
         scale: 1.3,
         y: '-15%',
+        filter: 'brightness(0.7)',
       },
       {
         scale: 1,
         y: '15%',
+        filter: 'brightness(1)',
         ease: 'none',
         scrollTrigger: {
           trigger: container,
           start: 'top bottom',
           end: 'bottom top',
-          scrub: 1,
+          scrub: 1.5, // Bardziej płynna interpolacja
         },
       }
     );
@@ -138,8 +152,11 @@ export const initBatchCardReveal = () => {
   
   gsap.set(items, { 
     opacity: 0, 
-    y: 60,
-    scale: 0.95,
+    y: 80,
+    scale: 0.92,
+    skewY: 3,
+    clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)',
+    filter: 'blur(8px)',
   });
   
   ScrollTrigger.batch(items, {
@@ -149,11 +166,22 @@ export const initBatchCardReveal = () => {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.8,
-        ease: 'power3.out',
-        stagger: 0.2,
+        skewY: 0,
+        clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+        filter: 'blur(0px)',
+        duration: 1.6,
+        ease: 'expo.out',
+        stagger: {
+          amount: 0.8,
+          from: 'start',
+          grid: 'auto',
+          ease: 'power2.inOut'
+        },
         onComplete: () => {
-          batch.forEach(item => item.classList.remove('animating'));
+          batch.forEach(item => {
+            item.classList.remove('animating');
+            item.style.clipPath = 'none'; // Cleanup dla performance
+          });
         },
       });
     },
@@ -163,14 +191,20 @@ export const initBatchCardReveal = () => {
         opacity: 0,
         y: 60,
         scale: 0.95,
-        duration: 0.4,
-        stagger: 0.1,
+        skewY: 2,
+        duration: 0.6,
+        ease: 'power2.in',
+        stagger: {
+          amount: 0.3,
+          from: 'end'
+        },
         onComplete: () => {
           batch.forEach(item => item.classList.remove('animating'));
         },
       });
     },
     start: 'top 85%',
+    interval: 0.1, // Optymalizacja batchingu
   });
 };
 
@@ -197,7 +231,7 @@ export const initDepthParallax = () => {
       trigger: element,
       start: 'top bottom',
       end: 'bottom top',
-      scrub: 0.5,
+      scrub: 2, // Wyższa wartość = bardziej płynna, "masłowata" kontrola
       invalidateOnRefresh: true,
       onEnter: () => element.classList.add('animating'),
       onLeave: () => element.classList.remove('animating'),
@@ -227,13 +261,16 @@ export const initSectionFadeIn = () => {
   sections.forEach((section) => {
     gsap.from(section, {
       opacity: 0,
-      y: 40,
-      duration: 1,
-      ease: 'power2.out',
+      y: 100,
+      rotateX: -5,
+      scale: 0.96,
+      duration: 1.8,
+      ease: 'expo.out',
       scrollTrigger: {
         trigger: section,
         start: 'top 80%',
-        toggleActions: 'play none none reverse',
+        end: 'top 20%',
+        scrub: 1.2,
       },
     });
   });
@@ -246,6 +283,8 @@ export const initSectionFadeIn = () => {
  */
 export const initHeadingReveals = () => {
   const headings = gsap.utils.toArray<HTMLElement>('[data-word-reveal]');
+  
+  console.log('📝 initHeadingReveals: found', headings.length, 'elements');
   
   headings.forEach((heading) => {
     if (heading.getAttribute('data-animated') === 'true') return;
@@ -262,11 +301,17 @@ export const initHeadingReveals = () => {
     
     // Add animating class to spans during animation
     gsap.from(wordSpans, {
-      yPercent: 100,
+      yPercent: 120,
       opacity: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-      stagger: 0.05,
+      skewY: 7,
+      rotateX: -45,
+      duration: 1.2,
+      ease: 'expo.out',
+      stagger: {
+        amount: 0.6,
+        from: 'start',
+        ease: 'power2.out'
+      },
       onStart: () => {
         wordSpans.forEach(span => span.classList.add('animating'));
       },
@@ -300,11 +345,175 @@ export const killScrollTrigger = () => {
 
 /**
  * ============================================================================
+ * 7. CINEMATIC IMAGE REVEAL - Clip-path reveal od środka
+ * ============================================================================
+ * 
+ * Obrazy odkrywają się z centrum z efektem "curtain reveal".
+ * Użycie: <img data-clip-reveal src="..." />
+ */
+export const initClipReveal = () => {
+  const images = gsap.utils.toArray<HTMLElement>('[data-clip-reveal]');
+  
+  images.forEach((image) => {
+    gsap.fromTo(image,
+      {
+        clipPath: 'polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%)',
+        scale: 1.2,
+        filter: 'brightness(0.4) saturate(0.5)',
+      },
+      {
+        clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+        scale: 1,
+        filter: 'brightness(1) saturate(1)',
+        duration: 2,
+        ease: 'expo.out',
+        scrollTrigger: {
+          trigger: image,
+          start: 'top 75%',
+          end: 'top 25%',
+          scrub: 1.5,
+        },
+        onComplete: () => {
+          // Cleanup dla performance
+          gsap.set(image, { clipPath: 'none' });
+        }
+      }
+    );
+  });
+};
+
+/**
+ * ============================================================================
+ * 8. VERTICAL SLICE REVEAL - Pionowe pasma odkrywające obraz
+ * ============================================================================
+ * 
+ * Obraz odkrywa się jak żaluzje od lewej do prawej.
+ * Użycie: <img data-slice-reveal src="..." />
+ */
+export const initSliceReveal = () => {
+  const images = gsap.utils.toArray<HTMLElement>('[data-slice-reveal]');
+  
+  images.forEach((image) => {
+    gsap.fromTo(image,
+      {
+        clipPath: 'polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)',
+        x: -60,
+        skewX: -5,
+        filter: 'grayscale(100%) brightness(0.3)',
+      },
+      {
+        clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+        x: 0,
+        skewX: 0,
+        filter: 'grayscale(0%) brightness(1)',
+        duration: 1.8,
+        ease: 'expo.out',
+        scrollTrigger: {
+          trigger: image,
+          start: 'top 80%',
+          end: 'top 30%',
+          scrub: 1.2,
+        },
+        onComplete: () => {
+          gsap.set(image, { clipPath: 'none' });
+        }
+      }
+    );
+  });
+};
+
+/**
+ * ============================================================================
+ * 9. MAGNETIC HOVER EFFECT - Element podąża za kursorem
+ * ============================================================================
+ * 
+ * Premium hover effect z subtle magnetic pull.
+ * Użycie: <div data-magnetic data-magnetic-strength="0.3">Content</div>
+ */
+export const initMagneticElements = () => {
+  const elements = gsap.utils.toArray<HTMLElement>('[data-magnetic]');
+  
+  elements.forEach((element) => {
+    const strength = parseFloat(element.dataset.magneticStrength || '0.3');
+    
+    element.addEventListener('mousemove', (e) => {
+      const rect = element.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      
+      gsap.to(element, {
+        x: x * strength,
+        y: y * strength,
+        duration: 0.6,
+        ease: 'expo.out',
+      });
+    });
+    
+    element.addEventListener('mouseleave', () => {
+      gsap.to(element, {
+        x: 0,
+        y: 0,
+        duration: 0.8,
+        ease: 'expo.out',
+      });
+    });
+  });
+};
+
+/**
+ * ============================================================================
+ * 10. SCROLL-LINKED TEXT SCALE - Tekst skaluje się podczas scrollowania
+ * ============================================================================
+ * 
+ * Nagłówki dynamicznie zmieniają rozmiar z pozycją scrolla.
+ * Użycie: <h2 data-scale-scroll>Heading</h2>
+ */
+export const initScrollScale = () => {
+  const headings = gsap.utils.toArray<HTMLElement>('[data-scale-scroll]');
+  
+  headings.forEach((heading) => {
+    gsap.fromTo(heading,
+      {
+        scale: 1.5,
+        opacity: 0.3,
+        y: 100,
+      },
+      {
+        scale: 1,
+        opacity: 1,
+        y: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: heading,
+          start: 'top bottom',
+          end: 'top center',
+          scrub: 1.5,
+        },
+      }
+    );
+  });
+};
+
+/**
+ * ============================================================================
  * INIT ALL - Główna funkcja inicjalizująca
  * ============================================================================
  */
 export const initAllAnimations = () => {
-  console.log('🎬 [GSAP] Initializing all animations...');
+  console.log('🎬 [GSAP Premium] Initializing all animations...');
+  
+  // Debug: sprawdź ile elementów znaleziono
+  const splitTexts = document.querySelectorAll('[data-split-text]');
+  const wordReveals = document.querySelectorAll('[data-word-reveal]');
+  const revealItems = document.querySelectorAll('[data-reveal-item]');
+  const magnetics = document.querySelectorAll('[data-magnetic]');
+  
+  console.log(`📊 Found elements:`, {
+    splitTexts: splitTexts.length,
+    wordReveals: wordReveals.length,
+    revealItems: revealItems.length,
+    magnetics: magnetics.length
+  });
   
   initHeroTextSplit();
   initImageParallax();
@@ -312,6 +521,10 @@ export const initAllAnimations = () => {
   initDepthParallax();
   initSectionFadeIn();
   initHeadingReveals();
+  initClipReveal();
+  initSliceReveal();
+  initMagneticElements();
+  initScrollScale();
   
-  console.log('✅ [GSAP] All animations initialized');
+  console.log('✅ [GSAP Premium] All animations initialized');
 };

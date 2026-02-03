@@ -813,15 +813,17 @@
     @apply relative overflow-hidden rounded-2xl;
     background: linear-gradient(
       135deg,
-      hsl(var(--glass-bg) / 0.6) 0%,
-      hsl(var(--glass-bg) / 0.3) 100%
+      hsl(var(--glass-bg) / 0.75) 0%,
+      hsl(var(--glass-bg) / 0.45) 100%
     );
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--glass-border) / 0.2);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border) / 0.35);
     box-shadow: 
-      0 8px 32px 0 hsl(var(--tunnel-depth) / 0.4),
-      inset 0 1px 0 0 hsl(var(--foreground) / 0.05);
+      0 8px 32px 0 hsl(var(--tunnel-depth) / 0.5),
+      0 0 0 1px hsl(var(--glow-primary) / 0.1),
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.08),
+      inset 0 -1px 0 0 hsl(var(--tunnel-depth) / 0.3);
   }
 
   .glass-card::before {
@@ -834,9 +836,25 @@
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(var(--glow-primary) / 0.5),
+      hsl(var(--glow-primary) / 0.6),
+      hsl(45 80% 55% / 0.4),
+      hsl(var(--glow-primary) / 0.6),
       transparent
     );
+  }
+
+  .glass-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--foreground) / 0.03) 0%,
+      transparent 30%,
+      transparent 70%,
+      hsl(var(--tunnel-depth) / 0.15) 100%
+    );
+    pointer-events: none;
   }
 
   /* Year ghost text */
@@ -886,6 +904,32 @@
     will-change: transform;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Enhanced glass effect for tunnel cards */
+    background: linear-gradient(
+      145deg,
+      hsl(var(--glass-bg) / 0.85) 0%,
+      hsl(var(--glass-bg) / 0.55) 50%,
+      hsl(var(--glass-bg) / 0.7) 100%
+    );
+    -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
+    backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
+    border: 1px solid hsl(var(--glass-border) / 0.45);
+    box-shadow: 
+      0 12px 48px 0 hsl(var(--tunnel-depth) / 0.6),
+      0 0 0 1px hsl(var(--glow-primary) / 0.15),
+      0 0 60px -10px hsl(var(--glow-primary) / 0.2),
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.1),
+      inset 0 -1px 0 0 hsl(var(--tunnel-depth) / 0.4);
+  }
+
+  .tunnel-card .glass-card:hover {
+    border-color: hsl(var(--glow-primary) / 0.6);
+    box-shadow: 
+      0 16px 64px 0 hsl(var(--tunnel-depth) / 0.7),
+      0 0 0 1px hsl(var(--glow-primary) / 0.25),
+      0 0 80px -5px hsl(var(--glow-primary) / 0.35),
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.12),
+      inset 0 -1px 0 0 hsl(var(--tunnel-depth) / 0.5);
   }
 
   /* ========================================
@@ -1366,6 +1410,47 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ============================================================================
+   GSAP Premium Animation Styles
+   ============================================================================ */
+
+/* Perspective container for 3D transforms */
+[data-split-text],
+[data-word-reveal] {
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
+}
+
+/* Prevent FOUC (Flash of Unstyled Content) for animated elements */
+[data-split-text] .char,
+[data-word-reveal] .word > span {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Smooth reveal items */
+[data-reveal-item] {
+  will-change: transform, opacity, clip-path;
+  backface-visibility: hidden;
+}
+
+/* Magnetic hover effect styles */
+[data-magnetic] {
+  transition: transform 0.1s ease-out;
+  will-change: transform;
+}
+
+/* Clip reveal initial state */
+[data-clip-reveal] {
+  will-change: clip-path, transform;
+}
+
+/* Slice reveal initial state */
+[data-slice-reveal] .slice {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 @theme inline {

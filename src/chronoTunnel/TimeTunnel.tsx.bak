@@ -1,0 +1,753 @@
+import React, { useEffect, useLayoutEffect, useRef, useMemo, useCallback } from "react";
+import { useMotionValue } from "framer-motion";
+import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
+import TimelineCard from "./TimelineCard";
+import CosmicPortal from "./CosmicPortal";
+import StatsHeader from "./StatsHeader";
+import CosmicEnergyHeadline from "@/components/CosmicEnergyHeadline";
+import { initHeroTextSplit } from "@/lib/gsapAnimations";
+import { achievementsHistory } from "@/data/achievements-history";
+
+// Convert achievements from new format to TimelineCard format
+const timelineEvents = achievementsHistory.map(season => {
+  const achievements = season.achievements.map(ach => {
+    const parts: string[] = [];
+    if (ach.region) parts.push(ach.region);
+    if (ach.category) parts.push(`Kat ${ach.category}`);
+    if (ach.position) parts.push(ach.position);
+    
+    const details: string[] = [];
+    if (ach.points && ach.points !== "-") details.push(`${ach.points} coeff`);
+    if (ach.count && ach.count !== "-") details.push(`${ach.count} con`);
+    
+    let result = parts.join(" – ");
+    if (details.length > 0) {
+      result += ` (${details.join(", ")})`;
+    }
+    
+    return result;
+  });
+
+  const year = parseInt(season.year);
+  return {
+    year,
+    title: `Sezon ${season.year}`,
+    achievements,
+    highlight: `${achievements.length} osiągnię${achievements.length === 1 ? 'cie' : 'ć'}`
+  };
+}).reverse(); // Reverse to show oldest first
+
+// --- CONFIG ---
+const SECTION_DEPTH = 500;
+const totalDistance = timelineEvents.length * SECTION_DEPTH * 4;
+const extraBuffer = 2000;
+
+export default function TimeTunnel() {
+  const visibleEvents = useMemo(() => timelineEvents.filter((e) => e.year <= 2024), []);
+    title: "Sezon 2008",
+    achievements: [
+      "Oddział Lubań 092 – Kat A: Mistrz (49.88 coeff, 20 con)",
+      "Oddział Lubań 092 – Kat B: Mistrz (158.27 coeff, 16 con)",
+      "Oddział Lubań 092 – Kat GMP: I Wicemistrz (49.88 coeff)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (49.88 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat B: II Wicemistrz (158.27 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat GMP: I Wicemistrz (49.88 coeff)",
+      "Region V – Kat A: Mistrz (49.88 coeff, 20 con)",
+      "Region V – Kat B: XX Przodownik (158.27 coeff, 16 con)",
+      "Region V – Kat GMP: I Wicemistrz (49.88 coeff)",
+      "Region V – Kat GMP: 20 Przodownik (158.27 coeff)",
+      "MP – Kat A: 3 Przodownik (49.88 coeff, 20 con)",
+    ],
+    highlight: "11 osiągnięć",
+  },
+  {
+    year: 2009,
+    title: "Sezon 2009",
+    achievements: [
+      "Oddział Lubań 092 – Kat A: Mistrz (307.39 coeff, 20 con)",
+      "Oddział Lubań 092 – Kat B: Mistrz (183.18 coeff, 16 con)",
+      "Oddział Lubań 092 – Kat GMP: I Wicemistrz",
+      "Okręg Jelenia Góra – Kat A: Mistrz (307.39 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (183.18 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat GMP: I Wicemistrz",
+      "Region V – Kat A: I Wicemistrz (307.39 coeff, 20 con)",
+      "Region V – Kat B: III Przodownik (183.18 coeff, 16 con)",
+      "Region V – Kat GMP: I Wicemistrz",
+      "MP – Kat A: 5 Przodownik (307.39 coeff, 20 con)",
+      "MP – Kat B: 15 Przodownik (183.18 coeff, 16 con)",
+    ],
+    highlight: "11 osiągnięć",
+  },
+  {
+    year: 2010,
+    title: "Sezon 2010",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: I V-ce MISTRZ (293.79 coeff, 20 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: MISTRZ (62.47 coeff, 16 con)",
+      "Oddział Łużyce Lubań 0446 – Kat H: II V-ce MISTRZ (975.71 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Młode: MISTRZ (245.86 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: 1. Przodownik (1692.16 coeff, 34 con)",
+      "Okręg Jelenia Góra – Kat A: I V-ce MISTRZ (293.79 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat B: MISTRZ (62.47 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat H: II V-ce MISTRZ (975.71 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat Młode: MISTRZ (245.86 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat Roczne: 1. Przodownik (1692.16 coeff, 34 con)",
+    ],
+    highlight: "10 osiągnięć",
+  },
+  {
+    year: 2011,
+    title: "Sezon 2011",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat Total dorosłych: Mistrz (611.73 coeff, 70 con)",
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (161.32 coeff, 20 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (51.32 coeff, 16 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (84.07 coeff, 9 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (59.36 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (296.71 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat H: Mistrz (588.92 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (534.49 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat A: I V-ce MISTRZ (161.32 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat B: MISTRZ (51.32 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat C: MISTRZ (84.07 coeff, 9 con)",
+      "Okręg Jelenia Góra – Kat D: MISTRZ (296.71 coeff, 45 con)",
+      "Okręg Jelenia Góra – Kat E: II V-ce MISTRZ (81.60 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat F: I V-ce MISTRZ (243.05 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat G: 1. Przodownik (1583.79 coeff, 34 con)",
+      "Okręg Jelenia Góra – Kat H: II V-ce MISTRZ (588.92 coeff, 18 con)",
+      "Generalne – I V-ce MISTRZ (1417.76 coeff, 32 con)",
+      "Region V – Kat A: 3 Przodownik (161.32 coeff, 20 con)",
+      "Region V – Kat B: Mistrz (51.32 coeff, 16 con)",
+    ],
+    highlight: "19 osiągnięć",
+  },
+  {
+    year: 2012,
+    title: "Sezon 2012",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (100.83 coeff, 20 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: I V-ce MISTRZ (170.83 coeff, 16 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: I V-ce MISTRZ (224.22 coeff, 9 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: I V-ce MISTRZ (495.88 coeff)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (100.83 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat B: 4 Przodownik (170.83 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat C: 8 Przodownik (224.22 coeff, 9 con)",
+      "Okręg Jelenia Góra – Kat D: II V-ce MISTRZ (495.88 coeff)",
+      "Region V – Kat A: 9 Przodownik (100.83 coeff, 20 con)",
+    ],
+    highlight: "9 osiągnięć",
+  },
+  {
+    year: 2013,
+    title: "Sezon 2013",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (287.14 coeff, 20 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (165.73 coeff, 16 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: I V-ce MISTRZ (144.02 coeff, 9 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: I V-ce MISTRZ (139.73 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (596.89 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1842.06 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (394.85 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (287.14 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (165.73 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat C: I V-ce MISTRZ (144.02 coeff, 9 con)",
+      "Okręg Jelenia Góra – Kat M: I V-ce MISTRZ (139.73 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (596.89 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1842.06 coeff)",
+      "Region V – Kat A: 13 Przodownik (287.14 coeff, 20 con)",
+      "Region V – Kat B: 11 Przodownik (165.73 coeff, 16 con)",
+      "Region V – Kat C: 17 Przodownik (144.02 coeff, 9 con)",
+      "Region V – Kat D: 2 Przodownik (596.89 coeff)",
+      "Region V – Kat GMP: 3 Przodownik (1842.06 coeff)",
+      "MP – Kat D: 18 Przodownik (596.89 coeff)",
+      "MP – Kat GMP: 33 Przodownik (1842.06 coeff)",
+    ],
+    highlight: "20 osiągnięć",
+  },
+  {
+    year: 2014,
+    title: "Sezon 2014",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: I V-ce MISTRZ (224.28 coeff, 20 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (178.50 coeff, 16 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: I V-ce MISTRZ (209.68 coeff, 9 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: II V-ce MISTRZ (348.40 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (612.46 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1848.42 coeff)",
+      "Okręg Jelenia Góra – Kat A: I V-ce MISTRZ (224.28 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (178.50 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat C: I V-ce MISTRZ (209.68 coeff, 9 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (612.46 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1848.42 coeff)",
+      "Region V – Kat A: 12 Przodownik (224.28 coeff, 20 con)",
+      "Region V – Kat B: 24 Przodownik (178.50 coeff, 16 con)",
+      "Region V – Kat D: 8 Przodownik (612.46 coeff)",
+      "Region V – Kat GMP: 14 Przodownik (1848.42 coeff)",
+      "MP – Kat GMP: 35 Przodownik (1848.42 coeff)",
+    ],
+    highlight: "16 osiągnięć",
+  },
+  {
+    year: 2015,
+    title: "Sezon 2015",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (236.46 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (127.42 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (94.43 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: I V-ce MISTRZ (142.17 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (458.31 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1843.51 coeff)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (236.46 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (127.42 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (94.43 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: I V-ce MISTRZ (142.17 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (458.31 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1843.51 coeff)",
+      "Region V – Kat A: 13 Przodownik (236.46 coeff, 18 con)",
+      "Region V – Kat B: 10 Przodownik (127.42 coeff, 15 con)",
+      "Region V – Kat C: 7 Przodownik (94.43 coeff, 12 con)",
+      "Region V – Kat D: I V-ce MISTRZ (458.31 coeff)",
+      "Region V – Kat GMP: 10 Przodownik (1843.51 coeff)",
+      "MP – Kat D: 9 Przodownik (458.31 coeff)",
+      "MP – Kat GMP: 32 Przodownik (1843.51 coeff)",
+    ],
+    highlight: "19 osiągnięć",
+  },
+  {
+    year: 2016,
+    title: "Sezon 2016",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: I V-ce MISTRZ (209.68 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (102.77 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (207.96 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: I V-ce MISTRZ (82.02 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (520.41 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1819.33 coeff)",
+      "Okręg Jelenia Góra – Kat A: I V-ce MISTRZ (209.68 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (102.77 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (207.96 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: I V-ce MISTRZ (82.02 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (520.41 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1819.33 coeff)",
+      "Region V – Kat A: 10 Przodownik (209.68 coeff, 18 con)",
+      "Region V – Kat B: 3 Przodownik (102.77 coeff, 15 con)",
+      "Region V – Kat C: 37 Przodownik (207.96 coeff, 12 con)",
+      "Region V – Kat M: 11 Przodownik (82.02 coeff, 6 con)",
+      "Region V – Kat D: 3 Przodownik (520.41 coeff)",
+      "Region V – Kat GMP: 22 Przodownik (1819.33 coeff)",
+      "MP – Kat B: 18 Przodownik (102.77 coeff, 15 con)",
+      "MP – Kat D: 19 Przodownik (520.41 coeff)",
+    ],
+    highlight: "20 osiągnięć",
+  },
+  {
+    year: 2017,
+    title: "Sezon 2017",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: I V-ce MISTRZ (294.62 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (182.52 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (288.08 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (114.77 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (765.22 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1841.48 coeff)",
+      "Okręg Jelenia Góra – Kat A: I V-ce MISTRZ (294.62 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (182.52 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (288.08 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (114.77 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (765.22 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1841.48 coeff)",
+      "Region V – Kat A: 32 Przodownik (294.62 coeff, 18 con)",
+      "Region V – Kat B: 24 Przodownik (182.52 coeff, 15 con)",
+      "Region V – Kat M: 18 Przodownik (114.77 coeff, 6 con)",
+      "Region V – Kat D: 16 Przodownik (765.22 coeff)",
+      "Region V – Kat GMP: 8 Przodownik (1841.48 coeff)",
+      "MP – Kat GMP: 29 Przodownik (1841.48 coeff)",
+    ],
+    highlight: "18 osiągnięć",
+  },
+  {
+    year: 2018,
+    title: "Sezon 2018",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (113.63 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (140.40 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (142.23 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (177.30 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (396.26 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1811.53 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (509.07 coeff, 20 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (113.63 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (140.40 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (142.23 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (177.30 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (396.26 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1811.53 coeff)",
+      "Okręg Jelenia Góra – Kat Roczne: Mistrz (509.07 coeff, 20 con)",
+      "Region V – Kat A: 3 Przodownik (113.63 coeff, 18 con)",
+      "Region V – Kat B: 11 Przodownik (140.40 coeff, 15 con)",
+      "Region V – Kat C: 9 Przodownik (142.23 coeff, 12 con)",
+      "Region V – Kat M: 23 Przodownik (177.30 coeff, 6 con)",
+      "Region V – Kat D: 3 Przodownik (396.26 coeff)",
+      "Region V – Kat GMP: 19 Przodownik (1811.53 coeff)",
+      "MP – Kat A: 5 Przodownik (113.63 coeff, 18 con)",
+      "MP – Kat D: 4 Przodownik (396.26 coeff)",
+    ],
+    highlight: "22 osiągnięcia",
+  },
+  {
+    year: 2019,
+    title: "Sezon 2019",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (195.96 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (165.75 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (83.05 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (74.88 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (444.76 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1844.78 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (384.85 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (195.96 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (165.75 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (83.05 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (74.88 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (444.76 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1844.78 coeff)",
+      "Okręg Jelenia Góra – Kat Roczne: Mistrz (384.85 coeff, 16 con)",
+      "Region V – Kat A: 9 Przodownik (195.96 coeff, 18 con)",
+      "Region V – Kat B: 17 Przodownik (165.75 coeff, 15 con)",
+      "Region V – Kat C: I V-ce MISTRZ (83.05 coeff, 12 con)",
+      "Region V – Kat M: 6 Przodownik (74.88 coeff, 6 con)",
+      "Region V – Kat D: 3 Przodownik (444.76 coeff)",
+      "Region V – Kat GMP: 6 Przodownik (1844.78 coeff)",
+      "Region V – Kat Roczne: 26 Przodownik (384.85 coeff, 16 con)",
+      "MP – Kat C: 7 Przodownik (83.05 coeff, 12 con)",
+      "MP – Kat D: 11 Przodownik (444.76 coeff)",
+      "MP – Kat GMP: 17 Przodownik (1844.78 coeff)",
+    ],
+    highlight: "24 osiągnięcia",
+  },
+  {
+    year: 2020,
+    title: "Sezon 2020",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (185.74 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (77.20 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (108.68 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (60.61 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (371.62 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1858.74 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Intermistrzostwo: Mistrz (127.391 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (504.62 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (185.74 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (77.20 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (108.68 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (60.61 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (371.62 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1858.74 coeff)",
+      "Okręg Jelenia Góra – Kat Intermistrzostwo: Mistrz (127.391 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat Roczne: Mistrz (504.62 coeff, 16 con)",
+      "Region V – Kat A: 13 Przodownik (185.74 coeff, 18 con)",
+      "Region V – Kat B: I V-ce MISTRZ (77.20 coeff, 15 con)",
+      "Region V – Kat C: 7 Przodownik (108.68 coeff, 12 con)",
+      "Region V – Kat M: I V-ce MISTRZ (60.61 coeff, 6 con)",
+      "Region V – Kat D: MISTRZ (371.62 coeff)",
+      "Region V – Kat GMP: I V-ce MISTRZ (1858.74 coeff)",
+      "Region V – Kat Intermistrzostwo: I V-ce MISTRZ (127.391 coeff, 18 con)",
+      "MP – Kat A: 32 Przodownik (185.74 coeff, 18 con)",
+      "MP – Kat B: 4 Przodownik (77.20 coeff, 15 con)",
+      "MP – Kat C: 37 Przodownik (108.68 coeff, 12 con)",
+      "MP – Kat M: 6 Przodownik (60.61 coeff, 6 con)",
+      "MP – Kat D: I V-ce MISTRZ (371.62 coeff)",
+      "MP – Kat GMP: 13 Przodownik (1858.74 coeff)",
+      "MP – Kat Intermistrzostwo: 6 Przodownik (127.391 coeff, 18 con)",
+    ],
+    highlight: "30 osiągnięć",
+  },
+  {
+    year: 2021,
+    title: "Sezon 2021",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (127.56 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (215.15 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (147.93 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (83.56 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (490.64 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1846.54 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Intermistrzostwo: Mistrz (133.424 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (533.68 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (127.56 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (215.15 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (147.93 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (83.56 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (490.64 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1846.54 coeff)",
+      "Okręg Jelenia Góra – Kat Intermistrzostwo: Mistrz (133.424 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat Roczne: Mistrz (533.68 coeff, 16 con)",
+      "Region V – Kat A: 4 Przodownik (127.56 coeff, 18 con)",
+      "Region V – Kat B: 24 Przodownik (215.15 coeff, 15 con)",
+      "Region V – Kat C: 17 Przodownik (147.93 coeff, 12 con)",
+      "Region V – Kat M: 11 Przodownik (83.56 coeff, 6 con)",
+      "Region V – Kat D: 7 Przodownik (490.64 coeff)",
+      "Region V – Kat GMP: 11 Przodownik (1846.54 coeff)",
+      "Region V – Kat Intermistrzostwo: 6 Przodownik (133.424 coeff, 18 con)",
+      "MP – Kat A: 10 Przodownik (127.56 coeff, 18 con)",
+      "MP – Kat M: 32 Przodownik (83.56 coeff, 6 con)",
+      "MP – Kat D: 16 Przodownik (490.64 coeff)",
+      "MP – Kat GMP: 28 Przodownik (1846.54 coeff)",
+      "MP – Kat Intermistrzostwo: 25 Przodownik (133.424 coeff, 18 con)",
+    ],
+    highlight: "28 osiągnięć",
+  },
+  {
+    year: 2022,
+    title: "Sezon 2022",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (114.28 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (137.47 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (94.70 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (17.58 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (346.45 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1844.29 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Intermistrzostwo: Mistrz (74.887 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (296.22 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (114.28 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (137.47 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (94.70 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (17.58 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (346.45 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1844.29 coeff)",
+      "Okręg Jelenia Góra – Kat Intermistrzostwo: Mistrz (74.887 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat Roczne: Mistrz (296.22 coeff, 16 con)",
+      "Region V – Kat A: 8 Przodownik (114.28 coeff, 18 con)",
+      "Region V – Kat B: 10 Przodownik (137.47 coeff, 15 con)",
+      "Region V – Kat C: 7 Przodownik (94.70 coeff, 12 con)",
+      "Region V – Kat M: I V-ce MISTRZ (17.58 coeff, 6 con)",
+      "Region V – Kat D: I V-ce MISTRZ (346.45 coeff)",
+      "Region V – Kat GMP: 11 Przodownik (1844.29 coeff)",
+      "Region V – Kat Intermistrzostwo: I V-ce MISTRZ (74.887 coeff, 18 con)",
+      "Region V – Kat Roczne: 8 Przodownik (296.22 coeff, 16 con)",
+      "MP – Kat A: 17 Przodownik (114.28 coeff, 18 con)",
+      "MP – Kat C: 15 Przodownik (94.70 coeff, 12 con)",
+      "MP – Kat M: MISTRZ POLSKI (17.58 coeff, 6 con)",
+      "MP – Kat D: 5 Przodownik (346.45 coeff)",
+      "MP – Kat GMP: 34 Przodownik (1844.29 coeff)",
+      "MP – Kat Intermistrzostwo: I V-ce MISTRZ POLSKI (74.887 coeff, 18 con)",
+    ],
+    highlight: "30 osiągnięć",
+  },
+  {
+    year: 2023,
+    title: "Sezon 2023",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (207.60 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (93.99 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (144.97 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (155.08 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (446.56 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1843.43 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Intermistrzostwo: Mistrz (233.914 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (650.39 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (207.60 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (93.99 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (144.97 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (155.08 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (446.56 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1843.43 coeff)",
+      "Okręg Jelenia Góra – Kat Intermistrzostwo: Mistrz (233.914 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat Roczne: Mistrz (650.39 coeff, 16 con)",
+      "Region V – Kat A: 21 Przodownik (207.60 coeff, 18 con)",
+      "Region V – Kat B: 11 Przodownik (93.99 coeff, 15 con)",
+      "Region V – Kat C: 21 Przodownik (144.97 coeff, 12 con)",
+      "Region V – Kat M: 37 Przodownik (155.08 coeff, 6 con)",
+      "Region V – Kat D: 11 Przodownik (446.56 coeff)",
+      "Region V – Kat GMP: 15 Przodownik (1843.43 coeff)",
+      "MP – Kat B: 24 Przodownik (93.99 coeff, 15 con)",
+      "MP – Kat D: 31 Przodownik (446.56 coeff)",
+      "MP – Kat GMP: 33 Przodownik (1843.43 coeff)",
+    ],
+    highlight: "25 osiągnięć",
+  },
+  {
+    year: 2024,
+    title: "Sezon 2024",
+    achievements: [
+      "Oddział Łużyce Lubań 0446 – Kat A: Mistrz (83.85 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat B: Mistrz (108.82 coeff, 15 con)",
+      "Oddział Łużyce Lubań 0446 – Kat C: Mistrz (88.94 coeff, 12 con)",
+      "Oddział Łużyce Lubań 0446 – Kat M: Mistrz (41.48 coeff, 6 con)",
+      "Oddział Łużyce Lubań 0446 – Kat D: Mistrz (281.61 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat GMP: Mistrz (1844.75 coeff)",
+      "Oddział Łużyce Lubań 0446 – Kat Intermistrzostwo: Mistrz (102.668 coeff, 18 con)",
+      "Oddział Łużyce Lubań 0446 – Kat Roczne: Mistrz (155.65 coeff, 16 con)",
+      "Okręg Jelenia Góra – Kat A: Mistrz (83.85 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat B: Mistrz (108.82 coeff, 15 con)",
+      "Okręg Jelenia Góra – Kat C: Mistrz (88.94 coeff, 12 con)",
+      "Okręg Jelenia Góra – Kat M: Mistrz (41.48 coeff, 6 con)",
+      "Okręg Jelenia Góra – Kat D: Mistrz (281.61 coeff)",
+      "Okręg Jelenia Góra – Kat GMP: Mistrz (1844.75 coeff)",
+      "Okręg Jelenia Góra – Kat Intermistrzostwo: Mistrz (102.668 coeff, 18 con)",
+      "Okręg Jelenia Góra – Kat Roczne: Mistrz (155.65 coeff, 16 con)",
+      "Region V – Kat A: I V-ce MISTRZ (83.85 coeff, 18 con)",
+      "Region V – Kat B: 5 Przodownik (108.82 coeff, 15 con)",
+      "Region V – Kat C: 7 Przodownik (88.94 coeff, 12 con)",
+      "Region V – Kat M: I V-ce MISTRZ (41.48 coeff, 6 con)",
+      "Region V – Kat D: MISTRZ (281.61 coeff)",
+      "Region V – Kat GMP: 6 Przodownik (1844.75 coeff)",
+      "Region V – Kat Intermistrzostwo: I V-ce MISTRZ (102.668 coeff, 18 con)",
+      "Region V – Kat Roczne: I V-ce MISTRZ (155.65 coeff, 16 con)",
+      "MP – Kat A: 10 Przodownik (83.85 coeff, 18 con)",
+      "MP – Kat B: 18 Przodownik (108.82 coeff, 15 con)",
+      "MP – Kat C: 12 Przodownik (88.94 coeff, 12 con)",
+      "MP – Kat M: 12 Przodownik (41.48 coeff, 6 con)",
+      "MP – Kat D: 3 Przodownik (281.61 coeff)",
+      "MP – Kat GMP: 18 Przodownik (1844.75 coeff)",
+      "MP – Kat Intermistrzostwo: 6 Przodownik (102.668 coeff, 18 con)",
+      "MP – Kat Roczne: 11 Przodownik (155.65 coeff, 16 con)",
+    ],
+    highlight: "32 osiągnięcia",
+  },
+];
+
+// --- CONFIG ---
+const SECTION_DEPTH = 500;
+
+export default function TimeTunnel() {
+  const visibleEvents = useMemo(() => timelineEvents.filter((e) => e.year <= 2024), []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const worldRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const statsRef = useRef<HTMLDivElement | null>(null);
+  const endRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLDivElement | null>(null);
+  const scrollProgress = useMotionValue(0);
+  
+  const stats = useMemo(() => {
+    let mistrz = 0;
+    let wicemistrz = 0;
+    let przodownik = 0;
+
+    visibleEvents.forEach(event => {
+      event.achievements.forEach(ach => {
+        const lower = ach.toLowerCase();
+        if (lower.includes("wicemistrz") || lower.includes("v-ce mistrz") || lower.includes("v-ce  mistrz")) {
+          wicemistrz++;
+        } else if (lower.includes("mistrz")) {
+          mistrz++;
+        } else if (lower.includes("przodownik")) {
+          przodownik++;
+        }
+      });
+    });
+
+    return { mistrz, wicemistrz, przodownik };
+  }, [visibleEvents]);
+
+  // --- ROBUST TIMELINE ANIMATION ---
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+        // Init state - everything starts deep in Z except Stats and Title (briefly)
+        if (titleRef.current) gsap.set(titleRef.current, { z: 0, autoAlpha: 1 });
+        if (endRef.current) gsap.set(endRef.current, { z: -3000, autoAlpha: 0 });
+        if (statsRef.current) gsap.set(statsRef.current, { autoAlpha: 1, z: 100 });
+        
+        // Hide cards initially
+        cardsRef.current.forEach(card => {
+             if(card) gsap.set(card, { z: -4000, autoAlpha: 0, scale: 0.5 });
+        });
+
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: containerRef.current,
+            scroller: document.body,
+            start: "top top",
+            end: `+=${totalDistance + extraBuffer}`,
+            scrub: 1, 
+            pin: true,
+            onUpdate: (self) => scrollProgress.set(self.progress),
+            invalidateOnRefresh: true,
+          },
+        });
+
+        // 1. Title Exit
+        if (titleRef.current) {
+            tl.to(titleRef.current, { z: 1000, autoAlpha: 0, duration: 2 }, 0);
+        }
+
+        // 2. Card Tunnel Sequence
+        const DURATION = 10;
+        const STAGGER = 4; // Gap between cards
+
+        cardsRef.current.forEach((card, index) => {
+            if (!card) return;
+            const startTime = index * STAGGER;
+
+            // Phase A: Appear from fog
+            tl.to(card, {
+                z: -500,
+                autoAlpha: 1,
+                scale: 0.9,
+                duration: DURATION * 0.45,
+                ease: "power1.inOut"
+            }, startTime);
+
+            // Phase B: Fly to reading position (0)
+            tl.to(card, {
+                z: 0,
+                scale: 1,
+                duration: DURATION * 0.25,
+                ease: "linear"
+            }, startTime + (DURATION * 0.45));
+
+            // Phase C: Fly past camera
+            tl.to(card, {
+                z: 800,
+                autoAlpha: 0,
+                scale: 1.5,
+                duration: DURATION * 0.3,
+                ease: "power1.in"
+            }, startTime + (DURATION * 0.7));
+
+            // Rotation effect
+            const rotX = index % 2 === 0 ? 5 : -5;
+            const rotY = index % 3 === 0 ? 5 : -5;
+            gsap.set(card, { rotationX: rotX, rotationY: rotY });
+            tl.to(card, {
+                 rotationX: 0,
+                 rotationY: 0,
+                 duration: DURATION * 0.8,
+                 ease: "power1.out"
+            }, startTime);
+        });
+
+        // 3. End Screen
+        if (endRef.current) {
+            const lastCardStart = (visibleEvents.length - 1) * STAGGER;
+            const endStart = lastCardStart + (DURATION * 0.6); 
+
+            tl.to(endRef.current, {
+                z: 0,
+                autoAlpha: 1,
+                duration: 6,
+                ease: "power2.out",
+                onStart: () => {
+                     if (endRef.current && !endRef.current.classList.contains('animated')) {
+                         endRef.current.classList.add('animated');
+                         try { initHeroTextSplit(); } catch(e) {
+                             console.warn('Hero text split initialization failed:', e);
+                         }
+                     }
+                }
+            }, endStart);
+        }
+
+    }, containerRef);
+    
+    return () => {
+      ctx.revert();
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  }, [scrollProgress, totalDistance, extraBuffer, visibleEvents]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative bg-black z-[50]"
+      style={{ height: `${totalDistance + extraBuffer}px` }}
+    >
+      <div className="sticky top-0 h-screen w-full overflow-hidden perspective-1000 z-[100]">
+        
+        <CosmicPortal scrollProgress={scrollProgress} />
+        
+        {/* 3D Content Container */}
+        <div className="absolute inset-0 w-full h-full transform-style-3d pointer-events-none flex items-center justify-center">
+          
+          {/* Page title - leci przez tunel razem z resztą */}
+          <div
+            ref={titleRef}
+            className="pointer-events-none absolute inset-0 flex items-center justify-center"
+            style={{ transformStyle: "preserve-3d", opacity: 1 }}
+          >
+            <div className="-translate-y-32 md:-translate-y-40">
+              <CosmicEnergyHeadline text="Historia osiągnięć" className="px-4" />
+            </div>
+          </div>
+
+          {/* Stats Header - widoczne od razu, ale też "lecą" z tunelu */}
+          <div
+            ref={statsRef}
+            className="pointer-events-auto"
+            style={{ transformStyle: "preserve-3d", opacity: 1 }}
+          >
+            <StatsHeader {...stats} />
+          </div>
+
+          {/* Timeline Cards */}
+          {visibleEvents.map((event, index) => (
+            <div
+              key={event.year}
+              ref={(el) => {
+                cardsRef.current[index] = el;
+              }}
+              className="pointer-events-auto translate-y-24 md:translate-y-32 lg:translate-y-40"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transformStyle: "preserve-3d",
+                opacity: 0,
+              }}
+            >
+              <TimelineCard event={event} index={index} isActive />
+            </div>
+          ))}
+
+          {/* End Text - At the very end (ukryte na load) */}
+          <div
+            ref={endRef}
+            className="pointer-events-auto end-screen-container"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transformStyle: "preserve-3d",
+              opacity: 0,
+              visibility: "hidden",
+              zIndex: 100,
+            }}
+          >
+            <div className="text-center px-4">
+              <h1 
+                data-split-text
+                className="end-title text-5xl sm:text-6xl md:text-8xl lg:text-9xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 font-bold font-display tracking-widest drop-shadow-[0_0_40px_rgba(251,191,36,0.6)]"
+                style={{ 
+                  textShadow: '0 0 60px rgba(251,191,36,0.4), 0 0 120px rgba(251,191,36,0.2)',
+                  filter: 'drop-shadow(0 0 30px rgba(251,191,36,0.5))'
+                }}
+              >
+                Historia Trwa...
+              </h1>
+              <p 
+                className="end-subtitle text-white/70 mt-8 text-xl md:text-2xl font-light tracking-wide"
+                style={{ opacity: 0 }}
+              >
+                I wciąż piszemy nowe rozdziały
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
