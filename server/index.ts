@@ -1,4 +1,5 @@
 import './env.js'; // Must be first
+import './tracing.js'; // OpenTelemetry bootstrap — initialize before other imports
 import { createServer } from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';

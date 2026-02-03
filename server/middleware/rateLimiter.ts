@@ -15,7 +15,7 @@ export const globalLimiter = rateLimit({
     retryAfter: 15 * 60 // 15 minutes in seconds
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  legacyHeaders: true, // Also include legacy headers for compatibility
   handler: (req: Request, res: Response) => {
     logger.warn(`Rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
       ip: req.ip,
@@ -43,7 +43,7 @@ export const authLimiter = rateLimit({
     retryAfter: 15 * 60 // 15 minutes in seconds
   },
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(`Auth rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
       ip: req.ip,

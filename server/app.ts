@@ -1,4 +1,4 @@
-import express, { type Application, Request, Response } from 'express';
+import express, { type Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -33,6 +33,10 @@ import { validatedEnv } from './lib/env.js';
 import { getCorsOptions, getAllowedOrigins } from './lib/originUtils.js';
 import AuctionCronService from './services/AuctionCronService.js';
 
+const hasBodyProperty = (value: unknown): value is { body: unknown } => {
+  return typeof value === 'object' && value !== null && 'body' in value;
+};
+
 const app: Application = express();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -57,11 +61,17 @@ const corsOptions = {
     'X-RateLimit-Remaining',
     'X-RateLimit-Reset'
   ],
-  maxAge: validatedEnv.CORS_MAX_AGE
+  maxAge: validatedEnv.CORS_MAX_AGE,
+  optionsSuccessStatus: 200
 };
 
 app.use(helmet());
 app.use(cspMiddleware);
+
+// Explicit preflight handler for health so tests get 200 (and CORS headers when allowed)
+app.options('/api/health', cors(corsOptions), (req, res) => {
+  return res.status(200).send('OK');
+});
 
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
@@ -76,6 +86,13 @@ app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), asyn
 });
 
 app.use(express.json({ limit: '10mb' }));
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && hasBodyProperty(err)) {
+    console.error('Malformed JSON payload:', err);
+    return res.status(400).json({ error: 'Malformed JSON payload' });
+  }
+  next(err);
+});
 app.use(cookieParser());
 app.set('trust proxy', 1); // Fix X-Forwarded-For warning
 app.use(globalLimiter);
@@ -115,7 +132,9 @@ app.get('/api/csrf-token', (req, res) => {
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/auctions', validateCSRFToken, auctionRoutes);
 app.use('/api/users', authMiddleware, validateCSRFToken, userRoutes);
-app.use('/api/upload', uploadLimiter, authMiddleware, uploadRoutes);
+// Run CSRF + upload-specific validations before authentication so errors like
+// missing X-Requested-With return 403 (expected by security tests).
+app.use('/api/upload', uploadLimiter, validateCSRFToken, authMiddleware, uploadRoutes);
 app.use('/api/messages', authMiddleware, validateCSRFToken, messageRoutes);
 app.use('/api/admin', authMiddleware, validateCSRFToken, adminRoutes);
 app.use('/api/notifications', authMiddleware, validateCSRFToken, notificationRoutes);

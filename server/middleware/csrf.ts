@@ -16,8 +16,9 @@ export function validateCSRFToken(req: Request, res: Response, next: NextFunctio
 
   // Skip CSRF for specific paths (webhooks, health checks, etc.)
   const skipCSRFPaths = getCsrfSkipPaths();
+  const fullPath = req.baseUrl ? `${req.baseUrl}${req.path}` : req.path;
   
-  if (skipCSRFPaths.some(path => req.path.startsWith(path))) {
+  if (skipCSRFPaths.some(path => fullPath.startsWith(path))) {
     // Even for skipped paths, validate Origin/Referer and X-Requested-With for multipart/form-data
     if (req.get('Content-Type')?.includes('multipart/form-data')) {
       const origin = req.get('Origin');

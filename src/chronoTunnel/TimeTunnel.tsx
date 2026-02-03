@@ -189,7 +189,11 @@ export default function TimeTunnel() {
                 onStart: () => {
                      if (endRef.current && !endRef.current.classList.contains('animated')) {
                          endRef.current.classList.add('animated');
-                         try { initHeroTextSplit(); } catch(e) {}
+                         try {
+                           initHeroTextSplit();
+                         } catch (error) {
+                           console.warn('[TimeTunnel] initHeroTextSplit failed', error);
+                         }
                      }
                 }
             }, endStart);
@@ -201,7 +205,7 @@ export default function TimeTunnel() {
       ctx.revert();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
-  }, [scrollProgress, totalDistance, extraBuffer, visibleEvents]);
+  }, [scrollProgress, visibleEvents]);
 
   return (
     <div

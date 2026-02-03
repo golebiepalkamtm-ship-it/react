@@ -51,7 +51,7 @@
 ## 🎨 Domyślne Ustawienia (Już Działają!)
 
 | Parametr | Wartość |
-|----------|---------|
+76----------|---------|
 | **Default easing** | `expo.out` |
 | **Default duration** | `1.2s` |
 | **Scrub values** | `1.5-2` |

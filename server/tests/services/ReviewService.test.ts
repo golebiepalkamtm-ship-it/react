@@ -99,8 +99,48 @@ describe('ReviewService', () => {
   describe('getSellerReviews', () => {
     it('should return paginated reviews for seller', async () => {
       const mockReviews = [
-        { id: 'review-1', rating: 5, reviewerId: 'user-1', createdAt: new Date(), updatedAt: new Date() },
-        { id: 'review-2', rating: 4, reviewerId: 'user-2', createdAt: new Date(), updatedAt: new Date() },
+        {
+          id: 'review-1',
+          auctionId: 'auction-1',
+          reviewerId: 'user-1',
+          revieweeId: 'seller-123',
+          rating: 5,
+          createdAt: new Date('2024-01-01T00:00:00Z'),
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+          reviewer: {
+            id: 'user-1',
+            first_name: 'Jan',
+            last_name: 'Kowalski',
+            avatarUrl: 'https://cdn.test/avatar-1.png',
+          },
+          auction: {
+            id: 'auction-1',
+            title: 'Champion 1',
+            currentPrice: 1000,
+            endTime: new Date('2024-01-03T00:00:00Z'),
+          },
+        },
+        {
+          id: 'review-2',
+          auctionId: 'auction-2',
+          reviewerId: 'user-2',
+          revieweeId: 'seller-123',
+          rating: 4,
+          createdAt: new Date('2024-02-01T00:00:00Z'),
+          updatedAt: new Date('2024-02-02T00:00:00Z'),
+          reviewer: {
+            id: 'user-2',
+            first_name: 'Anna',
+            last_name: 'Nowak',
+            avatarUrl: null,
+          },
+          auction: {
+            id: 'auction-2',
+            title: 'Champion 2',
+            currentPrice: 1500,
+            endTime: new Date('2024-02-03T00:00:00Z'),
+          },
+        },
       ];
       (prisma!.review.findMany as any).mockResolvedValue(mockReviews);
       (prisma!.review.count as any).mockResolvedValue(2);
@@ -109,6 +149,10 @@ describe('ReviewService', () => {
       const result = await ReviewService.getSellerReviews('seller-123', 1, 10);
 
       expect(prisma!.review.findMany).toHaveBeenCalled();
+      expect(result.reviews).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.averageRating).toBe(4.5);
+      expect(result.reviews[0].reviewer.firstName).toBe('Jan');
     });
   });
 

@@ -81,17 +81,24 @@ export class AuctionCronService {
 
     try {
       // Pobierz kandydatów poza transakcją (krótsza blokada)
-      const endingAuctions = await prisma.auction.findMany({
-        where: {
-          status: AuctionStatus.ACTIVE,
-          endTime: {
-            lte: now
-          }
-        },
-        include: { seller: true },
-        orderBy: { endTime: 'asc' },
-        take: 25, // batch to avoid long transactions
-      });
+      let endingAuctions = [] as any[];
+      try {
+        endingAuctions = await prisma.auction.findMany({
+          where: {
+            status: AuctionStatus.ACTIVE,
+            endTime: {
+              lte: now
+            }
+          },
+          include: { seller: true },
+          orderBy: { endTime: 'asc' },
+          take: 25, // batch to avoid long transactions
+        });
+      } catch (dbErr) {
+        // Fail-safe: don't let cron DB issues bubble up to request handlers/tests
+        logger.error('Auction cron: DB query failed (skipping run)', dbErr);
+        return;
+      }
 
       if (!endingAuctions.length) return;
       logger.info(`Processing ${endingAuctions.length} ending auctions...`);

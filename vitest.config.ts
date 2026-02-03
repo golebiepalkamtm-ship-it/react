@@ -1,6 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+import dotenv from 'dotenv';
+
+const envFile = process.env.VITEST_ENV_FILE ?? '.env.test';
+dotenv.config({ path: envFile, override: false });
 
 export default defineConfig({
   plugins: [react()],

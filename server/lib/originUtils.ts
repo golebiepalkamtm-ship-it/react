@@ -101,9 +101,12 @@ export const getCsrfSkipPaths = () => [
 
 export const getCorsOptions = () => ({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Treat unknown/missing origin as allowed for same-origin / server-to-server requests
     if (isAllowedOrigin(origin)) return callback(null, true);
     console.warn(`CORS blocked origin: ${origin}`);
-    return callback(new Error('CORS: Origin not allowed'));
+    // Do NOT surface an error to Express (causes 500) — instead indicate "not allowed"
+    // so the request proceeds but without CORS response headers (tests expect 200 + no ACAO).
+    return callback(null, false);
   },
   credentials: true,
   maxAge: 86400

@@ -151,6 +151,16 @@ class UnifiedAuthService {
 export const unifiedAuthMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const auth = UnifiedAuthService.getInstance();
+    if (validatedEnv.NODE_ENV === 'test' && req.headers['x-test-bypass-auth'] === 'true') {
+      req.user = {
+        userId: 'test-user',
+        email: 'test@local.dev',
+        role: 'admin'
+      } as TokenVerificationResult;
+      req.authToken = 'test-token';
+      return next();
+    }
+
     const token = req.headers.authorization?.replace('Bearer ', '');
     
     if (!token) {

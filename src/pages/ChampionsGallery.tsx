@@ -43,7 +43,7 @@ const ChampionModal = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const hasMultiplePhotos = !!(champion && champion.images.length > 1);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+   
   const currentImageSrc = champion?.images?.[currentPhotoIndex] ?? '';
 
   useEffect(() => {

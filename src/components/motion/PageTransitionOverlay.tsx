@@ -139,18 +139,42 @@ export const PageTransitionOverlay = ({
   const outlet = useOutlet();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const prevPathRef = useRef(location.pathname);
+  const nextFrameRef = useRef<number | null>(null);
+  const transitionTimeoutRef = useRef<number | null>(null);
   
   const content = children ?? outlet;
   const overlayColor = getOverlayColor(location.pathname);
 
   useEffect(() => {
     if (location.pathname !== prevPathRef.current) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        prevPathRef.current = location.pathname;
-      }, 1000);
-      return () => clearTimeout(timer);
+      if (nextFrameRef.current !== null) {
+        cancelAnimationFrame(nextFrameRef.current);
+        nextFrameRef.current = null;
+      }
+      if (transitionTimeoutRef.current !== null) {
+        clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
+
+      nextFrameRef.current = requestAnimationFrame(() => {
+        setIsTransitioning(true);
+        transitionTimeoutRef.current = window.setTimeout(() => {
+          setIsTransitioning(false);
+          prevPathRef.current = location.pathname;
+          transitionTimeoutRef.current = null;
+        }, 1000);
+      });
+
+      return () => {
+        if (nextFrameRef.current !== null) {
+          cancelAnimationFrame(nextFrameRef.current);
+          nextFrameRef.current = null;
+        }
+        if (transitionTimeoutRef.current !== null) {
+          clearTimeout(transitionTimeoutRef.current);
+          transitionTimeoutRef.current = null;
+        }
+      };
     }
   }, [location.pathname]);
 
