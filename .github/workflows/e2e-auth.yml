@@ -17,6 +17,13 @@ jobs:
           node-version: 18
       - name: Install deps
         run: npm ci
+      - name: Validate required envs
+        run: node scripts/validate-envs.js
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: Build
         run: npm run build
       - name: Start (serve static)
@@ -24,8 +31,10 @@ jobs:
       - name: Install Playwright deps
         run: npx playwright install --with-deps
       - name: Run E2E Auth
-        run: npx playwright test e2e/auth.spec.ts --reporter=list
+        run: npm run test:e2e -- e2e/auth.spec.ts --reporter=list
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
