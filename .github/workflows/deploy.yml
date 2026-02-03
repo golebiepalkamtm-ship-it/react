@@ -35,7 +35,7 @@ jobs:
           # railway up --detach --project $RAILWAY_PROJECT_ID
       - name: Deploy to Vercel (if configured)
         if: ${{ secrets.VERCEL_TOKEN && secrets.VERCEL_ORG_ID && secrets.VERCEL_PROJECT_ID }}
-        uses: amondnet/vercel-action@v22
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
