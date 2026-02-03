@@ -21,9 +21,11 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
       - name: Deploy to Railway (if configured)
         if: ${{ secrets.RAILWAY_API_KEY && secrets.RAILWAY_PROJECT_ID }}
         env:
@@ -32,10 +34,10 @@ jobs:
         run: |
           echo "Railway deploy configured — triggering via CLI"
           # Requires railway CLI + secrets; uncomment to enable
-          # railway up --detach --project $RAILWAY_PROJECT_ID
+          railway up --detach --project $RAILWAY_PROJECT_ID
       - name: Deploy to Vercel (if configured)
         if: ${{ secrets.VERCEL_TOKEN && secrets.VERCEL_ORG_ID && secrets.VERCEL_PROJECT_ID }}
-        uses: amondnet/vercel-action@v22
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
