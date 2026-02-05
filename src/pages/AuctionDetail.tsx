@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft, AlertCircle, Heart } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";

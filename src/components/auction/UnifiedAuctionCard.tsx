@@ -143,13 +143,13 @@ export const UnifiedAuctionCard = ({
         transition={{ duration: 0.5 }}
         className={`group glass-card relative mx-auto flex h-[620px] w-[320px] flex-col overflow-hidden rounded-[24px] border backdrop-blur-2xl transition-all duration-500 perspective-1000 ${
           timeMeta.endingSoon
-            ? "border-[#ff8c92]/60 bg-gradient-to-br from-[#1d060c]/70 via-[#2d0a11]/60 to-[#160308]/70 shadow-[0_25px_70px_rgba(255,91,97,0.35)] hover:border-red-500/80 hover:shadow-glow-red"
+            ? "border-[#ff8c92]/60 bg-gradient-to-br from-[#2a1a1a] via-[#3d2a1a] to-[#1a0f08]/80 shadow-[0_25px_70px_rgba(255,140,146,0.35)] hover:border-red-500/80 hover:shadow-glow-red"
             : highlight || featured
-              ? "border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-white/10 shadow-[0_35px_80px_rgba(15,18,34,0.65)] hover:border-primary/50 hover:shadow-glow-sm"
-              : "border-white/15 bg-white/5 shadow-[0_25px_70px_rgba(6,11,23,0.65)] hover:border-primary/50 hover:shadow-glow-sm"
+              ? "border-[#D4AF37]/40 bg-gradient-to-br from-[#3d2a1a] via-[#2a1a1a] to-[#1a0f08] shadow-[0_35px_80px_rgba(212,175,55,0.25)] hover:border-[#D4AF37]/60 hover:shadow-glow-gold"
+              : "border-[#D4AF37]/30 bg-gradient-to-br from-[#2a2a1a] via-[#1a1a0f] to-[#0f0f08] hover:border-[#D4AF37]/50 hover:shadow-[0_25px_70px_rgba(212,175,55,0.2)]"
         }`}
       >
-      <div className="flex flex-1 flex-col gap-3 px-4 pb-4 pt-14 sm:px-5 sm:pb-5">
+      <div className="flex flex-1 flex-col gap-3 px-4 pb-4 pt-14 sm:px-5 sm:pb-5 justify-end">
         <div className="flex flex-col gap-2 pt-2">
           <div className="h-px w-full bg-gold/25" aria-hidden="true" />
           <h3 className="font-display text-xl sm:text-2xl font-semibold text-white leading-tight truncate">

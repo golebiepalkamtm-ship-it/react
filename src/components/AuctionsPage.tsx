@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Search,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { UnifiedAuctionCard } from "@/components/auction/UnifiedAuctionCard";
+import { AuctionCard } from "@/components/auctions/AuctionCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuctions } from "@/hooks/useAuctions";
 import CreateAuctionForm from "@/components/CreateAuctionForm";
@@ -29,8 +29,6 @@ import { resolveAuctionImage } from "@/utils/image";
 import type { AuctionSortBy } from "@/types/auction";
 import { CreateAuctionModal } from "@/components/CreateAuctionModal";
 import { gsap } from '@/lib/gsapConfig';
-
-const HERO_CLAIMS = [] as const;
 
 const QUICK_FILTERS = [
   {
@@ -62,14 +60,13 @@ const AuctionsPage = () => {
   const [sortBy, setSortBy] = useState<AuctionSortBy>("newest");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const imageFit: 'cover' | 'contain' = 'contain';
   
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [category, setCategory] = useState("all");
   const [gender, setGender] = useState("all");
 
-  const { auctions, isLoading, refetch } = useAuctions({ status: 'active', sortBy });
+  const { auctions, isLoading, refetch, error } = useAuctions({ status: 'active', sortBy });
   const sanitizedAuctions = useMemo(() => {
     return auctions.filter((auction) => {
       const title = (auction.title || '').trim();
@@ -114,6 +111,21 @@ const AuctionsPage = () => {
   }), [searchTerm, priceMin, priceMax, category, gender]);
 
   const filteredAuctions = useAuctionFilters(sanitizedAuctions, filters);
+  const uiAuctions = useMemo(() => {
+    return filteredAuctions.map((auction) => ({
+      id: auction.id,
+      name: auction.title || "Aukcja",
+      image: resolveAuctionImage(auction.images?.[0]) || "/placeholder.svg",
+      ringNumber: auction.pigeon?.ringNumber || "Brak numeru",
+      sex: auction.pigeon?.gender === "male" ? "samiec" : auction.pigeon?.gender === "female" ? "samica" : "samica",
+      color: auction.pigeon?.pigeonColor,
+      currentPrice: auction.currentPrice ?? 0,
+      startPrice: auction.startingPrice ?? auction.currentPrice ?? 0,
+      bids: auction._count?.bids ?? auction.bids?.length ?? 0,
+      endTime: auction.endTime ? new Date(auction.endTime) : new Date(Date.now() + 60_000),
+      achievements: [],
+    }));
+  }, [filteredAuctions]);
   const premiumStats = useMemo(() => {
     if (!filteredAuctions.length) {
       return {
@@ -148,8 +160,6 @@ const AuctionsPage = () => {
     };
   }, [filteredAuctions, now]);
 
-  const getFirstImage = (images: string[]) => resolveAuctionImage(images?.[0]);
-
   const clearFilters = () => {
     setSearchTerm("");
     setPriceMin("");
@@ -182,13 +192,7 @@ const AuctionsPage = () => {
     },
   }), []);
 
-  const handleCreateAuctionClick = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    console.log('🔍 handleCreateAuctionClick called', { user: !!user, profile: profile?.role });
-     
+  const openCreateAuctionFlow = useCallback(() => {
     if (!user) {
       setFeedbackModal({
         isOpen: true,
@@ -199,7 +203,7 @@ const AuctionsPage = () => {
       setTimeout(() => navigate("/auth?mode=login"), 2000);
       return;
     }
- 
+
     if (!profile) {
       setFeedbackModal({
         isOpen: true,
@@ -209,20 +213,27 @@ const AuctionsPage = () => {
       });
       return;
     }
- 
-    console.log('🔍 Profile role:', profile.role);
+
     const action = roleActions[profile.role as keyof typeof roleActions];
     if (action) {
-      console.log('🔍 Executing action for role:', profile.role);
       action();
-    } else {
-      setFeedbackModal({
-        isOpen: true,
-        type: 'warning',
-        title: 'Brak uprawnień',
-        message: 'Dokończ weryfikację konta.'
-      });
+      return;
     }
+
+    setFeedbackModal({
+      isOpen: true,
+      type: 'warning',
+      title: 'Brak uprawnień',
+      message: 'Dokończ weryfikację konta.'
+    });
+  }, [navigate, profile, roleActions, user]);
+
+  const handleCreateAuctionClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    openCreateAuctionFlow();
   };
 
   const handleCloseAuctionModal = () => {
@@ -326,38 +337,7 @@ const AuctionsPage = () => {
   useEffect(() => {
     // Listen for openCategorySelector event from UserPanel
     const handleOpenCategorySelector = () => {
-      if (!user) {
-        setFeedbackModal({
-          isOpen: true,
-          type: 'info',
-          title: 'Wymagane logowanie',
-          message: 'Musisz się zalogować, aby dodać aukcję. Za chwilę nastąpi przekierowanie.'
-        });
-        setTimeout(() => navigate("/auth?mode=login"), 2000);
-        return;
-      }
-
-      if (!profile) {
-        setFeedbackModal({
-          isOpen: true,
-          type: 'info',
-          title: 'Ładowanie profilu',
-          message: 'Poczekaj chwilę i spróbuj ponownie.'
-        });
-        return;
-      }
-
-      const action = roleActions[profile.role as keyof typeof roleActions];
-      if (action) {
-        action();
-      } else {
-        setFeedbackModal({
-          isOpen: true,
-          type: 'warning',
-          title: 'Brak uprawnień',
-          message: 'Dokończ weryfikację konta, aby móc dodawać aukcje.'
-        });
-      }
+      openCreateAuctionFlow();
     };
     
     window.addEventListener('openCategorySelector', handleOpenCategorySelector);
@@ -365,7 +345,7 @@ const AuctionsPage = () => {
     return () => {
       window.removeEventListener('openCategorySelector', handleOpenCategorySelector);
     };
-  }, [user, profile, navigate, roleActions]);
+  }, [openCreateAuctionFlow]);
 
   const toggleQuickFilter = (filterId: QuickFilterId) => {
     setActiveQuickFilter((prev) => {
@@ -715,72 +695,36 @@ const AuctionsPage = () => {
             </div>
           )}
 
+          {!isLoading && error && (
+            <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold">Nie udało się pobrać aukcji</p>
+                  <p className="text-xs text-red-200/80">{error.message}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => refetch()}
+                  className="text-red-100 hover:text-white"
+                >
+                  Spróbuj ponownie
+                </Button>
+              </div>
+            </div>
+          )}
+
           {!isLoading && filteredAuctions.length > 0 && (
-            viewMode === "grid" ? (
-              <div className="grid gap-8 items-stretch lg:grid-cols-3 xl:grid-cols-4">
-                {filteredAuctions.map((auction, index) => (
-                  <div key={auction.id || `auction-${index}`} className="h-full flex auction-card">
-                    <UnifiedAuctionCard
-                      id={auction.id}
-                      title={auction.title}
-                      image={getFirstImage(auction.images)}
-                      currentBid={auction.currentPrice}
-                      startingPrice={auction.startingPrice}
-                      endTime={auction.endTime}
-                      ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                      gender={auction.pigeon?.gender}
-                      color={auction.pigeon?.pigeonColor}
-                      category={auction.category}
-                      location={auction.location}
-                      featured={false}
-                      imageFit={imageFit}
-                      watchCount={auction._count?.watchlist ?? 0}
-                      viewsCount={
-                        typeof (auction as any).viewsCount === "number"
-                          ? (auction as any).viewsCount
-                          : typeof (auction._count as any)?.views === "number"
-                            ? (auction._count as any)?.views
-                            : 0
-                      }
-                      bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
-                      nowMs={now}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {filteredAuctions.map((auction, index) => (
-                  <div key={auction.id || `auction-${index}`} className="auction-card">
-                    <UnifiedAuctionCard
-                      id={auction.id}
-                      title={auction.title}
-                      image={getFirstImage(auction.images)}
-                      currentBid={auction.currentPrice}
-                      startingPrice={auction.startingPrice}
-                      endTime={auction.endTime}
-                      ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                      gender={auction.pigeon?.gender}
-                      color={auction.pigeon?.pigeonColor}
-                      category={auction.category}
-                      location={auction.location}
-                      featured={index < 2}
-                      imageFit={imageFit}
-                      watchCount={auction._count?.watchlist ?? 0}
-                      viewsCount={
-                        typeof (auction as any).viewsCount === "number"
-                          ? (auction as any).viewsCount
-                          : typeof (auction._count as any)?.views === "number"
-                            ? (auction._count as any)?.views
-                            : 0
-                      }
-                      bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
-                      nowMs={now}
-                    />
-                  </div>
-                ))}
-              </div>
-            )
+            <div className="grid gap-8 items-stretch justify-items-stretch grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full mx-auto px-4">
+              {uiAuctions.map((auction, index) => (
+                <div key={auction.id || `auction-${index}`} className="h-full w-full auction-card">
+                  <AuctionCard
+                    auction={auction}
+                    index={index}
+                  />
+                </div>
+              ))}
+            </div>
           )}
 
           {!isLoading && filteredAuctions.length === 0 && null}

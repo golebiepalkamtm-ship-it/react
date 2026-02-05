@@ -19,6 +19,12 @@ export const Carousel3D = () => {
   const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const items = useMemo(() => champions, [champions]);
   const activeChampion = items[activeIndex];
 
@@ -184,6 +190,10 @@ export const Carousel3D = () => {
     setIsPedigreeOpen(false);
     setPedigreeUrl(null);
   }, []);
+
+  if (!isClient) {
+    return null;
+  }
 
   if (loading) {
     return (

@@ -6,6 +6,8 @@ import { FeedbackProvider } from "@/components/ui/feedback/FeedbackProvider";
 import "./index.css";
 import { logger } from '@/lib/logger';
 
+document.documentElement.classList.add('dark');
+
 const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
 if (gaId) {
   const s = document.createElement('script');

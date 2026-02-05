@@ -33,7 +33,7 @@ if (isSupabaseConfigured && supabaseUrl && supabaseKey) {
       persistSession: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      debug: import.meta.env.DEV,
+      debug: false,
       storage: window.localStorage,
     },
     global: {
