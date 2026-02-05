@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Clock } from "lucide-react";
 
 export interface AuctionTimerProps {
@@ -7,9 +7,7 @@ export interface AuctionTimerProps {
 }
 
 export const AuctionTimer = ({ endTime, compact = false }: AuctionTimerProps) => {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-  function calculateTimeLeft() {
+  const calculateTimeLeft = useCallback(() => {
     const difference = endTime.getTime() - new Date().getTime();
     
     if (difference <= 0) {
@@ -23,7 +21,9 @@ export const AuctionTimer = ({ endTime, compact = false }: AuctionTimerProps) =>
     const isUrgent = days === 0 && hours < 1;
 
     return { days, hours, minutes, seconds, isExpired: false, isUrgent };
-  }
+  }, [endTime]);
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,7 +31,7 @@ export const AuctionTimer = ({ endTime, compact = false }: AuctionTimerProps) =>
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [endTime]);
+  }, [calculateTimeLeft]);
 
   if (timeLeft.isExpired) {
     return (
