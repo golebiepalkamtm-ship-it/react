@@ -14,8 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LuxuryAuctionCard } from "@/components/auction/LuxuryAuctionCard";
-import { AuctionListItem } from "@/components/auction/AuctionListItem";
+import { UnifiedAuctionCard } from "@/components/auction/UnifiedAuctionCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuctions } from "@/hooks/useAuctions";
 import CreateAuctionForm from "@/components/CreateAuctionForm";
@@ -71,6 +70,15 @@ const AuctionsPage = () => {
   const [gender, setGender] = useState("all");
 
   const { auctions, isLoading, refetch } = useAuctions({ status: 'active', sortBy });
+  const sanitizedAuctions = useMemo(() => {
+    return auctions.filter((auction) => {
+      const title = (auction.title || '').trim();
+      // Wycinamy testową, sztucznie dużą kartę z tytułem składającym się z samych "a"
+      if (!title) return false;
+      if (/^a{10,}$/i.test(title)) return false;
+      return true;
+    });
+  }, [auctions]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'pigeons' | 'supplements' | 'accessories' | null>(null);
@@ -105,7 +113,7 @@ const AuctionsPage = () => {
     gender,
   }), [searchTerm, priceMin, priceMax, category, gender]);
 
-  const filteredAuctions = useAuctionFilters(auctions, filters);
+  const filteredAuctions = useAuctionFilters(sanitizedAuctions, filters);
   const premiumStats = useMemo(() => {
     if (!filteredAuctions.length) {
       return {
@@ -409,7 +417,7 @@ const AuctionsPage = () => {
 
   return (
     <>
-      <section ref={heroRef} className="relative isolate overflow-hidden py-16 md:py-24">
+      <section ref={heroRef} className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24">
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-navy via-navy-dark to-navy" />
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold/12 rounded-full blur-3xl" />
@@ -420,14 +428,14 @@ const AuctionsPage = () => {
           <div className="absolute top-20 right-1/4 w-64 h-64 bg-gold/10 rounded-full blur-2xl" />
         </div>
         <div className="container mx-auto px-4">
-          <div ref={heroContentRef} className="text-center">
+          <div ref={heroContentRef} className="text-left">
             <h1 
               data-split-text
-              className="mt-6 font-display text-4xl md:text-5xl lg:text-7xl font-bold text-gold leading-tight"
+              className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gold leading-tight"
             >
               Aukcje Champion Class
             </h1>
-            <div className="mt-8 flex flex-wrap gap-4 justify-center">
+            <div className="mt-8 flex flex-wrap gap-4 justify-start">
               <Button
                 variant="gold"
                 size="lg"
@@ -446,7 +454,7 @@ const AuctionsPage = () => {
               </Button>
             </div>
           </div>
-          <div className="mt-20 grid gap-4 md:grid-cols-3">
+          <div className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-3">
             {statTiles.map(({ label, value, meta, Icon }) => (
               <div
                 key={label}
@@ -469,7 +477,7 @@ const AuctionsPage = () => {
 
       <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
         <div className="container mx-auto px-4">
-          <div className="group relative rounded-2xl border border-white/10 bg-white/[0.05] pt-4 px-6 pb-6 shadow-[0_20px_60px_rgba(2,4,12,0.45)] backdrop-blur-2xl space-y-8 transition hover:border-gold/40">
+          <div className="group relative rounded-2xl border border-white/10 bg-white/[0.05] pt-4 px-4 pb-6 shadow-[0_20px_60px_rgba(2,4,12,0.45)] backdrop-blur-2xl space-y-8 transition hover:border-gold/40 sm:px-6">
             <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100 pointer-events-none rounded-2xl">
               <div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.18),transparent_65%)]" />
             </div>
@@ -486,12 +494,12 @@ const AuctionsPage = () => {
                   className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-white/90 placeholder:text-white/40 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 />
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-3">
+              <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-end">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as AuctionSortBy)}
                   title="Sortuj aukcje"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/90 focus:border-gold focus:outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/90 focus:border-gold focus:outline-none md:w-auto"
                 >
                   <option value="newest">Najnowsze</option>
                   <option value="ending-soon">Kończące się</option>
@@ -501,13 +509,13 @@ const AuctionsPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 rounded-2xl border-white/25 bg-white/5 px-4 py-2 text-white/80 hover:border-gold/40"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border-white/25 bg-white/5 px-4 py-2 text-white/80 hover:border-gold/40 md:w-auto"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   Filtry
                   {hasActiveFilters && <span className="h-2 w-2 rounded-full bg-gold"></span>}
                 </Button>
-                <div className="flex items-center rounded-2xl border border-white/10 bg-white/5 p-1">
+                <div className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-1 md:w-auto md:justify-start">
                   <Button
                     type="button"
                     variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
@@ -530,51 +538,50 @@ const AuctionsPage = () => {
                 <Button
                   ref={triggerButtonRef}
                   onClick={(e) => handleCreateAuctionClick(e)}
-                  className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-gold to-gold-light px-5 py-2 shadow-[0_10px_30px_rgba(212,175,55,0.35)]"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-gold to-gold-light px-5 py-2 shadow-[0_10px_30px_rgba(212,175,55,0.35)] md:w-auto"
                 >
                   <Plus className="h-4 w-4" />
                   Dodaj aukcję
                 </Button>
               </div>
             </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="text-xs uppercase tracking-[0.35em] text-white/40">
-                Tryby Concierge
-              </p>
-              {QUICK_FILTERS.map(({ id, label, description, Icon }) => {
-                const isActive = activeQuickFilter === id;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => toggleQuickFilter(id)}
-                    className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
-                      isActive
-                        ? "border-gold/70 bg-gold/10 text-white shadow-[0_10px_40px_rgba(212,175,55,0.35)]"
-                        : "border-white/10 bg-white/[0.04] text-white/70 hover:border-gold/30 hover:text-white"
-                    }`}
-                  >
-                    <Icon className={`h-4 w-4 ${isActive ? "text-gold-light" : "text-white/50"}`} />
-                    <div>
-                      <p className="text-sm font-semibold">{label}</p>
-                      <p className="text-xs text-white/50">{description}</p>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-[0.35em] text-white/40">Tryby Concierge</p>
+              <div className="-mx-4 flex gap-3 overflow-x-auto pb-2 sm:mx-0 sm:flex-wrap">
+                {QUICK_FILTERS.map(({ id, label, description, Icon }) => {
+                  const isActive = activeQuickFilter === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => toggleQuickFilter(id)}
+                      className={`group flex min-w-[190px] flex-shrink-0 items-center gap-3 rounded-2xl border px-4 py-3 text-left transition sm:min-w-0 ${
+                        isActive
+                          ? "border-gold/70 bg-gold/10 text-white shadow-[0_10px_40px_rgba(212,175,55,0.35)]"
+                          : "border-white/10 bg-white/[0.04] text-white/70 hover:border-gold/30 hover:text-white"
+                      }`}
+                    >
+                      <Icon className={`h-4 w-4 ${isActive ? "text-gold-light" : "text-white/50"}`} />
+                      <div>
+                        <p className="text-sm font-semibold">{label}</p>
+                        <p className="text-xs text-white/50">{description}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {showFilters && (
               <div className="space-y-4 rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-xl">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <h3 className="font-semibold text-white">Zaawansowane filtry</h3>
                   {hasActiveFilters && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={clearFilters}
-                      className="text-white/60 hover:text-white"
+                      className="self-start text-white/60 hover:text-white md:self-auto"
                     >
                       <X className="mr-2 h-4 w-4" />
                       Wyczyść
@@ -635,7 +642,7 @@ const AuctionsPage = () => {
                 </div>
               </div>
             )}
-            </div>{/* Close relative wrapper */}
+            </div>
           </div>
         </div>
       </section>
@@ -713,23 +720,30 @@ const AuctionsPage = () => {
               <div className="grid gap-8 items-stretch lg:grid-cols-3 xl:grid-cols-4">
                 {filteredAuctions.map((auction, index) => (
                   <div key={auction.id || `auction-${index}`} className="h-full flex auction-card">
-                    <LuxuryAuctionCard
+                    <UnifiedAuctionCard
                       id={auction.id}
                       title={auction.title}
                       image={getFirstImage(auction.images)}
                       currentBid={auction.currentPrice}
+                      startingPrice={auction.startingPrice}
                       endTime={auction.endTime}
                       ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                      featured={index < 2}
+                      gender={auction.pigeon?.gender}
+                      color={auction.pigeon?.pigeonColor}
+                      category={auction.category}
+                      location={auction.location}
+                      featured={false}
                       imageFit={imageFit}
                       watchCount={auction._count?.watchlist ?? 0}
                       viewsCount={
-                        typeof (auction as any).viewsCount === 'number'
+                        typeof (auction as any).viewsCount === "number"
                           ? (auction as any).viewsCount
-                          : typeof (auction._count as any)?.views === 'number'
+                          : typeof (auction._count as any)?.views === "number"
                             ? (auction._count as any)?.views
                             : 0
                       }
+                      bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
+                      nowMs={now}
                     />
                   </div>
                 ))}
@@ -738,50 +752,38 @@ const AuctionsPage = () => {
               <div className="flex flex-col gap-4">
                 {filteredAuctions.map((auction, index) => (
                   <div key={auction.id || `auction-${index}`} className="auction-card">
-                    <AuctionListItem
-                    id={auction.id}
-                    title={auction.title}
-                    image={getFirstImage(auction.images)}
-                    currentBid={auction.currentPrice}
-                    endTime={auction.endTime}
-                    ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                    imageFit={imageFit}
-                    watchCount={auction._count?.watchlist ?? 0}
-                    viewsCount={
-                      typeof (auction as any).viewsCount === 'number'
-                        ? (auction as any).viewsCount
-                        : typeof (auction._count as any)?.views === 'number'
-                          ? (auction._count as any)?.views
-                          : 0
-                    }
-                    status={auction.status as any}
-                  />
+                    <UnifiedAuctionCard
+                      id={auction.id}
+                      title={auction.title}
+                      image={getFirstImage(auction.images)}
+                      currentBid={auction.currentPrice}
+                      startingPrice={auction.startingPrice}
+                      endTime={auction.endTime}
+                      ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
+                      gender={auction.pigeon?.gender}
+                      color={auction.pigeon?.pigeonColor}
+                      category={auction.category}
+                      location={auction.location}
+                      featured={index < 2}
+                      imageFit={imageFit}
+                      watchCount={auction._count?.watchlist ?? 0}
+                      viewsCount={
+                        typeof (auction as any).viewsCount === "number"
+                          ? (auction as any).viewsCount
+                          : typeof (auction._count as any)?.views === "number"
+                            ? (auction._count as any)?.views
+                            : 0
+                      }
+                      bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
+                      nowMs={now}
+                    />
                   </div>
                 ))}
               </div>
             )
           )}
 
-          {!isLoading && filteredAuctions.length === 0 && (
-            <div className="py-16">
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-12 text-center shadow-[0_20px_60px_rgba(2,4,12,0.35)] backdrop-blur-xl">
-                <p className="text-lg text-white/70">
-                  {searchTerm || hasActiveFilters
-                    ? 'Brak aukcji spełniających kryteria VIP. Spróbuj zmienić filtry.'
-                    : 'Obecnie brak aktywnych aukcji – dodaj swoją jako pierwszą.'}
-                </p>
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    onClick={clearFilters}
-                    className="mt-6 border-white/30 text-white hover:border-gold/50"
-                  >
-                    Wyczyść filtry
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
+          {!isLoading && filteredAuctions.length === 0 && null}
         </div>
       </section>
 

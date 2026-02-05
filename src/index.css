@@ -118,6 +118,10 @@
     --gold-light: 48 40% 56%;
     --gold-dark: 42 34% 34%;
 
+    /* Global luminance control */
+    --global-brightness: 1.25;
+    --global-contrast: 1.2;
+
     /* EtheReal overrides -> visual tokens */
     --glow-gold: 0 0 60px hsl(45 38% 52% / 0.4);
     --glow-soft: 0 0 100px hsl(45 38% 52% / 0.2);
@@ -287,6 +291,10 @@
 @layer base {
   body {
     @apply text-foreground font-sans antialiased;
+    filter:
+      brightness(var(--global-brightness))
+      contrast(var(--global-contrast));
+
     background: 
       /* Główna złota poświata - góra środek */
       radial-gradient(ellipse 140% 70% at 50% -5%, rgba(255, 215, 0, 0.3) 0%, rgba(212, 175, 55, 0.15) 25%, transparent 55%),
@@ -326,10 +334,12 @@
   body.auth-no-bg {
     background: none !important;
     background-color: transparent !important;
+    filter: none !important;
   }
   html.auth-no-bg {
     background: none !important;
     background-color: transparent !important;
+    filter: none !important;
   }
 
   @keyframes floatOrbs {

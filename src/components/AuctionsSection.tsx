@@ -1,25 +1,32 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LuxuryAuctionCard } from "@/components/auction/LuxuryAuctionCard";
+import { UnifiedAuctionCard } from "@/components/auction/UnifiedAuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
-import { auctionService } from "@/services/auctionService";
-import { motion, useTransform, useScroll } from 'framer-motion';
+import { motion } from "framer-motion";
 import { buttonMicro } from "@/components/motion";
-import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
-import { resolveAuctionImage } from '@/utils/image';
+import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
+import { resolveAuctionImage } from "@/utils/image";
 
 const AuctionsSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const { auctions, isLoading } = useAuctions({ 
     status: 'active', 
     sortBy: 'newest'
   });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!sectionRef.current || isLoading) return;
@@ -88,83 +95,6 @@ const AuctionsSection = () => {
     };
   }, [isLoading]);
 
-  // Osobny efekt dla kart - uruchamia się gdy aukcje są załadowane
-  useEffect(() => {
-    if (isLoading || auctions.length === 0 || !cardsContainerRef.current || !sectionRef.current) return;
-
-    // Daj chwilę na render kart
-    const timer = setTimeout(() => {
-      const cards = cardsContainerRef.current?.querySelectorAll('.auction-card');
-      if (!cards || cards.length < 3) {
-        return;
-      }
-
-      const ctx = gsap.context(() => {
-        // Set initial states BEFORE creating animations
-        gsap.set(cards[1], { scale: 0.3, opacity: 0 });
-        gsap.set(cards[0], { x: -200, opacity: 0, rotateY: 45 });
-        gsap.set(cards[2], { x: 200, opacity: 0, rotateY: -45 });
-
-        // Middle card (index 1) - from depth
-        gsap.to(cards[1], 
-          {
-            scale: 1,
-            opacity: 1,
-            ease: 'back.out(1.2)',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 70%',
-              end: 'top 30%',
-              scrub: 1.5,
-              invalidateOnRefresh: true,
-            }
-          }
-        );
-
-        // Left card (index 0) - from left with rotation
-        gsap.to(cards[0],
-          {
-            x: 0,
-            opacity: 1,
-            rotateY: 0,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 60%',
-              end: 'top 20%',
-              scrub: 1.5,
-              invalidateOnRefresh: true,
-            }
-          }
-        );
-
-        // Right card (index 2) - from right with rotation
-        gsap.to(cards[2],
-          {
-            x: 0,
-            opacity: 1,
-            rotateY: 0,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 60%',
-              end: 'top 20%',
-              scrub: 1.5,
-              invalidateOnRefresh: true,
-            }
-          }
-        );
-
-      }, cardsContainerRef.current as Element);
-
-      setTimeout(() => ScrollTrigger.refresh(), 100);
-
-      return () => ctx.revert();
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [isLoading, auctions]);
-
   return (
     <section
       ref={sectionRef}
@@ -179,7 +109,7 @@ const AuctionsSection = () => {
             <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-4">
               Aukcje Na Żywo
             </span>
-            <h2 className="font-display text-3xl md:text-4xl text-gold font-bold leading-tight">
+            <h2 className="font-display text-2xl md:text-3xl text-gold font-bold leading-tight">
               Zdobądź
               <span className="text-white"> Elitarne Ptaki</span>
             </h2>
@@ -207,28 +137,27 @@ const AuctionsSection = () => {
             ))}
           </div>
         ) : auctions.length > 0 ? (
-          <div 
-            ref={cardsContainerRef}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-            style={{ transformStyle: 'preserve-3d' }}
-          >
+          <div ref={cardsContainerRef} className="grid gap-8 items-stretch md:grid-cols-2 lg:grid-cols-3">
             {auctions.slice(0, 3).map((auction, index) => (
-              <div 
-                key={auction.id || `auction-${index}`} 
-                className="auction-card"
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <LuxuryAuctionCard
-                  id={auction.id}
-                  title={auction.title}
-                  image={resolveAuctionImage(auction.images?.[0])}
-                  currentBid={auction.currentPrice}
-                  timeLeft={auctionService.calculateTimeLeft(auction.endTime)}
-                  ringNumber={auction.pigeon?.ringNumber || 'Brak numeru'}
-                  featured={index === 1}
-                  watchCount={auction._count?.watchlist}
-                />
-              </div>
+              <UnifiedAuctionCard
+                key={auction.id || `auction-${index}`}
+                id={auction.id}
+                title={auction.title}
+                image={resolveAuctionImage(auction.images?.[0])}
+                currentBid={auction.currentPrice}
+                startingPrice={auction.startingPrice}
+                endTime={auction.endTime}
+                ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
+                gender={auction.pigeon?.gender}
+                color={auction.pigeon?.pigeonColor}
+                category={auction.category}
+                location={auction.location}
+                watchCount={auction._count?.watchlist ?? 0}
+                viewsCount={(auction as any)?.viewsCount ?? (auction._count as any)?.views ?? 0}
+                bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
+                featured={index === 1}
+                nowMs={now}
+              />
             ))}
           </div>
         ) : (

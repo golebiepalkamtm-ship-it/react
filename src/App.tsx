@@ -41,6 +41,7 @@ import {
 } from "@/utils/lazyImports";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GlobalParallaxBackground from "@/components/GlobalParallaxBackground";
+import { DisplayTuningPanel } from "@/components/DisplayTuningPanel";
 
 // GSAP Demo - direct import (not lazy)
 const GSAPDemo = React.lazy(() => import('@/pages/GSAPDemo'));
@@ -63,6 +64,7 @@ const App = () => {
             <UIProviders>
               <SmoothScrollProvider>
                 <GlobalParallaxBackground />
+                <DisplayTuningPanel />
                 <TooltipProvider>
                   <Toaster />
                   <Sonner />

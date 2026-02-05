@@ -217,6 +217,7 @@ const InputField = ({
   icon: Icon,
   delay = 0,
   highlighted = false,
+  maxLength,
 }: { 
   label: string;
   name: string;
@@ -228,6 +229,7 @@ const InputField = ({
   icon?: any;
   delay?: number;
   highlighted?: boolean;
+  maxLength?: number;
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -251,6 +253,7 @@ const InputField = ({
         onChange={onChange}
         required={required}
         placeholder={placeholder}
+        maxLength={maxLength}
         className={`w-full ${Icon ? 'pl-12' : 'px-4'} pr-4 py-3 rounded-xl bg-white/5 border border-white/20 focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none text-white placeholder-white/40 transition-all duration-200 hover:bg-white/10 hover:border-white/30`}
       />
     </div>
@@ -986,6 +989,7 @@ const CreateAuctionForm = ({
                 }
                 required
                 delay={0.1}
+                maxLength={25}
               />
 
               <motion.div
