@@ -24,7 +24,7 @@
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@prisma/config": "^7.3.0",
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.95.3",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
