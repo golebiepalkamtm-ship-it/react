@@ -689,79 +689,26 @@ export function ReferencesPage() {
         </div>
       </section>
 
-      <AnimatePresence>
-        {isFormOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="add-reference-title"
-          >
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              type="button"
-              className="absolute inset-0 bg-transparent"
-              aria-label="Zamknij"
-              onClick={() => setIsFormOpen(false)}
-            />
-
-            <motion.div
-              ref={modalRef}
-              className="relative z-10 w-full max-w-3xl"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  e.stopPropagation();
-                  setIsFormOpen(false);
-                  return;
-                }
-
-                if (e.key === 'Tab') {
-                  const container = modalRef.current;
-                  if (!container) return;
-                  const focusable = Array.from(
-                    container.querySelectorAll<HTMLElement>(
-                      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
-                    ),
-                  ).filter((el) => el.offsetParent !== null);
-
-                  if (focusable.length === 0) {
-                    e.preventDefault();
-                    return;
-                  }
-
-                  const idx = focusable.indexOf(document.activeElement as HTMLElement);
-                  if (e.shiftKey) {
-                    const prev = idx <= 0 ? focusable.length - 1 : idx - 1;
-                    focusable[prev].focus();
-                    e.preventDefault();
-                  } else {
-                    const next = idx === -1 || idx === focusable.length - 1 ? 0 : idx + 1;
-                    focusable[next].focus();
-                    e.preventDefault();
-                  }
-                }
-              }}
-            >
-              <AddReferenceForm
-                onCancel={() => setIsFormOpen(false)}
-                onSuccess={() => {
-                  setIsFormOpen(false);
-                  void loadReferences();
-                }}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <UnifiedModal
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        type="default"
+        title="Dodaj referencję"
+        showCloseButton={true}
+        closeOnBackdrop={true}
+        closeOnEscape={true}
+        size="full"
+        draggable={true}
+        backdropClassName="bg-black/60"
+      >
+        <AddReferenceForm
+          onCancel={() => setIsFormOpen(false)}
+          onSuccess={() => {
+            setIsFormOpen(false);
+            void loadReferences();
+          }}
+        />
+      </UnifiedModal>
 
       <AccountModal 
         open={isAccountOpen} 
@@ -823,13 +770,7 @@ export function ReferencesPage() {
         }}
       />
 
-      {isFormOpen && (
-        <ModalSideEffects
-          modalRef={modalRef}
-          triggerRef={triggerButtonRef}
-          onClose={() => setIsFormOpen(false)}
-        />
-      )}
+      
     </div>
   );
 }

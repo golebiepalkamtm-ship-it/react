@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { createPortal } from 'react-dom';
 import { useModalStore, type ModalState, type ModalContext } from '@/stores/modalStore';
 import { Button } from '@/components/ui/button';
 
@@ -181,7 +181,7 @@ const ModalRoot: React.FC<ModalRootProps> = ({
     successMessage: activeModal?.successMessage,
   };
 
-  return (
+  const modalTree = (
     <ModalContext.Provider value={contextValue}>
       <AnimatePresence mode="wait">
         {isOpen && activeModal && activeModal.state !== 'closed' && (
@@ -239,6 +239,9 @@ const ModalRoot: React.FC<ModalRootProps> = ({
       </AnimatePresence>
     </ModalContext.Provider>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(modalTree, document.body);
 };
 
 // ============================================================================

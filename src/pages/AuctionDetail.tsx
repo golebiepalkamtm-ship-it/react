@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { ArrowLeft, AlertCircle, Heart } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { PedigreeModal } from "@/components/gallery/PedigreeModal";
 import { Button } from "@/components/ui/button";
-import { useAuction, useBid, useAuctionTimer } from "@/hooks/useAuctions";
+import { FullscreenImageModal } from "@/components/ui/FullscreenImageModal";
+import { useAuction, useBid, usePreciseAuctionTimer } from "@/hooks/useAuctions";
 import { useAuth } from "@/contexts/AuthContext";
 import { auctionService } from "@/services/auctionService";
 import { paymentService } from "@/services/paymentService";
@@ -17,7 +19,6 @@ import AccountModal from "@/components/AccountModal";
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
 import { trackMetric } from "@/services/metricsService";
 import type { Auction } from "@/types/auction";
-import { AuctionTimer } from "@/components/auction/AuctionShowcaseCard"; // Using local timer if available, or just standard time display
 
 const AuctionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +26,7 @@ const AuctionDetail: React.FC = () => {
   const navigate = useNavigate();
   const { session, user, profile } = useAuth();
   const { auction, isLoading: loading, error, refetch: refetchAuction } = useAuction({ auctionId: id || '' });
-  const { timeLeft, isEnded } = useAuctionTimer(auction?.endTime);
+  const { days, hours, minutes, seconds, centiseconds, isEnded } = usePreciseAuctionTimer(auction?.endTime);
   const [bidAmount, setBidAmount] = useState<string>('');
   const [isWatched, setIsWatched] = useState<boolean>(false);
   const [canReview, setCanReview] = useState(false);
@@ -33,6 +34,9 @@ const AuctionDetail: React.FC = () => {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [imageModalIndex, setImageModalIndex] = useState(0);
 
   // Verification modal state
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -119,15 +123,43 @@ const AuctionDetail: React.FC = () => {
     videos: [],
     documents: ['/placeholder.svg', '/images/auth-hero.jpg'],
     bids: [
-      { id: 'b1', amount: 12000, createdAt: new Date().toISOString(), bidder: { id: 'u1', firstName: 'Anna', lastName: 'Nowak' } },
-      { id: 'b2', amount: 11000, createdAt: new Date(Date.now() - 3600 * 1000).toISOString(), bidder: { id: 'u2', firstName: 'Piotr', lastName: 'Zieliński' } },
+      { id: 'b1', amount: 12000, createdAt: new Date().toISOString(), bidder: { id: 'u1', username: 'anna-n' } },
+      { id: 'b2', amount: 11000, createdAt: new Date(Date.now() - 3600 * 1000).toISOString(), bidder: { id: 'u2', username: 'piotr-z' } },
     ],
     _count: { bids: 12, watchlist: 34 },
   };
 
   const displayAuction = isDemo ? demoAuction : auction;
   const isLoadingCurrent = loading && !isDemo;
-  const minimumBidValue = displayAuction ? auctionService.getMinimumBid(displayAuction as any) : 0;
+
+  const minimumBidValue = useMemo(() => {
+    if (!displayAuction) return 0;
+    return (displayAuction.currentPrice || displayAuction.startingPrice || 0) + (displayAuction.minBidIncrement || 50);
+  }, [displayAuction]);
+
+  const isPigeon = useMemo(() => {
+    const cat = (displayAuction?.category || "").toUpperCase();
+    return !cat.includes("SUPPLEMENT") && !cat.includes("ACCESSOR");
+  }, [displayAuction?.category]);
+
+  const pedigreeUrl = useMemo(() => {
+    if (!isPigeon) return null;
+    const fromPigeon = displayAuction?.pigeon?.pedigreeUrl || null;
+    if (fromPigeon) return fromPigeon;
+    const doc = displayAuction?.documents?.find((d: string) => /\.(pdf|jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(d)) || null;
+    return doc || null;
+  }, [displayAuction, isPigeon]);
+  const pedigreeImages = useMemo(() => {
+    const isImage = (u: string) => /\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(u);
+    const imgs: string[] = [];
+    if (displayAuction?.pigeon?.pedigreeUrl && isImage(displayAuction.pigeon.pedigreeUrl)) {
+      imgs.push(displayAuction.pigeon.pedigreeUrl);
+    }
+    if (Array.isArray(displayAuction?.documents)) {
+      imgs.push(...displayAuction!.documents.filter(isImage));
+    }
+    return imgs;
+  }, [displayAuction]);
 
   const roleActions = useMemo(() => ({
     'USER_REGISTERED': () => {
@@ -167,10 +199,10 @@ const AuctionDetail: React.FC = () => {
   const handleBid = useCallback(async () => {
     if (!checkAccess()) return;
     if (!token || !auction) return;
-    
+
     const amount = parseFloat(bidAmount);
     if (isNaN(amount)) return;
-    
+
     await placeBid(amount);
     if (!bidError) {
       setBidAmount('');
@@ -235,7 +267,7 @@ const AuctionDetail: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      trackMetric('AUCTION', id).catch(() => {});
+      trackMetric('AUCTION', id).catch(() => { });
     }
   }, [id]);
 
@@ -254,7 +286,7 @@ const AuctionDetail: React.FC = () => {
 
   useEffect(() => {
     if (!token || !id || !isEnded || !auction) return;
-    
+
     const checkReviewEligibility = async () => {
       try {
         const eligibility = await reviewService.canReview(id, token);
@@ -303,7 +335,7 @@ const AuctionDetail: React.FC = () => {
         <main className="pt-24 pb-12">
           <div className="container mx-auto px-4 text-center">
             <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Nie znaleziono aukcji</h1>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">Nie znaleziono aukcji</h1>
             <p className="text-muted-foreground mb-6">{error?.message || 'Aukcja o podanym ID nie istnieje.'}</p>
             <Link to="/auctions">
               <Button variant="outline">
@@ -332,23 +364,35 @@ const AuctionDetail: React.FC = () => {
             <div className="grid lg:grid-cols-2 gap-12 items-start">
               {/* Image Gallery */}
               <div className="space-y-4">
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="aspect-square rounded-3xl overflow-hidden glass-card border border-white/20 shadow-glow"
+                  className="aspect-square rounded-3xl overflow-hidden glass-card border border-white/10 shadow-2xl relative group bg-black/20 backdrop-blur-md"
+                  onClick={() => {
+                    setImageModalIndex(0);
+                    setIsImageModalOpen(true);
+                  }}
                 >
-                  <img 
-                    src={displayAuction.images?.[0] || "/placeholder.svg"} 
+                  <img
+                    src={displayAuction.images?.[0] || "/placeholder.svg"}
                     alt={displayAuction.title}
                     className="w-full h-full object-cover"
                   />
                 </motion.div>
                 {displayAuction.images && displayAuction.images.length > 1 && (
                   <div className="grid grid-cols-4 gap-4">
-                    {displayAuction.images.slice(1, 5).map((img, idx) => (
-                      <div key={idx} className="aspect-square rounded-xl overflow-hidden border border-white/10 glass-card">
+                    {displayAuction.images.slice(1, 5).map((img: string, idx: number) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="aspect-square rounded-xl overflow-hidden border border-white/10 glass-card"
+                        onClick={() => {
+                          setImageModalIndex(idx + 1);
+                          setIsImageModalOpen(true);
+                        }}
+                      >
                         <img src={img} alt="" className="w-full h-full object-cover" />
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -357,7 +401,7 @@ const AuctionDetail: React.FC = () => {
               {/* Auction Info */}
               <div className="space-y-8">
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3 mb-6">
                     <span className="px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest border border-primary/30">
                       {displayAuction.category || "Aukcja"}
                     </span>
@@ -366,40 +410,75 @@ const AuctionDetail: React.FC = () => {
                         Zakończona
                       </span>
                     ) : (
-                      <span className="px-4 py-1.5 rounded-full bg-green-500/20 text-green-500 text-xs font-bold uppercase tracking-widest border border-green-500/30">
+                      <span className="px-4 py-1.5 rounded-full bg-green-500/20 text-green-500 text-xs font-bold uppercase tracking-widest border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
                         Aktywna
                       </span>
                     )}
                   </div>
-                  <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-2 leading-tight">
+                  
+                  <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
                     {displayAuction.title}
                   </h1>
-                  <p className="text-white/60 font-mono tracking-wider uppercase text-sm">
-                    {displayAuction.pigeon?.ringNumber || "Brak numeru obrączki"}
-                  </p>
+
+                  {isPigeon && (
+                    <div className="inline-flex items-center bg-primary/90 text-white px-6 py-3 rounded-xl shadow-lg border-l-4 border-gold mb-2 backdrop-blur-sm">
+                      <span className="font-mono text-xl md:text-2xl font-bold tracking-wider">
+                        {displayAuction.pigeon?.ringNumber || "BRAK NUMERU"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="h-px w-full bg-white/10" />
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-2 gap-8 items-end">
                   <div>
-                    <p className="text-white/40 uppercase tracking-widest text-[10px] mb-1">Aktualna cena</p>
-                    <p className="text-4xl font-bold text-primary">
-                      {displayAuction.currentPrice.toLocaleString("pl-PL")} zł
-                    </p>
-                    <p className="text-white/40 text-xs mt-1">
-                      Cena wywoławcza: {displayAuction.startingPrice?.toLocaleString("pl-PL")} zł
-                    </p>
+                    <p className="text-gold/80 uppercase tracking-widest text-[11px] font-bold mb-2">Aktualna oferta</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-5xl font-bold text-white tracking-tight drop-shadow-md">
+                        {displayAuction.currentPrice.toLocaleString("pl-PL")}
+                      </p>
+                      <span className="text-xl text-white/60 font-medium">PLN</span>
+                    </div>
+                    {displayAuction.startingPrice && displayAuction.startingPrice < displayAuction.currentPrice && (
+                       <p className="text-white/40 text-xs mt-2 font-mono">
+                        Start: {displayAuction.startingPrice.toLocaleString("pl-PL")} PLN
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-white/40 uppercase tracking-widest text-[10px] mb-1">Pozostały czas</p>
-                    <div className="text-2xl font-bold text-white font-mono">
-                      {timeLeft}
+                  <div className="flex-1">
+                    <p className="text-white/40 uppercase tracking-widest text-[10px] mb-2 font-semibold">Pozostały czas</p>
+                    <div className="flex items-center gap-2 text-white font-mono font-bold">
+                      <div className="flex flex-col items-center">
+                        <span className="text-2xl sm:text-3xl">{days}</span>
+                        <span className="text-[8px] tracking-[0.2em] opacity-40">DNI</span>
+                      </div>
+                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-2xl sm:text-3xl">{hours}</span>
+                        <span className="text-[8px] tracking-[0.2em] opacity-40">GODZ</span>
+                      </div>
+                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-2xl sm:text-3xl">{minutes}</span>
+                        <span className="text-[8px] tracking-[0.2em] opacity-40">MIN</span>
+                      </div>
+                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
+                      <div className="flex flex-col items-center text-primary">
+                        <span className="text-2xl sm:text-3xl">{seconds}</span>
+                        <span className="text-[8px] tracking-[0.2em] opacity-40">SEK</span>
+                      </div>
+                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
+                      <div className="flex flex-col items-center text-primary/80">
+                        <span className="text-2xl sm:text-3xl">{centiseconds}</span>
+                        <span className="text-[8px] tracking-[0.2em] opacity-40">SET</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-8 shadow-2xl">
+                <div className="bg-black/20 backdrop-blur-md p-8 rounded-3xl border border-white/10 space-y-8 shadow-xl relative overflow-hidden group hover:border-gold/20 transition-all duration-300">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent opacity-50" />
                   {!isEnded && (
                     <div className="space-y-6">
                       <div className="space-y-4">
@@ -413,7 +492,7 @@ const AuctionDetail: React.FC = () => {
                         </div>
                         <div className="flex gap-4">
                           <div className="relative flex-1 group">
-                            <input 
+                            <input
                               type="number"
                               value={bidAmount}
                               onChange={(e) => setBidAmount(e.target.value)}
@@ -422,7 +501,7 @@ const AuctionDetail: React.FC = () => {
                             />
                             <span className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 font-bold">PLN</span>
                           </div>
-                          <Button 
+                          <Button
                             onClick={handleBid}
                             disabled={bidLoading}
                             className="px-10 h-auto font-bold uppercase tracking-[0.15em] rounded-2xl shadow-glow-sm hover:shadow-glow-md transition-all active:scale-95"
@@ -432,12 +511,12 @@ const AuctionDetail: React.FC = () => {
                           </Button>
                         </div>
                       </div>
-                      
+
                       {displayAuction.buyNowPrice && (
                         <div className="pt-2">
                           <div className="relative group">
                             <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-gold/50 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                            <Button 
+                            <Button
                               onClick={handleBuyNow}
                               disabled={isCheckoutLoading}
                               variant="outline"
@@ -463,14 +542,13 @@ const AuctionDetail: React.FC = () => {
                         <span className="text-lg font-bold text-white">{displayAuction._count?.watchlist || 0}</span>
                       </div>
                     </div>
-                    
-                    <button 
-                      onClick={toggleWatch} 
-                      className={`flex items-center gap-3 px-5 py-2.5 rounded-xl border transition-all ${
-                        isWatched 
-                        ? "bg-red-500/10 border-red-500/30 text-red-500" 
+
+                    <button
+                      onClick={toggleWatch}
+                      className={`flex items-center gap-3 px-5 py-2.5 rounded-xl border transition-all ${isWatched
+                        ? "bg-red-500/10 border-red-500/30 text-red-500"
                         : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:border-white/20"
-                      }`}
+                        }`}
                     >
                       <Heart className={`w-4 h-4 ${isWatched ? "fill-current" : ""}`} />
                       <span className="text-xs font-bold uppercase tracking-wider">
@@ -484,23 +562,30 @@ const AuctionDetail: React.FC = () => {
                 <div className="space-y-6">
                   <h3 className="text-lg font-bold text-white uppercase tracking-[0.2em] flex items-center gap-3">
                     <span className="w-12 h-px bg-primary" />
-                    Szczegóły gołębia
+                    {isPigeon ? "Szczegóły gołębia" : "Specyfikacja produktu"}
                   </h3>
-                  
+
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {[
-                      { label: "Płeć", value: displayAuction.pigeon?.gender === "male" ? "Samiec" : "Samica" },
-                      { label: "Kolor", value: displayAuction.pigeon?.pigeonColor },
-                      { label: "Oko", value: displayAuction.pigeon?.eyeColor },
-                      { label: "Budowa", value: displayAuction.pigeon?.construction },
-                      { label: "Witalność", value: displayAuction.pigeon?.vitality },
-                      { label: "Cel", value: displayAuction.pigeon?.purpose },
-                    ].map((spec, i) => spec.value && (
-                      <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 transition-colors hover:bg-white/[0.08]">
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{spec.label}</p>
-                        <p className="text-sm font-semibold text-white">{spec.value}</p>
+                    {isPigeon ? (
+                      [
+                        { label: "Płeć", value: displayAuction.pigeon?.gender === "male" ? "Samiec" : "Samica" },
+                        { label: "Kolor", value: displayAuction.pigeon?.pigeonColor },
+                        { label: "Oko", value: displayAuction.pigeon?.eyeColor },
+                        { label: "Budowa", value: displayAuction.pigeon?.construction },
+                        { label: "Witalność", value: displayAuction.pigeon?.vitality },
+                        { label: "Cel", value: displayAuction.pigeon?.purpose },
+                      ].map((spec, i) => spec.value && (
+                        <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 transition-colors hover:bg-white/[0.08]">
+                          <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{spec.label}</p>
+                          <p className="text-sm font-semibold text-white">{spec.value}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 transition-colors hover:bg-white/[0.08] col-span-full">
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Kategoria</p>
+                        <p className="text-sm font-semibold text-white">{displayAuction.category}</p>
                       </div>
-                    ))}
+                    )}
                   </div>
 
                   <div className="space-y-4 pt-4">
@@ -508,9 +593,20 @@ const AuctionDetail: React.FC = () => {
                       <span className="w-2 h-2 rounded-full bg-primary" />
                       Opis hodowcy
                     </h4>
-                    <div className="text-white/70 leading-relaxed whitespace-pre-wrap glass-card p-6 rounded-2xl border border-white/10 italic">
+                    <div className="text-white/80 leading-relaxed whitespace-pre-wrap bg-black/20 backdrop-blur-md p-6 rounded-2xl border border-white/5 font-sans">
                       {displayAuction.description}
                     </div>
+                    {pedigreeUrl && (
+                      <div className="pt-2">
+                        <Button
+                          onClick={() => setIsPedigreeOpen(true)}
+                          variant="outline"
+                          className="w-full h-12 border-white/10 bg-white/5 hover:bg-white/[0.08] text-white font-bold uppercase tracking-[0.2em] rounded-2xl transition-all"
+                        >
+                          Zobacz rodowód
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -538,10 +634,10 @@ const AuctionDetail: React.FC = () => {
           </div>
         )}
       </main>
-      
-      <AccountModal 
-        open={isAccountOpen} 
-        onClose={() => setIsAccountOpen(false)} 
+
+      <AccountModal
+        open={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
       />
 
       <UnifiedModal
@@ -566,7 +662,22 @@ const AuctionDetail: React.FC = () => {
           onClick: () => setShowVerificationModal(false)
         }}
       />
-      
+
+      <PedigreeModal
+        isOpen={isPedigreeOpen}
+        onClose={() => setIsPedigreeOpen(false)}
+        pedigreeUrl={pedigreeUrl}
+        images={pedigreeImages}
+        startIndex={0}
+      />
+      <FullscreenImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        images={displayAuction?.images || []}
+        currentIndex={imageModalIndex}
+        title={displayAuction?.title}
+      />
+
       {displayAuction && (
         <EditAuctionModal
           isOpen={isEditModalOpen}

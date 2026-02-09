@@ -82,6 +82,13 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   }, [firstName, lastName, street, postalCode, city, country, phone, isEmailVerified]);
 
   const onSaveProfile = async () => {
+    if (!username.trim() || username.trim().length < 3) {
+      setFeedbackType('error');
+      setFeedbackTitle('Błąd');
+      setFeedbackMessage('Nick jest wymagany i musi mieć min. 3 znaki');
+      setFeedbackOpen(true);
+      return;
+    }
     try {
       await updateUserProfile({
         username: username.trim(),
@@ -105,7 +112,6 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
       setFeedbackTitle('Nie zapisano');
       setFeedbackMessage(message);
       setFeedbackOpen(true);
-      showError({ message });
     }
   };
 
@@ -179,7 +185,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[50] flex items-end md:items-center md:justify-center p-0 md:p-4 bg-transparent pointer-events-none print:static print:h-auto print:p-0"
+        className="fixed inset-0 z-[50] flex items-start justify-center p-4 bg-transparent pointer-events-none print:static print:h-auto print:p-0"
       >
         <motion.div
           ref={dragConstraintsRef}

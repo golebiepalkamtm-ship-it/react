@@ -7,15 +7,20 @@ import AdminPanel from './AdminPanel';
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { fadeInDown, iconMicro } from "@/components/motion";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
+import { NotificationModal } from "@/components/NotificationModal";
+import { Bell } from "lucide-react";
+import { notificationService } from "@/services/notificationService";
 
 const Header = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, session } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [isHeaderAdminPanelOpen, setIsHeaderAdminPanelOpen] = useState(false);
   const [verificationSuccessModalOpen, setVerificationSuccessModalOpen] = useState(false);
-  
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   // Debug log
   useEffect(() => {
     if (isHeaderAdminPanelOpen) {
@@ -23,12 +28,12 @@ const Header = () => {
       console.trace('🔍 Stack trace for Admin Modal open:');
     }
   }, [isHeaderAdminPanelOpen]);
-  
+
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const firstMobileLinkRef = useRef<HTMLElement | null>(null);
   const mobileNavId = "mobile-nav";
-  
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,6 +42,14 @@ const Header = () => {
     window.addEventListener('showUserPanel', handleShowUserPanel);
     return () => window.removeEventListener('showUserPanel', handleShowUserPanel);
   }, []);
+
+  useEffect(() => {
+    if (user && session?.access_token) {
+      notificationService.getUnreadNotifications(session.access_token)
+        .then(notes => setUnreadCount(notes.length))
+        .catch(err => console.error('Failed to fetch unread count', err));
+    }
+  }, [user, session]);
 
   const shouldOpenFromLocation = Boolean(location.state?.openAccount);
   const shouldShowVerificationFromLocation = Boolean(location.state?.showVerificationSuccess);
@@ -63,7 +76,7 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isHomePage = location.pathname === "/";
+  const isHomePage = location.pathname === "/" || location.pathname === "/homepage" || location.pathname === "/homepage-premium";
   const isBreederPage = location.pathname.startsWith('/breeder-meetings');
   const isAuctionsPage = location.pathname.startsWith('/auctions');
   const isContactPage = location.pathname.startsWith('/contact');
@@ -75,6 +88,7 @@ const Header = () => {
     const baseLinks = [
       { label: "Start", href: "/#home" },
       { label: "Aukcje", href: "/auctions" },
+      { label: "Forum", href: "/forum" },
       { label: "Championy", href: "/champions" },
       { label: "Historia", href: "/achievements" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
@@ -102,7 +116,7 @@ const Header = () => {
   }, []);
 
   const scrollToAnchor = useCallback((anchor: string) => {
-    if (location.pathname !== '/') {
+    if (!isHomePage) {
       window.location.assign(`/#${anchor}`);
       return;
     }
@@ -126,7 +140,7 @@ const Header = () => {
     }
 
     closeMobileMenu();
-  }, [closeMobileMenu, location.pathname]);
+  }, [closeMobileMenu, isHomePage]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -157,7 +171,7 @@ const Header = () => {
   const headerGlowX = useMotionValue(0);
   const headerGlowY = useMotionValue(0);
   const headerGlowOpacity = useMotionValue(0);
-  
+
   // Cache header dimensions to avoid layout thrashing on mousemove
   const headerRectRef = useRef<DOMRect | null>(null);
 
@@ -168,15 +182,15 @@ const Header = () => {
   const handleHeaderMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     const rect = headerRectRef.current || e.currentTarget.getBoundingClientRect();
     if (!headerRectRef.current) headerRectRef.current = rect;
-    
+
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-    
+
     headerGlowX.set(x);
     headerGlowY.set(y);
     headerGlowOpacity.set(0.15);
   };
-  
+
   const handleHeaderMouseLeave = () => {
     headerGlowOpacity.set(0);
     headerRectRef.current = null; // Clear cache on leave
@@ -201,14 +215,13 @@ const Header = () => {
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-500 ${
-        isOverlay
-          ? "bg-transparent py-0"
-          : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-0"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-500 ${isOverlay
+        ? "bg-transparent py-0"
+        : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-0"
+        }`}
     >
       {/* Efekt podświetlenia dla nagłówka */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: useTransform(
@@ -226,16 +239,16 @@ const Header = () => {
           whileTap="tap"
         >
           <RouterLink to="/" className="flex items-center gap-4 group relative">
-            <motion.div 
+            <motion.div
               className="w-11 h-11 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center relative z-10"
               whileHover={{
                 boxShadow: ["0 0 0 0 rgba(212,175,55,0)", "0 0 20px 5px rgba(212,175,55,0.5)", "0 0 0 0 rgba(212,175,55,0)"],
                 transition: { duration: 1.5, repeat: Infinity }
               }}
             >
-              <motion.span 
+              <motion.span
                 className="font-display font-bold text-lg text-white"
-                animate={{ 
+                animate={{
                   textShadow: ["0 0 0px rgba(255,255,255,0)", "0 0 10px rgba(255,255,255,0.8)", "0 0 0px rgba(255,255,255,0)"]
                 }}
                 transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
@@ -244,7 +257,7 @@ const Header = () => {
               </motion.span>
             </motion.div>
             <div className="flex flex-col">
-              <motion.span 
+              <motion.span
                 className={`font-display text-lg md:text-xl font-semibold tracking-wide text-white`}
                 initial={{ backgroundPosition: "0% 50%" }}
                 whileHover={{
@@ -261,7 +274,7 @@ const Header = () => {
                 Gołębie pocztowe
               </span>
             </div>
-            
+
             {/* Efekt cząsteczek */}
             <AnimatePresence>
               {Array.from({ length: 3 }).map((_, i) => (
@@ -269,15 +282,15 @@ const Header = () => {
                   key={`particle-${i}`}
                   className="absolute w-1 h-1 rounded-full bg-gold/80"
                   initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                  animate={{ 
+                  animate={{
                     opacity: [0, 0.8, 0],
                     scale: [0, 1, 0.5],
                     x: [0, (i - 1) * 15],
                     y: [0, -10 - i * 5]
                   }}
-                  transition={{ 
-                    duration: 1.5, 
-                    delay: i * 0.2, 
+                  transition={{
+                    duration: 1.5,
+                    delay: i * 0.2,
                     repeat: Infinity,
                     repeatDelay: 2
                   }}
@@ -287,7 +300,7 @@ const Header = () => {
           </RouterLink>
         </motion.div>
 
-        <motion.nav 
+        <motion.nav
           className="hidden md:flex items-center gap-8"
           initial="hidden"
           animate="visible"
@@ -301,9 +314,9 @@ const Header = () => {
           {navLinks.map((link, index) => {
             if (link.href === '/account') {
               return (
-                <motion.button 
-                  key={link.label} 
-                  onClick={() => setShowAccountModal(true)} 
+                <motion.button
+                  key={link.label}
+                  onClick={() => setShowAccountModal(true)}
                   className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
                   variants={{
                     hidden: { opacity: 0, y: -10 },
@@ -313,7 +326,7 @@ const Header = () => {
                   whileTap={{ y: 0 }}
                 >
                   <span className="relative z-10">{link.label}</span>
-                  <motion.span 
+                  <motion.span
                     className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
                     initial={{ scaleX: 0, originX: 0 }}
                     whileHover={{ scaleX: 1 }}
@@ -330,9 +343,9 @@ const Header = () => {
             }
             if (link.href === '/admin') {
               return (
-                <motion.button 
-                  key={link.label} 
-                  onClick={() => setAdminModalWithTrace(true)} 
+                <motion.button
+                  key={link.label}
+                  onClick={() => setAdminModalWithTrace(true)}
                   className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
                   variants={{
                     hidden: { opacity: 0, y: -10 },
@@ -342,7 +355,7 @@ const Header = () => {
                   whileTap={{ y: 0 }}
                 >
                   <span className="relative z-10">{link.label}</span>
-                  <motion.span 
+                  <motion.span
                     className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
                     initial={{ scaleX: 0, originX: 0 }}
                     whileHover={{ scaleX: 1 }}
@@ -381,7 +394,7 @@ const Header = () => {
                 ) : (
                   <RouterLink to={link.href} className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}>
                     <span className="relative z-10">{link.label}</span>
-                    <motion.span 
+                    <motion.span
                       className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
                       initial={{ scaleX: 0, originX: 0 }}
                       whileHover={{ scaleX: 1 }}
@@ -398,26 +411,49 @@ const Header = () => {
               </motion.div>
             );
           })}
-          
+
           {/* User Status Diode - only for logged in users */}
           {user && profile && (
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: -10 },
-                visible: { opacity: 1, y: 0 }
-              }}
-              className="flex items-center"
-            >
+            <div className="flex items-center gap-2">
+              <motion.button
+                variants={{
+                  hidden: { opacity: 0, y: -10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                onClick={() => setShowNotificationModal(true)}
+                className="relative p-2 rounded-full hover:bg-white/10 transition-colors group"
+                aria-label="Powiadomienia"
+              >
+                <div className="relative">
+                  <Bell className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" />
+                  {unreadCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black/50"
+                    >
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </motion.span>
+                  )}
+                </div>
+              </motion.button>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="flex items-center"
+              >
               <button
                 type="button"
                 onClick={() => setShowAccountModal(true)}
                 className="relative group p-2 rounded-full hover:bg-white/5 transition-colors"
-                title={`Status: ${
-                  profile.role === 'ADMIN' ? 'Administrator' :
+                title={`Status: ${profile.role === 'ADMIN' ? 'Administrator' :
                   profile.role === 'USER_FULL_VERIFIED' ? 'Konto zweryfikowane' :
-                  profile.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil i zweryfikuj telefon' :
-                  'Zweryfikuj adres email'
-                }`}
+                    profile.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil i zweryfikuj telefon' :
+                      'Zweryfikuj adres email'
+                  }`}
               >
                 <div className="relative flex items-center justify-center">
                   {/* Diode Background Glow */}
@@ -431,46 +467,71 @@ const Header = () => {
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
-                    className={`absolute w-3 h-3 rounded-full blur-[2px] ${
-                      profile.role === 'ADMIN' ? 'bg-purple-500' :
+                    className={`absolute w-3 h-3 rounded-full blur-[2px] ${profile.role === 'ADMIN' ? 'bg-purple-500' :
                       profile.role === 'USER_FULL_VERIFIED' ? 'bg-green-500' :
-                      profile.role === 'USER_EMAIL_VERIFIED' ? 'bg-gold' :
-                      'bg-amber-500'
-                    }`}
+                        profile.role === 'USER_EMAIL_VERIFIED' ? 'bg-gold' :
+                          'bg-amber-500'
+                      }`}
                   />
                   {/* Main Diode */}
-                  <div className={`relative w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${
-                    profile.role === 'ADMIN' ? 'bg-purple-400' :
+                  <div className={`relative w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${profile.role === 'ADMIN' ? 'bg-purple-400' :
                     profile.role === 'USER_FULL_VERIFIED' ? 'bg-green-400' :
-                    profile.role === 'USER_EMAIL_VERIFIED' ? 'bg-gold' :
-                    'bg-amber-400'
-                  }`} />
+                      profile.role === 'USER_EMAIL_VERIFIED' ? 'bg-gold' :
+                        'bg-amber-400'
+                    }`} />
                 </div>
-                
+
                 {/* Tooltip hint on hover */}
                 <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-black/80 backdrop-blur-md border border-white/10 rounded text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                   {profile.role === 'ADMIN' ? 'Admin' :
-                   profile.role === 'USER_FULL_VERIFIED' ? 'Zweryfikowany' :
-                   profile.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' :
-                   'Zweryfikuj email'}
+                    profile.role === 'USER_FULL_VERIFIED' ? 'Zweryfikowany' :
+                      profile.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' :
+                        'Zweryfikuj email'}
                 </span>
               </button>
-            </motion.div>
+              </motion.div>
+            </div>
           )}
         </motion.nav>
 
         <AnimatePresence>
           {isAccountModalOpen && (
-            <UserPanel isOpen={isAccountModalOpen} onClose={() => setShowAccountModal(false)} />
+            <UserPanel onClose={() => setShowAccountModal(false)} />
           )}
           {isHeaderAdminPanelOpen && (
-            <AdminPanel 
-              key="admin-panel" 
-              isOpen={true} 
-              onClose={() => setAdminModalWithTrace(false)} 
+            <AdminPanel
+              key="admin-panel"
+              isOpen={true}
+              onClose={() => setAdminModalWithTrace(false)}
+            />
+          )}
+          {showNotificationModal && (
+            <NotificationModal
+              isOpen={showNotificationModal}
+              onClose={() => setShowNotificationModal(false)}
+              onNotificationsChange={setUnreadCount}
             />
           )}
         </AnimatePresence>
+
+        {user && (
+          <motion.div
+            className="md:hidden relative mr-2"
+          >
+            <motion.button
+              className="p-2 text-white/90 relative"
+              onClick={() => setShowNotificationModal(true)}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Bell size={24} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white ring-1 ring-black/50">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </motion.button>
+          </motion.div>
+        )}
 
         <motion.button
           className="md:hidden p-2 text-white relative"
@@ -484,11 +545,11 @@ const Header = () => {
           whileHover="hover"
           whileTap="tap"
         >
-          <motion.div 
+          <motion.div
             className="absolute inset-0 rounded-full bg-gold/20"
             initial={{ scale: 0, opacity: 0 }}
-            animate={isMobileMenuOpen ? 
-              { scale: [0, 1.2, 1], opacity: [0, 0.6, 0.2] } : 
+            animate={isMobileMenuOpen ?
+              { scale: [0, 1.2, 1], opacity: [0, 0.6, 0.2] } :
               { scale: 0, opacity: 0 }
             }
             transition={{ duration: 0.4 }}
@@ -521,19 +582,19 @@ const Header = () => {
 
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
+          <motion.div
             className="md:hidden absolute top-full left-0 right-0 bg-hero-gradient border-t border-primary/20"
             initial={{ opacity: 0, height: 0, y: -20 }}
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0, y: -20 }}
-            transition={{ 
+            transition={{
               duration: 0.4,
               height: { duration: 0.4, type: "spring", stiffness: 500, damping: 30 }
             }}
           >
-            <motion.nav 
-              id={mobileNavId} 
-              aria-label="Menu mobilne" 
+            <motion.nav
+              id={mobileNavId}
+              aria-label="Menu mobilne"
               className="container mx-auto px-4 py-6 flex flex-col gap-4"
               initial="hidden"
               animate="visible"
@@ -643,8 +704,8 @@ const Header = () => {
           onClick: handleVerificationModalClose
         }}
         showCloseButton={true}
-        closeOnBackdrop={true}
-        closeOnEscape={true}
+        closeOnBackdrop={false}
+        closeOnEscape={false}
         size="md"
       />
     </motion.header>

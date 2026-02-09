@@ -16,9 +16,10 @@ const AuctionsSection = () => {
   const ctaRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => Date.now());
 
-  const { auctions, isLoading } = useAuctions({ 
-    status: 'active', 
-    sortBy: 'newest'
+  const { auctions, isLoading } = useAuctions({
+    status: 'active',
+    sortBy: 'newest',
+    sellerId: undefined
   });
 
   useEffect(() => {
@@ -29,70 +30,8 @@ const AuctionsSection = () => {
   }, []);
 
   useEffect(() => {
-    if (!sectionRef.current || isLoading) return;
-
-    const section = sectionRef.current;
-    const header = headerRef.current;
-    const cta = ctaRef.current;
-
-    const ctx = gsap.context(() => {
-      // Set initial states directly via GSAP
-      gsap.set(section, { y: -150, opacity: 0 });
-      if (header) gsap.set(header, { y: 50, opacity: 0 });
-      if (cta) gsap.set(cta, { y: 50, opacity: 0 });
-
-      // Section animation - starts when section enters viewport
-      gsap.to(section, {
-        y: 0,
-        opacity: 1,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top bottom',
-          end: 'top 60%',
-          scrub: 1.5,
-          id: 'auctions-section-fall',
-          invalidateOnRefresh: true,
-        }
-      });
-
-      // Header animation
-      if (header) {
-        gsap.to(header, {
-          y: 0,
-          opacity: 1,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top 80%',
-            end: 'top 50%',
-            scrub: 1.5,
-            invalidateOnRefresh: true,
-          }
-        });
-      }
-
-      // CTA animation
-      if (cta) {
-        gsap.to(cta, {
-          y: 0,
-          opacity: 1,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: cta,
-            start: 'top bottom',
-            end: 'top 80%',
-            scrub: 1.5,
-            invalidateOnRefresh: true,
-          }
-        });
-      }
-
-    }, section);
-
-    return () => {
-      ctx.revert();
-    };
+    // We now use global initAllAnimations for a unified cinema entrance
+    console.log('✨ [AuctionsSection] Integration ready for global GSAP');
   }, [isLoading]);
 
   return (
@@ -101,8 +40,9 @@ const AuctionsSection = () => {
       id="auctions"
       className="pt-0 pb-24 section-surface-alt relative overflow-hidden"
       style={{ perspective: '1000px' }}
+      data-section-reveal
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4" data-stagger-container>
         {/* Header */}
         <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
@@ -139,25 +79,26 @@ const AuctionsSection = () => {
         ) : auctions.length > 0 ? (
           <div ref={cardsContainerRef} className="grid gap-8 items-stretch md:grid-cols-2 lg:grid-cols-3">
             {auctions.slice(0, 3).map((auction, index) => (
-              <UnifiedAuctionCard
-                key={auction.id || `auction-${index}`}
-                id={auction.id}
-                title={auction.title}
-                image={resolveAuctionImage(auction.images?.[0])}
-                currentBid={auction.currentPrice}
-                startingPrice={auction.startingPrice}
-                endTime={auction.endTime}
-                ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                gender={auction.pigeon?.gender}
-                color={auction.pigeon?.pigeonColor}
-                category={auction.category}
-                location={auction.location}
-                watchCount={auction._count?.watchlist ?? 0}
-                viewsCount={(auction as any)?.viewsCount ?? (auction._count as any)?.views ?? 0}
-                bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
-                featured={index === 1}
-                nowMs={now}
-              />
+              <div key={auction.id || `auction-${index}`} data-stagger-item>
+                <UnifiedAuctionCard
+                  id={auction.id}
+                  title={auction.title}
+                  image={resolveAuctionImage(auction.images?.[0])}
+                  currentBid={auction.currentPrice}
+                  startingPrice={auction.startingPrice}
+                  endTime={auction.endTime}
+                  ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
+                  gender={auction.pigeon?.gender}
+                  color={auction.pigeon?.pigeonColor}
+                  category={auction.category}
+                  location={auction.location}
+                  watchCount={auction._count?.watchlist ?? 0}
+                  viewsCount={(auction as any)?.viewsCount ?? (auction._count as any)?.views ?? 0}
+                  bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
+                  featured={index === 1}
+                  nowMs={now}
+                />
+              </div>
             ))}
           </div>
         ) : (

@@ -26,7 +26,7 @@ export const errorHandler = (
   
   // Avoid echoing raw error messages in production to mitigate XSS / info-leak.
   const isProd = process.env.NODE_ENV === 'production';
-  const escapeHtml = (s: string) => s.replace(/[&<>\"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] || c));
+  const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] || c));
   const safeMessage = isProd ? 'Internal server error' : escapeHtml(String(error.message || 'Unknown error'));
 
   res.status(statusCode).json({

@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 const PressArticleCard = ({ article, index }: { article: PressArticle; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const { scrollYProgress } = useScroll({
     target: cardRef,
     offset: ["start end", "end start"],
@@ -22,10 +22,10 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
   const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]);
   const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.9, 1, 1, 0.9]);
-  
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  
+
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
     stiffness: 150,
     damping: 20,
@@ -34,7 +34,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
     stiffness: 150,
     damping: 20,
   });
-  
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -43,13 +43,13 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
     mouseX.set(x);
     mouseY.set(y);
   };
-  
+
   const handleMouseLeave = () => {
     setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
-  
+
   return (
     <motion.div
       ref={cardRef}
@@ -70,8 +70,8 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
         transition={{ scale: { duration: 0.2 } }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
-        
-        <motion.div 
+
+        <motion.div
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
             background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)',
@@ -81,12 +81,12 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
           }}
           transition={{ duration: 2, repeat: Infinity }}
         />
-        
+
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-        
+
         <div className="relative aspect-[16/10] overflow-hidden">
-          <img 
-            src={article.images.main} 
+          <img
+            src={article.images.main}
             alt={article.title}
             loading="lazy"
             decoding="async"
@@ -98,7 +98,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
-        
+
         <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
           <div className="flex items-center gap-2 text-sm text-white/60 mb-3 flex-wrap">
             <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/80 border border-gold/20">
@@ -110,19 +110,19 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
               {new Date(article.date).toLocaleDateString('pl-PL')}
             </span>
           </div>
-          
+
           <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
             {article.title}
           </h3>
-          
+
           <p className="text-white/60 text-sm line-clamp-4 mb-4">
             {article.excerpt}
           </p>
-          
+
           <div className="mt-auto">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300 relative z-40"
               asChild
             >
@@ -133,8 +133,8 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
             </Button>
           </div>
         </div>
-        
-        <motion.div 
+
+        <motion.div
           className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
@@ -172,71 +172,9 @@ const PressSection = () => {
     };
     fetchArticles();
   }, []);
-  
+
   useEffect(() => {
-    if (loading || !sectionRef.current || !cardsContainerRef.current || articles.length === 0) return;
-    if (prefersReducedMotion || window.innerWidth < 1024) return;
-    
-    const section = sectionRef.current;
-    const headerBadge = section.querySelector('.header-badge');
-    const headerTitle = section.querySelector('.header-title');
-    const headerDesc = section.querySelector('.header-desc');
-    const cards = cardsContainerRef.current.querySelectorAll('.press-card');
-    const ctaButton = section.querySelector('.cta-button');
-    
-    const ctx = gsap.context(() => {
-      // Timeline główna z płynnym scrub
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: 'top 85%',
-          end: 'top 20%',
-          scrub: 1.5, // Płynna interpolacja
-          invalidateOnRefresh: true,
-        }
-      });
-
-      if (headerBadge) tl.fromTo(headerBadge, 
-        { y: -50, opacity: 0, scale: 0.8 }, 
-        { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
-      );
-      if (headerTitle) tl.fromTo(headerTitle, 
-        { y: 80, opacity: 0, skewY: 3 }, 
-        { y: 0, opacity: 1, skewY: 0, duration: 0.4, ease: 'expo.out' }, 
-        '-=0.2'
-      );
-      if (headerDesc) tl.fromTo(headerDesc, 
-        { y: 50, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }, 
-        '-=0.2'
-      );
-
-      if (cards.length > 0) {
-        tl.fromTo(cards, {
-          y: 120,
-          opacity: 0,
-          scale: 0.85,
-          rotateX: -15,
-        }, {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          rotateX: 0,
-          duration: 0.5,
-          ease: 'expo.out',
-          stagger: 0.15
-        }, '-=0.2');
-      }
-      
-      if (ctaButton) tl.fromTo(ctaButton, 
-        { y: 80, opacity: 0, scale: 0.9 }, 
-        { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'expo.out' }, 
-        '-=0.2'
-      );
-      
-    }, section);
-    
-    return () => ctx.revert();
+    // Global GSAP handles the cinema reveals via data-attributes
   }, [loading, articles, prefersReducedMotion]);
 
   return (
@@ -244,20 +182,21 @@ const PressSection = () => {
       ref={sectionRef}
       id="press-section"
       className="py-20 relative overflow-hidden"
+      data-section-reveal
     >
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-10" data-stagger-container>
         <div className="text-center mb-16">
-          <span 
+          <span
             className="header-badge inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
           >
             Media o nas
           </span>
-          <h2 
+          <h2
             className="header-title font-display text-3xl md:text-4xl text-white font-bold leading-tight mb-4"
           >
             W centrum <span className="text-gold">uwagi</span>
           </h2>
-          <p 
+          <p
             className="header-desc text-white/70 max-w-2xl mx-auto"
           >
             Zobacz, jak media opisują nasze sukcesy w hodowli gołębi pocztowych.
@@ -265,7 +204,7 @@ const PressSection = () => {
         </div>
 
         {!loading && articles.length > 0 && (
-          <div 
+          <div
             ref={cardsContainerRef}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
             style={{ perspective: '1200px' }}
@@ -275,13 +214,14 @@ const PressSection = () => {
                 key={article.id}
                 className="press-card"
                 style={{ transformStyle: 'preserve-3d' }}
+                data-stagger-item
               >
                 <PressArticleCard article={article} index={index} />
               </div>
             ))}
           </div>
         )}
-        
+
         <div className="cta-button text-center">
           <Button variant="outline" size="lg" className="border-gold/50 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300" asChild>
             <Link to="/press">

@@ -257,14 +257,15 @@ export class AuctionService {
           try {
             const io = getIO();
             const autoBidder = (autoBid as any).bidder;
+            const autoBidUsername =
+              (autoBidder.username as string | undefined)?.trim() ||
+              ((autoBidder.email as string | undefined)?.split('@')[0] || 'użytkownik');
             io.to(`auction-${auctionId}`).emit('bid-placed', {
               bid: {
                 ...autoBid,
                 bidder: {
                   id: autoBidder.id,
-                  firstName: autoBidder.first_name || autoBidder.firstName,
-                  lastName: autoBidder.last_name || autoBidder.lastName,
-                  email: autoBidder.email
+                  username: autoBidUsername
                 }
               },
               newPrice: autoCounterAmount,
@@ -315,14 +316,15 @@ export class AuctionService {
             try {
               const io = getIO();
               const jumpBidder = (jumpBid as any).bidder;
+              const jumpBidUsername =
+                (jumpBidder.username as string | undefined)?.trim() ||
+                ((jumpBidder.email as string | undefined)?.split('@')[0] || 'użytkownik');
               io.to(`auction-${auctionId}`).emit('bid-placed', {
                 bid: {
                   ...jumpBid,
                   bidder: {
                     id: jumpBidder.id,
-                    firstName: jumpBidder.first_name || jumpBidder.firstName,
-                    lastName: jumpBidder.last_name || jumpBidder.lastName,
-                    email: jumpBidder.email
+                    username: jumpBidUsername
                   }
                 },
                 newPrice: jumpAmount,
@@ -366,14 +368,15 @@ export class AuctionService {
       try {
         const io = getIO();
         const bidder = (bid as any).bidder;
+            const displayUsername =
+              (bidder.username as string | undefined)?.trim() ||
+              ((bidder.email as string | undefined)?.split('@')[0] || 'użytkownik');
         const eventData = {
           bid: {
             ...bid,
             bidder: {
-              id: bidder.id,
-              firstName: bidder.first_name || bidder.firstName,
-              lastName: bidder.last_name || bidder.lastName,
-              email: bidder.email
+                  id: bidder.id,
+                  username: displayUsername
             }
           },
           newPrice: amount,

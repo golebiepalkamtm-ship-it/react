@@ -7,10 +7,10 @@ import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; title: string; description: string }; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  
+
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
     damping: 20,
@@ -19,16 +19,16 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
     stiffness: 150,
     damping: 20,
   });
-  
+
   const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
   const lightY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
-  
+
   // Użyj useTransform zamiast .get() dla lepszej wydajności
   const lightBackground = useTransform(
     [lightX, lightY],
     ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
   );
-  
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -37,14 +37,14 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
     mouseX.set(x);
     mouseY.set(y);
   }, [mouseX, mouseY]);
-  
+
   const handleMouseEnter = useCallback(() => setIsHovered(true), []);
   const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   }, [mouseX, mouseY]);
-  
+
   return (
     <motion.div
       ref={cardRef}
@@ -74,7 +74,7 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
             willChange: 'opacity',
           }}
         />
-        
+
         {/* Dodatkowa złota poświata */}
         <motion.div
           className="absolute inset-0 pointer-events-none z-10"
@@ -84,7 +84,7 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
             background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.18) 0%, transparent 60%)',
           }}
         />
-        
+
         {/* Glow border on hover - JASNY jak w ChampionCard */}
         <motion.div
           className="absolute inset-0 rounded-2xl pointer-events-none z-20"
@@ -98,7 +98,7 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
           transition={{ duration: 0.3 }}
           style={{ willChange: 'opacity, box-shadow' }}
         />
-        
+
         {/* Scanline effect */}
         <motion.div
           className="absolute inset-0 pointer-events-none"
@@ -106,7 +106,7 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
           animate={{ opacity: isHovered ? 0.15 : 0 }}
           style={{ willChange: 'opacity' }}
         >
-          <div 
+          <div
             className="absolute inset-0"
             style={{
               backgroundImage: `repeating-linear-gradient(
@@ -119,11 +119,11 @@ const FeatureCard = React.memo(({ feature, index }: { feature: { icon: any; titl
             }}
           />
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold/20 to-gold/10 flex items-center justify-center mb-4 group-hover:from-gold/40 group-hover:to-gold/20 transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.2)]"
-          whileHover={{ 
-            scale: 1.2, 
+          whileHover={{
+            scale: 1.2,
             rotate: [0, -15, 15, -15, 0],
             boxShadow: "0 0 40px rgba(212,175,55,0.6)",
             transition: { duration: 0.6 }
@@ -182,64 +182,61 @@ const AboutSection = () => {
     const cards = cardsContainerRef.current.querySelectorAll('.feature-card');
     const section = sectionRef.current;
     const leftContent = leftContentRef.current;
-    
-    console.log('📌 AboutSection: Setting up animations, cards:', cards.length);
+
 
     const ctx = gsap.context(() => {
       // USUNIĘTY PIN - zamiast tego używamy płynnego scrub
-      
+
       // Timeline dla lewej kolumny
       const leftTl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
           start: 'top 80%',
           end: 'top 20%',
-          scrub: 1.5,
+          scrub: 2, // More inertia
           id: 'about-left',
         }
       });
-      
+
       leftTl.fromTo(leftContent,
-        { x: -80, opacity: 0 },
-        { x: 0, opacity: 1, duration: 1, ease: 'expo.out' }
+        { x: -80, opacity: 0, filter: 'blur(10px)' },
+        { x: 0, opacity: 1, filter: 'blur(0px)', duration: 1.5, ease: 'expo.out' }
       );
 
       // Timeline dla kart - cascade reveal
       const cardsTl = gsap.timeline({
         scrollTrigger: {
           trigger: cardsContainerRef.current,
-          start: 'top 85%',
-          end: 'top 25%',
-          scrub: 1.5,
+          start: 'top 90%',
+          end: 'top 30%',
+          scrub: 2.5, // Ultra-smooth
           id: 'about-cards',
         }
       });
-      
+
       cardsTl.fromTo(cards,
-        { 
-          y: 100, 
-          opacity: 0, 
-          scale: 0.9,
+        {
+          y: 100,
+          opacity: 0,
+          scale: 0.95,
           rotateX: 15,
+          filter: 'blur(15px)',
         },
-        { 
-          y: 0, 
-          opacity: 1, 
+        {
+          y: 0,
+          opacity: 1,
           scale: 1,
           rotateX: 0,
-          duration: 0.5,
+          filter: 'blur(0px)',
+          duration: 1,
           ease: 'expo.out',
-          stagger: 0.15,
+          stagger: 0.2,
         }
       );
 
     }, section);
 
     // Odśwież ScrollTrigger po utworzeniu
-    setTimeout(() => {
-      ScrollTrigger.refresh();
-      console.log('✅ AboutSection: ScrollTrigger refreshed');
-    }, 100);
 
     // Cleanup
     return () => {
@@ -252,17 +249,12 @@ const AboutSection = () => {
       ref={sectionRef}
       id="about"
       className="pt-24 pb-0 relative overflow-hidden scroll-mt-[100px] min-h-screen"
+      data-section-reveal
     >
-      <motion.div 
-        className="absolute top-20 left-10 w-96 h-96 bg-gold/5 rounded-full blur-3xl"
-        animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
-        transition={{ duration: 8, repeat: Infinity }}
-      />
-
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-10" data-stagger-container>
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content - animowany przez GSAP */}
-          <div ref={leftContentRef}>
+          <div ref={leftContentRef} data-stagger-item>
             <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6">
               O naszej hodowli
             </span>
@@ -270,13 +262,13 @@ const AboutSection = () => {
               MTM Pałka – <span className="text-gold">Zwycięstwo</span> mamy w genach.
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-              Od ponad 45 lat poświęcamy się hodowli najlepszych gołębi pocztowych w Polsce. 
-              Nasze ptaki konsekwentnie sprawdzają się na najbardziej wymagających trasach, 
+              Od ponad 45 lat poświęcamy się hodowli najlepszych gołębi pocztowych w Polsce.
+              Nasze ptaki konsekwentnie sprawdzają się na najbardziej wymagających trasach,
               zdobywając czołowe miejsca w prestiżowych zawodach krajowych i międzynarodowych.
             </p>
             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-              Nasza hodowla opiera się na starannie wyselekcjonowanych liniach krwi od najlepszych 
-              hodowców europejskich. Każdy gołąb w naszym gołębniku to efekt wieloletniego doświadczenia, 
+              Nasza hodowla opiera się na starannie wyselekcjonowanych liniach krwi od najlepszych
+              hodowców europejskich. Każdy gołąb w naszym gołębniku to efekt wieloletniego doświadczenia,
               pasji i nieustannego dążenia do doskonałości.
             </p>
             <div className="flex items-center gap-4 pt-6 border-t border-white/10">
@@ -291,7 +283,7 @@ const AboutSection = () => {
           </div>
 
           {/* Right Content - Feature Grid */}
-          <div 
+          <div
             ref={cardsContainerRef}
             className="grid sm:grid-cols-2 gap-5"
             style={{ perspective: '1000px' }}
@@ -301,6 +293,7 @@ const AboutSection = () => {
                 key={feature.title}
                 className="feature-card"
                 style={{ transformStyle: 'preserve-3d' }}
+                data-stagger-item
               >
                 <FeatureCard feature={feature} index={index} />
               </div>

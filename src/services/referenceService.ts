@@ -109,10 +109,20 @@ export const referenceService = {
 
     if (supabase) {
       try {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('references')
           .select('*')
-          .order('createdAt', { ascending: false });
+          .order('created_at', { ascending: false });
+
+        // Fallback for legacy column naming
+        if (error) {
+          const retry = await supabase
+            .from('references')
+            .select('*')
+            .order('createdAt', { ascending: false });
+          data = retry.data;
+          error = retry.error;
+        }
 
         if (!error && Array.isArray(data)) {
           const remote = data.map(normalizeReference);

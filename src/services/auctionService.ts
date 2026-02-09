@@ -23,7 +23,7 @@ export const auctionService = {
    */
   async getAuctions(filters: AuctionFilters = {}): Promise<Auction[]> {
     const params: Record<string, string | number | undefined> = {};
-    
+
     if (filters.status) params.status = filters.status;
     if (filters.sortBy) params.sortBy = filters.sortBy;
     if (filters.limit) params.limit = filters.limit;
@@ -32,7 +32,8 @@ export const auctionService = {
     if (filters.gender) params.gender = filters.gender;
     if (filters.priceMin) params.priceMin = filters.priceMin;
     if (filters.priceMax) params.priceMax = filters.priceMax;
-    
+    if (filters.sellerId) params.sellerId = filters.sellerId;
+
     const response = await apiClient.get<AuctionsResponse>('/auctions', params);
     return response.auctions;
   },
@@ -51,7 +52,7 @@ export const auctionService = {
     if (!token) throw new Error('Authentication required');
     return apiClient.post<BidResponse>(`/auctions/${auctionId}/bids`, bidData, token);
   },
-  
+
   async buyNow(auctionId: string, token: string | null): Promise<{ success: boolean; finalPrice: number; auctionId: string }> {
     if (!token) throw new Error('Authentication required');
     return apiClient.post<{ success: boolean; finalPrice: number; auctionId: string }>(`/auctions/${auctionId}/buy-now`, undefined, token);

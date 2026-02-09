@@ -44,12 +44,12 @@ export default function BreederMeetings() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
-  
+
   // Verification handling
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState({ title: '', message: '' });
   const [isAccountOpen, setIsAccountOpen] = useState(false);
-  
+
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const heroRef = useRef<HTMLElement>(null);
   const heroContentRef = useRef<HTMLDivElement>(null);
@@ -69,11 +69,11 @@ export default function BreederMeetings() {
       });
       setShowVerificationModal(true);
     },
-    'USER_FULL_VERIFIED': () => { 
-      setIsFormOpen(true); 
+    'USER_FULL_VERIFIED': () => {
+      setIsFormOpen(true);
     },
-    'ADMIN': () => { 
-      setIsFormOpen(true); 
+    'ADMIN': () => {
+      setIsFormOpen(true);
     },
   }), []);
 
@@ -98,7 +98,7 @@ export default function BreederMeetings() {
       if (children) {
         // Animacja wejścia elementów
         gsap.set(children, { opacity: 0, y: 60 });
-        
+
         gsap.to(children, {
           opacity: 1,
           y: 0,
@@ -216,9 +216,9 @@ export default function BreederMeetings() {
               <div className="flex items-center justify-center gap-2 mb-8">
                 <Users className="w-12 h-12 md:w-16 md:h-16 text-gold" />
               </div>
-              <h1 
+              <h1
                 data-split-text
-                className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-gold leading-tight mb-6"
+                className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gold leading-tight mb-6"
               >
                 Spotkania z Hodowcami
               </h1>
@@ -240,88 +240,88 @@ export default function BreederMeetings() {
         </section>
 
         <div className="container mx-auto px-4 pb-20">
-        <section className="section-surface-alt pt-12">
-          <div className="space-y-12">
-            {breederMeetings && Array.isArray(breederMeetings) && breederMeetings.map((meeting, index) => (
-              <div key={meeting.id}>
-                <article 
-                  className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
-                >
-                  <div className="mb-6">
-                    <h3 className="text-2xl md:text-3xl font-bold text-gold text-center">
-                      {meeting.name}
-                    </h3>
-                  </div>
-
-                  <div className="grid gap-5 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {Array.isArray(meeting.images) && meeting.images.map((image, imageIndex) => (
-                        <div key={imageIndex} className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]" onClick={() => handleImageClick(meeting.id, imageIndex)}>
-                          <SmartImage src={image} alt={`${meeting.name} - zdjęcie ${imageIndex + 1}`} width={300} height={192} fitMode="cover" aspectRatio="16/9" className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
-                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <div className="w-8 h-8 bg-gold/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-gold/35"><span className="text-gold text-xs font-bold">{imageIndex + 1}</span></div>
-                          </div>
-                        </div>
-                      ))}
+          <section className="section-surface-alt pt-12">
+            <div className="space-y-12">
+              {breederMeetings && Array.isArray(breederMeetings) && breederMeetings.map((meeting, index) => (
+                <div key={meeting.id}>
+                  <article
+                    className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
+                  >
+                    <div className="mb-6">
+                      <h3 className="text-2xl md:text-3xl font-bold text-gold text-center">
+                        {meeting.name}
+                      </h3>
                     </div>
-                  </div>
-                </article>
-              </div>
-            ))}
-          </div>
 
-          {breederMeetings.length === 0 && (
-            <div className="p-12 text-center rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-              <h2 className="text-2xl font-bold mb-4 text-foreground">Brak spotkań</h2>
-              <p className="mb-6 text-muted-foreground">Jeszcze nie ma zdjęć ze spotkań z hodowcami.</p>
+                    <div className="grid gap-5 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {Array.isArray(meeting.images) && meeting.images.map((image, imageIndex) => (
+                          <div key={imageIndex} className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]" onClick={() => handleImageClick(meeting.id, imageIndex)}>
+                            <SmartImage src={image} alt={`${meeting.name} - zdjęcie ${imageIndex + 1}`} width={300} height={192} fitMode="cover" aspectRatio="16/9" className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                              <div className="w-8 h-8 bg-gold/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-gold/35"><span className="text-gold text-xs font-bold">{imageIndex + 1}</span></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              ))}
             </div>
-          )}
-        </section>
-      </div>
 
-      {selectedImage && (() => {
-        const meeting = breederMeetings.find(m => m.id === selectedImage.meetingId);
-        if (!meeting || !Array.isArray(meeting.images)) return null;
-        const currentImage = meeting.images[selectedImage.imageIndex];
-        if (!currentImage) return null;
-        return <FullscreenImageModal isOpen={selectedImage !== null} onClose={handleCloseModal} images={meeting.images} currentIndex={selectedImage.imageIndex} title={meeting.name} />;
-      })()}
+            {breederMeetings.length === 0 && (
+              <div className="p-12 text-center rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+                <h2 className="text-2xl font-bold mb-4 text-foreground">Brak spotkań</h2>
+                <p className="mb-6 text-muted-foreground">Jeszcze nie ma zdjęć ze spotkań z hodowcami.</p>
+              </div>
+            )}
+          </section>
+        </div>
 
-      <UnifiedModal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        type="default"
-        title="Dodaj spotkanie"
-        showCloseButton={true}
-        closeOnBackdrop={true}
-        closeOnEscape={true}
-        size="xl"
-        draggable={true}
-        bodyScrollable={true}
-        backdropClassName="bg-black/60 backdrop-blur-sm"
-      >
-        <AddBreederMeetingForm
-          embedded
-          onSuccess={() => {
-            setIsFormOpen(false);
-            const fetchBreederMeetings = async () => {
-              try {
-                const data = await meetingsService.getMeetings();
-                setBreederMeetings(Array.isArray(data) ? data : []);
-              } catch (error) {
-                console.error('Błąd podczas ładowania spotkań z hodowcami:', error);
-                setBreederMeetings([]);
-              }
-            };
-            fetchBreederMeetings();
-          }}
-        />
-      </UnifiedModal>
+        {selectedImage && (() => {
+          const meeting = breederMeetings.find(m => m.id === selectedImage.meetingId);
+          if (!meeting || !Array.isArray(meeting.images)) return null;
+          const currentImage = meeting.images[selectedImage.imageIndex];
+          if (!currentImage) return null;
+          return <FullscreenImageModal isOpen={selectedImage !== null} onClose={handleCloseModal} images={meeting.images} currentIndex={selectedImage.imageIndex} title={meeting.name} />;
+        })()}
+
+        <UnifiedModal
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          type="default"
+          title="Dodaj spotkanie"
+          showCloseButton={true}
+          closeOnBackdrop={true}
+          closeOnEscape={true}
+          size="lg"
+          draggable={true}
+          bodyScrollable={true}
+          backdropClassName="bg-black/60"
+        >
+          <AddBreederMeetingForm
+            embedded
+            onSuccess={() => {
+              setIsFormOpen(false);
+              const fetchBreederMeetings = async () => {
+                try {
+                  const data = await meetingsService.getMeetings();
+                  setBreederMeetings(Array.isArray(data) ? data : []);
+                } catch (error) {
+                  console.error('Błąd podczas ładowania spotkań z hodowcami:', error);
+                  setBreederMeetings([]);
+                }
+              };
+              fetchBreederMeetings();
+            }}
+          />
+        </UnifiedModal>
       </main>
-      
-      <AccountModal 
-        open={isAccountOpen} 
-        onClose={() => setIsAccountOpen(false)} 
+
+      <AccountModal
+        open={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
       />
 
       <UnifiedModal

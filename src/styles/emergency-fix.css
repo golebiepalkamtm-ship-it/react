@@ -1,0 +1,63 @@
+/* EMERGENCY FIX - Wymuszenie widoczności tła */
+
+/* Granatowe tło na html - NAJWYŻSZY PRIORYTET */
+html {
+  background: linear-gradient(175deg,
+    hsl(230, 50%, 10%) 0%,
+    hsl(225, 55%, 8%) 30%,
+    hsl(220, 60%, 7%) 60%,
+    hsl(225, 55%, 6%) 100%) !important;
+  min-height: 100vh !important;
+}
+
+/* Body transparent - nie przykrywa */
+body {
+  background: transparent !important;
+  min-height: 100vh !important;
+}
+
+/* Root transparent */
+#root {
+  background: transparent !important;
+  min-height: 100vh !important;
+}
+
+/* Footer - CIEMNE TŁO + BIAŁY TEKST */
+footer,
+footer#footer,
+footer[id="footer"],
+[id="footer"] {
+  background: linear-gradient(180deg, hsl(230, 50%, 6%) 0%, hsl(230, 55%, 4%) 100%) !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5) !important;
+  border-top: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+
+/* Wszystkie teksty w footerze - BIAŁE */
+footer *,
+footer#footer *,
+footer[id="footer"] *,
+[id="footer"] * {
+  color: white !important;
+}
+
+/* Linki w footerze */
+footer a,
+footer#footer a,
+footer[id="footer"] a,
+[id="footer"] a {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+footer a:hover,
+footer#footer a:hover,
+footer[id="footer"] a:hover,
+[id="footer"] a:hover {
+  color: rgb(212, 175, 55) !important;
+}
+
+/* Opacity fix */
+footer .text-white\/75,
+footer .text-white\/85,
+footer .text-white\/90 {
+  opacity: 1 !important;
+}

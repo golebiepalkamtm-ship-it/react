@@ -9,22 +9,19 @@ import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 
-const enabled = (import.meta.env.VITE_ENABLE_TRACING === 'true');
-if (!enabled) {
-  // noop in prod unless explicitly enabled
-
-  console.info('Browser tracing disabled (VITE_ENABLE_TRACING != true)');
-} else {
+const envTracing = import.meta.env.VITE_ENABLE_TRACING;
+const enabled = envTracing === undefined ? true : envTracing === 'true';
+if (enabled) {
   const serviceName = import.meta.env.VITE_OTEL_SERVICE_NAME || 'champion-pigeon-web';
   const endpoint = import.meta.env.VITE_OTEL_EXPORTER_ENDPOINT || 'http://localhost:4318/v1/traces';
 
   const provider = new WebTracerProvider({});
   const exporter = new OTLPTraceExporter({ url: endpoint });
-  provider.addSpanProcessor(new BatchSpanProcessor(exporter));
+  provider.addSpanProcessor(new BatchSpanProcessor(exporter) as any);
 
   // In dev also log to console for quick verification
   if (import.meta.env.DEV) {
-    provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+    provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()) as any);
   }
 
   provider.register();

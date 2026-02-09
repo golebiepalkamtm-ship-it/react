@@ -22,7 +22,8 @@ interface SuccessData {
   timestamp: string;
 }
 
-const AuctionSuccess = (props) => {
+import type { FC } from "react";
+const AuctionSuccess: FC = () => {
   const [successData, setSuccessData] = useState<SuccessData | null>(() => {
     try {
       const data = localStorage.getItem('auctionSuccess');
@@ -38,7 +39,7 @@ const AuctionSuccess = (props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const formatPrice = (value: number) => `${value.toLocaleString('pl-PL')} EUR`;
-  
+
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString('pl-PL', {
       year: 'numeric',
@@ -70,7 +71,7 @@ const AuctionSuccess = (props) => {
         <Header />
         <div className="min-h-screen flex items-center justify-center pt-20">
           <div className="text-center">
-            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Błąd</h1>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">Błąd</h1>
             <p className="text-muted-foreground mb-6">Nie znaleziono danych o transakcji.</p>
             <Link
               to="/auctions"
@@ -96,17 +97,17 @@ const AuctionSuccess = (props) => {
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
-              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">
-                {successData.type === 'buy_now' ? 'Zakup zakończony!' : 
-                 successData.type === 'listing_fee' ? 'Opłata za wystawienie!' : 
-                 'Wygrana licytacja!'}
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">
+                {successData.type === 'buy_now' ? 'Zakup zakończony!' :
+                  successData.type === 'listing_fee' ? 'Opłata za wystawienie!' :
+                    'Wygrana licytacja!'}
               </h1>
               <p className="text-muted-foreground">
                 {successData.type === 'buy_now'
                   ? 'Pomyślnie zakupiłeś gołębia pocztowego'
                   : successData.type === 'listing_fee'
-                  ? 'Pomyślnie opłacono wystawienie aukcji'
-                  : 'Gratulacje! Wygrałeś licytację'}
+                    ? 'Pomyślnie opłacono wystawienie aukcji'
+                    : 'Gratulacje! Wygrałeś licytację'}
               </p>
             </div>
 
@@ -124,35 +125,35 @@ const AuctionSuccess = (props) => {
                 </div>
 
                 {successData.type !== 'listing_fee' && successData.seller && (
-                <div className="py-3 border-b border-white/15">
-                  <div className="flex items-center gap-3 mb-3">
-                    <User className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-muted-foreground">Sprzedawca</span>
-                  </div>
-                  <div className="pl-8 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-foreground">{successData.seller.name}</span>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-gold fill-current" />
-                        <span className="text-sm text-muted-foreground">
-                          {successData.seller.rating} ({successData.seller.salesCount} sprzedaży)
-                        </span>
+                  <div className="py-3 border-b border-white/15">
+                    <div className="flex items-center gap-3 mb-3">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-muted-foreground">Sprzedawca</span>
+                    </div>
+                    <div className="pl-8 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-foreground">{successData.seller.name}</span>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-gold fill-current" />
+                          <span className="text-sm text-muted-foreground">
+                            {successData.seller.rating} ({successData.seller.salesCount} sprzedaży)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span>{successData.seller.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="w-4 h-4" />
+                        <span>{successData.seller.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="w-4 h-4" />
+                        <span>{successData.seller.email}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span>{successData.seller.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="w-4 h-4" />
-                      <span>{successData.seller.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="w-4 h-4" />
-                      <span>{successData.seller.email}</span>
-                    </div>
                   </div>
-                </div>
                 )}
 
                 <div className="flex items-center justify-between py-3 border-b border-white/15">

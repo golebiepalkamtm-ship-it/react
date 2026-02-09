@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
     allowedHosts: true, // Allow all hosts (Vite 6+) or use array for stricter control
     proxy: {
       '/api': {
-        target: 'http://localhost:8001',
+        target: 'http://localhost:8002',
         changeOrigin: true,
       },
     },

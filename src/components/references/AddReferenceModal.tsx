@@ -30,9 +30,8 @@ const AddReferenceModal: React.FC<AddReferenceModalProps> = ({
           showCloseButton
           closeOnBackdrop
           closeOnEscape
-          size="xl"
+          size="full"
           draggable
-          bodyScrollable
           hideGradient
           backdropClassName="bg-transparent"
           containerClassName="bg-background border border-border shadow-2xl rounded-2xl"

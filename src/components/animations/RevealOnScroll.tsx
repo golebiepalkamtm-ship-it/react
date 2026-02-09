@@ -1,121 +1,106 @@
 /**
- * REVEAL ON SCROLL
- * Generic component for scroll-triggered reveals
+ * REVEAL ON SCROLL - PREMIUM EDITION
+ * High-performance, ultra-smooth scroll reveals with Soft Rise & Blur.
  */
 
-import { useRef, ReactNode, CSSProperties } from 'react';
+import { useRef, ReactNode } from 'react';
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 import { useGSAP } from '@/hooks/useGSAP';
 
 interface RevealOnScrollProps {
   children: ReactNode;
   className?: string;
-  direction?: 'up' | 'down' | 'left' | 'right' | 'scale' | 'fade';
+  variant?: 'soft' | 'rise' | 'blur' | 'scale' | 'slide';
+  direction?: 'up' | 'down' | 'left' | 'right';
   distance?: number;
   duration?: number;
   delay?: number;
-  start?: string;
-  end?: string;
-  scrub?: boolean | number;
-  markers?: boolean;
   stagger?: number;
+  threshold?: number; // 0 to 1
+  once?: boolean;
 }
 
 export const RevealOnScroll = ({
   children,
   className = '',
+  variant = 'soft', // Default to Soft Rise & Blur
   direction = 'up',
-  distance = 60,       // Zmniejszone z 100 na 60
-  duration = 1,
+  distance = 40,
+  duration = 1.6, // Longer duration for luxury feel
   delay = 0,
-  start = 'top 80%',
-  end = 'bottom 20%',
-  scrub = false,
-  markers = false,
-  stagger = 0,
+  stagger = 0.1,
+  threshold = 0.15,
+  once = true,
 }: RevealOnScrollProps) => {
-  const elementRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    if (!elementRef.current) return;
+    if (!containerRef.current) return;
 
-    const elements = stagger > 0 
-      ? Array.from(elementRef.current.children)
-      : [elementRef.current];
+    const targets = containerRef.current.children.length > 0
+      ? Array.from(containerRef.current.children)
+      : [containerRef.current];
 
-    const initialState: gsap.TweenVars = { opacity: 0 };
-    const animatedState: gsap.TweenVars = { opacity: 1 };
+    // Initial State Based on Variant
+    const vars: gsap.TweenVars = {
+      opacity: 0,
+      ease: "expo.out",
+      overwrite: "auto",
+    };
 
-    switch (direction) {
-      case 'up':
-        initialState.y = distance;
-        animatedState.y = 0;
-        break;
-      case 'down':
-        initialState.y = -distance;
-        animatedState.y = 0;
-        break;
-      case 'left':
-        initialState.x = distance;
-        animatedState.x = 0;
-        break;
-      case 'right':
-        initialState.x = -distance;
-        animatedState.x = 0;
-        break;
-      case 'scale':
-        initialState.scale = 0;
-        animatedState.scale = 1;
-        break;
+    if (variant === 'soft' || variant === 'rise') {
+      vars.y = direction === 'up' ? distance : -distance;
     }
 
-    // Set initial state immediately to prevent flash
-    gsap.set(elements, initialState);
+    if (variant === 'soft' || variant === 'blur') {
+      vars.filter = 'blur(12px)';
+    }
 
-    // Jeśli scrub === false, używamy zwykłej animacji z toggleActions
-    // Jeśli scrub jest ustawiony, animacja jest zsynchronizowana ze scrollem
-    const animation = scrub === false 
-      ? gsap.to(elements, {
-          ...animatedState,
+    if (variant === 'scale') {
+      vars.scale = 0.94;
+    }
+
+    if (variant === 'slide') {
+      vars.x = direction === 'right' ? -distance : distance;
+    }
+
+    // Set initial state
+    gsap.set(targets, vars);
+
+    // Animation via ScrollTrigger
+    ScrollTrigger.batch(targets, {
+      onEnter: (batch) => {
+        gsap.to(batch, {
+          opacity: 1,
+          y: 0,
+          x: 0,
+          scale: 1,
+          filter: 'blur(0px)',
           duration,
           delay,
-          stagger: stagger,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: elementRef.current,
-            start,
-            toggleActions: 'play none none reset',  // play on enter, reset on leave back
-            markers,
-            invalidateOnRefresh: true,
-            once: true,  // Play animation only once
+          stagger: {
+            amount: stagger * batch.length,
+            from: "start"
           },
-        })
-      : gsap.to(elements, {
-          ...animatedState,
-          duration,
-          delay,
-          stagger: stagger,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: elementRef.current,
-            start,
-            end,
-            scrub,
-            markers,
-            invalidateOnRefresh: true,
-          },
+          overwrite: true
         });
-    
-    return () => {
-      if (animation.scrollTrigger) {
-        animation.scrollTrigger.kill();
-      }
-      animation.kill();
-    };
-  }, [direction, distance, duration, delay, start, end, scrub, markers, stagger]);
+      },
+      onLeaveBack: (batch) => {
+        if (!once) {
+          gsap.to(batch, {
+            ...vars,
+            duration: 0.8,
+            stagger: 0.05
+          });
+        }
+      },
+      start: `top bottom-=${threshold * 100}%`,
+      once,
+    });
+  }, [variant, direction, distance, duration, delay, stagger, threshold, once]);
 
   return (
-    <div ref={elementRef} className={className}>
+    <div ref={containerRef} className={`reveal-container ${className}`}>
       {children}
     </div>
   );

@@ -44,7 +44,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] h-full p-8"
+        className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] h-full p-8"
         style={{
           rotateX,
           rotateY,
@@ -312,7 +312,7 @@ const StyledContactCard = ({ info, index }: { info: ContactInfoItem; index: numb
   const cardContent = (
     <motion.div
       ref={cardRef}
-      className="relative w-full h-full p-6 rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 backdrop-blur-lg shadow-[0_0_30px_rgba(212,175,55,0.1),inset_0_1px_0_rgba(255,255,255,0.05)] overflow-hidden"
+      className="relative w-full h-full p-6 rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 shadow-[0_0_30px_rgba(212,175,55,0.1),inset_0_1px_0_rgba(255,255,255,0.05)] overflow-hidden"
       style={{
         rotateX,
         rotateY,

@@ -1,0 +1,1 @@
+-- placeholder to mirror DB-applied migration 20260206123953_fix_schema_consistency

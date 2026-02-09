@@ -1,7 +1,8 @@
 export interface Bidder {
   id: string;
-  firstName: string;
-  lastName: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface Bid {
@@ -130,8 +131,9 @@ export interface CreateAuctionRequest {
   sex: 'male' | 'female' | 'young';
   location: string;
   images: string[];
-  videos?: string[];
+  videos: string[];
   documents?: string[];
+  pedigreeUrl?: string;
 }
 
 export type AuctionSortBy = 'newest' | 'ending-soon' | 'price-high' | 'price-low';

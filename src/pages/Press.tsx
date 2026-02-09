@@ -12,7 +12,7 @@ import { gsap } from '@/lib/gsapConfig';
 const PressArticleCard = ({ article, index }: { article: PressArticle; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const { scrollYProgress } = useScroll({
     target: cardRef,
     offset: ["start end", "end start"],
@@ -21,10 +21,10 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
   const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]);
   const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.9, 1, 1, 0.9]);
-  
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  
+
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
     stiffness: 150,
     damping: 20,
@@ -33,7 +33,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
     stiffness: 150,
     damping: 20,
   });
-  
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -42,13 +42,13 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
     mouseX.set(x);
     mouseY.set(y);
   };
-  
+
   const handleMouseLeave = () => {
     setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
-  
+
   return (
     <motion.div
       ref={cardRef}
@@ -69,8 +69,8 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
         transition={{ scale: { duration: 0.2 } }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
-        
-        <motion.div 
+
+        <motion.div
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
             background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)',
@@ -80,12 +80,12 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
           }}
           transition={{ duration: 2, repeat: Infinity }}
         />
-        
+
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-        
+
         <div className="relative aspect-[16/10] overflow-hidden">
-          <img 
-            src={article.images.main} 
+          <img
+            src={article.images.main}
             alt={article.title}
             loading="lazy"
             decoding="async"
@@ -97,7 +97,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
-        
+
         <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
           <div className="flex items-center gap-2 text-sm text-white/60 mb-3 flex-wrap">
             <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/80 border border-gold/20">
@@ -109,19 +109,19 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
               {new Date(article.date).toLocaleDateString('pl-PL')}
             </span>
           </div>
-          
+
           <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
             {article.title}
           </h3>
-          
+
           <p className="text-white/60 text-sm line-clamp-4 mb-4">
             {article.excerpt}
           </p>
-          
+
           <div className="mt-auto">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300 relative z-40"
               asChild
             >
@@ -132,8 +132,8 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
             </Button>
           </div>
         </div>
-        
-        <motion.div 
+
+        <motion.div
           className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
@@ -149,10 +149,10 @@ const PressPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [pressArticles, setPressArticles] = useState<PressArticle[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const heroRef = useRef<HTMLDivElement>(null);
   const heroContentRef = useRef<HTMLDivElement>(null);
-  
+
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
@@ -182,7 +182,7 @@ const PressPage = () => {
 
       if (children) {
         gsap.set(children, { opacity: 0, y: 60 });
-        
+
         gsap.to(children, {
           opacity: 1,
           y: 0,
@@ -255,25 +255,25 @@ const PressPage = () => {
     { value: 'online', label: 'Online' }
   ];
 
-  const filteredArticles = selectedCategory === 'all' 
-    ? pressArticles 
+  const filteredArticles = selectedCategory === 'all'
+    ? pressArticles
     : pressArticles.filter(article => article.category === selectedCategory);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <div className="relative w-16 h-16 mx-auto mb-6">
-            <motion.div 
+            <motion.div
               className="absolute inset-0 rounded-full border-2 border-gold/30"
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             />
-            <motion.div 
+            <motion.div
               className="absolute inset-2 rounded-full border-2 border-t-gold border-r-transparent border-b-transparent border-l-transparent"
               animate={{ rotate: -360 }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
@@ -291,71 +291,71 @@ const PressPage = () => {
 
       <Header />
 
-      <section 
+      <section
         ref={heroRef}
         className="relative min-h-[70vh] flex items-center justify-center z-10 pt-20"
       >
         <div className="absolute inset-0 overflow-hidden" />
 
         <div ref={heroContentRef} className="relative z-10 container mx-auto px-4 text-center">
-            <motion.div 
-              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
-              animate={{ 
-                boxShadow: ['0 0 30px rgba(250,204,21,0.2)', '0 0 60px rgba(250,204,21,0.4)', '0 0 30px rgba(250,204,21,0.2)']
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
+          <motion.div
+            className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
+            animate={{
+              boxShadow: ['0 0 30px rgba(250,204,21,0.2)', '0 0 60px rgba(250,204,21,0.4)', '0 0 30px rgba(250,204,21,0.2)']
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <Newspaper className="w-10 h-10 text-gold" />
+          </motion.div>
+
+          <h1
+            data-split-text
+            className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gold mb-6"
+          >
+            Prasa i Media
+          </h1>
+
+          <motion.p
+            className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            Przeczytaj co piszą o nas media branżowe i ogólnopolskie
+          </motion.p>
+
+          <motion.div
+            className="flex flex-wrap justify-center gap-6 md:gap-12 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.div
+              className="text-center"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.6, type: "spring" }}
             >
-              <Newspaper className="w-10 h-10 text-gold" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2 bg-gradient-to-br from-gold-light to-gold shadow-lg">
+                <Newspaper className="w-7 h-7 text-black/80" />
+              </div>
+              <div className="font-display text-3xl md:text-4xl font-bold text-white">
+                {pressArticles.length}
+              </div>
+              <div className="text-white/50 text-sm uppercase tracking-wider">
+                Artykułów
+              </div>
             </motion.div>
+          </motion.div>
 
-            <h1 
-              data-split-text
-              className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-gold mb-6"
-            >
-              Prasa i Media
-            </h1>
-
-            <motion.p 
-              className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              Przeczytaj co piszą o nas media branżowe i ogólnopolskie
-            </motion.p>
-
-            <motion.div 
-              className="flex flex-wrap justify-center gap-6 md:gap-12 mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <motion.div 
-                className="text-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.6, type: "spring" }}
-              >
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2 bg-gradient-to-br from-gold-light to-gold shadow-lg">
-                  <Newspaper className="w-7 h-7 text-black/80" />
-                </div>
-                <div className="font-display text-3xl md:text-4xl font-bold text-white">
-                  {pressArticles.length}
-                </div>
-                <div className="text-white/50 text-sm uppercase tracking-wider">
-                  Artykułów
-                </div>
-              </motion.div>
-            </motion.div>
-
-            <motion.div 
-              className="mt-12 flex flex-col items-center gap-2"
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <span className="text-white/40 text-sm uppercase tracking-widest">Przewijaj</span>
-              <ChevronDown className="w-6 h-6 text-gold/60" />
-            </motion.div>
+          <motion.div
+            className="mt-12 flex flex-col items-center gap-2"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <span className="text-white/40 text-sm uppercase tracking-widest">Przewijaj</span>
+            <ChevronDown className="w-6 h-6 text-gold/60" />
+          </motion.div>
         </div>
       </section>
 
@@ -387,7 +387,7 @@ const PressPage = () => {
 
       <section className="relative z-10 py-20">
         <div className="container mx-auto px-4">
-          <motion.div 
+          <motion.div
             className="flex flex-wrap items-center gap-4 mb-12 p-4 md:p-5 rounded-2xl border border-gold/20 bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 backdrop-blur-xl"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -409,8 +409,8 @@ const PressPage = () => {
                   variant={selectedCategory === category.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedCategory(category.value)}
-                  className={selectedCategory === category.value 
-                    ? "bg-gradient-to-r from-gold to-gold text-black font-bold border-none" 
+                  className={selectedCategory === category.value
+                    ? "bg-gradient-to-r from-gold to-gold text-black font-bold border-none"
                     : "border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold"
                   }
                 >
@@ -427,7 +427,7 @@ const PressPage = () => {
               ))}
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               className="max-w-2xl mx-auto text-center"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}

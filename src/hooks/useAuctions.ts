@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { type Auction, type Bid, type AuctionFilters as ApiAuctionFilters } from '@/types/auction';
 
 type AuctionFilters = Pick<ApiAuctionFilters,
-  'status' | 'sortBy' | 'category' | 'gender' | 'priceMin' | 'priceMax'
+  'status' | 'sortBy' | 'category' | 'gender' | 'priceMin' | 'priceMax' | 'sellerId'
 > & {
   searchTerm?: string;
 };
@@ -93,7 +93,7 @@ export function useBid(auctionId: string) {
   const { success: showSuccess, error: showError, info: showInfo } = useOptimizedToast();
 
   const placeBidMutation = useMutation({
-    mutationFn: (amount: number) => 
+    mutationFn: (amount: number) =>
       auctionService.placeBid(auctionId, { amount }, session?.access_token || null),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['auction', auctionId] });
@@ -134,4 +134,59 @@ export function useAuctionTimer(endTime: string | undefined) {
   }, [endTime]);
 
   return { timeLeft, isEnded };
+}
+
+export function usePreciseAuctionTimer(endTime: string | undefined) {
+  const [timeComponents, setTimeComponents] = useState({
+    days: '00',
+    hours: '00',
+    minutes: '00',
+    seconds: '00',
+    centiseconds: '00',
+    isEnded: false
+  });
+
+  useEffect(() => {
+    if (!endTime) return;
+
+    const target = new Date(endTime).getTime();
+
+    const update = () => {
+      const now = Date.now();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        setTimeComponents({
+          days: '00',
+          hours: '00',
+          minutes: '00',
+          seconds: '00',
+          centiseconds: '00',
+          isEnded: true
+        });
+        return;
+      }
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      const cs = Math.floor((diff % 1000) / 10);
+
+      setTimeComponents({
+        days: d.toString().padStart(2, '0'),
+        hours: h.toString().padStart(2, '0'),
+        minutes: m.toString().padStart(2, '0'),
+        seconds: s.toString().padStart(2, '0'),
+        centiseconds: cs.toString().padStart(2, '0'),
+        isEnded: false
+      });
+    };
+
+    update();
+    const intervalId = setInterval(update, 10); // Update every 10ms for centiseconds
+    return () => clearInterval(intervalId);
+  }, [endTime]);
+
+  return timeComponents;
 }

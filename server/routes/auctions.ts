@@ -7,17 +7,24 @@ import { validate, validateParams, validateQuery } from '../middleware/validatio
 import { createAuctionSchema, placeBidSchema, queryParamsSchema, auctionIdParamSchema, buyNowSchema, paginationSchema, adminUpdateAuctionSchema } from '../schemas/auctionSchemas.js';
 import { cache } from '../lib/cache.js';
 import { prisma, supabase } from '../lib/db.js';
+import { validatedEnv } from '../lib/env.js';
 import { auctionService } from '../services/AuctionService.js';
 import { Prisma } from '@prisma/client';
 import {
   AuctionErrorCodes,
   createAuctionError
 } from '../utils/auctionErrors.js';
-import { serializeAuction, serializePrivateAuction, serializePublicAuction, baseAuctionInclude, detailAuctionInclude, listAuctionInclude } from '../utils/auctionSerializer.js';
+import { serializeAuction, serializePrivateAuction, serializePublicAuction, baseAuctionInclude, detailAuctionInclude, listAuctionInclude, serializeBid } from '../utils/auctionSerializer.js';
 
 const router: Router = express.Router();
 
 const auctionIdSchema = z.string().uuid('Invalid auction id');
+
+const ALLOWED_CATEGORIES = new Set(['RACING', 'BREEDING', 'SHOW']);
+const normalizeCategory = (input?: string) => {
+  const up = (input || '').toUpperCase();
+  return ALLOWED_CATEGORIES.has(up) ? up : 'SHOW';
+};
 
 // Get all auctions
 router.get('/', async (req, res) => {
@@ -44,7 +51,7 @@ router.get('/', async (req, res) => {
 
     const where: Prisma.AuctionWhereInput = {};
     if (status && status !== 'all') where.status = status.toUpperCase() as any;
-    if (category && category !== 'all') where.category = category.toUpperCase() as any;
+    if (category && category !== 'all') where.category = normalizeCategory(category) as any;
     if (gender && gender !== 'all') where.sex = gender.toUpperCase() as any;
     if (priceMin || priceMax) {
       where.currentPrice = {};
@@ -152,7 +159,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create auction
-if (process.env.NODE_ENV === 'development') {
+if (validatedEnv.NODE_ENV === 'development') {
   router.post('/', validate(createAuctionSchema), async (req, res) => {
     try {
       const userId = null; // for development, no user
@@ -167,7 +174,7 @@ if (process.env.NODE_ENV === 'development') {
 
       const {
         title, description, startingPrice, buyNowPrice, reservePrice,
-        endTime, pigeon, category, location, images, videos, documents
+        endTime, pigeon, category, location, images, videos, documents, pedigreeUrl
       } = req.body;
 
       const imagesCreate = Array.isArray(images)
@@ -178,11 +185,18 @@ if (process.env.NODE_ENV === 'development') {
         ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
         : undefined;
 
-      const documentsCreate = Array.isArray(documents)
+      let documentsCreate = Array.isArray(documents)
         ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
         : undefined;
+      if (typeof pedigreeUrl === 'string' && pedigreeUrl.trim().length > 0) {
+        documentsCreate = [
+          ...(documentsCreate || []),
+          { url: pedigreeUrl.trim() }
+        ];
+      }
 
-      const pigeonPayload = pigeon && typeof pigeon === 'object'
+      // Build pigeon payload without gender first
+      const rawPigeonPayload = pigeon && typeof pigeon === 'object'
         ? {
             ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
             eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
@@ -197,29 +211,69 @@ if (process.env.NODE_ENV === 'development') {
             balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
             back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
             purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
-            gender: typeof pigeon.gender === 'string' ? (pigeon.gender || 'male').toUpperCase() : undefined,
           }
         : null;
 
-      const pigeonHasData = pigeonPayload
-        ? Object.values(pigeonPayload).some((v) => v !== undefined && v !== null && v !== '')
-        : false;
+      const pigeonHasTraits =
+        rawPigeonPayload
+          ? Object.entries(rawPigeonPayload).some(
+              ([key, v]) => key !== 'gender' && v !== undefined && v !== null && v !== ''
+            )
+          : false;
+
+      const pigeonPayload = pigeonHasTraits
+        ? {
+            ...rawPigeonPayload!,
+            gender:
+              typeof pigeon?.gender === 'string'
+                ? (pigeon.gender || 'MALE').toUpperCase()
+                : 'MALE',
+          }
+        : null;
+
+      // Append selected trait tags to description (fallback until schema supports JSON traits)
+      let finalDescription = description;
+      if (pigeon && typeof pigeon === 'object') {
+        const traitSections: Array<{ label: string; values?: string[] }> = [
+          { label: 'Cechy koloru', values: Array.isArray((pigeon as any).colorTraits) ? (pigeon as any).colorTraits : undefined },
+          { label: 'Cechy oka', values: Array.isArray((pigeon as any).eyeTraits) ? (pigeon as any).eyeTraits : undefined },
+          { label: 'Budowa ciała', values: Array.isArray((pigeon as any).bodyStructureTraits) ? (pigeon as any).bodyStructureTraits : undefined },
+          { label: 'Mostek', values: Array.isArray((pigeon as any).breastboneTraits) ? (pigeon as any).breastboneTraits : undefined },
+          { label: 'Widełki', values: Array.isArray((pigeon as any).forkTraits) ? (pigeon as any).forkTraits : undefined },
+          { label: 'Musculatura', values: Array.isArray((pigeon as any).musculatureTraits) ? (pigeon as any).musculatureTraits : undefined },
+          { label: 'Plecy', values: Array.isArray((pigeon as any).backTraits) ? (pigeon as any).backTraits : undefined },
+          { label: 'Skrzydła', values: Array.isArray((pigeon as any).wingTraits) ? (pigeon as any).wingTraits : undefined },
+          { label: 'Zachowanie skrzydeł', values: Array.isArray((pigeon as any).wingBehaviorTraits) ? (pigeon as any).wingBehaviorTraits : undefined },
+          { label: 'Wartość hodowlana', values: Array.isArray((pigeon as any).breedingValueTraits) ? (pigeon as any).breedingValueTraits : undefined },
+          { label: 'Przeznaczenie dystansowe', values: Array.isArray((pigeon as any).distanceTraits) ? (pigeon as any).distanceTraits : undefined },
+        ];
+        const lines: string[] = [];
+        for (const section of traitSections) {
+          const vals = (section.values || []).filter((v) => typeof v === 'string' && v.trim().length > 0);
+          if (vals.length > 0) {
+            lines.push(`${section.label}: ${vals.join(', ')}`);
+          }
+        }
+        if (lines.length > 0) {
+          finalDescription = `${description || ''}\n\nCechy charakterystyki:\n- ${lines.join('\n- ')}`.trim();
+        }
+      }
 
       const created = await prisma.auction.create({
         data: {
           title,
-          description,
+          description: finalDescription,
           startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
           currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
           buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
           reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
           endTime: new Date(endTime),
           status: 'ACTIVE',
-          category: (category || 'RACING').toUpperCase() as any,
+          category: normalizeCategory(category || 'RACING') as any,
           sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
           location: location || 'Lubań, Polska',
           sellerId: userId,
-          pigeon: pigeonHasData && pigeonPayload ? { create: pigeonPayload as any } : undefined,
+          pigeon: pigeonPayload ? { create: pigeonPayload as any } : undefined,
           images: imagesCreate ? { create: imagesCreate } : undefined,
           videos: videosCreate ? { create: videosCreate } : undefined,
           documents: documentsCreate ? { create: documentsCreate } : undefined,
@@ -255,7 +309,7 @@ if (process.env.NODE_ENV === 'development') {
 
       const {
         title, description, startingPrice, buyNowPrice, reservePrice,
-        endTime, pigeon, category, location, images, videos, documents
+        endTime, pigeon, category, location, images, videos, documents, pedigreeUrl
       } = req.body;
 
       const imagesCreate = Array.isArray(images)
@@ -266,11 +320,17 @@ if (process.env.NODE_ENV === 'development') {
         ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
         : undefined;
 
-      const documentsCreate = Array.isArray(documents)
+      let documentsCreate = Array.isArray(documents)
         ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
         : undefined;
+      if (typeof pedigreeUrl === 'string' && pedigreeUrl.trim().length > 0) {
+        documentsCreate = [
+          ...(documentsCreate || []),
+          { url: pedigreeUrl.trim() }
+        ];
+      }
 
-      const pigeonPayload = pigeon && typeof pigeon === 'object'
+      const rawPigeonPayloadProd = pigeon && typeof pigeon === 'object'
         ? {
             ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
             eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
@@ -285,29 +345,69 @@ if (process.env.NODE_ENV === 'development') {
             balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
             back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
             purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
-            gender: typeof pigeon.gender === 'string' ? (pigeon.gender || 'male').toUpperCase() : undefined,
           }
         : null;
 
-      const pigeonHasData = pigeonPayload
-        ? Object.values(pigeonPayload).some((v) => v !== undefined && v !== null && v !== '')
-        : false;
+      const pigeonHasTraitsProd =
+        rawPigeonPayloadProd
+          ? Object.entries(rawPigeonPayloadProd).some(
+              ([key, v]) => key !== 'gender' && v !== undefined && v !== null && v !== ''
+            )
+          : false;
+
+      const pigeonPayload = pigeonHasTraitsProd
+        ? {
+            ...rawPigeonPayloadProd!,
+            gender:
+              typeof pigeon?.gender === 'string'
+                ? (pigeon.gender || 'MALE').toUpperCase()
+                : 'MALE',
+          }
+        : null;
+
+      // Append selected trait tags to description (fallback until schema supports JSON traits)
+      let finalDescription = description;
+      if (pigeon && typeof pigeon === 'object') {
+        const traitSections: Array<{ label: string; values?: string[] }> = [
+          { label: 'Cechy koloru', values: Array.isArray((pigeon as any).colorTraits) ? (pigeon as any).colorTraits : undefined },
+          { label: 'Cechy oka', values: Array.isArray((pigeon as any).eyeTraits) ? (pigeon as any).eyeTraits : undefined },
+          { label: 'Budowa ciała', values: Array.isArray((pigeon as any).bodyStructureTraits) ? (pigeon as any).bodyStructureTraits : undefined },
+          { label: 'Mostek', values: Array.isArray((pigeon as any).breastboneTraits) ? (pigeon as any).breastboneTraits : undefined },
+          { label: 'Widełki', values: Array.isArray((pigeon as any).forkTraits) ? (pigeon as any).forkTraits : undefined },
+          { label: 'Musculatura', values: Array.isArray((pigeon as any).musculatureTraits) ? (pigeon as any).musculatureTraits : undefined },
+          { label: 'Plecy', values: Array.isArray((pigeon as any).backTraits) ? (pigeon as any).backTraits : undefined },
+          { label: 'Skrzydła', values: Array.isArray((pigeon as any).wingTraits) ? (pigeon as any).wingTraits : undefined },
+          { label: 'Zachowanie skrzydeł', values: Array.isArray((pigeon as any).wingBehaviorTraits) ? (pigeon as any).wingBehaviorTraits : undefined },
+          { label: 'Wartość hodowlana', values: Array.isArray((pigeon as any).breedingValueTraits) ? (pigeon as any).breedingValueTraits : undefined },
+          { label: 'Przeznaczenie dystansowe', values: Array.isArray((pigeon as any).distanceTraits) ? (pigeon as any).distanceTraits : undefined },
+        ];
+        const lines: string[] = [];
+        for (const section of traitSections) {
+          const vals = (section.values || []).filter((v) => typeof v === 'string' && v.trim().length > 0);
+          if (vals.length > 0) {
+            lines.push(`${section.label}: ${vals.join(', ')}`);
+          }
+        }
+        if (lines.length > 0) {
+          finalDescription = `${description || ''}\n\nCechy charakterystyki:\n- ${lines.join('\n- ')}`.trim();
+        }
+      }
 
       const created = await prisma.auction.create({
         data: {
           title,
-          description,
+          description: finalDescription,
           startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
           currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
           buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
           reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
           endTime: new Date(endTime),
           status: 'ACTIVE',
-          category: (category || 'RACING').toUpperCase() as any,
+          category: normalizeCategory(category || 'RACING') as any,
           sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
           location: location || 'Lubań, Polska',
           sellerId: userId,
-          pigeon: pigeonHasData && pigeonPayload ? { create: pigeonPayload as any } : undefined,
+          pigeon: pigeonPayload ? { create: pigeonPayload as any } : undefined,
           images: imagesCreate ? { create: imagesCreate } : undefined,
           videos: videosCreate ? { create: videosCreate } : undefined,
           documents: documentsCreate ? { create: documentsCreate } : undefined,
@@ -349,7 +449,7 @@ router.post('/:id/bids', authMiddleware, biddingLimiter, validate(placeBidSchema
 
     res.json({
       success: true,
-      bid: result.bid,
+      bid: serializeBid(result.bid as any),
       meta: {
         wasExtended: result.wasExtended,
         newEndTime: result.newEndTime,

@@ -15,6 +15,8 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
   SUPABASE_ANON_KEY: z.string().min(1, 'SUPABASE_ANON_KEY is required'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
+  SUPABASE_SECRET_ACCESS_KEY: z.string().min(1, 'SUPABASE_SECRET_ACCESS_KEY is required'),
+  SUPABASE_SECRET_SECRET_KEY: z.string().min(1, 'SUPABASE_SECRET_SECRET_KEY is required'),
   SUPABASE_BUCKET: z.string().min(1, 'SUPABASE_BUCKET is required'),
   SUPABASE_BUCKET_PUBLIC: z.string().min(1, 'SUPABASE_BUCKET_PUBLIC is required'),
   
@@ -41,10 +43,11 @@ const envSchema = z.object({
   CORS_MAX_AGE: z.string().regex(/^\d+$/, 'CORS_MAX_AGE must be a number').transform(Number).pipe(z.number().min(0)).default('86400'),
   RATE_LIMIT_WINDOW_MS: z.string().regex(/^\d+$/, 'RATE_LIMIT_WINDOW_MS must be a number').transform(Number).pipe(z.number().min(1000)).default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().regex(/^\d+$/, 'RATE_LIMIT_MAX_REQUESTS must be a number').transform(Number).pipe(z.number().min(1)).default('100'),
+  SESSION_SECRET: z.string().min(16, 'SESSION_SECRET is required and must be strong'),
   
   // File Upload
   MAX_FILE_SIZE: z.string().regex(/^\d+$/, 'MAX_FILE_SIZE must be a number').transform(Number).pipe(z.number().min(1024)).default('10485760'), // 10MB
-  ALLOWED_MIME_TYPES: z.string().default('image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm'),
+  ALLOWED_MIME_TYPES: z.string().default('image/jpeg,image/png,image/gif,image/webp,image/bmp,image/tiff,image/vnd.adobe.photoshop,application/pdf,video/mp4,video/webm'),
   
   // Redis (dla rate limiting)
   REDIS_URL: z.string().url('REDIS_URL must be a valid URL').optional(),
@@ -68,7 +71,9 @@ if (env.data.NODE_ENV === 'production') {
   const criticalSecrets = [
     'JWT_SECRET',
     'SUPABASE_SERVICE_ROLE_KEY',
-    'DATABASE_URL'
+    'DATABASE_URL',
+    'SUPABASE_SECRET_ACCESS_KEY',
+    'SUPABASE_SECRET_SECRET_KEY'
   ] as const;
 
   const missingSecrets: string[] = [];

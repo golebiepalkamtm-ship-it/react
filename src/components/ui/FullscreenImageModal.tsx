@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { Button } from './button';
@@ -66,7 +67,7 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
         key="modal"
@@ -74,9 +75,8 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="absolute inset-0 z-50 flex items-start justify-center bg-black/90 backdrop-blur-sm min-h-screen"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
         onClick={onClose}
-        style={{ top: window.scrollY }}
       >
         <motion.div
           initial={{ scale: 0.9 }}
@@ -151,6 +151,7 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

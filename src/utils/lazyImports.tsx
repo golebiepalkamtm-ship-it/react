@@ -20,3 +20,6 @@ export const LazyAuth = lazy(() => import('@/pages/Auth'));
 export const LazyAccount = lazy(() => import('@/pages/Account'));
 export const LazyHomePage = lazy(() => import('@/pages/HomePage'));
 export const LazyHomePagePremium = lazy(() => import('@/pages/HomePagePremium'));
+export const LazyForumMain = lazy(() => import('@/pages/ForumMain'));
+export const LazyForumTopicList = lazy(() => import('@/pages/ForumTopicList'));
+export const LazyForumTopicDetail = lazy(() => import('@/pages/ForumTopicDetail'));

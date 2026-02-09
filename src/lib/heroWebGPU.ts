@@ -74,25 +74,25 @@ class WebGPUApp {
   canvas: HTMLCanvasElement;
   dpr: number;
   mouseIndex: number;
-  oldPos: any;
+  oldPos: { x: number; y: number } | null;
   lastFx: number;
   lastFy: number;
   animState: string;
   animStartTime: number;
-  adapter: any;
-  device: any;
-  context: any;
-  format: any;
-  bufStatic: any;
-  bufDynamic: any;
-  bufUniforms: any;
-  pipelineParticles: any;
-  bindGroupParticles: any;
+  adapter: GPUAdapter | null;
+  device: GPUDevice | null;
+  context: GPUCanvasContext | null;
+  format: GPUTextureFormat | null;
+  bufStatic: GPUBuffer | null;
+  bufDynamic: GPUBuffer | null;
+  bufUniforms: GPUBuffer | null;
+  pipelineParticles: GPURenderPipeline | null;
+  bindGroupParticles: GPUBindGroup | null;
   width: number;
   height: number;
   halfW: number;
   halfH: number;
-  mousePos: any;
+  mousePos: { x: number; y: number };
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -103,6 +103,20 @@ class WebGPUApp {
     this.lastFy = 0;
     this.animState = 'spiral';
     this.animStartTime = 0;
+    this.adapter = null;
+    this.device = null;
+    this.context = null;
+    this.format = null;
+    this.bufStatic = null;
+    this.bufDynamic = null;
+    this.bufUniforms = null;
+    this.pipelineParticles = null;
+    this.bindGroupParticles = null;
+    this.width = 0;
+    this.height = 0;
+    this.halfW = 0;
+    this.halfH = 0;
+    this.mousePos = { x: 0, y: 0 };
     this.resize();
   }
 
@@ -112,12 +126,19 @@ class WebGPUApp {
       return;
     }
     try {
-      // @ts-expect-error - webgpu types may not be available in all TS configs
-      this.adapter = await (navigator as any).gpu.requestAdapter();
-      // @ts-expect-error - adapter.requestDevice may be missing from lib types
+      this.adapter = await navigator.gpu.requestAdapter();
+      if (!this.adapter) {
+        console.warn('WebGPU adapter not found');
+        return;
+      }
       this.device = await this.adapter.requestDevice();
-      this.context = this.canvas.getContext('webgpu');
-      this.format = (navigator as any).gpu.getPreferredCanvasFormat();
+      const context = this.canvas.getContext('webgpu');
+      if (!context) {
+        console.warn('WebGPU context not found');
+        return;
+      }
+      this.context = context;
+      this.format = navigator.gpu.getPreferredCanvasFormat();
 
       this.context.configure({ device: this.device, format: this.format, alphaMode: 'premultiplied' });
 
@@ -130,7 +151,6 @@ class WebGPUApp {
       requestAnimationFrame((t) => this.render(t));
     } catch (e: any) {
       console.error('WebGPU init failed:', e);
-      // Log error code if available
       if (e instanceof GPUValidationError || e instanceof GPUOutOfMemoryError) {
         console.error('Error code:', e.message);
       }
@@ -149,12 +169,14 @@ class WebGPUApp {
     this.height = this.canvas.height;
     this.halfW = this.width / 2;
     this.halfH = this.height / 2;
-    if (this.context && this.device) {
+    if (this.context && this.device && this.format) {
       this.context.configure({ device: this.device, format: this.format, alphaMode: 'premultiplied' });
     }
   }
 
   async setupParticles() {
+    if (!this.device || !this.format) return;
+
     const count = CONFIG.particleCount;
     const staticData = new Float32Array(count * 4);
     for (let i = 0; i < count * 4; i++) staticData[i] = Math.random();
@@ -174,13 +196,58 @@ class WebGPUApp {
     this.bufUniforms = this.device.createBuffer({ size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
 
     const module = this.device.createShaderModule({ code: SHADER_PARTICLES });
-    this.pipelineParticles = this.device.createRenderPipeline({ layout: 'auto', vertex: { module, entryPoint: 'vs_main', buffers: [{ arrayStride: 16, stepMode: 'vertex', attributes: [{ format: 'float32x2', offset: 0, shaderLocation: 0 }, { format: 'float32', offset: 8, shaderLocation: 1 }, { format: 'float32', offset: 12, shaderLocation: 2 }, { format: 'float32', offset: 16, shaderLocation: 3 }, { format: 'float32x2', offset: 20, shaderLocation: 4 }, { format: 'float32', offset: 28, shaderLocation: 5 }] }, { arrayStride: 24, stepMode: 'instance', attributes: [{ format: 'float32x2', offset: 0, shaderLocation: 6 }, { format: 'float32', offset: 8, shaderLocation: 7 }, { format: 'float32', offset: 12, shaderLocation: 8 }, { format: 'float32x2', offset: 16, shaderLocation: 9 }, { format: 'float32', offset: 24, shaderLocation: 10 }] }] }, fragment: { module, entryPoint: 'fs_main', targets: [{ format: this.format, blend: { color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' } } }] }, primitive: { topology: 'triangle-strip' } });
+    this.pipelineParticles = this.device.createRenderPipeline({
+      layout: 'auto',
+      vertex: {
+        module,
+        entryPoint: 'vs_main',
+        buffers: [
+          {
+            arrayStride: 16,
+            stepMode: 'vertex',
+            attributes: [
+              { format: 'float32x2', offset: 0, shaderLocation: 0 },
+              { format: 'float32', offset: 8, shaderLocation: 1 },
+              { format: 'float32', offset: 12, shaderLocation: 2 },
+            ],
+          },
+          {
+            arrayStride: 24,
+            stepMode: 'instance',
+            attributes: [
+              { format: 'float32x2', offset: 0, shaderLocation: 3 },
+              { format: 'float32', offset: 8, shaderLocation: 4 },
+              { format: 'float32', offset: 12, shaderLocation: 5 },
+              { format: 'float32x2', offset: 16, shaderLocation: 6 },
+              { format: 'float32', offset: 24, shaderLocation: 7 },
+            ],
+          },
+        ],
+      },
+      fragment: {
+        module,
+        entryPoint: 'fs_main',
+        targets: [
+          {
+            format: this.format,
+            blend: {
+              color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+              alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+            },
+          },
+        ],
+      },
+      primitive: { topology: 'triangle-strip' },
+    });
 
-    const sampler = this.device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
-    this.bindGroupParticles = this.device.createBindGroup({ layout: this.pipelineParticles.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: this.bufUniforms } }] });
+    this.bindGroupParticles = this.device.createBindGroup({
+      layout: this.pipelineParticles.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: this.bufUniforms } }],
+    });
   }
 
   createBuffer(data: Float32Array, usage: number) {
+    if (!this.device) throw new Error("Device not available");
     const buffer = this.device.createBuffer({ size: data.byteLength, usage, mappedAtCreation: true });
     new Float32Array(buffer.getMappedRange()).set(data);
     buffer.unmap();
@@ -188,19 +255,32 @@ class WebGPUApp {
   }
 
   setupInputs() {
-    const handler = (cx: number, cy: number) => { this.updateTrail(cx * this.dpr, cy * this.dpr); };
+    const handler = (cx: number, cy: number) => {
+      this.mousePos = { x: cx * this.dpr, y: cy * this.dpr };
+      this.updateTrail(this.mousePos.x, this.mousePos.y);
+    };
     window.addEventListener('pointermove', (e) => handler(e.clientX, e.clientY));
   }
 
   updateTrail(x: number, y: number) {
-    if (this.animState !== 'interactive') return;
+    if (this.animState !== 'interactive' || !this.device) return;
+
+    const now = performance.now();
+    const jitterAmount = 10;
+    const targetFx = 0;
+    const targetFy = 0;
+    const dist = 0;
+
     const count = Math.min(CONFIG.perMouse, CONFIG.particleCount);
     const data = new Float32Array(count * 6);
     for (let i = 0; i < count; i++) {
       const ratio = i / count;
       let cx = this.oldPos ? this.oldPos.x + (x - this.oldPos.x) * ratio : x;
       let cy = this.oldPos ? this.oldPos.y + (y - this.oldPos.y) * ratio : y;
-      if (jitterAmount > 0) { cx += (Math.random() - 0.5) * jitterAmount; cy += (Math.random() - 0.5) * jitterAmount; }
+      if (jitterAmount > 0) {
+        cx += (Math.random() - 0.5) * jitterAmount;
+        cy += (Math.random() - 0.5) * jitterAmount;
+      }
       const iFx = this.lastFx + (targetFx - this.lastFx) * ratio;
       const iFy = this.lastFy + (targetFy - this.lastFy) * ratio;
       const idx = i * 6;
@@ -215,25 +295,70 @@ class WebGPUApp {
     this.lastFy = targetFy;
     const startIdx = this.mouseIndex % CONFIG.particleCount;
     const byteOffset = startIdx * 6 * 4;
-    this.device.queue.writeBuffer(this.bufDynamic, byteOffset, data);
+    this.device.queue.writeBuffer(this.bufDynamic as GPUBuffer, byteOffset, data);
     this.mouseIndex = (this.mouseIndex + count) % CONFIG.particleCount;
     this.oldPos = { x, y };
   }
 
   render(time: number) {
+    if (!this.device || !this.context || !this.pipelineParticles || !this.bindGroupParticles || !this.bufStatic || !this.bufDynamic || !this.bufUniforms) return;
+
     const elapsed = time - this.animStartTime;
     if (this.animState === 'spiral') {
-      const dur = 1080; if (elapsed > dur) { this.animState = 'interactive'; this.animStartTime = time; this.oldPos = null; this.updateTrail(-1000, 0); } else { const p = Math.pow(elapsed / dur - 1, 3) + 1; const period = Math.PI * 3; const amp = Math.min(this.width * 0.1, 200 * this.dpr); const cx = Math.cos(p * period) * amp + this.halfW; const cy = Math.sin(p * period) * amp * 0.5 + this.height * 0.5 - p * 200 * this.dpr; this.updateTrail(cx, cy); }
+      const dur = 1080;
+      if (elapsed > dur) {
+        this.animState = 'interactive';
+        this.animStartTime = time;
+        this.oldPos = null;
+        this.updateTrail(-1000, 0);
+      } else {
+        const p = Math.pow(elapsed / dur - 1, 3) + 1;
+        const period = Math.PI * 3;
+        const amp = Math.min(this.width * 0.1, 200 * this.dpr);
+        const cx = Math.cos(p * period) * amp + this.halfW;
+        const cy = Math.sin(p * period) * amp * 0.5 + this.height * 0.5 - p * 200 * this.dpr;
+        this.updateTrail(cx, cy);
+      }
     }
 
-    const encoder = this.device.createCommandEncoder(); const pass = encoder.beginRenderPass({ colorAttachments: [{ view: this.context.getCurrentTexture().createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
+    const encoder = this.device.createCommandEncoder();
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [
+        {
+          view: this.context.getCurrentTexture().createView(),
+          clearValue: { r: 0, g: 0, b: 0, a: 0 },
+          loadOp: 'clear',
+          storeOp: 'store',
+        },
+      ],
+    });
 
-    const pUni = new Float32Array([ this.width, this.height, this.dpr, time, CONFIG.speed, CONFIG.size, CONFIG.minSize, CONFIG.spread, CONFIG.movementSpread, CONFIG.explosionForce, CONFIG.far, CONFIG.fadeSpeed, CONFIG.maxZ ]);
+    const pUni = new Float32Array([
+      this.width,
+      this.height,
+      this.dpr,
+      time,
+      CONFIG.speed,
+      CONFIG.size,
+      CONFIG.minSize,
+      CONFIG.spread,
+      CONFIG.movementSpread,
+      CONFIG.explosionForce,
+      CONFIG.far,
+      CONFIG.fadeSpeed,
+      CONFIG.maxZ,
+    ]);
     this.device.queue.writeBuffer(this.bufUniforms, 0, pUni);
 
-    pass.setPipeline(this.pipelineParticles); pass.setBindGroup(0, this.bindGroupParticles); pass.setVertexBuffer(0, this.bufStatic); pass.setVertexBuffer(1, this.bufDynamic); pass.draw(6, CONFIG.particleCount, 0, 0);
+    pass.setPipeline(this.pipelineParticles);
+    pass.setBindGroup(0, this.bindGroupParticles);
+    pass.setVertexBuffer(0, this.bufStatic);
+    pass.setVertexBuffer(1, this.bufDynamic);
+    pass.draw(4, CONFIG.particleCount, 0, 0);
 
-    pass.end(); this.device.queue.submit([encoder.finish()]); requestAnimationFrame((t) => this.render(t));
+    pass.end();
+    this.device.queue.submit([encoder.finish()]);
+    requestAnimationFrame((t) => this.render(t));
   }
 }
 

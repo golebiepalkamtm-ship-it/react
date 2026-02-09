@@ -56,9 +56,10 @@ export const useChampions = () => {
     const loadChampions = async () => {
       try {
         setLoading(true);
-        
-        // Pobierz manifest
-        const manifestRes = await fetch('/champions/manifest.json');
+        const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+        const path = (p: string) => `${base}/${p.replace(/^\/+/, '')}`;
+
+        const manifestRes = await fetch(path('/champions/manifest.json'), { cache: 'no-store' });
         if (!manifestRes.ok) {
           throw new Error('Nie można załadować manifestu championów');
         }
@@ -69,32 +70,24 @@ export const useChampions = () => {
         
         for (const item of manifest.champions) {
           try {
-            // Użyj obrazka z manifestu - bezpośrednia ścieżka (serwer obsługuje spacje w URL)
-            const imagePath = `/champions/${item.id}/gallery/${item.image}`;
+            const imagePath = path(`/champions/${item.id}/gallery/${encodeURIComponent(item.image)}`);
             
-            // Ścieżki do obrazów - użyj tablicy z manifestu lub stwórz z pojedynczego obrazka
             const imagePaths = item.images
-              ? item.images.map(img => `/champions/${item.id}/gallery/${img}`)
+              ? item.images.map(img => path(`/champions/${item.id}/gallery/${encodeURIComponent(img)}`))
               : [imagePath];
             
-            // Pobierz data.json (opcjonalne)
             let data: ChampionData | null = null;
             try {
-              const dataRes = await fetch(`/champions/${item.id}/data.json`);
+              const dataRes = await fetch(path(`/champions/${item.id}/data.json`), { cache: 'no-store' });
               if (dataRes.ok) {
                 data = await dataRes.json();
               }
-            } catch {
-              // Brak data.json - użyjemy domyślnych wartości
-            }
+            } catch { void 0; }
             
-            // Wyciągnij ringNumber z nazwy pliku obrazu (np. "PL-0446-12-328_2KK.jpg" -> "PL-0446-12-328")
             const ringFromImage = item.image.split('_')[0].replace(/t$/i, '').replace(/\.jpg$/i, '').replace(/\.png$/i, '').toUpperCase();
             
-            // Ścieżka do rodowodu
-            const pedigreePath = item.pedigree ? `/champions/${item.id}/pedigree/${item.pedigree}` : undefined;
+            const pedigreePath = item.pedigree ? path(`/champions/${item.id}/pedigree/${encodeURIComponent(item.pedigree)}`) : undefined;
             
-            // Tworzymy obiekt Champion
             const champion: Champion = {
               id: String(item.id),
               name: data?.name || `Champion ${item.id}`,

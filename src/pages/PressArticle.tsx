@@ -86,11 +86,11 @@ const PressArticleDetail = () => {
     <div className="min-h-screen relative isolate">
       <div className="fixed inset-0 bg-hero-gradient grid-overlay -z-10 pointer-events-none" />
       <Header />
-      
+
       <main>
         <article className="py-16">
           <div className="container mx-auto px-4">
-            
+
             {/* Back Navigation */}
             <div className="mb-8">
               <Button variant="ghost" size="sm" asChild>
@@ -118,31 +118,31 @@ const PressArticleDetail = () => {
               </div>
 
               <div className="mx-auto max-w-4xl">
-                <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">{article.title}</h1>
+                <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">{article.title}</h1>
 
-              <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                {article.excerpt}
-              </p>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+                  {article.excerpt}
+                </p>
 
-              <div className="flex items-center gap-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleShare}
-                  className="border-gold/30 hover:bg-gold hover:text-navy"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Udostępnij
-                </Button>
-              </div>
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShare}
+                    className="border-gold/30 hover:bg-gold hover:text-navy"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Udostępnij
+                  </Button>
+                </div>
               </div>
             </header>
 
             {/* Featured Image */}
             <div className="max-w-4xl mx-auto mb-12">
               <div className="rounded-2xl overflow-hidden border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg">
-                <img 
-                  src={article.images.main} 
+                <img
+                  src={article.images.main}
                   alt={article.title}
                   className="w-full h-auto max-h-[600px] object-contain"
                   onError={(e) => {
@@ -184,7 +184,7 @@ const PressArticleDetail = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     {article.images.pages.map((imageSrc, index) => (
                       <div key={index} className="border border-white/25 rounded-2xl overflow-hidden bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg">
-                        <img 
+                        <img
                           src={imageSrc}
                           alt={`Strona ${index + 1} artykułu`}
                           className="w-full h-auto cursor-pointer hover:scale-105 transition-transform duration-300"
@@ -203,8 +203,8 @@ const PressArticleDetail = () => {
               <div className="mt-12 pt-8 border-t border-white/15">
                 <h3 className="text-lg font-semibold mb-4 text-foreground">Podziel się artykułem</h3>
                 <div className="flex flex-wrap gap-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={handleShare}
                     className="border-gold/30 hover:bg-gold hover:text-navy"

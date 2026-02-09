@@ -19,6 +19,7 @@ const buttonVariants = cva(
         hero: "bg-primary/10 text-primary-foreground border border-primary-foreground/30 backdrop-blur-sm hover:bg-primary-foreground/10 hover:border-primary-foreground/50",
         heroGold: "bg-gradient-to-r from-gold to-gold-light text-black font-semibold hover:shadow-gold hover:-translate-y-0.5 px-8",
         premium: "bg-white text-gold border border-gold/30 hover:border-gold hover:shadow-gold",
+        premiumGold: "relative overflow-hidden bg-gradient-to-r from-gold-dark via-gold to-gold-dark text-white font-bold tracking-wider uppercase border border-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:animate-[shimmer_3s_infinite]",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -37,7 +38,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   deferInteraction?: boolean;
 }
@@ -47,17 +48,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button";
     const handleClick: React.MouseEventHandler<HTMLButtonElement> | undefined = onClick
       ? (e) => {
-          if (deferInteraction) {
-            requestAnimationFrame(() => onClick(e));
-          } else {
-            onClick(e);
-          }
+        if (deferInteraction) {
+          requestAnimationFrame(() => onClick(e));
+        } else {
+          onClick(e);
         }
+      }
       : undefined;
     return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} onClick={handleClick} {...props} />;
   },
 );
 Button.displayName = "Button";
 
- 
 export { Button, buttonVariants };

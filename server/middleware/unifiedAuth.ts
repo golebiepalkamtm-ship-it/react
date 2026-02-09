@@ -80,7 +80,7 @@ class UnifiedAuthService {
     const cached = cache.get<TokenVerificationResult>(cacheKey);
     if (cached) {
       // Update user role cache if needed
-      await this.updateUserRoleCache(cached.userId);
+      // await this.updateUserRoleCache(cached.userId);
       return cached;
     }
 

@@ -31,117 +31,27 @@ const Footer = () => {
     ],
   };
 
-  // GSAP Premium animations with scrub
   useEffect(() => {
-    if (!footerRef.current) return;
-    
-    const footer = footerRef.current;
-    const brand = footer.querySelector('.footer-brand');
-    const columns = footer.querySelectorAll('.footer-column');
-    const socialIcons = footer.querySelectorAll('.social-icon');
-    const bottomBar = footer.querySelector('.footer-bottom');
-    
-    const ctx = gsap.context(() => {
-      // Main timeline with smooth scrub
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: footer,
-          start: 'top 90%',
-          end: 'top 30%',
-          scrub: 1.5,
-          invalidateOnRefresh: true,
-          refreshPriority: -4,
-        }
-      });
-
-      // Brand section - smooth slide from left
-      if (brand) {
-        tl.fromTo(brand,
-          { 
-            x: -100, 
-            opacity: 0, 
-            scale: 0.9
-          },
-          { 
-            x: 0, 
-            opacity: 1, 
-            scale: 1,
-            duration: 0.4, 
-            ease: 'expo.out'
-          }
-        );
-      }
-
-      // Columns - cascade with stagger
-      if (columns.length > 0) {
-        tl.fromTo(columns,
-          { 
-            y: 60, 
-            opacity: 0, 
-            scale: 0.95
-          },
-          { 
-            y: 0, 
-            opacity: 1, 
-            scale: 1,
-            duration: 0.3, 
-            ease: 'expo.out',
-            stagger: 0.1
-          },
-          '-=0.2'
-        );
-      }
-
-      // Social icons - smooth fade in
-      if (socialIcons.length > 0) {
-        tl.fromTo(socialIcons,
-          { 
-            y: 30,
-            opacity: 0, 
-          },
-          { 
-            y: 0,
-            opacity: 1, 
-            duration: 0.3, 
-            ease: 'expo.out',
-            stagger: 0.08
-          },
-          '-=0.15'
-        );
-      }
-
-      // Bottom bar - slide up with fade
-      if (bottomBar) {
-        tl.fromTo(bottomBar,
-          { 
-            y: 30, 
-            opacity: 0 
-          },
-          { 
-            y: 0, 
-            opacity: 1, 
-            duration: 0.3, 
-            ease: 'power2.out'
-          },
-          '-=0.1'
-        );
-      }
-      
-    }, footer);
-    
-    return () => ctx.revert();
+    // Global GSAP handles the cinema reveals via data-attributes
   }, []);
 
   return (
-    <footer 
+    <footer
       ref={footerRef}
-      className="relative isolate overflow-hidden py-6 border-t border-white/15 text-white bg-black/60 backdrop-blur-sm"
-      style={{ perspective: '1200px' }}
+      id="footer"
+      className="relative isolate overflow-hidden py-12 border-t border-white/15 text-white bg-black/60 backdrop-blur-sm"
+      style={{ 
+        perspective: '1200px',
+        background: 'linear-gradient(180deg, hsl(230, 50%, 6%) 0%, hsl(230, 55%, 4%) 100%)',
+        boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.5)',
+        borderTopColor: 'rgba(212, 175, 55, 0.2)'
+      }}
+      data-section-reveal
     >
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-10" data-stagger-container>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Brand */}
-          <div className="footer-brand lg:col-span-2 opacity-0" style={{ transformStyle: 'preserve-3d' }}>
+          <div className="footer-brand lg:col-span-2" style={{ transformStyle: 'preserve-3d' }} data-stagger-item>
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center">
                 <Trophy className="w-5 h-5 text-white" />
@@ -174,7 +84,7 @@ const Footer = () => {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-icon w-10 h-10 rounded-full bg-white/8 backdrop-blur-sm flex items-center justify-center text-white/85 hover:text-gold hover:bg-gold/10 transition-all duration-300 opacity-0"
+                  className="social-icon w-10 h-10 rounded-full bg-white/8 backdrop-blur-sm flex items-center justify-center text-white/85 hover:text-gold hover:bg-gold/10 transition-all duration-300"
                   aria-label={social.label}
                   variants={iconMicro}
                   initial="rest"
@@ -187,8 +97,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="footer-column opacity-0">
+          <div className="footer-column" data-stagger-item>
             <h4 className="font-display text-white font-semibold mb-3">
               Firma
             </h4>
@@ -210,8 +119,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Services */}
-          <div className="footer-column opacity-0">
+          <div className="footer-column" data-stagger-item>
             <h4 className="font-display text-white font-semibold mb-3">
               Usługi
             </h4>
@@ -235,7 +143,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="footer-bottom pt-4 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 opacity-0">
+        <div className="footer-bottom pt-4 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4" data-stagger-item>
           <p className="text-white/75 text-xs">
             © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
           </p>

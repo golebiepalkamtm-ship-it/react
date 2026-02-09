@@ -1,10 +1,10 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["linux-musl-openssl-3.0.x"]
+  binaryTargets = ["linux-musl-openssl-3.0.x", "native", "windows"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
 }
 
 enum AuctionStatus {
@@ -17,6 +17,8 @@ enum AuctionCategory {
   RACING
   BREEDING
   SHOW
+  SUPPLEMENTS
+  ACCESSORIES
 }
 
 enum Sex {
@@ -103,6 +105,7 @@ model Auction {
   minBidIncrement       Int             @default(100) @map("min_bid_increment")
   status                AuctionStatus   @default(ACTIVE)
   reserveMet            Boolean         @default(false) @map("reserve_met")
+  version               Int             @default(1)
   category              AuctionCategory @default(RACING)
   sex                   Sex             @default(MALE)
   location              String?
@@ -338,17 +341,17 @@ model Payment {
 
 model Reference {
   id           String   @id @default(uuid()) @db.Uuid
-  breederName  String   @map("breederName")
+  breederName  String   @map("breeder_name")
   location     String
   rating       Int      @default(5)
   opinion      String?
   experience   String?
   achievements String?
-  pigeonName   String?
+  pigeonName   String?  @map("pigeon_name")
   images       Json     @default("[]")
-  isApproved   Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())
+  isApproved   Boolean  @default(true) @map("is_approved")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("references")
 }

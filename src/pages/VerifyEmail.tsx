@@ -17,7 +17,7 @@ const VerifyEmail = () => {
   const verifiedParam = searchParams.get('verified');
 
   // Check if verified based on user state OR url param
-  const isVerified = (user && (user.email_confirmed_at || user.confirmed_at || profile?.role !== 'USER_REGISTERED')) || verifiedParam === 'true';
+  const isVerified = Boolean(user && (user.email_confirmed_at || user.confirmed_at || profile?.role !== 'USER_REGISTERED')) || verifiedParam === 'true';
 
   const showSuccessModal = isVerified;
   const showErrorModal = Boolean(error);
@@ -44,11 +44,11 @@ const VerifyEmail = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5 z-0" />
-      
+
       <Header />
-      
+
       {!isVerified && !error && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "circOut" }}
@@ -60,16 +60,16 @@ const VerifyEmail = () => {
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold mb-4 text-white tracking-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white tracking-tight">
             Sprawdź Skrzynkę
           </h1>
-          
+
           <p className="text-white/70 mb-8 leading-relaxed">
             Wysłaliśmy link weryfikacyjny na Twój adres email. Kliknij go, aby aktywować pełny dostęp do konta.
           </p>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full h-12 text-base border-white/10 hover:bg-white/5"
             onClick={() => navigate('/auth')}
           >

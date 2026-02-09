@@ -15,11 +15,13 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onCompleted }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [city, setCity] = useState('');
+  const [username, setUsername] = useState('');
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [error, setError] = useState('');
   const { updateUserProfile, loading } = useProfile();
 
   const profileSchema = z.object({
+    username: z.string().min(3, 'Nick jest wymagany (min. 3 znaki)'),
     firstName: z.string().min(2, 'Imię jest wymagane'),
     lastName: z.string().min(2, 'Nazwisko jest wymagane'),
     city: z.string().min(2, 'Miasto jest wymagane'),
@@ -30,8 +32,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onCompleted }) => {
     setError('');
 
     try {
-      profileSchema.parse({ firstName, lastName, city });
+      profileSchema.parse({ username, firstName, lastName, city });
       await updateUserProfile({
+        username,
         first_name: firstName,
         last_name: lastName,
         name: `${firstName} ${lastName}`.trim(),
@@ -59,6 +62,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onCompleted }) => {
     >
       <h2 className="text-2xl font-bold text-white text-center mb-6">{t('profile.title')}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Nick"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+          required
+        />
         <input
           type="text"
           placeholder="Imię"

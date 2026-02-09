@@ -5,114 +5,79 @@ import { useChampions } from "@/hooks/useChampions";
 import { PedigreeModal } from "./PedigreeModal";
 import { SmoothScrollReveal } from "@/components/effects/SmoothScrollReveal";
 import { MagneticButton } from "@/components/effects/MagneticButton";
-import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
-import { useGSAP } from '@/hooks/useGSAP';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(ScrollTrigger);
+
+export type TCarouselItem = {
+  id: number;
+  content: React.ReactNode;
+};
 
 export const Carousel3D = () => {
-  const animationRef = useRef<gsap.core.Tween | null>(null);
+  const animationRef = useRef<gsap.core.Timeline | null>(null);
   const resumeTimeoutRef = useRef<number | null>(null);
   const { champions, loading, error } = useChampions();
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [direction, setDirection] = useState<number>(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(true);
+  const [isPedigreeOpen, setIsPedigreeOpen] = useState<boolean>(false);
   const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
 
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const isClient = typeof window !== "undefined";
 
   const items = useMemo(() => champions, [champions]);
   const activeChampion = items[activeIndex];
 
-  // Callback ref dla animacji - JEDNA prosta płynna animacja
-  const setCarouselRef = useCallback((node: HTMLElement | null) => {
-    // Cleanup previous animation
-    if (animationRef.current) {
-      animationRef.current.kill();
-      animationRef.current = null;
-    }
+  const carouselRef = useRef<HTMLElement>(null);
 
-    if (node) {
-      console.log('🎪 Carousel3D: Ref attached to node');
-      
-      // Ustaw will-change dla GPU acceleration
-      node.style.willChange = 'transform, opacity';
-      
-      // JEDNA timeline z całą animacją - wejście, pauza, wyjście
+  useGSAP(
+    () => {
+      if (!carouselRef.current) return;
+
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: node,
-          start: 'top 95%',    // Zaczyna bardzo wcześnie
-          end: 'bottom 5%',    // Kończy bardzo późno
-          scrub: 2,            // Płynna interpolacja
+          trigger: carouselRef.current,
+          start: 'top 95%',
+          end: 'bottom 5%',
+          scrub: 2,
           id: 'carousel3d-main',
-        }
-      });
-      
-      // Faza 1: Wejście (0% - 25% timeline)
-      tl.fromTo(node, 
-        { 
-          opacity: 0.3, 
-          scale: 0.92,
-          y: 60,
         },
-        { 
-          opacity: 1, 
+      });
+
+      tl.fromTo(
+        carouselRef.current,
+        { opacity: 0.3, scale: 0.92, y: 60 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'power1.out' },
+        0
+      )
+        .to(carouselRef.current, {
+          opacity: 1,
           scale: 1,
           y: 0,
+          duration: 0.5,
+          ease: 'none',
+        })
+        .to(carouselRef.current, {
+          opacity: 0.4,
+          scale: 0.94,
+          y: -40,
           duration: 0.25,
-          ease: 'power1.out',
-        },
-        0
-      );
-      
-      // Faza 2: Trzymanie w pełni widoczne (25% - 75% timeline)
-      // Pusty segment - element pozostaje w miejscu
-      tl.to(node, {
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        duration: 0.5,
-        ease: 'none',
-      });
-      
-      // Faza 3: Wyjście (75% - 100% timeline)
-      tl.to(node, {
-        opacity: 0.4,
-        scale: 0.94,
-        y: -40,
-        duration: 0.25,
-        ease: 'power1.in',
-      });
-      
-      animationRef.current = tl;
-      
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-        console.log('✅ Carousel3D: ScrollTrigger refreshed');
-      }, 100);
-      
-      console.log('✅ Carousel3D: Animation created', tl);
-    }
-  }, []);
+          ease: 'power1.in',
+        });
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (animationRef.current) {
-        animationRef.current.kill();
-      }
-      if (resumeTimeoutRef.current) {
-        window.clearTimeout(resumeTimeoutRef.current);
-      }
-      // Cleanup ScrollTrigger
-      ScrollTrigger.getById('carousel3d-main')?.kill();
-    };
-  }, []);
+      animationRef.current = tl;
+
+      return () => {
+        tl.kill();
+        ScrollTrigger.getById('carousel3d-main')?.kill();
+      };
+    },
+    { scope: carouselRef }
+  );
 
   // Funkcja do zatrzymania auto-play z automatycznym wznowieniem
   const pauseAutoPlay = useCallback(() => {
@@ -212,7 +177,7 @@ export const Carousel3D = () => {
 
   return (
     <section
-      ref={setCarouselRef}
+      ref={carouselRef}
       className="relative min-h-screen overflow-hidden section-surface"
       onMouseEnter={pauseAutoPlay}
       onMouseMove={handleUserInteraction}

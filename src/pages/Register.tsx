@@ -59,7 +59,7 @@ export default function Register() {
         <main className="pt-28 md:pt-32">
           <div className="container mx-auto px-4">
             <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] text-center">
-              <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Sprawdź swoją skrzynkę email</h1>
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">Sprawdź swoją skrzynkę email</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Wysyłaliśmy link potwierdzający na {email}. Kliknij w niego, aby aktywować konto.
               </p>
@@ -74,7 +74,7 @@ export default function Register() {
             </div>
             <GlassModal
               open={true}
-              onClose={() => {}}
+              onClose={() => { }}
               title="Konto utworzone"
               description="Wysłaliśmy link weryfikacyjny na Twój email."
             >
@@ -99,7 +99,7 @@ export default function Register() {
       <main className="pt-28 md:pt-32">
         <div className="container mx-auto px-4">
           <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-            <h1 className="font-display text-4xl md:text-5xl text-foreground font-bold leading-tight mb-4">Rejestracja</h1>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">Rejestracja</h1>
             <p className="mt-2 text-sm text-muted-foreground">Utwórz konto, aby korzystać z funkcji użytkownika.</p>
 
             {error && (

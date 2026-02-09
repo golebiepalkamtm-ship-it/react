@@ -21,6 +21,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 import { registerCustomEasings, gsapEasings } from '@/lib/customEasings';
 import { ArrowRight, Trophy, Zap, Award, ChevronDown, Star } from 'lucide-react';
+import { useSpringPhysics, customExpoEase, customBezier, splitTextToChars, splitTextToWords } from '@/hooks/useCustomPhysics';
 import Header from '@/components/Header';
 import { Carousel3D } from '@/components/gallery/Carousel3D';
 import AboutSection from '@/components/AboutSection';
@@ -38,28 +39,138 @@ import {
   CountUp,
   GradientText,
   SeamlessSection,
-  ProgressIndicator,
   RevealOnScroll,
+  ProgressIndicator,
 } from '@/components/animations';
 
 registerCustomEasings();
 
-const HeroPremium = () => {
+const HeroPremium = memo(() => {
   const heroRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const videoOverlayRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  /* 
+   * VIDEO ENCODING FOR SCRUBBING:
+   * To ensure smooth seeking, the video must be encoded with a high density of keyframes (GOP size).
+   * FFmpeg command: 
+   * ffmpeg -i input.mp4 -c:v libx264 -preset slow -crf 22 -g 1 -keyint_min 1 -an output_scrub.mp4
+   * "-g 1" ensures every frame is a keyframe (Intra-frame only), allowing instant seeking without decoding artifacts.
+   */
 
   useEffect(() => {
-    // Inicjalizuj tylko animację hero text split (h1)
-    const timer = setTimeout(() => {
-      import('@/lib/gsapAnimations').then(({ initHeroTextSplit, initMagneticElements }) => {
-        initHeroTextSplit();
-        initMagneticElements();
-        ScrollTrigger.refresh();
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Use a loadedmetadata handler to properly set up the ScrollTrigger duration/start
+    const handleLoadedMetadata = () => {
+      let progress = 0;
+      let lastRenderedTime = -1;
+
+      // 1. ScrollTrigger updates progress ONLY (very light)
+      ScrollTrigger.create({
+        trigger: heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 1.0,
+        onUpdate: (self) => {
+          progress = self.progress;
+        }
       });
-    }, 100);
-    
-    return () => clearTimeout(timer);
+
+      // 2. GSAP Ticker handles the actual render (decoupled from scroll frequency)
+      const render = () => {
+        if (!video.duration) return;
+
+        const targetTime = video.duration * progress;
+
+        // Threshold + Throttling
+        if (Math.abs(targetTime - lastRenderedTime) > 0.033) { // ~30fps target for seek
+          lastRenderedTime = targetTime;
+
+          if ('fastSeek' in video) {
+            (video as any).fastSeek(targetTime);
+          } else {
+            video.currentTime = targetTime;
+          }
+        }
+      };
+
+      gsap.ticker.add(render);
+      return render;
+    };
+
+    let tickerRef: any = null;
+    video.addEventListener('loadedmetadata', () => {
+      tickerRef = handleLoadedMetadata();
+    });
+
+    // Trigger handler immediately if metadata already loaded
+    if (video.readyState >= 1) tickerRef = handleLoadedMetadata();
+
+    return () => {
+      if (tickerRef) gsap.ticker.remove(tickerRef);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Premium Text Reveal Animation
+    const content = contentRef.current;
+    if (!content) return;
+
+    // Dynamically import MotionSystem to ensure architecture is used
+    import('@/lib/MotionSystem').then(({ PhysicsUtils, AnimationController }) => {
+      // Ensure the controller is running
+      const controller = AnimationController.getInstance();
+
+      // Manual Split Text Implementation
+      const splitTargets = content.querySelectorAll('[data-split-text]');
+      splitTargets.forEach(target => {
+        if (!target.textContent) return;
+        const chars = splitTextToChars(target.textContent);
+        target.innerHTML = chars.map(char =>
+          `<span class="char" style="display:inline-block; will-change:transform;">${char}</span>`
+        ).join('');
+      });
+
+      const titleChars = content.querySelectorAll('[data-split-text] .char');
+      const stats = content.querySelectorAll('.hero-stat-item');
+
+      const tl = gsap.timeline({
+        delay: 0.5,
+        defaults: { ease: PhysicsUtils.premiumEase } // Use the architectural ease
+      });
+
+      // 1. Staggered Character Reveal (translate3d/scale for optimization)
+      if (titleChars.length > 0) {
+        gsap.set(titleChars, { opacity: 0, scale: 0.8, y: 100, rotateX: -90 });
+        tl.to(titleChars, {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          rotateX: 0,
+          stagger: 0.02,
+          duration: 1.4,
+          force3D: true // Ensure GPU acceleration
+        });
+      }
+
+      // 2. Stats Reveal
+      if (stats.length > 0) {
+        gsap.set(stats, { opacity: 0, y: 30, scale: 0.95 });
+        tl.to(stats, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 1,
+          stagger: 0.1,
+          force3D: true,
+          ease: 'power3.out'
+        }, "-=0.8");
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -69,58 +180,49 @@ const HeroPremium = () => {
     const badge = content.querySelector('.inline-flex'); // Badge
     const paragraph = content.querySelector('p');
     const button = content.querySelector('a');
-    const stats = content.querySelectorAll('.hero-stat-item');
-    
+
+
     const ctx = gsap.context(() => {
-      // Timeline dla elementów hero (poza h1 który ma data-split-text)
+      // Timeline dla elementów hero (po h1 i statsach)
       const tl = gsap.timeline({
         defaults: { ease: 'expo.out' },
       });
-      
+
       // Badge
       if (badge) {
         gsap.set(badge, { opacity: 0, y: 30 });
         tl.to(badge, { opacity: 1, y: 0, duration: 1 }, 0.3);
       }
-      
+
       // Paragraph (po h1 split-text animation)
       if (paragraph) {
         gsap.set(paragraph, { opacity: 0, y: 40 });
         tl.to(paragraph, { opacity: 1, y: 0, duration: 1.2 }, 1.5);
       }
-      
+
       // Button
       if (button) {
         gsap.set(button, { opacity: 0, y: 30, scale: 0.95 });
         tl.to(button, { opacity: 1, y: 0, scale: 1, duration: 1 }, 1.8);
       }
-      
-      // Stats with stagger
-      if (stats.length > 0) {
-        gsap.set(stats, { opacity: 0, y: 50, scale: 0.9 });
-        tl.to(stats, { 
-          opacity: 1, 
-          y: 0, 
-          scale: 1, 
-          duration: 1,
-          stagger: 0.15,
-        }, 2.2);
-      }
+
     }, content);
 
-    // Parallax on scroll
+    // Parallax on scroll with Custom Bezier
     const parallaxTl = gsap.timeline({
       scrollTrigger: {
         trigger: heroRef.current,
         start: 'top top',
         end: 'bottom top',
-        scrub: 2,
+        scrub: 1.4, // Smoother follow
       },
     });
 
-    parallaxTl
-      .to(content, { y: 150, opacity: 0.3, scale: 0.95 }, 0)
-      .to(videoOverlayRef.current, { opacity: 0.8 }, 0);
+    parallaxTl.to(content, {
+      y: 200,
+      opacity: 0,
+      ease: (t) => customBezier(t, 0.76, 0, 0.24, 1),
+    }, 0);
 
     return () => {
       ctx.revert();
@@ -129,32 +231,24 @@ const HeroPremium = () => {
   }, []);
 
   return (
-    <section 
+    <section
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       data-section="hero"
     >
-      <div 
-        ref={videoOverlayRef}
-        className="absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-background/40 to-background/90"
-        style={{ willChange: 'opacity' }}
-      />
-
-      <FloatingElement amplitude={15} frequency={0.3} phase={0}>
-        <div 
-          className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold/10 blur-3xl"
-          style={{ willChange: 'transform' }}
-        />
-      </FloatingElement>
-      
-      <FloatingElement amplitude={20} frequency={0.25} phase={0.5}>
-        <div 
-          className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl"
-          style={{ willChange: 'transform' }}
-        />
-      </FloatingElement>
-
-      <div 
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <video
+          ref={videoRef}
+          className="absolute top-1/2 left-1/2 min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover opacity-60"
+          muted
+          playsInline
+          preload="auto"
+        >
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-lightbulb-hanging-in-the-dark-turning-on-and-off-repeatedly-30928-large.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+      </div>
+      <div
         ref={contentRef}
         className="relative z-10 max-w-6xl mx-auto px-4 text-left"
       >
@@ -165,14 +259,14 @@ const HeroPremium = () => {
           </span>
         </MagneticElement>
 
-        <h1 
+        <h1
           data-split-text
-          className="text-3xl md:text-4xl lg:text-6xl font-bold font-display text-white mb-6"
+          className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white mb-6"
         >
           Pałka MTM - Geny Zwycięzców
         </h1>
 
-        <p 
+        <p
           className="text-xl md:text-2xl text-white/70 max-w-2xl mb-12 leading-relaxed"
         >
           Wyniki budowane przez pokolenia. Topowe gołębie pocztowe z Dolnego Śląska.
@@ -191,7 +285,7 @@ const HeroPremium = () => {
           </Link>
         </div>
 
-        <div 
+        <div
           className="grid grid-cols-3 gap-8 max-w-3xl mx-auto hero-stats"
         >
           {[
@@ -199,7 +293,7 @@ const HeroPremium = () => {
             { icon: Award, value: 45, suffix: '+', label: 'Lat Doświadczenia' },
             { icon: Zap, value: 3, suffix: '', label: 'Pokolenia Hodowców' },
           ].map((stat, i) => (
-            <div 
+            <div
               key={stat.label}
               className="hero-stat-item"
             >
@@ -207,9 +301,9 @@ const HeroPremium = () => {
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/30 transition-colors">
                   <stat.icon className="w-6 h-6 text-gold mx-auto mb-2" />
                   <div className="text-3xl md:text-4xl font-bold text-white mb-1">
-                    <CountUp 
-                      end={stat.value} 
-                      duration={2.5} 
+                    <CountUp
+                      end={stat.value}
+                      duration={2.5}
                       delay={0.5 + i * 0.2}
                       suffix={stat.suffix}
                     />
@@ -232,7 +326,7 @@ const HeroPremium = () => {
       </div>
     </section>
   );
-};
+});
 
 interface FeatureData {
   icon: React.ElementType<{ className?: string }>;
@@ -240,20 +334,20 @@ interface FeatureData {
   description: string;
 }
 
-const FeatureCardPremium = memo(({ 
-  feature, 
-  index 
-}: { 
-  feature: FeatureData; 
-  index: number 
+const FeatureCardPremium = memo(({
+  feature,
+  index
+}: {
+  feature: FeatureData;
+  index: number
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  
+
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
     damping: 20,
@@ -265,7 +359,7 @@ const FeatureCardPremium = memo(({
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current || !glowRef.current) return;
-    
+
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -284,7 +378,7 @@ const FeatureCardPremium = memo(({
   }, [mouseX, mouseY]);
 
   const handleMouseEnter = () => setIsHovered(true);
-  
+
   const handleMouseLeave = () => {
     setIsHovered(false);
     mouseX.set(0);
@@ -296,7 +390,7 @@ const FeatureCardPremium = memo(({
       <motion.div
         ref={cardRef}
         className="group h-full"
-        style={{ 
+        style={{
           perspective: 1000,
           transformStyle: 'preserve-3d',
         }}
@@ -324,17 +418,17 @@ const FeatureCardPremium = memo(({
               background: 'radial-gradient(circle at var(--glow-x) var(--glow-y), rgba(212,175,55,0.15) 0%, transparent 50%)',
             }}
           />
-          
+
           <div className="absolute inset-0 rounded-2xl pointer-events-none"
             style={{
               boxShadow: '0 0 30px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
             }}
           />
-          
+
           <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[150%] h-24 pointer-events-none"
             style={{ background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.15) 0%, transparent 60%)' }}
           />
-          
+
           <DepthLayer depth={index} className="relative z-10">
             <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center mb-3 group-hover:bg-gold/20 transition-colors duration-500">
               <feature.icon className="w-6 h-6 text-gold" />
@@ -356,7 +450,7 @@ FeatureCardPremium.displayName = 'FeatureCardPremium';
 
 const FeaturesSectionPremium = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  
+
   const features: FeatureData[] = [
     {
       icon: Trophy,
@@ -377,11 +471,11 @@ const FeaturesSectionPremium = () => {
 
   useEffect(() => {
     if (!sectionRef.current) return;
-    
+
     const section = sectionRef.current;
     const header = section.querySelector('.features-header');
     const cards = section.querySelectorAll('.feature-card-item');
-    
+
     const ctx = gsap.context(() => {
       // Header animation
       const headerTl = gsap.timeline({
@@ -392,14 +486,14 @@ const FeaturesSectionPremium = () => {
           scrub: 1.5,
         }
       });
-      
+
       if (header) {
         headerTl.fromTo(header,
           { y: 60, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.5, ease: 'expo.out' }
         );
       }
-      
+
       // Cards animation with stagger
       if (cards.length > 0) {
         gsap.fromTo(cards,
@@ -421,12 +515,12 @@ const FeaturesSectionPremium = () => {
         );
       }
     }, section);
-    
+
     return () => ctx.revert();
   }, []);
 
   return (
-    <SeamlessSection 
+    <SeamlessSection
       className="py-24 px-4 relative overflow-hidden"
       transitionIn="fade"
       data-section="features"
@@ -458,15 +552,15 @@ const FeaturesSectionPremium = () => {
 
 const CTASectionPremium = () => {
   const ctaRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     if (!ctaRef.current) return;
-    
+
     const section = ctaRef.current;
     const heading = section.querySelector('h2');
     const paragraph = section.querySelector('p');
     const button = section.querySelector('a');
-    
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -476,28 +570,28 @@ const CTASectionPremium = () => {
           scrub: 1.5,
         }
       });
-      
+
       if (heading) tl.fromTo(heading,
         { y: 80, opacity: 0, scale: 0.95 },
         { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'expo.out' }
       );
-      
+
       if (paragraph) tl.fromTo(paragraph,
         { y: 50, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' },
         '-=0.2'
       );
-      
+
       if (button) tl.fromTo(button,
         { y: 40, opacity: 0, scale: 0.9 },
         { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'expo.out' },
         '-=0.15'
       );
     }, section);
-    
+
     return () => ctx.revert();
   }, []);
-  
+
   return (
     <SeamlessSection className="py-24 px-4" transitionIn="fade" data-section="cta">
       <div ref={ctaRef} className="max-w-4xl mx-auto text-center">
@@ -506,12 +600,12 @@ const CTASectionPremium = () => {
         >
           Gotowy na swojego Championa?
         </h2>
-        
+
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
           Przeglądaj naszą ekskluzywną kolekcję i znajdź idealnego gołębia
           dla swojej hodowli.
         </p>
-        
+
         <Link
           to="/champions"
           data-magnetic
@@ -530,14 +624,85 @@ const Index = () => {
   const { user, profile, loading } = useAuth();
   const [showAuthMessage, setShowAuthMessage] = useState(false);
 
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const followerRef = useRef<HTMLDivElement>(null);
+
+
+  const cursorSpring = useSpringPhysics({ stiffness: 0.15, damping: 0.25 });
+  const followerSpring = useSpringPhysics({ stiffness: 0.08, damping: 0.3 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      cursorSpring.setTarget(e.clientX, e.clientY);
+      followerSpring.setTarget(e.clientX, e.clientY);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    const animateCursor = () => {
+      const cursorPos = cursorSpring.update();
+      const followerPos = followerSpring.update();
+
+      if (cursorRef.current) {
+        gsap.set(cursorRef.current, {
+          x: cursorPos.x,
+          y: cursorPos.y,
+          xPercent: -50,
+          yPercent: -50
+        });
+      }
+
+      if (followerRef.current) {
+        gsap.set(followerRef.current, {
+          x: followerPos.x,
+          y: followerPos.y,
+          xPercent: -50,
+          yPercent: -50
+        });
+      }
+
+      requestAnimationFrame(animateCursor);
+    };
+
+    animateCursor();
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [cursorSpring, followerSpring]);
+
   useEffect(() => {
     document.body.classList.add('home-page');
     ScrollTrigger.refresh();
-    
+
     return () => {
       document.body.classList.remove('home-page');
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
+  }, []);
+
+  useEffect(() => {
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-section], section'));
+    if (sections.length > 1) {
+      const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      const snapPoints = sections.map((sec) => {
+        const top = sec.getBoundingClientRect().top + window.scrollY;
+        const progress = top / (docHeight - window.innerHeight);
+        return Math.min(1, Math.max(0, progress));
+      });
+      const st = ScrollTrigger.create({
+        trigger: document.body,
+        start: 'top top',
+        end: 'bottom bottom',
+        snap: {
+          snapTo: snapPoints,
+          duration: { min: 0.2, max: 0.8 },
+          delay: 0.05,
+          ease: 'power1.inOut',
+        },
+      });
+      return () => st.kill();
+    }
   }, []);
 
   // Debug hotkeys logic preserved from original Index.tsx
@@ -553,9 +718,8 @@ const Index = () => {
           const accTop = acc.getBoundingClientRect().top + window.scrollY;
           return dist < Math.abs(scrollY - accTop) ? sec : acc;
         }, null);
-        console.log(`[DEBUG] scrollY=${Math.round(scrollY)} nearest=${nearest?.dataset?.section ?? 'unknown'}`);
       }
-      
+
       if (e.key && e.key.toLowerCase() === 'g' && e.ctrlKey && e.shiftKey) {
         console.clear();
         import('@/debug/gsap-diagnostic').then(module => {
@@ -566,6 +730,8 @@ const Index = () => {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  // Auth message logic preserved from original Index.tsx
 
   // Auth message logic preserved from original Index.tsx
   useEffect(() => {
@@ -610,25 +776,100 @@ const Index = () => {
     }
   };
 
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const reveals = document.querySelectorAll('[data-reveal]');
+      reveals.forEach((el) => {
+        const type = el.getAttribute('data-reveal');
+
+        // COMMON CONFIG: Soft Rise & Blur (Premium Feel)
+        const softBase = {
+          opacity: 0,
+          y: 30, // Subtle movement
+          filter: 'blur(10px)', // Cinematic blur
+          scale: 0.98,
+        };
+
+        const visibleBase = {
+          opacity: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          scale: 1,
+          duration: 1.4,
+          ease: 'power3.out', // Smooth deceleration
+        };
+
+        switch (type) {
+          case 'slide-up':
+          case 'stagger':
+            gsap.fromTo(el, softBase, {
+              ...visibleBase,
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 85%',
+                toggleActions: 'play none none reverse'
+              }
+            });
+            break;
+          case 'scale':
+            gsap.fromTo(el,
+              { ...softBase, scale: 0.95 },
+              {
+                ...visibleBase,
+                duration: 1.6,
+                scrollTrigger: {
+                  trigger: el,
+                  start: 'top 85%',
+                  toggleActions: 'play none none reverse'
+                }
+              }
+            );
+            break;
+          case 'clip':
+            gsap.fromTo(el,
+              { clipPath: 'inset(10% 0 5% 0)', opacity: 0, filter: 'blur(5px)' },
+              {
+                clipPath: 'inset(0% 0 0% 0)',
+                opacity: 1,
+                filter: 'blur(0px)',
+                duration: 1.5,
+                ease: 'power3.out',
+                scrollTrigger: {
+                  trigger: el,
+                  start: 'top 80%',
+                  toggleActions: 'play none none reverse'
+                }
+              }
+            );
+            break;
+        }
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
   const authMessage = getAuthMessage();
 
   return (
     <div className="min-h-screen relative isolate overflow-hidden">
       <Header />
-      <ProgressIndicator color="rgba(212, 175, 55, 0.8)" height={2} />
-      
-      <CursorFollower size={24} color="rgba(212, 175, 55, 0.4)" />
+
+      <ProgressIndicator />
+
+
+      <div
+        ref={cursorRef}
+        className="custom-cursor-main"
+      />
+      <div
+        ref={followerRef}
+        className="cursor-follower-main"
+      />
+
+
 
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        <DepthLayer depth={1}>
-          <div className="absolute top-20 left-10 w-32 h-32 bg-gold/5 rounded-full blur-2xl" />
-        </DepthLayer>
-        <DepthLayer depth={2}>
-          <div className="absolute top-1/3 right-20 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl" />
-        </DepthLayer>
-        <DepthLayer depth={3}>
-          <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
-        </DepthLayer>
       </div>
 
       {authMessage && (
@@ -648,23 +889,34 @@ const Index = () => {
         />
       )}
 
-      <div className="relative z-10">
+      {/* Increased spacing to prevent overlapping (space-y-48) */}
+      <div className="relative z-10 space-y-48">
         <HeroPremium />
-        
-        <AboutSection />
-        
-        <div id="champions" data-reveal data-section="champions">
+
+        <div data-reveal="slide-up">
+          <AboutSection />
+        </div>
+
+        <div id="champions" data-reveal="scale" data-section="champions">
           <Carousel3D />
         </div>
-        
-        <FeaturesSectionPremium />
-        
-        <PressSection />
-        
-        <CTASectionPremium />
-        
-        <ContactSection />
-        
+
+        <SeamlessSection pin scrub={1} transitionIn="fade">
+          <FeaturesSectionPremium />
+        </SeamlessSection>
+
+        <div data-reveal="slide-up">
+          <PressSection />
+        </div>
+
+        <div data-reveal="scale">
+          <CTASectionPremium />
+        </div>
+
+        <div data-reveal="clip">
+          <ContactSection />
+        </div>
+
         <Footer />
       </div>
     </div>

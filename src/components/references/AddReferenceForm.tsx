@@ -378,7 +378,7 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="hidden"
+          className="block"
         >
           <label className="block text-xs font-medium text-white mb-1">
             <Camera className="w-4 h-4 inline mr-2" />
@@ -530,7 +530,7 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                         <span>Dodaj</span>
                       </motion.button>
                     {achievement.results.map((result, resultIndex) => (
-                      <div key={resultIndex} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div key={resultIndex} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-2">
                         <div className="md:col-span-2">
                           <input
                             type="text"
@@ -573,7 +573,7 @@ export function AddReferenceForm({ onSuccess, onCancel }: AddReferenceFormProps)
                           </select>
                         </div>
 
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 flex-wrap">
                           <input
                             type="date"
                             value={result.date}

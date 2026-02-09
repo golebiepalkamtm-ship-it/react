@@ -35,6 +35,40 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
+  private getAlternateBaseUrl(): string | null {
+    try {
+      const url = new URL(this.baseUrl);
+      if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') return null;
+      const port = url.port || (url.protocol === 'https:' ? '443' : '80');
+      const nextPort = port === '8001' ? '8002' : port === '8002' ? '8001' : null;
+      if (!nextPort) return null;
+      url.port = nextPort;
+      return url.toString().replace(/\/$/, '');
+    } catch {
+      return null;
+    }
+  }
+
+  private switchToAlternateBaseUrl(): boolean {
+    const alternate = this.getAlternateBaseUrl();
+    if (!alternate || alternate === this.baseUrl) return false;
+    this.baseUrl = alternate;
+    return true;
+  }
+
+  private async withAlternateBase<T>(runner: () => Promise<T>): Promise<T> {
+    try {
+      return await runner();
+    } catch (error) {
+      const alt = this.getAlternateBaseUrl();
+      if (alt && alt !== this.baseUrl) {
+        this.baseUrl = alt;
+        return runner();
+      }
+      throw error;
+    }
+  }
+
   private buildUrl(endpoint: string, params?: Record<string, string | number | undefined>): string {
     const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     if (params) {
@@ -54,64 +88,91 @@ class ApiClient {
     }
   }
 
+  private readCSRFToken(): string | undefined {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'csrf-token') {
+        return value;
+      }
+    }
+    return undefined;
+  }
+
+  private async ensureCsrfCookie() {
+    if (!this.isSameOrigin()) return;
+    if (this.readCSRFToken()) return;
+    try {
+      await fetch(this.buildUrl('/csrf-token'), { credentials: 'include' });
+    } catch (e) {
+      logger.warn('CSRF cookie fetch failed', e);
+    }
+  }
+
   private async request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
     const { params, ...fetchConfig } = config;
-    const url = this.buildUrl(endpoint, params);
-    const sameOrigin = this.isSameOrigin();
+    return this.withAlternateBase(async () => {
+      const url = this.buildUrl(endpoint, params);
+      const sameOrigin = this.isSameOrigin();
 
-    logger.debug('API Request:', url);
+      logger.debug('API Request:', url);
 
-    // Pobierz CSRF token z cookie; jeśli brak, spróbuj ustawić go przez wywołanie /csrf-token
-    const getCSRFToken = (): string | undefined => {
-      const cookies = document.cookie.split(';');
-      for (const cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'csrf-token') {
-          return value;
-        }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        ...(fetchConfig.headers as Record<string, string> | undefined || {}),
+      };
+      if (fetchConfig.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(fetchConfig.method)) {
+        await this.ensureCsrfCookie();
+        const csrf = this.readCSRFToken();
+        if (csrf) headers['X-CSRF-Token'] = csrf;
       }
-      return undefined;
-    };
 
-    const ensureCsrfCookie = async () => {
-      if (!sameOrigin) return; // unikaj CORS dla zewnętrznego API
-      if (getCSRFToken()) return;
-      try {
-        await fetch(this.buildUrl('/csrf-token'), { credentials: 'include' });
-      } catch (e) {
-        logger.warn('CSRF cookie fetch failed', e);
+      const response = await fetch(url, {
+        ...fetchConfig,
+        headers,
+        credentials: sameOrigin ? 'include' : 'omit',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(errorData.message || 'Błąd serwera');
       }
-    };
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-      ...(fetchConfig.headers as Record<string, string> | undefined || {}),
-    };
-    if (fetchConfig.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(fetchConfig.method)) {
-      await ensureCsrfCookie();
-      const csrf = getCSRFToken();
-      if (csrf) headers['X-CSRF-Token'] = csrf;
-    }
-
-    const response = await fetch(url, {
-      ...fetchConfig,
-      headers,
-      credentials: sameOrigin ? 'include' : 'omit',
-      signal: fetchConfig.signal,
+      return response.json();
     });
-    
-    logger.debug('API Response status:', response.status);
+  }
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      logger.error('API Error:', error);
-      throw new Error(error.error || `HTTP ${response.status}`);
-    }
+  async postFormData<T>(endpoint: string, formData: FormData, token?: string): Promise<T> {
+    return this.withAlternateBase(async () => {
+      const url = this.buildUrl(endpoint);
+      const sameOrigin = this.isSameOrigin();
 
-    const data = await response.json();
-    logger.debug('API Response data:', data);
-    return data;
+      const headers: Record<string, string> = {
+        'X-Requested-With': 'XMLHttpRequest',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
+      await this.ensureCsrfCookie();
+      const csrf = this.readCSRFToken();
+      if (csrf) {
+        headers['X-CSRF-Token'] = csrf;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers,
+        credentials: sameOrigin ? 'include' : 'omit',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(errorData.message || 'Błąd serwera');
+      }
+
+      return response.json();
+    });
   }
 
   async get<T>(endpoint: string, params?: Record<string, string | number | undefined>): Promise<T> {
@@ -155,52 +216,6 @@ class ApiClient {
       body: data ? JSON.stringify(data) : undefined,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-  }
-
-  async postFormData<T>(endpoint: string, formData: FormData, token?: string): Promise<T> {
-    const url = this.buildUrl(endpoint);
-
-    const getCSRFToken = (): string | undefined => {
-      const cookies = document.cookie.split(';');
-      for (const cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'csrf-token') {
-          return value;
-        }
-      }
-      return undefined;
-    };
-
-    const ensureCsrfCookie = async () => {
-      if (getCSRFToken()) return;
-      try {
-        await fetch(this.buildUrl('/csrf-token'), { credentials: 'include' });
-      } catch (e) {
-        logger.warn('CSRF cookie fetch failed', e);
-      }
-    };
-
-    const headers: Record<string, string> = {
-      'X-Requested-With': 'XMLHttpRequest',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-    await ensureCsrfCookie();
-    const csrf = getCSRFToken();
-    if (csrf) headers['X-CSRF-Token'] = csrf;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-      headers,
-      credentials: this.isSameOrigin() ? 'include' : 'omit',
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
-      throw new Error(error.error || `HTTP ${response.status}`);
-    }
-
-    return response.json();
   }
 
   // Metoda do pobierania CSRF token

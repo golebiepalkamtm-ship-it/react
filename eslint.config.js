@@ -25,6 +25,9 @@ export default tseslint.config(
       "tailwind.config.ts",
       "vite.config.ts",
       "vitest.config.ts",
+      "supabase-mcp/**",
+      "playwright.config.ts",
+      "e2e/**"
     ] 
   },
   {

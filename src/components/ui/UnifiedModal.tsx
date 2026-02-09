@@ -93,8 +93,8 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   message,
   icon,
   showCloseButton = true,
-  closeOnBackdrop = true,
-  closeOnEscape = true,
+  closeOnBackdrop = false,
+  closeOnEscape = false,
   confirmButton,
   cancelButton,
   children,
@@ -104,7 +104,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   containerClassName = '',
   backdropClassName = '',
   hideGradient = false,
-}: UnifiedModalProps) => {
+}) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const config = typeConfig[type];
   const Icon = icon || config.icon;
@@ -137,7 +137,6 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   }, [isOpen, closeOnEscape, onClose]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Tylko na desktop (>= 768px)
     if (draggable && window.innerWidth >= 768 && modalRef.current) {
       isDragging.current = true;
       startPos.current = {
@@ -150,16 +149,15 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging.current && modalRef.current) {
       const rect = modalRef.current.getBoundingClientRect();
-      const maxX = window.innerWidth - rect.width;
-      const maxY = window.innerHeight - rect.height;
-      
+      const boundX = Math.max(window.innerWidth, rect.width) * 2;
+      const boundY = Math.max(window.innerHeight, rect.height) * 2;
+
       let newX = e.clientX - startPos.current.x;
       let newY = e.clientY - startPos.current.y;
-      
-      // Ograniczenia - nie wychodzić poza ekran
-      newX = Math.max(-maxX / 2, Math.min(maxX / 2, newX));
-      newY = Math.max(-maxY / 2, Math.min(maxY / 2, newY));
-      
+
+      newX = Math.max(-boundX, Math.min(boundX, newX));
+      newY = Math.max(-boundY, Math.min(boundY, newY));
+
       modalPos.current = { x: newX, y: newY };
       modalRef.current.style.transform = `translate(${modalPos.current.x}px, ${modalPos.current.y}px)`;
     }
@@ -170,7 +168,6 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   };
 
   useEffect(() => {
-    // Reset pozycji przy otwieraniu modala
     if (isOpen && modalRef.current) {
       modalPos.current = { x: 0, y: 0 };
       modalRef.current.style.transform = 'translate(0px, 0px)';
@@ -200,88 +197,86 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 overflow-y-auto"
+          className="fixed inset-0 z-[2000] flex items-center justify-center p-4 md:p-8 overflow-y-auto"
         >
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className={`absolute inset-0 bg-transparent ${backdropClassName}`}
+            className={`absolute inset-0 bg-black/60 backdrop-blur-md ${backdropClassName}`}
             onClick={closeOnBackdrop ? onClose : undefined}
           />
-          
-          {/* Modal */}
+
           <motion.div
             ref={modalRef}
-            initial={{ opacity: 0, scale: 0.96, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 20 }}
-            transition={{ 
-              type: 'spring', 
-              damping: 25, 
-              stiffness: 400,
-              duration: 0.2
+            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+            transition={{
+              type: 'spring',
+              damping: 30,
+              stiffness: 300,
+              duration: 0.3
             }}
-            className={`relative w-full ${sizeConfig[size]} bg-gray-900/90 rounded-none md:rounded-2xl shadow-2xl border border-white/30 overflow-visible flex flex-col ${containerClassName}`}
+            className={`relative w-full ${sizeConfig[size]} bg-gray-950/95 rounded-2xl shadow-2xl border border-white/20 overflow-visible flex flex-col ${containerClassName} my-auto`}
             style={{ cursor: draggable && window.innerWidth >= 768 ? 'move' : 'default' }}
             onMouseDown={(e) => {
-              // Tylko na desktop i tylko gdy kliknięto w header
-              if (window.innerWidth >= 768 && draggable && (e.target as HTMLElement).closest('.modal-header')) {
-                handleMouseDown(e);
+              if (window.innerWidth >= 768 && draggable) {
+                const target = e.target as HTMLElement;
+                const interactive = target.closest('input,textarea,button,select,label,[role="button"],a');
+                if (!interactive) {
+                  handleMouseDown(e);
+                }
               }
             }}
           >
-            {/* Background Gradient */}
             {!hideGradient && (
-              <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} pointer-events-none`} />
+              <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-50 pointer-events-none rounded-2xl`} />
             )}
-            
-            {/* Header */}
-            <div className="relative z-10 flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 border-b border-white/10 modal-header">
-              <div className="flex items-center gap-2.5">
+
+            <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 modal-header">
+              <div className="flex items-center gap-4">
                 {Icon && (
-                  <div className={`p-2 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}>
+                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}>
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                 )}
                 <div>
                   {title && (
-                    <h2 className="text-lg md:text-xl font-semibold text-white leading-tight">{title}</h2>
+                    <h2 className="text-xl md:text-2xl font-display font-bold text-white leading-tight tracking-tight">{title}</h2>
                   )}
                   {message && (
-                    <p className="text-sm text-white/70 mt-1">{message}</p>
+                    <p className="text-sm text-white/60 mt-0.5">{message}</p>
                   )}
                 </div>
               </div>
-              
+
               {showCloseButton && (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={onClose}
-                  className="text-white/50 hover:text-white hover:bg-white/10 transition-colors h-8 w-8 md:h-9 md:w-9"
+                  className="text-white/40 hover:text-white hover:bg-white/5 transition-all h-10 w-10 rounded-full"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </Button>
               )}
             </div>
-            
-            <div className={`relative z-10 flex-1 ${bodyScrollable ? 'overflow-auto' : 'overflow-hidden'}`}>
-              <div className="w-full max-w-5xl mx-auto px-2 md:px-3 pt-0 pb-1 md:pt-0 md:pb-1">
+
+            <div className="relative z-10 flex-1 overflow-visible">
+              <div className="w-full mx-auto px-6 py-6">
                 {children}
               </div>
             </div>
-            
-            {/* Actions */}
+
             {(confirmButton || cancelButton) && (
-              <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 px-4 md:px-6 py-3 md:py-4 border-t border-white/10 w-full">
+              <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 px-6 py-4 border-t border-white/5 w-full">
                 {cancelButton && (
                   <Button
                     variant="ghost"
                     onClick={cancelButton.onClick}
-                    className="h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-black text-white border border-white/15 hover:bg-black/80 hover:text-white"
+                    className="h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-black/40 text-white border border-white/10 hover:bg-black/60 hover:text-white hover:border-white/20 transition-all"
                   >
                     {cancelButton.text}
                   </Button>
@@ -290,7 +285,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                   <Button
                     onClick={confirmButton.onClick}
                     variant={confirmButton.variant || 'default'}
-                    className={`h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-gradient-to-r ${config.buttonGradient} text-white border-0 shadow-lg ${config.buttonShadow}`}
+                    className={`h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-gradient-to-r ${config.buttonGradient} text-white border-0 shadow-lg ${config.buttonShadow} hover:scale-[1.02] active:scale-[0.98] transition-all`}
                   >
                     {confirmButton.text}
                   </Button>

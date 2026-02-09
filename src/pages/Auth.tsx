@@ -42,7 +42,7 @@ export default function Auth() {
   const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   // Unified modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<MessageType>('success');
@@ -61,7 +61,7 @@ export default function Auth() {
 
   const handleModalConfirm = () => {
     setModalOpen(false);
-    
+
     if (modalAction === 'redirect' && profile?.role !== 'ADMIN') {
       // Przekieruj na podstawie roli
       if (profile?.role === "USER_REGISTERED") {
@@ -73,13 +73,12 @@ export default function Auth() {
   };
 
   useEffect(() => {
-    console.log('Auth useEffect:', { loading, user: !!user, profile: profile?.role, modalOpen, hasShownOAuthSuccess: hasShownOAuthSuccess.current });
-    
+
     // Po OAuth callback - jeśli user jest zalogowany i nie pokazaliśmy jeszcze modalu sukcesu
     if (!loading && user && !modalOpen && !hasShownOAuthSuccess.current) {
       // Sprawdź czy to powrót z OAuth (brak błędu w URL i user właśnie się zalogował)
       const isOAuthReturn = !query.get("error") && user;
-      
+
       if (isOAuthReturn) {
         hasShownOAuthSuccess.current = true;
         const role = profile?.role ?? "USER_REGISTERED";
@@ -105,11 +104,11 @@ export default function Auth() {
     const errorParam = query.get("error");
     const errorDescription = query.get("error_description");
     const errorCode = query.get("error_code");
-    
+
     if (errorParam && !modalOpen) {
       let errorMessage = "Błąd autoryzacji";
       let errorTitle = "Błąd logowania";
-      
+
       if (errorParam === "server_error" || errorParam === "unexpected_failure" || errorCode === "unexpected_failure") {
         errorTitle = "Błąd konfiguracji OAuth";
         errorMessage = "Nie udało się zakończyć logowania przez Google.\n\nNajczęstsze przyczyny:\n1. Brak Client Secret w Supabase Dashboard\n2. Nieprawidłowy Client Secret\n3. Brak JavaScript Origin w Google Cloud Console";
@@ -126,9 +125,9 @@ export default function Auth() {
           errorMessage = errorDescription.replace(/\+/g, " ");
         }
       }
-      
+
       showModal('error', errorTitle, errorMessage, 'close');
-      
+
       // Clean up URL by removing error params
       const cleanParams = new URLSearchParams();
       if (mode) cleanParams.set("mode", mode);
@@ -149,26 +148,26 @@ export default function Auth() {
 
   const handleOAuthSignIn = async (provider: 'google' | 'facebook') => {
     setIsOAuthSubmitting(true);
-    
+
     pushToast({
       tone: 'info',
       title: `Inicjacja logowania przez ${provider === 'google' ? 'Google' : 'Facebook'}...`,
       message: "Przekierowujemy do strony logowania...",
     });
-    
+
     try {
       const { error } =
         provider === 'google'
           ? await signInWithGoogle()
           : await signInWithFacebook();
-      
+
       if (error) {
         const errorMessage = error.message || `Błąd logowania przez ${provider === 'google' ? 'Google' : 'Facebook'}`;
         showModal('error', 'Błąd logowania', errorMessage, 'close');
         setIsOAuthSubmitting(false);
         return;
       }
-      
+
       // OAuth will redirect
     } catch (err) {
       const message = err instanceof Error ? err.message : `Błąd logowania przez ${provider === 'google' ? 'Google' : 'Facebook'}`;
@@ -179,7 +178,6 @@ export default function Auth() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('🚀 onSubmit started:', { mode, email: email.substring(0, 3) + '***' });
     setIsSubmitting(true);
 
     pushToast({
@@ -218,14 +216,14 @@ export default function Auth() {
         }
 
         showModal(
-          'success', 
-          'Rejestracja zakończona!', 
+          'success',
+          'Rejestracja zakończona!',
           `Twoje konto zostało utworzone pomyślnie!\n\nWysłaliśmy email weryfikacyjny na adres:\n${cleanEmail}\n\nSprawdź swoją skrzynkę odbiorczą oraz folder SPAM.\nKliknij link w wiadomości, aby aktywować konto.`,
           'close'
         );
       } else if (mode === "login") {
         const { error } = await signIn(cleanEmail, password);
-        
+
         if (error) {
           const missingEnvMsg = !isSupabaseConfigured
             ? `Konfiguracja Supabase nie jest ustawiona.\nBrakujące zmienne: ${missingSupabaseEnv.join(', ') || 'nieznane'}.\nUzupełnij .env.web i uruchom ponownie.`
@@ -239,7 +237,7 @@ export default function Auth() {
           setIsSubmitting(false);
           return;
         }
-        
+
         const action = profile?.role === 'ADMIN' ? 'close' : 'redirect';
         showModal('success', 'Zalogowano pomyślnie!', 'Witamy w serwisie. Kliknij OK, aby przejść dalej.', action);
       } else if (mode === "forgot") {
@@ -349,7 +347,7 @@ export default function Auth() {
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
               style={{ transformStyle: "preserve-3d" }}
             >
-              <h1 className="font-display text-4xl sm:text-5xl xl:text-6xl text-white tracking-tight leading-tight text-center whitespace-nowrap">
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-tight text-center whitespace-nowrap">
                 Pałka <span className="text-gold">MTM</span>
               </h1>
               <p className="text-white/80 mt-2 text-base sm:text-lg tracking-wide font-light text-center">
@@ -464,6 +462,8 @@ export default function Auth() {
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                     <Input
                       id="username"
+                      name="username"
+                      data-testid="auth-username"
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
@@ -483,6 +483,8 @@ export default function Auth() {
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                   <Input
                     id="email"
+                    name="email"
+                    data-testid="auth-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -503,6 +505,8 @@ export default function Auth() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                     <Input
                       id="password"
+                      name="password"
+                      data-testid="auth-password"
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -531,6 +535,8 @@ export default function Auth() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                     <Input
                       id="confirmPassword"
+                      name="confirmPassword"
+                      data-testid="auth-confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -576,6 +582,7 @@ export default function Auth() {
                 type="submit"
                 variant="heroGold"
                 className="w-full rounded-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                data-testid="auth-submit"
                 disabled={isSubmitting}
               >
                 {isSubmitting

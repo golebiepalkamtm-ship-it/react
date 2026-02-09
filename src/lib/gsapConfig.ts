@@ -18,25 +18,24 @@ if (typeof window !== 'undefined') {
 
 // Global GSAP configuration
 gsap.config({
-  force3D: true,
+  force3D: true, // Zawsze używaj 3D dla płynności na GPU
   nullTargetWarn: false,
-  autoSleep: 60,
-  units: { left: "%", top: "%", rotation: "rad" }
 });
 
-// Force 60 FPS ticker
-gsap.ticker.fps(60);
-gsap.ticker.lagSmoothing(500, 33); // Limit lag compensation to maintain smooth 60fps
-
-// Premium defaults - expo.out dla luksusowego, wybrzmiewającego ruchu
-gsap.defaults({ 
+// Premium defaults - expo.out to klucz do ultra-płynnych przejść
+gsap.defaults({
   ease: "expo.out",
-  duration: 1.2 
+  duration: 1.2
 });
 
-ScrollTrigger.config({ 
+ScrollTrigger.config({
   ignoreMobileResize: true,
-  anticipatePin: 1 // Smooth pinning
+  autoRefreshEvents: "visibilitychange,DOMContentLoaded,load,resize" // Stabilność
+});
+
+ScrollTrigger.defaults({
+  toggleActions: "play none none reverse",
+  markers: false
 });
 
 // Export pre-configured GSAP

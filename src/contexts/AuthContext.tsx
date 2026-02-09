@@ -134,20 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logger.info(`Auto-upgrading user role from ${existingProfile.role} to ${newRole}`);
         
         // Return upgraded profile immediately for UI responsiveness
-        const upgradedProfile = { ...existingProfile, role: newRole };
-        
-        // Trigger DB update in background
-        const client = supabase;
-        if (client) {
-          client.from('users')
-            .update({ role: newRole })
-            .eq('id', authUser.id)
-            .then(({ error }) => {
-              if (error) logger.error('Failed to sync user role to DB:', error);
-            });
-        }
-          
-        return upgradedProfile;
+        return { ...existingProfile, role: newRole };
       }
 
       return existingProfile;
@@ -236,7 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) {
-        logger.error('Error fetching profile:', error);
+        logger.error('Error fetching profile:', { message: error.message, details: error.details, hint: error.hint, code: error.code });
         const ensured = await ensureProfile(authUser, null);
         setProfile(ensured);
       } else {
@@ -397,7 +384,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes - set up BEFORE init to catch OAuth callback
     const { data: { subscription } } = client.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        logger.debug && logger.debug('Auth state change', { event, hasSession: !!session, isInitialized });
+        if (logger.debug) {
+          logger.debug('Auth state change', { event, hasSession: !!session, isInitialized });
+        }
         
         // Skip duplicate processing during initial OAuth exchange
         if (!isInitialized && event === 'INITIAL_SESSION') {
@@ -407,20 +396,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Supabase recovery flow: enforce reset screen
           const resetUrl = new URL('/auth?mode=reset', window.location.origin);
           window.history.replaceState({}, document.title, resetUrl.toString());
-        }
-        if (event === 'SIGNED_IN' && session?.user) {
-          const provider = (session.user as any)?.app_metadata?.provider ?? (session.user as any)?.user_metadata?.provider;
-          const emailVerified = Boolean((session.user as any)?.email_confirmed_at || (session.user as any)?.confirmed_at);
-          const email = session.user.email;
-          if (provider === 'google' && email && !emailVerified && !hasSentOAuthVerification.current) {
-            hasSentOAuthVerification.current = true;
-            const { error } = await sendEmailVerification(email);
-            if (error) {
-              logger.error('Failed to send verification email after Google OAuth', error);
-            } else {
-              logger.info('Verification email sent after Google OAuth');
-            }
-          }
         }
         
         setSession(session);

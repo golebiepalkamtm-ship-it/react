@@ -6,10 +6,12 @@
     "paths": {
       "@/*": ["./src/*"]
     },
+    "lib": ["dom", "dom.iterable", "esnext"],
     "strict": true,
     "skipLibCheck": true,
     "allowJs": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "react-jsx"
   }
 }

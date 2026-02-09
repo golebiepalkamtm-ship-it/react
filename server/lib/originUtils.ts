@@ -9,6 +9,14 @@ const parseOrigin = (input?: string | null) => {
   }
 };
 
+const normalizeOrigin = (raw?: string | null) => {
+  if (!raw) return null;
+  const trimmed = raw.trim().replace(/^["'`]|["'`]$/g, '').replace(/\/+$/, '');
+  const parsed = parseOrigin(trimmed);
+  if (parsed) return parsed;
+  return trimmed || null;
+};
+
 const STATIC_CLIENT_ORIGINS = [
   validatedEnv.CLIENT_URL,
   'https://champion-pigeon-web.onrender.com',
@@ -18,8 +26,8 @@ const STATIC_CLIENT_ORIGINS = [
   'https://net-pocket.com',
   'https://www.net-pocket.com',
   'https://api.net-pocket.com',
-  ...(validatedEnv.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [])
-].filter(Boolean);
+  ...(validatedEnv.ALLOWED_ORIGINS ? validatedEnv.ALLOWED_ORIGINS.split(',').map(normalizeOrigin) : [])
+].map(normalizeOrigin).filter(Boolean) as string[];
 
 const SUPABASE_ORIGINS = [
   parseOrigin(validatedEnv.SUPABASE_URL),
@@ -67,7 +75,10 @@ export const getStripeOrigins = () => [...STRIPE_ORIGINS];
 export const getGoogleAuthOrigins = () => [...GOOGLE_AUTH_ORIGINS];
 export const getFontOrigins = () => [...FONT_ORIGINS];
 
-const isDevOrigin = (origin: string) => validatedEnv.NODE_ENV === 'development' && DEV_HOST_REGEX.test(origin);
+const isDevOrigin = (origin: string) => {
+  const norm = normalizeOrigin(origin);
+  return !!(norm && DEV_HOST_REGEX.test(norm));
+};
 
 const isProdWildcardOrigin = (origin: string) =>
   validatedEnv.NODE_ENV === 'production' && PROD_WILDCARD_PATTERNS.some(pattern => pattern.test(origin));
@@ -75,8 +86,9 @@ const isProdWildcardOrigin = (origin: string) =>
 export const isAllowedOrigin = (origin?: string) => {
   // Allow requests with no origin (mobile apps, curl, etc.)
   if (!origin) return true;
-  if (parseOrigin(origin) === parseOrigin(validatedEnv.CLIENT_URL)) return true; // Allow self
-  if (getAllowedOrigins().includes(origin)) return true;
+  const normalized = normalizeOrigin(origin);
+  if (normalized && normalized === normalizeOrigin(validatedEnv.CLIENT_URL)) return true; // Allow self
+  if (normalized && getAllowedOrigins().includes(normalized)) return true;
   return isDevOrigin(origin) || isProdWildcardOrigin(origin);
 };
 
@@ -84,7 +96,8 @@ export const isAllowedReferer = (referer?: string) => {
   if (!referer) return false;
   try {
     const refererOrigin = new URL(referer).origin;
-    return isAllowedOrigin(refererOrigin);
+    const normalized = normalizeOrigin(refererOrigin);
+    return normalized && isAllowedOrigin(normalized);
   } catch {
     return false;
   }

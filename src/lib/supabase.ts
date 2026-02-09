@@ -9,9 +9,18 @@ const sanitizeEnvValue = (value: string | undefined) => {
   return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
 };
 
-const supabaseUrl = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_URL);
-const supabaseAnonKey = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY);
-const supabasePublishableKey = sanitizeEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+const defaultSupabaseUrl = 'https://nctvwxiqzbedgcmetyal.supabase.co';
+const defaultPublishableKey = 'sb_publishable_5PhjleD4r27I7pK531AOBg_6MywaGyL';
+const defaultAnonKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jdHZ3eGlxemJlZGdjbWV0eWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0Nzk2NDUsImV4cCI6MjA4MjA1NTY0NX0.A3ie8bcvSZeXclTKgMyh5L3uz_LPTjlHz95isEQ3kJQ';
+
+const supabaseUrl =
+  sanitizeEnvValue(import.meta.env.VITE_SUPABASE_URL) || defaultSupabaseUrl;
+const supabaseAnonKey =
+  sanitizeEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY) || defaultAnonKey;
+const supabasePublishableKey =
+  sanitizeEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) ||
+  defaultPublishableKey;
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 

@@ -42,14 +42,59 @@ const FileUpload = ({
     return true;
   };
 
-  const handleFiles = (newFiles: FileList | null) => {
+  const resizeImage = async (file: File, targetMax: number, mime: string, quality: number): Promise<File> => {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = dataUrl;
+    });
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+    const maxSide = Math.max(w, h);
+    const scale = maxSide > targetMax ? targetMax / maxSide : 1;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, mime, quality));
+    if (!blob) return file;
+    const nameBase = file.name.replace(/\.[^/.]+$/, '');
+    const ext = mime === 'image/webp' ? 'webp' : 'jpg';
+    const newFile = new File([blob], `${nameBase}.${ext}`, { type: mime, lastModified: Date.now() });
+    return newFile;
+  };
+
+  const handleFiles = async (newFiles: FileList | null) => {
     if (!newFiles) return;
 
-    const validFiles = Array.from(newFiles).filter(validateFile);
+    const pickedFiles = Array.from(newFiles);
+    const processedFiles: File[] = [];
+    for (const f of pickedFiles) {
+      if (!validateFile(f)) continue;
+      if (f.type.startsWith('image/') && f.type !== 'image/gif') {
+        try {
+          const converted = await resizeImage(f, 1600, 'image/webp', 0.82);
+          processedFiles.push(converted);
+        } catch {
+          processedFiles.push(f);
+        }
+      } else {
+        processedFiles.push(f);
+      }
+    }
     const currentFiles = [...files];
     
     // Remove any files that are duplicates of existing files
-    const uniqueNewFiles = validFiles.filter(newFile => 
+    const uniqueNewFiles = processedFiles.filter(newFile => 
       !currentFiles.some(existingFile => 
         existingFile.name === newFile.name && 
         existingFile.size === newFile.size && 

@@ -112,6 +112,22 @@ export class NotificationManager {
     auctionTitle: string,
     timeLeft: string
   ): Promise<void> {
+    if (!prisma) return;
+
+    // Sprawdź czy powiadomienie już zostało wysłane w ciągu ostatnich 24h
+    const existing = await (prisma as any).notification.findFirst({
+      where: {
+        userId,
+        auctionId,
+        type: 'AUCTION_ENDING',
+        createdAt: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Ostatnie 24h
+        }
+      }
+    });
+
+    if (existing) return;
+
     await this.createNotification({
       userId,
       auctionId,
@@ -254,19 +270,32 @@ export class NotificationManager {
       const endingAuctions = await (prisma as any).auction.findMany({
         where: {
           status: 'ACTIVE',
-          endTime: {  // Użyj nazwy pola z schematu Prisma
+          endTime: {
             lte: thirtyMinutesFromNow,
             gte: new Date(),
           },
         },
-        // Usuń relacje, które nie istnieją w bazie
+        include: {
+          watchlist: true,
+        },
       });
 
       for (const auction of endingAuctions) {
-        const timeLeft = this.formatTimeLeft(auction.endTime);  // Użyj endTime
+        const timeLeft = this.formatTimeLeft(auction.endTime);
         
-        // Na razie pomiń powiadomienia - brakuje tabeli watchlist
-        console.log(`Auction ending soon: ${auction.title} ends ${timeLeft}`);
+        // Notify users in watchlist
+        if (auction.watchlist && auction.watchlist.length > 0) {
+          for (const item of auction.watchlist) {
+            await this.notifyAuctionEnding(
+              item.userId,
+              auction.id,
+              auction.title,
+              timeLeft
+            );
+          }
+        }
+        
+        console.log(`Auction ending soon: ${auction.title} ends ${timeLeft}. Notified ${auction.watchlist?.length || 0} users.`);
       }
     } catch (error) {
       console.error('Error checking ending auctions:', error);

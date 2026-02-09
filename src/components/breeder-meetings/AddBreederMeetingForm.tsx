@@ -114,7 +114,7 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
   };
 
   const content = (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-3xl mx-auto">
           {/* Header is rendered by the parent page to avoid duplicate titles */}
 
         {user ? (
@@ -152,20 +152,19 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-foreground text-sm font-medium mb-2">Tytuł spotkania *</label>
                       <input type="text" value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold" placeholder="np. Spotkanie w Lubaniu 2024" required />
                     </div>
                     <div>
+                      <label className="block text-foreground text-sm font-medium mb-2">Lokalizacja *</label>
+                      <input type="text" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold" placeholder="Gdzie odbyło się spotkanie?" required />
+                    </div>
+                    <div>
                       <label className="block text-foreground text-sm font-medium mb-2">Data spotkania *</label>
                       <input type="date" value={formData.date} onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))} title="Data spotkania" className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold" required />
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-foreground text-sm font-medium mb-2">Lokalizacja *</label>
-                    <input type="text" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold" placeholder="Gdzie odbyło się spotkanie?" required />
                   </div>
 
                   <div>
@@ -175,25 +174,21 @@ export default function AddBreederMeetingForm({ onSuccess, onCancel, embedded = 
 
                   <div>
                     <label className="block text-foreground text-sm font-medium mb-2">Zdjęcia ze spotkania *</label>
-                    <div className="border-2 border-dashed border-border hover:border-gold/50 transition-colors rounded-xl p-6 text-center">
+                    <div className="border-2 border-dashed border-border hover:border-gold/50 transition-colors rounded-xl p-3 text-center">
                       <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" id="image-upload" required />
-                      <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center space-y-4">
-                        <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center"><Camera className="w-8 h-8 text-gold" /></div>
-                        <div>
-                          <p className="text-foreground font-medium">Kliknij aby wybrać zdjęcia</p>
-                          <p className="text-muted-foreground text-sm">lub przeciągnij i upuść</p>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gold"><Upload className="w-4 h-4" /> <span className="text-sm">Wybierz pliki</span></div>
+                      <label htmlFor="image-upload" className="cursor-pointer flex items-center justify-center gap-3">
+                        <div className="w-10 h-10 bg-gold/10 rounded-full flex items-center justify-center"><Camera className="w-5 h-5 text-gold" /></div>
+                        <div className="text-foreground text-sm font-medium">Wybierz zdjęcia</div>
                       </label>
                     </div>
 
                     {previewImages.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-muted-foreground text-sm mb-3">Wybrano {previewImages.length} zdjęć</p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <p className="text-muted-foreground text-sm mb-2">Wybrano {previewImages.length} zdjęć</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                           {previewImages.map((preview, index) => (
                             <div key={index} className="relative group">
-                              <SmartImage src={preview} alt={`Podgląd ${index + 1}`} width={96} height={96} fitMode="contain" aspectRatio="square" className="w-full h-24 rounded-lg border border-border" />
+                              <SmartImage src={preview} alt={`Podgląd ${index + 1}`} width={48} height={48} fitMode="contain" aspectRatio="square" className="w-full h-12 rounded-lg border border-border" />
                               <button type="button" onClick={() => removeImage(index)} title="Usuń zdjęcie" className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"><X className="w-4 h-4" /></button>
                             </div>
                           ))}

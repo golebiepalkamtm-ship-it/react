@@ -41,6 +41,7 @@ export class AuctionCronService {
       this.isRunning = true;
       try {
         await this.checkEndingAuctions();
+        await NotificationManager.checkEndingAuctions();
       } catch (error) {
         logger.error('Error in auction cron job:', error);
       } finally {

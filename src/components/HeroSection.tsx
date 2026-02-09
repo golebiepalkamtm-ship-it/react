@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useCallback, useState, useLayoutEffect } from 'react';
 import {
   motion,
   useMotionValue,
@@ -14,6 +14,8 @@ import { Reveal, fadeInUp, scaleIn, buttonMicro } from '@/components/motion';
 import { MagneticButton } from '@/components/effects/MagneticButton';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 import { SplitText, ParallaxSection, ParallaxLayer } from '@/components/animations';
+import { gsap } from '@/lib/gsapConfig';
+import { initAllAnimations } from '@/lib/gsapAnimations';
 
 function HeroSection() {
   const heroSectionRef = useRef<HTMLElement | null>(null);
@@ -66,9 +68,9 @@ function HeroSection() {
       const distY = e.clientY - centerY;
       const distance = Math.sqrt(distX * distX + distY * distY);
       const maxDistance = 500;
-      
+
       setMousePos({ x: e.clientX, y: e.clientY });
-      
+
       if (distance < maxDistance) {
         const strength = 1 - distance / maxDistance;
         const nx = (distX / maxDistance) * strength;
@@ -88,96 +90,80 @@ function HeroSection() {
     my.set(0);
   }, [mx, my]);
 
+  useLayoutEffect(() => {
+    initAllAnimations();
+
+    // Custom Hero Timeline for extra premium feel
+    const tl = gsap.timeline({ delay: 0.5 });
+
+    tl.to('[data-reveal-line]', { width: '100px', duration: 1.5, ease: 'expo.inOut' })
+      .fromTo('[data-reveal-text]',
+        { opacity: 0, y: 30, filter: 'blur(10px)' },
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 2, ease: 'expo.out' },
+        "-=1"
+      )
+      .fromTo('[data-reveal-buttons]',
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1.5, ease: 'expo.out' },
+        "-=1.5"
+      );
+  }, []);
+
   return (
     <section
       ref={heroSectionRef}
       id="home"
-      className="relative min-h-screen overflow-hidden"
+      className="relative min-h-[95vh] flex items-center justify-center overflow-hidden"
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
     >
+      {/* Global dark overlay to unify background */}
+      <div className="absolute inset-0 bg-black/60 -z-10 pointer-events-none" />
+
       {/* Text content */}
-      <div className="relative z-60 w-full p-0 mt-20">
+      <div className="relative z-60 w-full py-20">
         <div className="container mx-auto px-4 text-center">
-          <Reveal variants={fadeInUp}>
-            <motion.div
-              ref={titleRef}
-              className="relative inline-block"
-              style={prefersReducedMotion ? undefined : ({
-                rotateX,
-                rotateY,
-                transformStyle: 'preserve-3d',
-              } as never)}
+          <div
+            ref={titleRef}
+            className="relative inline-block mb-10"
+            style={prefersReducedMotion ? undefined : ({
+              rotateX,
+              rotateY,
+              transformStyle: 'preserve-3d',
+            } as any)}
+          >
+            {/* Masked Title Reveal - Lusion Style */}
+            <h1
+              className="font-display text-5xl md:text-8xl lg:text-9xl text-white font-bold tracking-tight"
+              data-split-text
             >
-              {/* Floating particles with physics */}
-              {!prefersReducedMotion && particles.map((particle, idx) => (
-                <motion.div
-                  key={`particle-${idx}`}
-                  className="absolute w-3 h-3 rounded-full"
-                  style={{
-                    left: `calc(50% + ${particle.x}px)`,
-                    top: `calc(50% + ${particle.y}px)`,
-                    background: 'radial-gradient(circle, rgba(255,223,128,0.8) 0%, rgba(212,175,55,0.4) 50%, transparent 100%)',
-                    boxShadow: '0 0 20px rgba(255,223,128,0.6)',
-                  }}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{
-                    opacity: [0, 0.8, 0.6, 0],
-                    scale: [0, particle.scale, particle.scale * 1.2, 0],
-                    y: [0, -30, -60, -90],
-                    x: [0, Math.sin(idx) * 20, Math.sin(idx + 1) * 30, Math.sin(idx + 2) * 20],
-                  }}
-                  transition={{
-                    duration: particle.duration,
-                    delay: particle.delay,
-                    repeat: Infinity,
-                    ease: 'easeOut',
-                  }}
-                />
-              ))}
+              Pałka MTM
+            </h1>
 
-              {/* Magnetic field effect */}
-              {!prefersReducedMotion && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, rgba(212,175,55,0.15) 0%, transparent 50%)`,
-                    filter: 'blur(40px)',
-                  }}
-                />
-              )}
+            <div className="h-px w-0 bg-gold mx-auto mt-4 opacity-50" data-reveal-line />
+          </div>
 
-              <motion.h1 
-                className="font-display text-4xl md:text-6xl lg:text-7xl text-foreground font-bold leading-tight mb-2 relative"
-                style={{
-                  textShadow: prefersReducedMotion ? undefined : '0 0 60px rgba(212,175,55,0.4), 0 0 30px rgba(212,175,55,0.2)',
-                }}
-              >
-                <AnimatedShinyText className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-2 relative" shimmerWidth={200}>
-                  Pałka MTM
-                </AnimatedShinyText>
-              </motion.h1>
-            </motion.div>
-          </Reveal>
-          <Reveal variants={fadeInUp} delay={0.1}>
-            <AnimatedShinyText className="text-lg" shimmerWidth={150}>
-              Mistrzowie sprintu.
-            </AnimatedShinyText>
-          </Reveal>
-          <Reveal variants={scaleIn} delay={0.2}>
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <MagneticButton strength={0.4}>
-                <Button asChild className="bg-gold text-navy shadow-[0_0_30px_rgba(212,175,55,0.5)] hover:shadow-[0_0_50px_rgba(212,175,55,0.8)]">
+          <div className="max-w-2xl mx-auto">
+            <p
+              className="text-lg md:text-2xl text-white/80 font-light mb-10 tracking-wide"
+              data-reveal-text
+            >
+              Mistrzowie sprintu. Genetyka zwycięstwa.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6" data-reveal-buttons>
+              <MagneticButton strength={0.2}>
+                <Button asChild size="lg" className="bg-gold text-navy px-10 h-14 text-lg font-semibold shadow-[0_0_40px_rgba(212,175,55,0.3)] hover:shadow-[0_0_60px_rgba(212,175,55,0.6)] rounded-full transition-all duration-500">
                   <Link to="/auctions">Przejdź do aukcji</Link>
                 </Button>
               </MagneticButton>
-              <MagneticButton strength={0.4}>
-                <Button variant="outline" asChild className="border-gold/40 hover:border-gold hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-                   <a href="#press-section">Poznaj hodowlę</a>
+              <MagneticButton strength={0.2}>
+                <Button variant="outline" asChild size="lg" className="border-white/20 hover:border-gold hover:bg-gold/10 text-white px-10 h-14 text-lg font-light rounded-full backdrop-blur-sm transition-all duration-500">
+                  <a href="#about">Poznaj hodowlę</a>
                 </Button>
               </MagneticButton>
             </div>
-          </Reveal>
+          </div>
         </div>
       </div>
     </section>

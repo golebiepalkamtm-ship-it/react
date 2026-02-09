@@ -12,6 +12,7 @@ export interface TokenVerificationResult {
 export interface TokenVerifierOptions {
   supabaseUrl: string;
   supabaseKey: string;
+  supabaseAnonKey?: string;
   cacheTTL?: number;
   rateLimitWindow?: number;
   rateLimitMax?: number;
@@ -26,6 +27,7 @@ export class TokenVerifier {
   private rateLimitWindow: number;
   private rateLimitMax: number;
   private supabaseClient: SupabaseClient;
+  private supabaseAnonClient: SupabaseClient | null;
 
   constructor(options: TokenVerifierOptions) {
     this.supabaseUrl = options.supabaseUrl;
@@ -44,6 +46,14 @@ export class TokenVerifier {
         persistSession: false
       }
     });
+    this.supabaseAnonClient = options.supabaseAnonKey && options.supabaseAnonKey !== this.supabaseKey
+      ? createClient(this.supabaseUrl, options.supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+      : null;
 
     // Cleanup expired entries
     setInterval(() => this.cleanup(), 60000);
@@ -139,8 +149,15 @@ export class TokenVerifier {
     }
 
     try {
-      // Verify token with Supabase
-      const { data: { user }, error } = await this.supabaseClient.auth.getUser(token);
+      const primaryResult = await this.supabaseClient.auth.getUser(token);
+      let user = primaryResult.data.user;
+      let error = primaryResult.error;
+      
+      if ((error || !user) && this.supabaseAnonClient) {
+        const fallbackResult = await this.supabaseAnonClient.auth.getUser(token);
+        user = fallbackResult.data.user;
+        error = fallbackResult.error;
+      }
       
       if (error || !user) {
         throw new Error('Invalid or expired token');

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Gavel } from "lucide-react";
+import { Gavel, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { gsap } from "@/lib/gsapConfig";
 
 const AUCTION_PLACEHOLDER_SRC = "/placeholder.svg";
 
@@ -45,20 +46,67 @@ export const UnifiedAuctionCard = ({
   gender,
   color,
   category,
-  location,
-  watchCount: _watchCount = 0,
-  viewsCount: _viewsCount = 0,
   bidsCount = 0,
   featured = false,
   imageFit = "cover",
   highlight = false,
   nowMs,
-  onToggleWatch,
-}: UnifiedAuctionCardProps & { onToggleWatch?: () => void }) => {
+}: UnifiedAuctionCardProps) => {
   const navigate = useNavigate();
+  const [isLiked, setIsLiked] = useState(false);
   const [referenceNow, setReferenceNow] = useState(() =>
     typeof nowMs === "number" ? nowMs : Date.now(),
   );
+
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const rotateX = (y - centerY) / 20;
+      const rotateY = (centerX - x) / 20;
+
+      card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
+      card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+
+      gsap.to(card, {
+        rotateX: rotateX,
+        rotateY: rotateY,
+        scale: 1.02,
+        duration: 0.5,
+        ease: "power2.out",
+        overwrite: "auto"
+      });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(card, {
+        rotateX: 0,
+        rotateY: 0,
+        scale: 1,
+        duration: 0.8,
+        ease: "elastic.out(1, 0.5)",
+        overwrite: "auto"
+      });
+    };
+
+    card.addEventListener('mousemove', handleMouseMove);
+    card.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      card.removeEventListener('mousemove', handleMouseMove);
+      card.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
 
   useEffect(() => {
     if (!endTime) return undefined;
@@ -75,18 +123,10 @@ export const UnifiedAuctionCard = ({
     }
     const end = new Date(endTime).getTime();
     const diff = Math.max(end - referenceNow, 0);
-    const days = Math.floor(diff / 86400000)
-      .toString()
-      .padStart(2, "0");
-    const hours = Math.floor((diff % 86400000) / 3600000)
-      .toString()
-      .padStart(2, "0");
-    const minutes = Math.floor((diff % 3600000) / 60000)
-      .toString()
-      .padStart(2, "0");
-    const seconds = Math.floor((diff % 60000) / 1000)
-      .toString()
-      .padStart(2, "0");
+    const days = Math.floor(diff / 86400000).toString().padStart(2, "0");
+    const hours = Math.floor((diff % 86400000) / 3600000).toString().padStart(2, "0");
+    const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, "0");
+    const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, "0");
     return {
       days,
       hours,
@@ -97,36 +137,40 @@ export const UnifiedAuctionCard = ({
     };
   }, [endTime, referenceNow]);
 
-  const genderDisplay = useMemo(() => {
-    if (!gender) {
-      return { label: "Płeć nieznana", symbol: "•", className: "bg-white/15 text-white/80 border-white/20" };
-    }
-    if (gender === "female") {
-      return { label: "Samica", symbol: "♀", className: "bg-[#ffb5eb]/25 text-[#ffd9f6] border-[#ffb5eb]/60" };
-    }
-    if (gender === "male") {
-      return { label: "Samiec", symbol: "♂", className: "bg-[#8fd1ff]/25 text-[#cde7ff] border-[#8fd1ff]/60" };
-    }
-    return { label: gender, symbol: "•", className: "bg-white/15 text-white/80 border-white/20" };
-  }, [gender]);
+  const isPigeon = useMemo(() => {
+    const cat = (category || "").toUpperCase();
+    return !cat.includes("SUPPLEMENT") && !cat.includes("ACCESSOR");
+  }, [category]);
 
-  const ringBadge = ringNumber;
+  const ringBadge = isPigeon ? ringNumber : null;
+
   const specBadges = useMemo(() => {
     const badges: string[] = [];
-    if (gender) badges.push(gender === "female" ? "Samica" : gender === "male" ? "Samiec" : gender);
-    if (color) badges.push(color);
+    if (isPigeon && gender) badges.push(gender === "female" ? "Samica" : gender === "male" ? "Samiec" : gender);
+    if (isPigeon && color) badges.push(color);
     if (category) badges.push(category);
     return badges.slice(0, 3);
-  }, [gender, color, category]);
+  }, [gender, color, category, isPigeon]);
 
   const displayTitle = useMemo(() => {
     if (!title) return "—";
     return title.length > 20 ? `${title.slice(0, 20)}…` : title;
   }, [title]);
 
+  const imgSrc = useMemo(() => {
+    const trimmed = (image || "").trim();
+    if (!trimmed) return AUCTION_PLACEHOLDER_SRC;
+    return trimmed.includes("placeholder") ? AUCTION_PLACEHOLDER_SRC : trimmed;
+  }, [image]);
+
+  const imageObjectClass = useMemo(() => {
+    return imageFit === "contain" ? "object-contain bg-black" : "object-cover";
+  }, [imageFit]);
+
   return (
-    <div className="h-full">
-      <motion.article
+    <div className="h-full" style={{ perspective: "1000px" }}>
+      <article
+        ref={cardRef}
         data-auction-card
         role="button"
         tabIndex={0}
@@ -137,130 +181,121 @@ export const UnifiedAuctionCard = ({
             navigate(`/auctions/${id}`);
           }
         }}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className={`group glass-card relative mx-auto flex h-[620px] w-[320px] flex-col overflow-hidden rounded-[24px] border backdrop-blur-2xl transition-all duration-500 perspective-1000 ${
-          timeMeta.endingSoon
-            ? "border-[#ff8c92]/60 bg-gradient-to-br from-[#2a1a1a] via-[#3d2a1a] to-[#1a0f08]/80 shadow-[0_25px_70px_rgba(255,140,146,0.35)] hover:border-red-500/80 hover:shadow-glow-red"
+        className={`group relative mx-auto flex h-[620px] w-full min-w-0 flex-col overflow-hidden rounded-[24px] border backdrop-blur-2xl transition-all duration-500 premium-card ${timeMeta.endingSoon
+            ? "border-red-500/40 bg-gradient-to-br from-[#2a1a1a] to-[#1a0f08]/80 shadow-2xl"
             : highlight || featured
-              ? "border-[#D4AF37]/40 bg-gradient-to-br from-[#3d2a1a] via-[#2a1a1a] to-[#1a0f08] shadow-[0_35px_80px_rgba(212,175,55,0.25)] hover:border-[#D4AF37]/60 hover:shadow-glow-gold"
-              : "border-[#D4AF37]/30 bg-gradient-to-br from-[#2a2a1a] via-[#1a1a0f] to-[#0f0f08] hover:border-[#D4AF37]/50 hover:shadow-[0_25px_70px_rgba(212,175,55,0.2)]"
-        }`}
+              ? "border-gold/40 bg-gradient-to-br from-[#3d2a1a] via-[#1a1a0f] to-[#0f0f08] shadow-2xl"
+              : "border-white/10 bg-gradient-to-br from-[#1a1a1f] to-[#0f0f14]"
+          }`}
+        style={{ transformStyle: "preserve-3d" }}
       >
-      <div className="flex flex-1 flex-col gap-3 px-4 pb-4 pt-14 sm:px-5 sm:pb-5 justify-end">
-        <div className="flex flex-col gap-2 pt-2">
-          <div className="h-px w-full bg-gold/25" aria-hidden="true" />
-          <h3 className="font-display text-xl sm:text-2xl font-semibold text-white leading-tight truncate">
-            {displayTitle}
-          </h3>
-          {ringBadge && (
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[11px] tracking-[0.18em] text-gold/90 rounded-xl border border-gold/30 bg-white/5 px-3 py-1 shadow-[0_8px_20px_rgba(255,224,132,0.18)]">
-                {ringBadge}
-              </span>
-            </div>
-          )}
-          <div className="flex flex-wrap items-center gap-1 text-sm">
-            {specBadges.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-white/70">
-                {specBadges.map((badge) => (
-                  <span key={`${id}-${badge}`} className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
-                    {badge}
-                  </span>
-                ))}
-              </div>
-            )}
+        <div className="h-full w-full flex flex-col">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLiked(!isLiked);
+            }}
+            className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95"
+          >
+            <Heart
+              className={`h-5 w-5 transition-all duration-300 ${isLiked ? "fill-red-500 text-red-500" : "text-white/70 hover:text-white"}`}
+            />
+          </button>
+
+          <div className="relative w-full aspect-square overflow-hidden bg-black">
+            <img
+              src={imgSrc}
+              alt={title}
+              loading="lazy"
+              className={`w-full h-full ${imageObjectClass} transition-transform duration-700 group-hover:scale-110`}
+              onError={(e) => {
+                const t = e.currentTarget as HTMLImageElement;
+                if (t.src !== AUCTION_PLACEHOLDER_SRC) t.src = AUCTION_PLACEHOLDER_SRC;
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           </div>
-          <div className="h-px w-full bg-gold/25" aria-hidden="true" />
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[#ffbe55]">Koniec aukcji</p>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-white sm:gap-4">
-              {["days", "hours", "minutes", "seconds"].map((label, idx) => (
-                <div key={label} className="flex flex-col items-center">
-                  <span className="text-2xl font-bold sm:text-3xl">
-                    {timeMeta.ended ? "00" : (timeMeta as any)[label]}
+
+          <div className="flex flex-1 flex-col gap-3 px-5 pb-5 pt-4">
+            <div className="flex flex-col gap-2">
+              <div className="h-px w-full bg-white/5" />
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-white leading-tight tracking-tight">
+                {displayTitle}
+              </h3>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {ringBadge && (
+                  <span className="font-mono text-[10px] tracking-widest text-gold rounded-full border border-gold/30 bg-gold/5 px-3 py-1 uppercase">
+                    {ringBadge}
                   </span>
-                  <span className="text-[10px] uppercase tracking-[0.3em] text-white/55">
-                    {["DNI", "GODZ", "MIN", "SEK"][idx]}
-                  </span>
+                )}
+                <div className="flex flex-wrap items-center gap-1">
+                  {specBadges.map((badge) => (
+                    <span key={`${id}-${badge}`} className="text-[10px] uppercase tracking-wider text-white/50 rounded-full border border-white/5 bg-white/5 px-2 py-1">
+                      {badge}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="h-px w-full bg-white/10" aria-hidden="true" />
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex-1 min-w-[55%]">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-white/60">Aktualna cena</p>
-              <p className="font-display text-2xl font-bold text-[#ffe084] sm:text-3xl">
-                {formatNumber(currentBid)}
-              </p>
-            </div>
-            <div className="flex-1 min-w-[35%] text-right text-[10px] uppercase tracking-[0.3em] text-white/55 space-y-1">
-              <p className="text-white/70">Ofert: {bidsCount}</p>
-              {typeof startingPrice === "number" && <p>Start: {formatNumber(startingPrice)}</p>}
-            </div>
-          </div>
-          <div className="mt-2 flex flex-col gap-3">
-            {typeof buyNowPrice === "number" && buyNowPrice > 0 ? (
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link
-                  to={`/auctions/${id}?mode=buy-now`}
-                  onClick={(event) => event.stopPropagation()}
-                  className="flex-1"
-                >
-                  <div className="h-full">
-                    <Button
-                      type="button"
-                      variant="premium"
-                      size="lg"
-                      className="w-full gap-2 border border-gold/40 shadow-[0_12px_35px_rgba(255,224,132,0.35)] hover:shadow-[0_18px_45px_rgba(255,224,132,0.55)] neon-border"
-                    >
-                      Kup teraz {formatNumber(buyNowPrice)}
-                    </Button>
-                  </div>
-                </Link>
-                <Link
-                  to={`/auctions/${id}#bid`}
-                  onClick={(event) => event.stopPropagation()}
-                  className="flex-1"
-                >
-                  <div className="h-full">
-                    <Button
-                      type="button"
-                      variant="gold"
-                      size="lg"
-                      className="w-full gap-2 shadow-[0_18px_50px_rgba(245,166,61,0.45)] hover:shadow-[0_24px_65px_rgba(245,166,61,0.6)] neon-border"
-                    >
-                      <Gavel className="h-4 w-4" />
-                      Licytuj
-                    </Button>
-                  </div>
-                </Link>
               </div>
-            ) : (
-              <Link
-                to={`/auctions/${id}#bid`}
-                onClick={(event) => event.stopPropagation()}
-              >
-                <div className="h-full">
-                  <Button
-                    type="button"
-                    variant="gold"
-                    size="lg"
-                    className="w-full gap-2 shadow-[0_18px_50px_rgba(245,166,61,0.45)] hover:shadow-[0_24px_65px_rgba(245,166,61,0.6)] neon-border"
-                  >
-                    <Gavel className="h-4 w-4" />
-                    Licytuj
-                  </Button>
+
+              <div className="h-px w-full bg-white/5 mt-1" />
+
+              <div className="py-2">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-2">Pozostało</p>
+                <div className="flex items-center gap-3">
+                  {["days", "hours", "minutes", "seconds"].map((label, idx) => (
+                    <div key={label} className="flex flex-col items-center min-w-[3rem]">
+                      <span className="text-xl font-bold text-white leading-none">
+                        {timeMeta.ended ? "00" : (timeMeta as any)[label]}
+                      </span>
+                      <span className="text-[8px] uppercase tracking-widest text-white/30 mt-1">
+                        {["Dni", "Godz", "Min", "Sek"][idx]}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </Link>
-            )}
+              </div>
+
+              <div className="h-px w-full bg-white/5" />
+
+              <div className="flex items-end justify-between py-1">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1">Cena</p>
+                  <p className="font-display text-2xl font-bold text-gold">
+                    {formatNumber(currentBid)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-widest text-white/30">Ofert: {bidsCount}</p>
+                </div>
+              </div>
+
+              <div className="mt-2 flex flex-col gap-2">
+                {typeof buyNowPrice === "number" && buyNowPrice > 0 ? (
+                  <div className="flex gap-2">
+                    <Link to={`/auctions/${id}?mode=buy-now`} onClick={(e) => e.stopPropagation()} className="flex-1">
+                      <Button variant="premiumGold" className="w-full h-11 text-xs">
+                        Kup Teraz
+                      </Button>
+                    </Link>
+                    <Link to={`/auctions/${id}#bid`} onClick={(e) => e.stopPropagation()} className="flex-1">
+                      <Button variant="outline" className="w-full h-11 text-xs bg-white/5 border-white/10 hover:bg-white/10">
+                        <Gavel className="h-3 w-3 mr-1" /> Licytuj
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <Link to={`/auctions/${id}#bid`} onClick={(e) => e.stopPropagation()} className="w-full">
+                    <Button variant="premiumGold" className="w-full h-11 text-sm">
+                      <Gavel className="h-4 w-4 mr-2" /> Licytuj
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.article>
+      </article>
     </div>
   );
 };

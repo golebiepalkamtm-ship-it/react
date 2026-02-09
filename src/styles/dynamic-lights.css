@@ -1,0 +1,206 @@
+/**
+ * DYNAMIC LIGHTS - Additional CSS for enhanced lighting effects
+ * Complements the GlobalParallaxBackground component
+ */
+
+/* Subtle card glow on hover - responds to new background */
+.glass-card:hover,
+.premium-card:hover {
+  box-shadow: 
+    0 0 40px rgba(212, 175, 55, 0.15),
+    0 0 80px rgba(212, 175, 55, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced feature cards with better lighting */
+.feature-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(212, 175, 55, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Section dividers with subtle glow */
+.section-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.3) 20%,
+    rgba(212, 175, 55, 0.5) 50%,
+    rgba(212, 175, 55, 0.3) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+/* Animated shimmer effect for gold elements */
+@keyframes shimmer-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
+  }
+}
+
+.gold-shimmer {
+  animation: shimmer-glow 3s ease-in-out infinite;
+}
+
+/* Hero section enhanced lighting */
+#home {
+  position: relative;
+}
+
+#home::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 120%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(212, 175, 55, 0.08) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Spotlight effect on scroll */
+.spotlight-section {
+  position: relative;
+}
+
+.spotlight-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    rgba(255, 215, 0, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.spotlight-section.in-view::after {
+  opacity: 1;
+}
+
+/* Enhanced button glow */
+.btn-gold,
+button.bg-gold {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gold::before,
+button.bg-gold::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-gold:hover::before,
+button.bg-gold:hover::before {
+  opacity: 1;
+}
+
+/* Pulsing glow for important elements */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.6);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Ambient light particles */
+@keyframes float-particle {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(20px, -20px);
+    opacity: 0.6;
+  }
+}
+
+.light-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float-particle 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.light-particle:nth-child(2) {
+  animation-delay: 1s;
+  animation-duration: 5s;
+}
+
+.light-particle:nth-child(3) {
+  animation-delay: 2s;
+  animation-duration: 6s;
+}
+
+/* Enhanced text shadows for better readability on new background */
+h1, h2, h3 {
+  text-shadow: 
+    0 2px 10px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Gold text with enhanced glow */
+.text-gold {
+  text-shadow: 
+    0 0 10px rgba(212, 175, 55, 0.5),
+    0 0 20px rgba(212, 175, 55, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .spotlight-section::after {
+    width: 120%;
+  }
+  
+  #home::before {
+    width: 100%;
+  }
+}

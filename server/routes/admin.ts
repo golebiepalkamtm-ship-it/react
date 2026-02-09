@@ -1,6 +1,7 @@
 import express, { type Router } from 'express';
 import { prisma } from '../lib/db.js';
 import { createClient } from '@supabase/supabase-js';
+import { cache } from '../lib/cache.js';
 
 const router: Router = express.Router();
 
@@ -40,7 +41,7 @@ router.get('/stats', ensureAdmin, async (req, res) => {
     const totalUsers = await prisma!.user.count();
     const activeAuctions = await prisma!.auction.count({ where: { status: 'ACTIVE' } });
     const totalAuctions = await prisma!.auction.count();
-    
+
     // Suma najwyższych ofert (uproszczone statystyki finansowe)
     const auctions = await prisma!.auction.findMany({
       select: { currentPrice: true }
@@ -78,6 +79,7 @@ router.get('/users', ensureAdmin, async (req, res) => {
         first_name: true,
         last_name: true,
         role: true,
+        username: true,
         createdAt: true
       } as any
     });
@@ -103,9 +105,9 @@ router.get('/auctions', ensureAdmin, async (req, res) => {
     const auctions = await prisma!.auction.findMany({
       include: {
         seller: {
-          select: { 
-            first_name: true, 
-            last_name: true, 
+          select: {
+            first_name: true,
+            last_name: true,
             email: true,
             name: true
           }
@@ -170,11 +172,15 @@ router.post('/auctions/:id/:action', ensureAdmin, async (req, res) => {
         where: { id },
         data: { status: 'ENDED' }
       });
+      cache.deletePattern('auctions:*');
+      cache.delete(`auction:${id}`);
       return res.json(updated);
     }
 
     if (action === 'delete') {
       await prisma!.auction.delete({ where: { id } });
+      cache.deletePattern('auctions:*');
+      cache.delete(`auction:${id}`);
       return res.json({ success: true });
     }
 
@@ -190,7 +196,7 @@ router.post('/auctions/:id/:action', ensureAdmin, async (req, res) => {
 router.patch('/users/:id', ensureAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, first_name, last_name, role, isBlocked, isBanned } = req.body;
+    const { email, first_name, last_name, role, isBlocked, isBanned, username } = req.body;
 
     // Optional: Add validation logic here
 
@@ -202,7 +208,8 @@ router.patch('/users/:id', ensureAdmin, async (req, res) => {
         last_name,
         role,
         isBlocked,
-        isBanned
+        isBanned,
+        username
       }
     });
 
@@ -246,6 +253,9 @@ router.patch('/auctions/:id', ensureAdmin, async (req, res) => {
       }
     });
 
+    cache.deletePattern('auctions:*');
+    cache.delete(`auction:${id}`);
+
     res.json(updated);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -259,6 +269,8 @@ router.delete('/auctions/:id', ensureAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     await prisma!.auction.delete({ where: { id } });
+    cache.deletePattern('auctions:*');
+    cache.delete(`auction:${id}`);
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -276,7 +288,7 @@ router.post('/users', ensureAdmin, async (req, res) => {
     const { email, password, first_name, last_name, role, phone, username } = req.body;
 
     if (!email || !password || !username || String(username).trim().length === 0) {
-        return res.status(400).json({ error: 'Email, password i username są wymagane' });
+      return res.status(400).json({ error: 'Email, password i username są wymagane' });
     }
 
     // 1. Create in Supabase Auth
@@ -299,27 +311,27 @@ router.post('/users', ensureAdmin, async (req, res) => {
 
     // 2. Create/Update in Public Schema
     const newUser = await prisma!.user.upsert({
-        where: { id: authUser.user.id },
-        update: {
-            email,
-            first_name,
-            last_name,
-            role: role || 'USER_REGISTERED',
-            phone,
-            name: `${first_name} ${last_name}`.trim(),
-            username
-        },
-        create: {
-            id: authUser.user.id,
-            email,
-            first_name,
-            last_name,
-            role: role || 'USER_REGISTERED',
-            phone,
-            trustScore: 0,
-            name: `${first_name} ${last_name}`.trim(),
-            username
-        }
+      where: { id: authUser.user.id },
+      update: {
+        email,
+        first_name,
+        last_name,
+        role: role || 'USER_REGISTERED',
+        phone,
+        name: `${first_name} ${last_name}`.trim(),
+        username
+      },
+      create: {
+        id: authUser.user.id,
+        email,
+        first_name,
+        last_name,
+        role: role || 'USER_REGISTERED',
+        phone,
+        trustScore: 0,
+        name: `${first_name} ${last_name}`.trim(),
+        username
+      }
     });
 
     res.json(newUser);
@@ -336,32 +348,33 @@ router.post('/users', ensureAdmin, async (req, res) => {
 router.post('/auctions', ensureAdmin, async (req, res) => {
   try {
     const { title, description, startingPrice, buyNowPrice, reservePrice, status, endTime, sellerId, category, sex, minBidIncrement } = req.body;
-    
+
     // Validate seller exists
     let finalSellerId = sellerId;
     if (finalSellerId) {
-       const userExists = await prisma!.user.findUnique({ where: { id: finalSellerId } });
-       if (!userExists) return res.status(400).json({ error: 'Provided sellerId does not exist' });
+      const userExists = await prisma!.user.findUnique({ where: { id: finalSellerId } });
+      if (!userExists) return res.status(400).json({ error: 'Provided sellerId does not exist' });
     } else {
-       finalSellerId = (req as any).user?.id;
+      finalSellerId = (req as any).user?.id;
     }
 
     const newAuction = await prisma!.auction.create({
-        data: {
-            title,
-            description,
-            startingPrice: startingPrice || 0,
-            currentPrice: startingPrice || 0,
-            buyNowPrice: buyNowPrice || null,
-            reservePrice,
-            status: status || 'ACTIVE',
-            endTime: endTime ? new Date(endTime) : null,
-            category: category || 'RACING',
-            sex: sex || 'MALE',
-            sellerId: finalSellerId,
-            minBidIncrement: minBidIncrement || 100
-        }
+      data: {
+        title,
+        description,
+        startingPrice: startingPrice || 0,
+        currentPrice: startingPrice || 0,
+        buyNowPrice: buyNowPrice || null,
+        reservePrice,
+        status: status || 'ACTIVE',
+        endTime: endTime ? new Date(endTime) : null,
+        category: category || 'RACING',
+        sex: sex || 'MALE',
+        sellerId: finalSellerId,
+        minBidIncrement: minBidIncrement || 100
+      }
     });
+    cache.deletePattern('auctions:*');
     res.json(newAuction);
   } catch (error: any) {
     console.error('Create Auction Error:', error);

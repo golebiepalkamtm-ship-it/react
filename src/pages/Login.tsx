@@ -47,8 +47,6 @@ export default function Login() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError(null);
-    setError(null);
 
     try {
       const { error } = await signIn(email.trim(), password);
@@ -93,7 +91,7 @@ export default function Login() {
       <main className="pt-28 md:pt-32">
         <div className="container mx-auto px-4">
           <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-            <h1 className="font-display text-3xl font-semibold text-foreground">Logowanie</h1>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground">Logowanie</h1>
             <p className="mt-2 text-sm text-muted-foreground">Zaloguj się, aby korzystać z funkcji użytkownika.</p>
 
             <div className="mt-6 space-y-3">

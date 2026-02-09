@@ -21,3 +21,6 @@ cli/
 server/.env
 server/.env.*
 !server/.env.production.example
+
+.vercel
+.env*.local

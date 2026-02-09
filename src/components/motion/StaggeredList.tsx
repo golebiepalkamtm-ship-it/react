@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
-import { Children, type ReactNode } from "react";
+import React, { Children, type ReactNode } from "react";
 import {
   staggerContainer,
   staggerItem,
   getVariants,
 } from "@/lib/motion-config";
 import type { Variants } from "framer-motion";
+
+type MotionTag = keyof typeof motion;
 
 interface StaggeredListProps {
   children: ReactNode;
@@ -20,7 +22,7 @@ interface StaggeredListProps {
   /** Additional className for container */
   className?: string;
   /** HTML element to render as */
-  as?: keyof JSX.IntrinsicElements;
+  as?: MotionTag;
 }
 
 /**
@@ -58,15 +60,14 @@ export const StaggeredList = ({
   const mergedContainerVariants: Variants = {
     ...safeContainerVariants,
     visible: {
-      ...safeContainerVariants.visible,
+      ...(safeContainerVariants.visible as object),
       transition: {
         staggerChildren: staggerDelay,
-        delayChildren,
       },
     },
   };
 
-  const MotionComponent = motion[as] as typeof motion.div;
+  const MotionComponent = motion[as];
 
   // Handle children - wrap each child in a motion div if needed
   const childrenArray = Children.toArray(children);
@@ -77,17 +78,15 @@ export const StaggeredList = ({
       animate="visible"
       variants={mergedContainerVariants}
       className={className}
+      transition={{ delayChildren }}
     >
       {childrenArray.map((child, index) => {
         // If child is already a motion component with variants, use it as-is
         if (
-          typeof child === "object" &&
-          child !== null &&
-          "type" in child &&
+          React.isValidElement(child) &&
           typeof child.type === "object" &&
-          child.type !== null &&
           "displayName" in child.type &&
-          child.type.displayName === "StaggeredItem"
+          (child.type as { displayName: string }).displayName === "StaggeredItem"
         ) {
           return child;
         }
@@ -134,10 +133,10 @@ export const StaggeredItem = ({
   children: ReactNode;
   variants?: Variants;
   className?: string;
-  as?: keyof JSX.IntrinsicElements;
+  as?: MotionTag;
 }) => {
   const safeVariants = getVariants(variants);
-  const MotionComponent = motion[as] as typeof motion.div;
+  const MotionComponent = motion[as];
 
   return (
     <MotionComponent variants={safeVariants} className={className}>

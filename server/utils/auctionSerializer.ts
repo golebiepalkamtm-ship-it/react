@@ -30,6 +30,7 @@ export const baseAuctionInclude = {
   seller: {
     select: {
       id: true,
+      username: true,
       first_name: true,
       last_name: true,
       email: true,
@@ -64,6 +65,7 @@ export const listAuctionInclude = {
       bidder: {
         select: {
           id: true,
+          username: true,
           first_name: true,
           last_name: true,
           email: true,
@@ -112,6 +114,7 @@ export const detailAuctionInclude = {
       bidder: {
         select: {
           id: true,
+          username: true,
           first_name: true,
           last_name: true,
           email: true,

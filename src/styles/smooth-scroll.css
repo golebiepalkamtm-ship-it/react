@@ -1,8 +1,11 @@
 /**
- * Smooth Scroll & Performance Optimization Styles
+ * Smooth Scroll & Performance Optimization Styles - IMPROVED
  * 
- * These styles ensure 60fps+ performance on all devices
- * by leveraging GPU acceleration and proper CSS properties.
+ * FIXES:
+ * - Faster scroll indicator animation (1s instead of 2s)
+ * - Reduced will-change usage (only when needed)
+ * - Better GPU acceleration strategy
+ * - Optimized for 60fps+ on all devices
  */
 
 /* Lenis smooth scroll container */
@@ -27,144 +30,248 @@ html.lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
 
-/* Performance optimization for parallax elements */
-[data-speed] {
-  backface-visibility: hidden;
-  perspective: 1000px;
+/* Reduced motion override */
+html.lenis.lenis-reduced-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
-/* Apply GPU acceleration only during animation */
-[data-speed].animating {
-  will-change: transform;
-  transform: translateZ(0);
-}
-
-[data-speed]:not(.animating) {
-  will-change: auto;
-  transform: none;
-}
-
-/* Performance optimization for reveal elements */
-[data-reveal] {
-  backface-visibility: hidden;
-}
-
-/* Apply GPU acceleration only during animation */
-[data-reveal].animating {
-  will-change: opacity, transform;
-  transform: translateZ(0);
-}
-
-[data-reveal]:not(.animating) {
-  will-change: auto;
-  transform: none;
-}
-
-/* Performance optimization for stagger items */
-[data-stagger-item] {
-  backface-visibility: hidden;
-}
-
-/* Apply GPU acceleration only during animation */
-[data-stagger-item].animating {
-  will-change: opacity, transform;
-  transform: translateZ(0);
-}
-
-[data-stagger-item]:not(.animating) {
-  will-change: auto;
-  transform: none;
-}
-
-/* Hero image parallax optimization */
+/* Performance optimization - GPU acceleration baseline */
+[data-speed],
+[data-reveal],
+[data-stagger-item],
 .hero-image {
   backface-visibility: hidden;
-}
-
-.hero-image.animating {
-  will-change: transform;
+  perspective: 1000px;
   transform: translateZ(0);
 }
 
-.hero-image:not(.animating) {
+/* Apply will-change ONLY during active animation */
+[data-speed].is-animating,
+[data-reveal].is-animating,
+[data-stagger-item].is-animating,
+.hero-image.is-animating {
+  will-change: transform;
+}
+
+/* Remove will-change when not animating */
+[data-speed]:not(.is-animating),
+[data-reveal]:not(.is-animating),
+[data-stagger-item]:not(.is-animating),
+.hero-image:not(.is-animating) {
   will-change: auto;
-  transform: none;
 }
 
 /* Heading reveal optimization */
-h1, h2 {
+h1,
+h2 {
   .word {
     overflow: hidden;
     display: inline-block;
-    
-    > span {
+    vertical-align: top;
+
+    >span {
       display: inline-block;
       backface-visibility: hidden;
+      transform: translateZ(0);
     }
   }
 }
 
-/* Apply GPU acceleration only during animation */
-h1 .word span.animating,
-h2 .word span.animating {
+h1 .word span.is-animating,
+h2 .word span.is-animating {
   will-change: transform, opacity;
-  transform: translateZ(0);
 }
 
-h1 .word span:not(.animating),
-h2 .word span:not(.animating) {
+h1 .word span:not(.is-animating),
+h2 .word span:not(.is-animating) {
   will-change: auto;
-  transform: none;
 }
 
-/* Smooth scroll indicator */
+/* Smooth scroll indicator - IMPROVED (faster animation) */
 .scroll-indicator {
   backface-visibility: hidden;
-  animation: scroll-bounce 2s ease-in-out infinite; /* Zwiększone z 1.5s */
-}
-
-.scroll-indicator:hover {
-  will-change: transform;
   transform: translateZ(0);
-}
-
-.scroll-indicator:not(:hover) {
-  will-change: auto;
-  transform: none;
+  animation: scroll-bounce 1s ease-in-out infinite;
 }
 
 @keyframes scroll-bounce {
-  0%, 100% {
-    transform: translateY(0);
+
+  0%,
+  100% {
+    transform: translateY(0) translateZ(0);
   }
+
   50% {
-    transform: translateY(10px);
+    transform: translateY(8px) translateZ(0);
   }
 }
 
-/* Remove will-change after animation completes (performance) */
-.animation-complete {
-  will-change: auto !important;
+/* Hover state optimization */
+.scroll-indicator:hover {
+  animation-play-state: paused;
+  will-change: transform;
 }
 
-/* Disable smooth scroll on reduced motion preference */
+/* Content wrapper optimization */
+.content-wrapper {
+  backface-visibility: hidden;
+  transform-origin: center center;
+  transform: translateZ(0);
+}
+
+.content-wrapper.is-scrolling {
+  will-change: transform;
+}
+
+.content-wrapper:not(.is-scrolling) {
+  will-change: auto;
+}
+
+/* Floating elements optimization */
+.floating-element {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.floating-element.is-active {
+  will-change: transform;
+}
+
+/* Magnetic elements optimization */
+.magnetic-element {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.magnetic-element:hover {
+  will-change: transform;
+}
+
+.magnetic-element:not(:hover) {
+  will-change: auto;
+}
+
+/* Blur optimization - use backdrop-filter sparingly */
+.backdrop-blur-sm,
+.backdrop-blur-lg {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Only animate opacity and transform for performance */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) translateZ(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+/* Disable animations on reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  html.lenis {
-    scroll-behavior: auto;
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  
+
+  html.lenis {
+    scroll-behavior: auto !important;
+  }
+
   [data-speed],
   [data-reveal],
   [data-stagger-item],
-  .hero-image {
-    will-change: auto;
-    transform: none;
+  .hero-image,
+  .content-wrapper {
+    transform: none !important;
+    will-change: auto !important;
+  }
+
+  .scroll-indicator {
+    animation: none !important;
   }
 }
 
-/* Mobile optimization - disable parallax on small screens for performance */
+/* Mobile optimization - reduce effects for performance */
 @media (max-width: 768px) {
+
+  /* Disable parallax on mobile */
   [data-speed] {
+    transform: translateZ(0) !important;
+  }
+
+  /* Reduce blur intensity on mobile */
+  .backdrop-blur-sm,
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Simpler animations on mobile */
+  .floating-element {
+    animation: none !important;
+  }
+
+  /* Disable skew on mobile for better performance */
+  .content-wrapper {
     transform: none !important;
+  }
+}
+
+/* High refresh rate displays optimization */
+@media (min-resolution: 120dpi) {
+  * {
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Safari-specific optimizations */
+@supports (-webkit-backdrop-filter: blur(1px)) {
+
+  .backdrop-blur-sm,
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Remove transitions for print */
+@media print {
+  * {
+    animation: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+}
+
+/* Variable font support */
+@supports (font-variation-settings: normal) {
+  html {
+    --vf-weight: 400;
+    --vf-slnt: 0;
+  }
+
+  [data-variable-font="true"] {
+    font-variation-settings:
+      'wght' var(--vf-weight, 400),
+      'slnt' var(--vf-slnt, 0);
   }
 }

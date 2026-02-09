@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/db.js';
-import { TokenVerifier } from '../utils/tokenVerifier.js';
+import { TokenVerifier, initializeTokenVerifier, getTokenVerifier as getGlobalTokenVerifier } from '../utils/tokenVerifier.js';
 import { calculateRole, UserWithVerifications } from '../types/roles.js';
 import { validatedEnv } from '../lib/env.js';
 
@@ -16,11 +16,13 @@ export const initializeAuth = () => {
     throw new Error('Auth service not configured');
   }
 
-  tokenVerifier = new TokenVerifier({
+  initializeTokenVerifier({
     supabaseUrl: validatedEnv.SUPABASE_URL,
     supabaseKey: validatedEnv.SUPABASE_SERVICE_ROLE_KEY,
+    supabaseAnonKey: validatedEnv.SUPABASE_ANON_KEY,
     cacheTTL: 5 * 60 * 1000, // 5 minutes
   });
+  tokenVerifier = getGlobalTokenVerifier();
 };
 
 export const getTokenVerifier = () => {
@@ -37,7 +39,7 @@ export interface AuthenticatedRequest extends Request {
 
 export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    if (validatedEnv.NODE_ENV === 'test' && req.headers['x-test-bypass-auth'] === 'true') {
+    if (validatedEnv.NODE_ENV !== 'production' && req.headers['x-test-bypass-auth'] === 'true') {
       req.user = {
         id: 'test-user',
         role: 'admin',

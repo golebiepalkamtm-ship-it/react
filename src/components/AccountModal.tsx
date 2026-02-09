@@ -86,12 +86,12 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
     if (!isEmailVerified) return false;
     return Boolean(
       (firstName || profile.first_name)?.trim() &&
-        (lastName || profile.last_name)?.trim() &&
-        (street || profile.street)?.trim() &&
-        (postalCode || profile.postal_code)?.trim() &&
-        (city || profile.city)?.trim() &&
-        (country || profile.country)?.trim() &&
-        (phone || profile.phone)?.trim(),
+      (lastName || profile.last_name)?.trim() &&
+      (street || profile.street)?.trim() &&
+      (postalCode || profile.postal_code)?.trim() &&
+      (city || profile.city)?.trim() &&
+      (country || profile.country)?.trim() &&
+      (phone || profile.phone)?.trim(),
     );
   }, [firstName, lastName, city, country, isEmailVerified, phone, postalCode, profile, street]);
 
@@ -116,7 +116,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
       setFeedbackMessage('Nazwa użytkownika jest wymagana.');
       return;
     }
-    
+
     try {
       await updateUserProfile({
         username: username.trim(),
@@ -197,7 +197,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             <div>
               <h4 className="font-semibold text-amber-300 mb-1">Uzupełnij swój profil</h4>
               <p className="text-sm text-white/70">
-                Aby uzyskać pełny dostęp do serwisu i móc tworzyć aukcje oraz licytować, 
+                Aby uzyskać pełny dostęp do serwisu i móc tworzyć aukcje oraz licytować,
                 musisz uzupełnić wszystkie dane profilowe i przejść weryfikację SMS.
               </p>
               {missingFields.length > 0 && (
@@ -209,7 +209,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
           </div>
         </motion.div>
       )}
-      
+
       <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.06 }}>
         <div className="rounded-xl border border-white/15 bg-black/40 p-4">
           <div className="text-muted-foreground flex items-center gap-2">
@@ -242,44 +242,44 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
         </div>
       </motion.div>
 
-    <div className="mt-2" role="tablist" aria-label="Account tabs">
-      <div className="flex gap-2">
-        <button
-          type="button"
-          role="tab"
-          onClick={() => setActiveTab('profile')}
-          aria-selected={activeTab === 'profile' ? 'true' : 'false'}
-          className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === 'profile' ? 'bg-white/15 text-white' : 'bg-black/30 text-white/80 hover:bg-black/40'} border border-white/15`}
-        >
-          <User className="w-4 h-4" />
-          Profil
-        </button>
-        <button
-          type="button"
-          role="tab"
-          onClick={() => setActiveTab('security')}
-          aria-selected={activeTab === 'security' ? 'true' : 'false'}
-          className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === 'security' ? 'bg-white/15 text-white' : 'bg-black/30 text-white/80 hover:bg-black/40'} border border-white/15`}
-        >
-          <Shield className="w-4 h-4" />
-          Bezpieczeństwo
-        </button>
-        <button
-          type="button"
-          role="tab"
-          onClick={() => setActiveTab('settings')}
-          aria-selected={activeTab === 'settings' ? 'true' : 'false'}
-          className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === 'settings' ? 'bg-white/15 text-white' : 'bg-black/30 text-white/80 hover:bg-black/40'} border border-white/15`}
-        >
-          <Settings className="w-4 h-4" />
-          Ustawienia
-        </button>
+      <div className="mt-2" role="tablist" aria-label="Account tabs">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            role="tab"
+            onClick={() => setActiveTab('profile')}
+            aria-selected={activeTab === 'profile' ? 'true' : 'false'}
+            className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === 'profile' ? 'bg-white/15 text-white' : 'bg-black/30 text-white/80 hover:bg-black/40'} border border-white/15`}
+          >
+            <User className="w-4 h-4" />
+            Profil
+          </button>
+          <button
+            type="button"
+            role="tab"
+            onClick={() => setActiveTab('security')}
+            aria-selected={activeTab === 'security' ? 'true' : 'false'}
+            className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === 'security' ? 'bg-white/15 text-white' : 'bg-black/30 text-white/80 hover:bg-black/40'} border border-white/15`}
+          >
+            <Shield className="w-4 h-4" />
+            Bezpieczeństwo
+          </button>
+          <button
+            type="button"
+            role="tab"
+            onClick={() => setActiveTab('settings')}
+            aria-selected={activeTab === 'settings' ? 'true' : 'false'}
+            className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === 'settings' ? 'bg-white/15 text-white' : 'bg-black/30 text-white/80 hover:bg-black/40'} border border-white/15`}
+          >
+            <Settings className="w-4 h-4" />
+            Ustawienia
+          </button>
+        </div>
       </div>
-    </div>
 
       <AnimatePresence>
         {profileError && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -292,9 +292,9 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
 
       <AnimatePresence>
         {isEmailVerified && activeTab === 'profile' && (
-          <motion.div 
-            initial={{ opacity: 0, y: 8 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
             className="rounded-2xl border border-white/25 bg-black/70 p-4"
@@ -321,7 +321,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
                 </p>
               )}
             </div>
-            
+
             <h3 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
               <User className="w-5 h-5 text-gold" />
               {t('account.profile.title')}
@@ -436,7 +436,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
         )}
 
         {activeTab === 'profile' && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -464,9 +464,9 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             </motion.button>
           </motion.div>
         )}
-        
+
         {activeTab === 'profile' && !profileCompleteForSms && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -475,9 +475,9 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             Aby rozpocząć weryfikację SMS, uzupełnij: {missingFields.join(', ')}
           </motion.div>
         )}
-        
+
         {activeTab === 'security' && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -520,7 +520,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
                 </div>
                 <AnimatePresence>
                   {passError && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
@@ -552,7 +552,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
         )}
 
         {activeTab === 'settings' && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -588,7 +588,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
         size="md"
         type="default"
       >
-        <PhoneVerification 
+        <PhoneVerification
           onVerified={() => {
             setShowSmsAuth(false);
             // Profile refresh is handled by PhoneVerification calling updateProfile({}) which triggers context update
