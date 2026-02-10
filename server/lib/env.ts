@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import * as tempSecrets from './tempSecrets.js';
 
 const envSchema = z.object({
   // Środowisko
@@ -16,8 +15,8 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL'),
   SUPABASE_ANON_KEY: z.string().min(1, 'SUPABASE_ANON_KEY is required'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
-  SUPABASE_SECRET_ACCESS_KEY: z.string().optional(),
-  SUPABASE_SECRET_SECRET_KEY: z.string().optional(),
+  SUPABASE_SECRET_ACCESS_KEY: z.string().min(1, 'SUPABASE_SECRET_ACCESS_KEY is required'),
+  SUPABASE_SECRET_SECRET_KEY: z.string().min(1, 'SUPABASE_SECRET_SECRET_KEY is required'),
   SUPABASE_BUCKET: z.string().min(1, 'SUPABASE_BUCKET is required'),
   SUPABASE_BUCKET_PUBLIC: z.string().min(1, 'SUPABASE_BUCKET_PUBLIC is required'),
   
@@ -44,7 +43,7 @@ const envSchema = z.object({
   CORS_MAX_AGE: z.string().regex(/^\d+$/, 'CORS_MAX_AGE must be a number').transform(Number).pipe(z.number().min(0)).default('86400'),
   RATE_LIMIT_WINDOW_MS: z.string().regex(/^\d+$/, 'RATE_LIMIT_WINDOW_MS must be a number').transform(Number).pipe(z.number().min(1000)).default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().regex(/^\d+$/, 'RATE_LIMIT_MAX_REQUESTS must be a number').transform(Number).pipe(z.number().min(1)).default('100'),
-  SESSION_SECRET: z.string().optional(),
+  SESSION_SECRET: z.string().min(16, 'SESSION_SECRET is required and must be strong'),
   
   // File Upload
   MAX_FILE_SIZE: z.string().regex(/^\d+$/, 'MAX_FILE_SIZE must be a number').transform(Number).pipe(z.number().min(1024)).default('10485760'), // 10MB
@@ -60,14 +59,7 @@ const envSchema = z.object({
 });
 
 export const loadConfig = () => {
-  const envData = { ...process.env };
-  
-  // Fallback for missing secrets in production
-  if (!envData.SUPABASE_SECRET_ACCESS_KEY) envData.SUPABASE_SECRET_ACCESS_KEY = tempSecrets.SUPABASE_SECRET_ACCESS_KEY;
-  if (!envData.SUPABASE_SECRET_SECRET_KEY) envData.SUPABASE_SECRET_SECRET_KEY = tempSecrets.SUPABASE_SECRET_SECRET_KEY;
-  if (!envData.SESSION_SECRET) envData.SESSION_SECRET = tempSecrets.SESSION_SECRET;
-
-  const envResult = envSchema.safeParse(envData);
+  const envResult = envSchema.safeParse(process.env);
   if (!envResult.success) {
     const errorMessages = envResult.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
     console.error('❌ Environment validation failed:', errorMessages);
