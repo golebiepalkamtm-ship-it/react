@@ -16,6 +16,9 @@ ARG DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres?schema=
 ARG DIRECT_URL=${DATABASE_URL}
 ENV DATABASE_URL=${DATABASE_URL}
 ENV DIRECT_URL=${DIRECT_URL}
+# Wymuszamy binary engine (alpine) aby uniknąć brakującego wasm podczas prisma generate
+ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary
+ENV PRISMA_CLIENT_ENGINE_TYPE=binary
 
 # 4. Generujemy klienta Prisma
 RUN npx prisma generate
