@@ -11,13 +11,19 @@ COPY prisma ./prisma
 RUN apk add --no-cache openssl
 RUN npm install --legacy-peer-deps
 
-# 3. Generujemy klienta Prisma
+# 3. Ustawiamy URL bazy dla Prisma (wymagany do generate)
+ARG DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres?schema=public"
+ARG DIRECT_URL=${DATABASE_URL}
+ENV DATABASE_URL=${DATABASE_URL}
+ENV DIRECT_URL=${DIRECT_URL}
+
+# 4. Generujemy klienta Prisma
 RUN npx prisma generate
 
-# 4. Kopiujemy resztę kodu PO zainstalowaniu zależności
+# 5. Kopiujemy resztę kodu PO zainstalowaniu zależności
 COPY . .
 
-# 5. Kompilujemy TypeScript
+# 6. Kompilujemy TypeScript
 RUN npx tsc --skipLibCheck
 
 # Etap 2: Obraz produkcyjny
