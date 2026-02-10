@@ -62,7 +62,7 @@ const AuctionsPage = () => {
   const [category, setCategory] = useState("all");
   const [gender, setGender] = useState("all");
 
-  const { auctions, isLoading, refetch, error } = useAuctions({ status: 'active', sortBy });
+  const { auctions, isLoading, refetch, error } = useAuctions({ status: 'active', sortBy, sellerId: undefined });
   const sanitizedAuctions = useMemo(() => {
     return auctions.filter((auction) => {
       const title = (auction.title || '').trim();
@@ -241,7 +241,9 @@ const AuctionsPage = () => {
   ];
 
   return (
-    <>
+    <div className="relative isolate min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 -z-20 opacity-[0.025] bg-[radial-gradient(55%_55%_at_22%_18%,rgba(0,180,190,0.1),transparent_76%)]" />
+
       <section ref={heroRef} className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24">
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-navy via-navy-dark to-navy" />
         <div className="container mx-auto px-4">
@@ -325,16 +327,16 @@ const AuctionsPage = () => {
         </div>
       </section>
 
-      <section className="py-10">
+      <section className="relative py-10">
         <div className="container mx-auto px-4">
           {isLoading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[1, 2, 3, 4].map((i) => <div key={i} className="h-[620px] rounded-[24px] bg-white/5 animate-pulse" />)}
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-[620px] rounded-[24px] bg-white/5 animate-pulse shadow-[0_18px_48px_rgba(0,0,0,0.32)]" />)}
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {uiAuctions.map((auction) => (
-                <div key={auction.id} className="h-full">
+                <div key={auction.id} className="h-full rounded-[26px] shadow-[0_18px_48px_rgba(0,0,0,0.32)] hover:shadow-[0_24px_64px_rgba(0,0,0,0.42)] transition-shadow duration-300">
                   <UnifiedAuctionCard
                     id={auction.id}
                     title={auction.name}
@@ -381,7 +383,7 @@ const AuctionsPage = () => {
 
       <UnifiedModal isOpen={feedbackModal.isOpen} onClose={() => setFeedbackModal(p => ({ ...p, isOpen: false }))} type={feedbackModal.type} title={feedbackModal.title} message={feedbackModal.message} />
       <AccountModal open={isAccountOpen} onClose={() => setIsAccountOpen(false)} />
-    </>
+    </div>
   );
 };
 

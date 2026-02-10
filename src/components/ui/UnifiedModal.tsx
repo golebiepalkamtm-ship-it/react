@@ -235,19 +235,19 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
               <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-50 pointer-events-none rounded-2xl`} />
             )}
 
-            <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 modal-header">
+            <div className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-white/5 modal-header">
               <div className="flex items-center gap-4">
                 {Icon && (
-                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}>
+                  <div className={`p-2 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}>
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                 )}
                 <div>
                   {title && (
-                    <h2 className="text-xl md:text-2xl font-display font-bold text-white leading-tight tracking-tight">{title}</h2>
+                    <h2 className="text-lg md:text-xl font-display font-bold text-white leading-tight tracking-tight">{title}</h2>
                   )}
                   {message && (
-                    <p className="text-sm text-white/60 mt-0.5">{message}</p>
+                    <p className="text-xs text-white/60 mt-0.5">{message}</p>
                   )}
                 </div>
               </div>
@@ -257,21 +257,21 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                   variant="ghost"
                   size="icon"
                   onClick={onClose}
-                  className="text-white/40 hover:text-white hover:bg-white/5 transition-all h-10 w-10 rounded-full"
+                  className="text-white/40 hover:text-white hover:bg-white/5 transition-all h-8 w-8 rounded-full"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </Button>
               )}
             </div>
 
-            <div className="relative z-10 flex-1 overflow-visible">
-              <div className="w-full mx-auto px-6 py-6">
+            <div className="relative z-10 flex-1 overflow-hidden">
+              <div className="w-full mx-auto px-6 pt-0 pb-4">
                 {children}
               </div>
             </div>
 
             {(confirmButton || cancelButton) && (
-              <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 px-6 py-4 border-t border-white/5 w-full">
+              <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 px-6 py-3 border-t border-white/5 w-full">
                 {cancelButton && (
                   <Button
                     variant="ghost"

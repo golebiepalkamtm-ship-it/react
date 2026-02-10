@@ -18,13 +18,17 @@ export const useAuctionForm = ({ category, onSuccess }: UseAuctionFormOptions) =
     const [formData, setFormData] = useState<Partial<CreateAuctionRequest>>({
         title: '',
         description: '',
-        startingPrice: category === 'pigeons' ? 1000 : category === 'supplements' ? 10 : 50,
+        startingPrice: category === 'pigeons' ? 100 : category === 'supplements' ? 10 : 50,
         buyNowPrice: undefined,
+        reservePrice: undefined,
         category: category === 'pigeons' ? 'RACING' : category.toUpperCase() as any,
         sex: 'male',
         location: 'Lubań, Polska',
         images: [],
         videos: [],
+        // czas trwania aukcji
+        durationDays: 7 as any,
+        durationHours: 0 as any,
         pigeon: category === 'pigeons' ? {
             ringNumber: '',
             colorTraits: [],
@@ -109,7 +113,10 @@ export const useAuctionForm = ({ category, onSuccess }: UseAuctionFormOptions) =
 
             // 3. Prepare Final Request
             const endTime = new Date();
-            endTime.setDate(endTime.getDate() + 7);
+            const days = Number(formData.durationDays ?? 7);
+            const hours = Number(formData.durationHours ?? 0);
+            if (!Number.isNaN(days)) endTime.setDate(endTime.getDate() + days);
+            if (!Number.isNaN(hours)) endTime.setHours(endTime.getHours() + hours);
 
             const request: CreateAuctionRequest = {
                 title: formData.title!,
@@ -125,7 +132,7 @@ export const useAuctionForm = ({ category, onSuccess }: UseAuctionFormOptions) =
                 pigeon: category === 'pigeons' ? {
                     ...formData.pigeon,
                     ringNumber: formData.pigeon?.ringNumber?.trim()
-                } : (formData.pigeon as any),
+                } : {},
             };
 
             await auctionService.createAuction(request, session?.access_token ?? '');

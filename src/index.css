@@ -716,16 +716,44 @@
 
 .premium-card {
   @apply glass-card border-gold/20 hover:border-gold/40 shadow-gold/5 transition-all duration-700;
+  background-image: linear-gradient(to bottom right, #020611, #081522 50%, #004A4A);
+  background-blend-mode: normal;
+  position: relative;
+  overflow: hidden;
 }
 
+/* Radial glow effect following mouse */
 .premium-card::after {
   content: '';
-  @apply absolute inset-0 opacity-0 transition-opacity duration-700 pointer-events-none;
-  background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.1), transparent 40%);
+  @apply absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none;
+  background: radial-gradient(500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.12), transparent 50%);
+  z-index: 1;
 }
 
 .premium-card:hover::after {
   @apply opacity-100;
+}
+
+/* Subtle inner shimmer on hover */
+.premium-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 40%, rgba(212, 175, 55, 0.0) 70%);
+  z-index: 0;
+}
+
+.premium-card:hover::before {
+  opacity: 1;
+}
+
+/* Ensure content is above pseudo-elements */
+.premium-card > * {
+  position: relative;
+  z-index: 2;
 }
 
 .bg-gradient-conic {

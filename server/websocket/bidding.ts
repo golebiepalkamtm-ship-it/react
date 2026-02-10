@@ -6,6 +6,7 @@ import { verifyJWTTokenWithRole } from '../utils/tokenVerifier.js';
 import { validatedEnv } from '../lib/env.js';
 import { wsTicketService } from '../services/WebSocketTicketService.js';
 import { auctionService } from '../services/AuctionService.js';
+import { isAllowedOrigin } from '../lib/originUtils.js';
 
 // UUID v4 validation regex
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -35,34 +36,13 @@ const wsBidSchema = z.object({
   path: ['maxBid']
 });
 
-// CSRF/Origin Protection Helper
-function verifyOrigin(origin: string | undefined): boolean {
-  if (!origin) return false;
-  
-  const allowedOrigins = validatedEnv.ALLOWED_ORIGINS
-    ? validatedEnv.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-    : [validatedEnv.CLIENT_URL];
-  
-  // In development, allow localhost with any port
-  if (validatedEnv.NODE_ENV === 'development') {
-    const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
-    if (localhostPattern.test(origin)) {
-      return true;
-    }
-  }
-  
-  return allowedOrigins.some(allowed => {
-    if (allowed === '*') return validatedEnv.NODE_ENV === 'development';
-    return origin === allowed || origin.startsWith(allowed);
-  });
-}
 
 export const setupWebSocketEvents = (io: Server) => {
   io.use(async (socket, next) => {
     try {
       // CRITICAL SECURITY #1: Strict Origin/CSRF Protection
-      const origin = socket.handshake.headers.origin || socket.handshake.headers.referer;
-      if (!verifyOrigin(origin)) {
+      const origin = (socket.handshake.headers.origin || socket.handshake.headers.referer || '') as string;
+      if (!isAllowedOrigin(origin)) {
         logger.warn(`WebSocket connection rejected - invalid origin: ${origin}`, {
           ip: socket.handshake.address,
           headers: socket.handshake.headers

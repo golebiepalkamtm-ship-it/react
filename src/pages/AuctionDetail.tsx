@@ -361,6 +361,13 @@ const AuctionDetail: React.FC = () => {
       <main className="pt-24 pb-12">
         {displayAuction && !error && (
           <div className="container mx-auto px-4">
+            {/* Breadcrumb */}
+            <div className="mb-6 flex items-center gap-2 text-sm text-white/50">
+              <Link to="/auctions" className="hover:text-white transition-colors">Aukcje</Link>
+              <span className="opacity-40">/</span>
+              <span className="text-white/70 line-clamp-1">{displayAuction.title}</span>
+            </div>
+
             <div className="grid lg:grid-cols-2 gap-12 items-start">
               {/* Image Gallery */}
               <div className="space-y-4">
@@ -430,6 +437,70 @@ const AuctionDetail: React.FC = () => {
                 </div>
 
                 <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                {/* Meta chips */}
+                <div className="flex flex-wrap gap-3">
+                  {displayAuction.location && (
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/80 text-sm">
+                      <span className="w-2 h-2 rounded-full bg-primary/70" />
+                      {displayAuction.location}
+                    </span>
+                  )}
+                  {displayAuction.seller && (
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/80 text-sm">
+                      Sprzedający: <span className="font-semibold text-white">{displayAuction.seller.username || displayAuction.seller.firstName}</span>
+                    </span>
+                  )}
+                  <Link
+                    to="/contact"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/40 to-gold/30 border border-white/10 text-white text-sm font-semibold hover:shadow-lg transition-shadow"
+                  >
+                    Kontakt / transport
+                  </Link>
+                </div>
+
+                {/* Quick facts */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Lot / ID</p>
+                    <p className="text-white font-semibold">{displayAuction.id}</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Kategoria</p>
+                    <p className="text-white font-semibold">{displayAuction.category || "—"}</p>
+                  </div>
+                  {displayAuction.reservePrice ? (
+                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Cena rezerwowa</p>
+                      <p className="text-white font-semibold">
+                        {displayAuction.reserveMet ? "Spełniona" : `${displayAuction.reservePrice.toLocaleString("pl-PL")} zł`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Cena wywoławcza</p>
+                      <p className="text-white font-semibold">
+                        {displayAuction.startingPrice?.toLocaleString("pl-PL") || "—"}{displayAuction.startingPrice ? " zł" : ""}
+                      </p>
+                    </div>
+                  )}
+                  {displayAuction.seller?.rating !== undefined && (
+                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ocena sprzedającego</p>
+                      <p className="text-white font-semibold">{displayAuction.seller.rating.toFixed(1)} / 5</p>
+                    </div>
+                  )}
+                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ofert</p>
+                    <p className="text-white font-semibold">{displayAuction._count?.bids || 0}</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Zakończenie</p>
+                    <p className="text-white font-semibold">
+                      {new Date(displayAuction.endTime).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}
+                    </p>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-8 items-end">
                   <div>
@@ -605,6 +676,75 @@ const AuctionDetail: React.FC = () => {
                         >
                           Zobacz rodowód
                         </Button>
+                      </div>
+                    )}
+                    {(displayAuction.seller || (displayAuction.documents && displayAuction.documents.length > 0)) && (
+                      <div className="grid md:grid-cols-2 gap-6 pt-2">
+                        {displayAuction.seller && (
+                          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                            <h5 className="text-sm font-semibold text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-gold" />
+                              Kontakt sprzedającego
+                            </h5>
+                            <div className="space-y-2 text-white/80 text-sm">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-white/60">Nick</span>
+                                <span className="font-semibold text-white">{displayAuction.seller.username || displayAuction.seller.firstName}</span>
+                              </div>
+                              {displayAuction.seller.phoneNumber && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-white/60">Telefon</span>
+                                  <a href={`tel:${displayAuction.seller.phoneNumber}`} className="font-semibold text-primary hover:underline">
+                                    {displayAuction.seller.phoneNumber}
+                                  </a>
+                                </div>
+                              )}
+                              {displayAuction.seller.email && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-white/60">Email</span>
+                                  <a href={`mailto:${displayAuction.seller.email}`} className="font-semibold text-primary hover:underline break-all">
+                                    {displayAuction.seller.email}
+                                  </a>
+                                </div>
+                              )}
+                              {displayAuction.location && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-white/60">Lokalizacja</span>
+                                  <span className="font-semibold text-white text-right">{displayAuction.location}</span>
+                                </div>
+                              )}
+                            </div>
+                            <Link
+                              to="/contact"
+                              className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-primary/40 to-gold/30 border border-white/10 text-white text-sm font-semibold hover:shadow-lg transition-shadow"
+                            >
+                              Zapytaj o transport / odbiór
+                            </Link>
+                          </div>
+                        )}
+                        {displayAuction.documents && displayAuction.documents.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                            <h5 className="text-sm font-semibold text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-primary" />
+                              Załączniki
+                            </h5>
+                            <ul className="space-y-2 text-white/80 text-sm">
+                              {displayAuction.documents.slice(0, 5).map((doc, idx) => (
+                                <li key={idx} className="flex items-center justify-between gap-3">
+                                  <span className="truncate">{doc}</span>
+                                  <a
+                                    href={doc}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary hover:underline font-semibold"
+                                  >
+                                    Pobierz
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

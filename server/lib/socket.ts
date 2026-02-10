@@ -2,23 +2,16 @@ import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { validatedEnv } from './env.js';
 
+import { isAllowedOrigin } from './originUtils.js';
+
 let io: SocketIOServer | null = null;
 
-export const initSocket = (server: HttpServer, allowedOrigins: string[]) => {
+export const initSocket = (server: HttpServer, _allowedOrigins: string[]) => {
   io = new SocketIOServer(server, {
     cors: {
       origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, etc.)
-        if (!origin) return callback(null, true);
-        
-        // Check against allowed origins
-        const isWildcardAllowed =
-          validatedEnv.NODE_ENV === 'production' &&
-          (
-            /^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i.test(origin) ||
-            /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)
-          );
-        if (allowedOrigins.includes(origin) || isWildcardAllowed) {
+        // Use centralized origin validation logic
+        if (isAllowedOrigin(origin)) {
           return callback(null, true);
         }
         

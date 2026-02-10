@@ -125,6 +125,8 @@ export interface CreateAuctionRequest {
   startingPrice?: number;
   buyNowPrice?: number;
   reservePrice?: number;
+  durationDays?: number;
+  durationHours?: number;
   endTime: string;
   category: string;
   pigeon: Partial<Pigeon>;
