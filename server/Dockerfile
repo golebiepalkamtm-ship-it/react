@@ -1,47 +1,45 @@
-FROM node:22-alpine AS base
+# Multi-stage build for optimal production image
 
-# Etap 1: Budowanie aplikacji
+# Stage 1: Builder (Builds source code)
+FROM node:22-alpine AS builder
 WORKDIR /app
-
-# 1. Kopiujemy tylko pliki zależności
+# Install build dependencies for potential native modules
+RUN apk add --no-cache python3 make g++ openssl
 COPY package*.json ./
 COPY prisma ./prisma
+RUN npm ci
+COPY . .
+# Run build command (prisma generate + tsc + copy-runtime)
+RUN npm run build
 
-# 2. Instalujemy zależności
+# Stage 2: Production Dependencies (Clean install)
+FROM node:22-alpine AS deps
+WORKDIR /app
 RUN apk add --no-cache openssl
-RUN npm install --legacy-peer-deps
-
-# 3. Ustawiamy URL bazy dla Prisma (wymagany do generate)
-ARG DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres?schema=public"
-ARG DIRECT_URL=${DATABASE_URL}
-ENV DATABASE_URL=${DATABASE_URL}
-ENV DIRECT_URL=${DIRECT_URL}
-# Wymuszamy binary engine (alpine) aby uniknąć brakującego wasm podczas prisma generate
-ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary
-ENV PRISMA_CLIENT_ENGINE_TYPE=binary
-
-# 4. Generujemy klienta Prisma
+COPY package*.json ./
+COPY prisma ./prisma
+# Install only production dependencies
+RUN npm ci --omit=dev
+# Generate Prisma Client for production runtime
 RUN npx prisma generate
 
-# 5. Kopiujemy resztę kodu PO zainstalowaniu zależności
-COPY . .
-
-# 6. Kompilujemy TypeScript
-RUN npx tsc --skipLibCheck
-
-# Etap 2: Obraz produkcyjny
+# Stage 3: Runner (Minimal runtime image)
 FROM node:22-alpine
-
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-# Kopiujemy tylko niezbędne pliki z etapu budowania
-COPY --from=base /app/package*.json ./
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/dist ./dist
-COPY --from=base /app/prisma ./prisma
+# Install runtime dependencies
+RUN apk add --no-cache openssl curl
+
+# Copy artifacts from previous stages
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8001/api/health || exit 1
 
 EXPOSE 8001
-
-CMD ["node", "dist/bootstrap.js"]
+CMD ["node", "dist/index.js"]

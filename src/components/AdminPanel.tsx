@@ -74,9 +74,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   });
 
   const fetchData = useCallback(async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      console.error('❌ No access token available');
+      return;
+    }
     setLoading(true);
     try {
+      console.log('🔑 Fetching admin data with token:', session.access_token.substring(0, 20) + '...');
+      console.log('👤 Profile role:', profile?.role);
+      console.log('📧 User email:', session.user?.email);
+      
       const statsData = await apiClient.getWithToken<AdminStats>('/admin/stats', undefined, session.access_token);
       setStats(statsData);
 
@@ -87,7 +94,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       setAuctions(auctionsData);
 
     } catch (error) {
-      console.error("Error fetching admin data:", error);
+      console.error("❌ Error fetching admin data:", error);
+      console.error("Error details:", error instanceof Error ? error.message : error);
       setFeedbackModal({
         isOpen: true,
         type: 'error',
@@ -97,7 +105,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     } finally {
       setLoading(false);
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, profile?.role, session?.user?.email]);
 
   useEffect(() => {
     if (isOpen && profile?.role === 'ADMIN' && session?.access_token) {

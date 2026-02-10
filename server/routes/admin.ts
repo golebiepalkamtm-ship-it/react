@@ -5,9 +5,11 @@ import { cache } from '../lib/cache.js';
 
 const router: Router = express.Router();
 
+import { validatedEnv } from '../lib/env.js';
+
 // Initialize Supabase Admin Client if credentials exist
-const supabaseAdmin = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
-  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+const supabaseAdmin = validatedEnv.SUPABASE_URL && validatedEnv.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(validatedEnv.SUPABASE_URL, validatedEnv.SUPABASE_SERVICE_ROLE_KEY)
   : null;
 
 /**

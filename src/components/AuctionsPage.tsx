@@ -212,17 +212,28 @@ const AuctionsPage = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const hasAnimated = useRef(false);
+
   useEffect(() => {
-    if (!heroRef.current || !heroContentRef.current) return;
+    if (!heroRef.current || !heroContentRef.current || hasAnimated.current) return;
     const ctx = gsap.context(() => {
       const children = heroContentRef.current?.children;
-      if (children) {
+      if (children && children.length > 0) {
+        hasAnimated.current = true;
         gsap.set(children, { opacity: 0, y: 60 });
-        gsap.to(children, { opacity: 1, y: 0, stagger: 0.3, duration: 2.0, ease: 'power3.out', delay: 0.6 });
+        gsap.to(children, { 
+          opacity: 1, 
+          y: 0, 
+          stagger: 0.3, 
+          duration: 2.0, 
+          ease: 'power3.out', 
+          delay: 0.6,
+          clearProps: "all"
+        });
       }
     }, heroRef);
     return () => ctx.revert();
-  }, [filteredAuctions]);
+  }, []);
 
   const toggleQuickFilter = (filterId: QuickFilterId) => {
     setActiveQuickFilter((prev) => {
@@ -256,7 +267,7 @@ const AuctionsPage = () => {
           </div>
           <div className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-3">
             {statTiles.map(({ label, value, meta, Icon }) => (
-              <div key={label} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-6 text-left transition hover:border-gold/40">
+              <div key={label} className="group glass-vault bg-white/[0.05] px-5 py-6 text-left hover:border-gold/40">
                 <Icon className="h-5 w-5 text-gold mb-2" />
                 <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">{label}</p>
                 <p className="text-2xl font-display text-white">{value}</p>
@@ -269,7 +280,7 @@ const AuctionsPage = () => {
 
       <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
         <div className="container mx-auto px-4">
-          <div className="group relative rounded-2xl border border-white/10 bg-white/[0.05] pt-4 px-4 pb-6 shadow-[0_20px_60px_rgba(2,4,12,0.45)] backdrop-blur-2xl space-y-8 transition hover:border-gold/40 sm:px-6">
+          <div className="group glass-vault bg-white/[0.05] pt-4 px-4 pb-6 space-y-8 sm:px-6 hover:border-gold/40">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
@@ -296,7 +307,7 @@ const AuctionsPage = () => {
               </div>
             </div>
             {showFilters && (
-              <div className="grid gap-4 md:grid-cols-3 p-6 border border-white/10 rounded-2xl bg-white/5">
+              <div className="grid gap-4 md:grid-cols-3 p-6 glass-vault bg-white/5">
                 <div>
                   <label className="text-sm font-medium text-white/70 mb-2 block">Cena (PLN)</label>
                   <div className="flex gap-2">

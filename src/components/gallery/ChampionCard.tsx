@@ -130,7 +130,8 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
         <div className="relative aspect-[4/3] overflow-hidden bg-zinc-950">
           {/* Obrazek championa */}
           {champion.images?.[0] ? (
-            <img
+            <motion.img
+              layoutId={`champion-image-${champion.id}`}
               src={champion.images[0]}
               alt={champion.name}
               className="w-full h-full object-contain object-top filter brightness-110 contrast-105"

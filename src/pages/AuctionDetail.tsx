@@ -441,13 +441,13 @@ const AuctionDetail: React.FC = () => {
                 {/* Meta chips */}
                 <div className="flex flex-wrap gap-3">
                   {displayAuction.location && (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/80 text-sm">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-gold/30 text-white/80 text-sm shadow-[0_10px_30px_rgba(0,0,0,0.3)]">
                       <span className="w-2 h-2 rounded-full bg-primary/70" />
                       {displayAuction.location}
                     </span>
                   )}
                   {displayAuction.seller && (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/80 text-sm">
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-gold/30 text-white/80 text-sm">
                       Sprzedający: <span className="font-semibold text-white">{displayAuction.seller.username || displayAuction.seller.firstName}</span>
                     </span>
                   )}
@@ -461,23 +461,23 @@ const AuctionDetail: React.FC = () => {
 
                 {/* Quick facts */}
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                  <div className="bg-white/10 backdrop-blur-xl px-4 py-3 rounded-xl">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Lot / ID</p>
                     <p className="text-white font-semibold">{displayAuction.id}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                  <div className="bg-white/10 backdrop-blur-xl px-4 py-3 rounded-xl">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Kategoria</p>
                     <p className="text-white font-semibold">{displayAuction.category || "—"}</p>
                   </div>
                   {displayAuction.reservePrice ? (
-                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <div className="bg-white/10 backdrop-blur-xl px-4 py-3 rounded-xl">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Cena rezerwowa</p>
                       <p className="text-white font-semibold">
                         {displayAuction.reserveMet ? "Spełniona" : `${displayAuction.reservePrice.toLocaleString("pl-PL")} zł`}
                       </p>
                     </div>
                   ) : (
-                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <div className="bg-white/10 backdrop-blur-xl px-4 py-3 rounded-xl">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Cena wywoławcza</p>
                       <p className="text-white font-semibold">
                         {displayAuction.startingPrice?.toLocaleString("pl-PL") || "—"}{displayAuction.startingPrice ? " zł" : ""}
@@ -485,16 +485,16 @@ const AuctionDetail: React.FC = () => {
                     </div>
                   )}
                   {displayAuction.seller?.rating !== undefined && (
-                    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <div className="bg-white/10 backdrop-blur-xl px-4 py-3 rounded-xl">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ocena sprzedającego</p>
                       <p className="text-white font-semibold">{displayAuction.seller.rating.toFixed(1)} / 5</p>
                     </div>
                   )}
-                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                  <div className="bg-white/10 backdrop-blur-xl px-4 py-3 rounded-xl">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ofert</p>
                     <p className="text-white font-semibold">{displayAuction._count?.bids || 0}</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                  <div className="bg-white/10 backdrop-blur-xl px-4 py-3 rounded-xl">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Zakończenie</p>
                     <p className="text-white font-semibold">
                       {new Date(displayAuction.endTime).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}
@@ -548,7 +548,11 @@ const AuctionDetail: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-black/20 backdrop-blur-md p-8 rounded-3xl border border-white/10 space-y-8 shadow-xl relative overflow-hidden group hover:border-gold/20 transition-all duration-300">
+                <div className="bg-white/10 backdrop-blur-2xl p-8 rounded-3xl space-y-8 relative overflow-hidden border-2 border-gold/40 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)]"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
+                  }}
+                >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent opacity-50" />
                   {!isEnded && (
                     <div className="space-y-6">
@@ -567,7 +571,7 @@ const AuctionDetail: React.FC = () => {
                               type="number"
                               value={bidAmount}
                               onChange={(e) => setBidAmount(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xl font-bold focus:outline-none focus:border-primary/50 transition-all focus:bg-white/[0.08]"
+                              className="w-full bg-white/10 backdrop-blur-xl border border-gold/30 rounded-2xl px-6 py-4 text-white text-xl font-bold focus:outline-none focus:border-primary/50 transition-all focus:bg-white/[0.08]"
                               placeholder="0.00"
                             />
                             <span className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 font-bold">PLN</span>
@@ -629,43 +633,50 @@ const AuctionDetail: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Description */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-bold text-white uppercase tracking-[0.2em] flex items-center gap-3">
-                    <span className="w-12 h-px bg-primary" />
-                    {isPigeon ? "Szczegóły gołębia" : "Specyfikacja produktu"}
-                  </h3>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {isPigeon ? (
-                      [
-                        { label: "Płeć", value: displayAuction.pigeon?.gender === "male" ? "Samiec" : "Samica" },
-                        { label: "Kolor", value: displayAuction.pigeon?.pigeonColor },
-                        { label: "Oko", value: displayAuction.pigeon?.eyeColor },
-                        { label: "Budowa", value: displayAuction.pigeon?.construction },
-                        { label: "Witalność", value: displayAuction.pigeon?.vitality },
-                        { label: "Cel", value: displayAuction.pigeon?.purpose },
-                      ].map((spec, i) => spec.value && (
-                        <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 transition-colors hover:bg-white/[0.08]">
-                          <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{spec.label}</p>
-                          <p className="text-sm font-semibold text-white">{spec.value}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 transition-colors hover:bg-white/[0.08] col-span-full">
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Kategoria</p>
-                        <p className="text-sm font-semibold text-white">{displayAuction.category}</p>
-                      </div>
-                    )}
-                  </div>
 
                   <div className="space-y-4 pt-4">
                     <h4 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-primary" />
-                      Opis hodowcy
+                      {isPigeon ? "Szczegóły gołębia" : "Informacje o produkcie"}
                     </h4>
-                    <div className="text-white/80 leading-relaxed whitespace-pre-wrap bg-black/20 backdrop-blur-md p-6 rounded-2xl border border-white/5 font-sans">
-                      {displayAuction.description}
+                    
+                    {/* Przyciski ze szczegółami */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {isPigeon ? (
+                        [
+                          { label: "Płeć", value: displayAuction.pigeon?.gender === "male" ? "Samiec" : "Samica" },
+                          { label: "Kolor", value: displayAuction.pigeon?.pigeonColor },
+                          { label: "Oko", value: displayAuction.pigeon?.eyeColor },
+                          { label: "Budowa", value: displayAuction.pigeon?.construction },
+                          { label: "Witalność", value: displayAuction.pigeon?.vitality },
+                          { label: "Cel", value: displayAuction.pigeon?.purpose },
+                        ].map((spec, i) => spec.value && (
+                          <button
+                            key={i}
+                            className="bg-white/10 backdrop-blur-xl border border-gold/30 p-4 rounded-xl hover:bg-white/[0.15] hover:border-gold/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.3)] text-left"
+                          >
+                            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">{spec.label}</p>
+                            <p className="text-sm font-semibold text-white">{spec.value}</p>
+                          </button>
+                        ))
+                      ) : (
+                        <button className="bg-white/10 backdrop-blur-xl border border-gold/30 p-4 rounded-xl hover:bg-white/[0.15] hover:border-gold/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.3)] col-span-full text-left">
+                          <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Kategoria</p>
+                          <p className="text-sm font-semibold text-white">{displayAuction.category}</p>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Opis hodowcy */}
+                    <div className="pt-4">
+                      <h4 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-3">
+                        <span className="w-2 h-2 rounded-full bg-primary" />
+                        Opis hodowcy
+                      </h4>
+                      <div className="bg-white/10 backdrop-blur-xl border-2 border-gold/40 p-6 rounded-2xl text-white/80 leading-relaxed whitespace-pre-wrap font-sans shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)]">
+                        {displayAuction.description}
+                      </div>
                     </div>
                     {pedigreeUrl && (
                       <div className="pt-2">
@@ -681,7 +692,7 @@ const AuctionDetail: React.FC = () => {
                     {(displayAuction.seller || (displayAuction.documents && displayAuction.documents.length > 0)) && (
                       <div className="grid md:grid-cols-2 gap-6 pt-2">
                         {displayAuction.seller && (
-                          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                          <div className="bg-white/10 backdrop-blur-xl p-5 rounded-2xl space-y-3">
                             <h5 className="text-sm font-semibold text-white uppercase tracking-[0.2em] flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-gold" />
                               Kontakt sprzedającego
@@ -723,7 +734,7 @@ const AuctionDetail: React.FC = () => {
                           </div>
                         )}
                         {displayAuction.documents && displayAuction.documents.length > 0 && (
-                          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                          <div className="bg-white/10 backdrop-blur-xl p-5 rounded-2xl space-y-3">
                             <h5 className="text-sm font-semibold text-white uppercase tracking-[0.2em] flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-primary" />
                               Załączniki
@@ -750,7 +761,7 @@ const AuctionDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+
 
             {/* Reviews Section */}
             {isEnded && displayAuction.seller?.id && (

@@ -4,7 +4,7 @@ import { useFeedback } from "@/components/ui/feedback/FeedbackProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import Header from "@/components/Header";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FloatingElement } from '@/components/animations';
 import AuthMessageModal, { type MessageType } from "@/components/auth/AuthSuccessModal";
 import { isSupabaseConfigured, missingSupabaseEnv } from "@/lib/supabase";
@@ -43,6 +43,20 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Parallax 3D state (Press-style)
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+    stiffness: 150,
+    damping: 20,
+  });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+    stiffness: 150,
+    damping: 20,
+  });
+
   // Unified modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<MessageType>('success');
@@ -57,6 +71,21 @@ export default function Auth() {
     setModalMessage(message);
     setModalAction(action);
     setModalOpen(true);
+  };
+
+  // Parallax 3D effect (Press-style)
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current || reduceMotion) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
   };
 
   const handleModalConfirm = () => {
@@ -313,7 +342,7 @@ export default function Auth() {
     >
       <Header />
 
-      <main className="relative flex flex-col lg:flex-row min-h-[calc(100vh-96px)] overflow-hidden">
+      <main className="relative flex flex-col lg:flex-row min-h-screen overflow-hidden z-10">
         <div className="w-full lg:w-[60%] xl:w-[58%] relative overflow-hidden h-[40vh] sm:h-[48vh] lg:h-auto">
           <video
             src="/pigeon-tlo-Picsart-BackgroundRemover.mp4"
@@ -321,32 +350,24 @@ export default function Auth() {
             muted
             loop
             playsInline
-            className="absolute inset-0 w-full h-full object-contain scale-[0.78] translate-x-[10%] translate-y-16 sm:translate-y-24 lg:translate-y-32"
+            className="absolute inset-0 w-full h-full object-contain scale-[0.78] translate-x-[15%] translate-y-8 sm:translate-y-16 lg:translate-y-20 z-0"
           />
 
-          <div className="absolute inset-0 pointer-events-none">
+          <div style={{ perspective: "1000px" }}>
             <motion.div
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.9 }}
-              transition={{ duration: 0.8 }}
-              style={{ background: 'radial-gradient(circle at 30% 20%, rgba(255,215,128,0.15), transparent 40%), radial-gradient(circle at 80% 60%, rgba(64,119,255,0.18), transparent 35%)' }}
-            />
-          </div>
-
-          <motion.div
-            initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.6 }}
-            className="absolute top-20 left-[10%] sm:top-36 sm:left-[14%] z-30 drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)] max-w-[240px] sm:max-w-[320px] lg:max-w-[420px]"
-            style={{ perspective: 1200 }}
-          >
-            <motion.div
-              className="rounded-3xl border border-white/15 bg-white/5 backdrop-blur-2xl px-6 py-5 shadow-[0_30px_80px_rgba(0,0,0,0.4)] flex flex-col items-center text-center"
-              whileHover={reduceMotion ? undefined : { rotateX: -6, rotateY: 6, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              style={{ transformStyle: "preserve-3d" }}
+              initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.6 }}
+              className="absolute top-20 left-[25%] sm:top-36 sm:left-[30%] z-30 max-w-[240px] sm:max-w-[320px] lg:max-w-[420px]"
             >
+              <motion.div
+                className="rounded-3xl border-2 border-gold/40 bg-white/10 backdrop-blur-2xl px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center text-center"
+                whileHover={reduceMotion ? undefined : { rotateX: -8, rotateY: 8, scale: 1.02, transition: { duration: 0.3 } }}
+                style={{ 
+                  transformStyle: "preserve-3d",
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
+                }}
+              >
               <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-tight text-center whitespace-nowrap">
                 Pałka <span className="text-gold">MTM</span>
               </h1>
@@ -354,20 +375,29 @@ export default function Auth() {
                 Mistrzowie sprintu
               </p>
             </motion.div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Prawy panel formularza */}
-        <div className="w-full lg:w-[38%] xl:w-[40%] flex items-center justify-center p-4 sm:p-6 lg:p-10 xl:pr-16 relative mt-6 lg:mt-10">
+        <div className="w-full lg:w-[38%] xl:w-[40%] flex items-center justify-center relative">
 
-          <motion.div
-            initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-sm relative z-10 rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_20%_20%,rgba(255,223,128,0.08),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(75,108,183,0.15),transparent_30%),rgba(6,8,16,0.82)] backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.45)] p-5 sm:p-6"
-            whileHover={reduceMotion ? undefined : { rotateX: -2.5, rotateY: 2.5, scale: 1.01 }}
-            style={{ transformStyle: "preserve-3d", perspective: 1200 }}
-          >
+          <div style={{ perspective: "1000px" }}>
+            <motion.div
+              ref={cardRef}
+              initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 24 }}
+              animate={{ 
+                opacity: 1, 
+                y: 0
+              }}
+              transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={reduceMotion ? undefined : { rotateX: -8, rotateY: 8, scale: 1.02, transition: { duration: 0.3 } }}
+              className="w-full max-w-sm relative z-50 rounded-3xl bg-white/10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] p-5 sm:p-6 border-2 border-gold/40"
+              style={{ 
+                transformStyle: "preserve-3d",
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
+              }}
+            >
             <div className="text-center mb-4">
               <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight mb-1">
                 {mode === "register" ? "Dołącz do nas" : "Witaj ponownie"}
@@ -641,7 +671,8 @@ export default function Auth() {
                 </Link>
               </div>
             </form>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </main>
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { auctionService } from '@/services/auctionService';
 import { useSocket } from '@/hooks/useSocket';
 import { useOptimizedToast } from '@/hooks/use-optimized-toast';
@@ -30,8 +30,7 @@ export function useAuctions(filters: AuctionFilters = {}): UseAuctionsResult {
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    initialData: undefined,
-    placeholderData: undefined,
+    placeholderData: keepPreviousData,
   });
 
   const auctionsWithFallback = useMemo(() => {

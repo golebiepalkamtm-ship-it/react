@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
+
+console.log("DEBUG Account.tsx loaded");
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -235,6 +237,8 @@ export default function Account() {
   const { updateUserProfile, loading: profileSaving, error: profileError } = useProfile();
   
   const heroRef = useRef<HTMLDivElement>(null);
+  const videoWrapperRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -244,6 +248,19 @@ export default function Account() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
+
+  useEffect(() => {
+    console.log("DEBUG video effect start");
+    const logRects = () => {
+      const wrap = videoWrapperRef.current?.getBoundingClientRect();
+      const vid = videoRef.current?.getBoundingClientRect();
+      console.log("DEBUG videoWrapper", wrap);
+      console.log("DEBUG video", vid);
+    };
+    logRects();
+    const id = setInterval(logRects, 2000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -325,7 +342,7 @@ export default function Account() {
 
       <motion.section 
         ref={heroRef}
-        className="relative min-h-[40vh] flex items-center justify-center z-10 pt-20"
+        className="relative min-h-[28vh] flex items-center justify-center z-10 pt-16"
         style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
       >
         <div className="absolute inset-0 overflow-hidden">
@@ -396,24 +413,30 @@ export default function Account() {
       <main className="relative z-10 pb-20">
         <div className="container mx-auto px-4 space-y-6">
           <motion.div
-            className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] p-6 md:p-8"
-            initial={{ opacity: 0, y: 30 }}
+            className="relative overflow-visible rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] p-6 md:p-8 -mt-32 sm:-mt-40 lg:-mt-48"
+            initial={{ opacity: 0, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
             <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 items-center">
-              <div className="order-2 lg:order-1 relative h-[520px] sm:h-[640px] lg:h-[780px] pt-32 sm:pt-44 lg:pt-56 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/10 via-transparent to-gold/5 blur-3xl" />
+              <div
+                ref={videoWrapperRef}
+                className="order-2 lg:order-1 relative min-h-[360px] sm:min-h-[440px] lg:min-h-[560px] pt-2 sm:pt-4 lg:pt-6 pb-6 sm:pb-8 lg:pb-10 flex items-center justify-center overflow-visible"
+              >
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-black/40 via-black/30 to-black/40" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gold/8 via-transparent to-gold/10 blur-3xl" />
                 <video
+                  ref={videoRef}
                   src="/pigeon-tlo-Picsart-BackgroundRemover.mp4"
                   autoPlay
                   muted
                   loop
                   playsInline
-                  className="relative w-full h-full object-contain translate-y-24 sm:translate-y-36 lg:translate-y-48"
+                  className="absolute left-0 right-0 w-full h-full object-contain"
+                  style={{ top: '-180px', transform: 'translateX(10%) scale(0.78)', position: 'absolute', zIndex: 10 }}
                 />
               </div>
 

@@ -103,9 +103,9 @@ export const UnifiedAuctionCard = ({
       {
         opacity: 1,
         y: 0,
-        scale: 1,
         duration: 0.6,
         ease: "power2.out",
+        clearProps: "all" // Important: clear GSAP styles after animation to let Framer Motion take over
       }
     );
 
@@ -140,13 +140,11 @@ export const UnifiedAuctionCard = ({
   }, []);
 
   useEffect(() => {
-    if (!endTime) return undefined;
-
     const intervalId = window.setInterval(() => {
-      setReferenceNow((previous) => previous + 10);
-    }, 10);
+      setReferenceNow((previous) => previous + 1000);
+    }, 1000);
     return () => window.clearInterval(intervalId);
-  }, [endTime, nowMs]);
+  }, [endTime]); // Removed nowMs to avoid unnecessary restarts
 
   const timeMeta = useMemo(() => {
     if (!endTime || referenceNow === 0) {
@@ -164,7 +162,7 @@ export const UnifiedAuctionCard = ({
       hours,
       minutes,
       seconds,
-      centiseconds,
+      centiseconds: "00", // Centiseconds not needed in list view
       ended: diff === 0,
       endingSoon: diff > 0 && diff < 3600000,
     };

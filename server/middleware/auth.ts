@@ -39,7 +39,10 @@ export interface AuthenticatedRequest extends Request {
 
 export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    console.log('🔐 [Auth Middleware] Request to:', req.path);
+    
     if (validatedEnv.NODE_ENV !== 'production' && req.headers['x-test-bypass-auth'] === 'true') {
+      console.log('⚠️  [Auth Middleware] Test bypass enabled');
       req.user = {
         id: 'test-user',
         role: 'admin',
@@ -48,8 +51,12 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
       return next();
     }
 
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    const authHeader = req.headers.authorization;
+    console.log('📝 [Auth Middleware] Authorization header:', authHeader ? `Bearer ${authHeader.substring(7, 27)}...` : 'MISSING');
+    
+    const token = authHeader?.replace('Bearer ', '');
     if (!token) {
+      console.error('❌ [Auth Middleware] No token provided');
       return res.status(401).json({ error: 'No token provided' });
     }
 
@@ -59,8 +66,16 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
     const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
     const rateLimitKey = `auth:${clientIP}`;
     
+    console.log('🔍 [Auth Middleware] Verifying token for IP:', clientIP);
+    
     const tokenVerifier = getTokenVerifier();
     const verificationResult = await tokenVerifier.verifyTokenWithRole(token, rateLimitKey);
+    
+    console.log('✅ [Auth Middleware] Token verified:', {
+      userId: verificationResult.userId,
+      email: verificationResult.email,
+      role: verificationResult.role
+    });
     
     req.user = {
       id: verificationResult.userId,
@@ -70,7 +85,8 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
     
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    console.error('❌ [Auth Middleware] Error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : error);
     if (error instanceof Error && error.message === 'Rate limit exceeded') {
       return res.status(429).json({ error: 'Too many requests' });
     }

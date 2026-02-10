@@ -50,24 +50,28 @@ const envSchema = z.object({
   ALLOWED_MIME_TYPES: z.string().default('image/jpeg,image/png,image/gif,image/webp,image/bmp,image/tiff,image/vnd.adobe.photoshop,application/pdf,video/mp4,video/webm'),
   
   // Redis (dla rate limiting)
+  
+  // Redis (dla rate limiting)
   REDIS_URL: z.string().url('REDIS_URL must be a valid URL').optional(),
   REDIS_HOST: z.string().optional(),
   REDIS_PORT: z.string().regex(/^\d+$/, 'REDIS_PORT must be a number').transform(Number).pipe(z.number().min(1).max(65535)).optional(),
   REDIS_PASSWORD: z.string().optional(),
 });
 
-const env = envSchema.safeParse(process.env);
+export const loadConfig = () => {
+  const envResult = envSchema.safeParse(process.env);
+  if (!envResult.success) {
+    const errorMessages = envResult.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+    console.error('❌ Environment validation failed:', errorMessages);
+    throw new Error(`Environment validation failed: ${errorMessages}`);
+  }
+  return envResult.data;
+};
 
-if (!env.success) {
-  console.error('❌ Environment validation failed:');
-  env.error.errors.forEach(err => {
-    console.error(`- ${err.path.join('.')}: ${err.message}`);
-  });
-  process.exit(1);
-}
+export const validatedEnv = loadConfig();
 
 // CRITICAL: Additional production security checks
-if (env.data.NODE_ENV === 'production') {
+if (validatedEnv.NODE_ENV === 'production') {
   const criticalSecrets = [
     'JWT_SECRET',
     'SUPABASE_SERVICE_ROLE_KEY',
@@ -79,7 +83,7 @@ if (env.data.NODE_ENV === 'production') {
   const missingSecrets: string[] = [];
   
   for (const secret of criticalSecrets) {
-    const value = env.data[secret];
+    const value = validatedEnv[secret];
     if (!value || value.length < 10) {
       missingSecrets.push(secret);
     }
@@ -103,7 +107,7 @@ if (env.data.NODE_ENV === 'production') {
   const weakSecrets: string[] = [];
   
   for (const secret of criticalSecrets) {
-    const value = env.data[secret] as string;
+    const value = validatedEnv[secret] as string;
     if (weakPatterns.some(pattern => pattern.test(value))) {
       weakSecrets.push(secret);
     }
@@ -120,5 +124,3 @@ if (env.data.NODE_ENV === 'production') {
 
   console.log('✅ Production security validation passed');
 }
-
-export const validatedEnv = env.data;

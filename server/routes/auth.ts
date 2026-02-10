@@ -7,6 +7,7 @@ import { validate } from '../middleware/validation.js';
 import { calculateRole, UserWithVerifications } from '../types/roles.js';
 import { wsTicketService } from '../services/WebSocketTicketService.js';
 import { smsService } from '../lib/sms.js';
+import { validatedEnv } from '../lib/env.js';
 
 const router: Router = express.Router();
 
@@ -193,7 +194,7 @@ router.get('/status', async (req, res) => {
     const { data, error } = await supabase!.auth.getSession();
     res.json({ 
       configured: !!supabase,
-      url: process.env.SUPABASE_URL,
+      url: validatedEnv.SUPABASE_URL,
       hasSession: !!data.session,
       error: error?.message || null
     });

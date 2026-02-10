@@ -7,7 +7,8 @@ import {
   globalLimiter, 
   authLimiter, 
   biddingLimiter, 
-  uploadLimiter 
+  uploadLimiter,
+  webhookLimiter
 } from './middleware/rateLimiter.js';
 import path from 'path';
 import fs from 'fs';
@@ -94,7 +95,7 @@ app.options('/api/health', cors(corsOptions), (req, res) => {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
-app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+app.post('/api/webhooks/stripe', webhookLimiter, express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     return stripeWebhookHandler(req, res);
   } catch (error) {
@@ -193,7 +194,14 @@ app.use(notFound);
 app.use(errorHandler);
 
 const auctionCronService = AuctionCronService.getInstance();
-auctionCronService.start();
+// Only start cron in non-test environments to prevent DB errors during tests
+if (process.env.NODE_ENV !== 'test') {
+  try {
+    auctionCronService.start();
+  } catch (err: any) {
+    console.error('Failed to start auction cron:', err);
+  }
+}
 
 export { getAllowedOrigins as allowedOrigins };
 export default app;
