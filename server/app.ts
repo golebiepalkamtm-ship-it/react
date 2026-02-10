@@ -146,7 +146,7 @@ app.get('/api', (req, res) => {
 app.use(sessionMiddleware);
 
 app.get('/api/csrf-token', (req, res) => {
-  const token = generateToken(req as unknown as CoreRequest);
+  const token = generateToken(req as any);
   res.json({ csrfToken: token });
 });
 
