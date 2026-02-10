@@ -1,25 +1,34 @@
-FROM node:22-alpine AS base
-RUN apk add --no-cache openssl openssl1.1-compat make gcc musl-dev perl linux-headers wget tar
-RUN wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz && tar -xzf openssl-1.1.1w.tar.gz
-RUN cd openssl-1.1.1w && ./Configure linux-x86_64 --prefix=/usr/local --openssldir=/usr/local/openssl
-RUN cd openssl-1.1.1w && make -j$(nproc)
-RUN cd openssl-1.1.1w && make install
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+FROM node:20-alpine AS builder
 WORKDIR /app
-# Invalidate cache
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ openssl libc6-compat
+
+# Copy package files
 COPY server/package*.json ./
-COPY server/package-lock.json ./
-RUN npm ci --legacy-peer-deps
-RUN npm install -g typescript
+RUN npm ci
+
+# Copy Prisma and generate client
 COPY server/prisma ./prisma
 RUN npx prisma generate
-COPY server ./
-RUN npx tsc --skipLibCheck
 
-FROM node:22-alpine
+# Copy source and build
+COPY server ./
+RUN npm run build
+
+# Final stage
+FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
-RUN apk add --no-cache openssl1.1-compat
-COPY --from=base /app ./
+
+# Install runtime dependencies
+RUN apk add --no-cache openssl curl libc6-compat
+
+# Copy production artifacts
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
+
 EXPOSE 8001
-CMD ["node", "dist/bootstrap.js"]
+CMD ["node", "dist/index.js"]
