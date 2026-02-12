@@ -1,8 +1,28 @@
 import type { Config } from "tailwindcss";
 import tailwindAnimate from "tailwindcss-animate";
-import typography from "@tailwindcss/typography";
-import forms from "@tailwindcss/forms";
-import tailwindcss3d from "tailwindcss-3d";
+
+// Conditional imports for optional plugins
+let typography: any = null;
+let forms: any = null;
+let tailwindcss3d: any = null;
+
+try {
+  typography = require("@tailwindcss/typography");
+} catch (e) {
+  console.log('Typography plugin not available, skipping...');
+}
+
+try {
+  forms = require("@tailwindcss/forms");
+} catch (e) {
+  console.log('Forms plugin not available, skipping...');
+}
+
+try {
+  tailwindcss3d = require("tailwindcss-3d");
+} catch (e) {
+  console.log('3D plugin not available, skipping...');
+}
 
 export default {
   darkMode: "class",
@@ -207,11 +227,11 @@ export default {
   },
   plugins: [
     tailwindAnimate,
-    typography,
-    forms({
+    ...(typography ? [typography] : []),
+    ...(forms ? [forms({
       strategy: 'class', // Use 'form-input', 'form-select' classes
-    }),
-    tailwindcss3d,
+    })] : []),
+    ...(tailwindcss3d ? [tailwindcss3d] : []),
     // Custom 3D utilities
     function({ addUtilities }: { addUtilities: (utilities: Record<string, Record<string, string>>) => void }) {
       addUtilities({
