@@ -310,8 +310,13 @@ if (validatedEnv.NODE_ENV === 'development') {
       cache.invalidateResource('auction');
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
-      console.error('Error creating auction:', error);
-      res.status(500).json({ error: 'Failed to create auction' });
+      console.error('Error creating auction:', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        body: req.body,
+        userId
+      });
+      res.status(500).json({ error: 'Failed to create auction', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 }
