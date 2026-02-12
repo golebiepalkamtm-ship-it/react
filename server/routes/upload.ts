@@ -188,6 +188,28 @@ router.post('/image', unifiedAuthMiddleware, upload.single('file'), async (req: 
     
     const bucket = bucketName || validatedEnv.SUPABASE_BUCKET;
 
+    // Ensure bucket exists
+    try {
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      if (listError) {
+        logger.error('Failed to list buckets', { error: listError.message });
+      } else {
+        const bucketExists = buckets.some(b => b.name === bucket);
+        if (!bucketExists) {
+          logger.info(`Bucket ${bucket} does not exist, creating...`);
+          const { error: createError } = await supabase.storage.createBucket(bucket, {
+            public: validatedEnv.SUPABASE_BUCKET_PUBLIC === 'true'
+          });
+          if (createError) {
+            logger.error('Failed to create bucket', { error: createError.message });
+            return res.status(500).json({ error: 'Failed to create storage bucket', details: createError.message });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Error checking/creating bucket', { error: error instanceof Error ? error.message : error });
+    }
+
     try {
       const { data, error } = await supabase.storage
         .from(bucket)
@@ -281,6 +303,28 @@ router.post('/video', unifiedAuthMiddleware, upload.single('file'), async (req: 
     const filename = `${auctionId || 'misc'}/videos/${fileUuid}${ext}`;
     
     const bucket = bucketName || validatedEnv.SUPABASE_BUCKET;
+
+    // Ensure bucket exists
+    try {
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      if (listError) {
+        logger.error('Failed to list buckets', { error: listError.message });
+      } else {
+        const bucketExists = buckets.some(b => b.name === bucket);
+        if (!bucketExists) {
+          logger.info(`Bucket ${bucket} does not exist, creating...`);
+          const { error: createError } = await supabase.storage.createBucket(bucket, {
+            public: validatedEnv.SUPABASE_BUCKET_PUBLIC === 'true'
+          });
+          if (createError) {
+            logger.error('Failed to create bucket', { error: createError.message });
+            return res.status(500).json({ error: 'Failed to create storage bucket', details: createError.message });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Error checking/creating bucket', { error: error instanceof Error ? error.message : error });
+    }
 
     try {
       const { data, error } = await supabase.storage
@@ -387,6 +431,28 @@ router.post('/document', unifiedAuthMiddleware, upload.single('file'), async (re
     const filename = `${auctionId || 'misc'}/docs/${fileUuid}${ext}`;
     
     const bucket = bucketName || validatedEnv.SUPABASE_BUCKET;
+
+    // Ensure bucket exists
+    try {
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      if (listError) {
+        logger.error('Failed to list buckets', { error: listError.message });
+      } else {
+        const bucketExists = buckets.some(b => b.name === bucket);
+        if (!bucketExists) {
+          logger.info(`Bucket ${bucket} does not exist, creating...`);
+          const { error: createError } = await supabase.storage.createBucket(bucket, {
+            public: validatedEnv.SUPABASE_BUCKET_PUBLIC === 'true'
+          });
+          if (createError) {
+            logger.error('Failed to create bucket', { error: createError.message });
+            return res.status(500).json({ error: 'Failed to create storage bucket', details: createError.message });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Error checking/creating bucket', { error: error instanceof Error ? error.message : error });
+    }
 
     try {
       const { data, error } = await supabase.storage
