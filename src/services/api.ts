@@ -17,7 +17,7 @@ const normalizeApiBase = (raw?: string) => {
 
 const DEFAULT_API_BASE = import.meta.env.PROD ? 'https://server-production-0e43.up.railway.app/api' : '';
 
-const API_BASE_URL =
+export const API_BASE_URL =
   normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL))
   || normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL))
   || normalizeApiBase(DEFAULT_API_BASE)
