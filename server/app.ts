@@ -36,14 +36,32 @@ import { validatedEnv } from './lib/env.js';
 import { getCorsOptions, getAllowedOrigins } from './lib/originUtils.js';
 import AuctionCronService from './services/AuctionCronService.js';
 
+import { RedisStore } from 'connect-redis';
+import redisClient from './lib/redis.js';
+
+let sessionStore;
+if (redisClient) {
+  sessionStore = new RedisStore({
+    client: redisClient,
+    prefix: 'sess:',
+  });
+} else {
+  // Only warn in production if Redis is missing
+  if (validatedEnv.NODE_ENV === 'production') {
+    console.warn('⚠️  Redis not configured. Using MemoryStore for sessions (not recommended for production).');
+  }
+}
+
 const sessionMiddleware = session({
+  store: sessionStore,
   secret: validatedEnv.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false, // Recommended false for RedisStore to reduce storage usage for empty sessions
   cookie: {
     secure: validatedEnv.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   },
 });
 
