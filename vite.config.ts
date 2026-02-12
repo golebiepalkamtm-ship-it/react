@@ -1,16 +1,35 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { VitePWA } from 'vite-plugin-pwa';
-import viteImagemin from 'vite-plugin-imagemin';
-import { visualizer } from 'rollup-plugin-visualizer';
 
-// Conditional compression plugin import
+// Conditional plugin imports
 let compression: any = null;
+let VitePWA: any = null;
+let viteImagemin: any = null;
+let visualizer: any = null;
+
 try {
   compression = require('vite-plugin-compression');
 } catch (e) {
   console.log('Compression plugin not available, skipping...');
+}
+
+try {
+  VitePWA = require('vite-plugin-pwa').VitePWA;
+} catch (e) {
+  console.log('PWA plugin not available, skipping...');
+}
+
+try {
+  viteImagemin = require('vite-plugin-imagemin').default;
+} catch (e) {
+  console.log('ImageMin plugin not available, skipping...');
+}
+
+try {
+  visualizer = require('rollup-plugin-visualizer').visualizer;
+} catch (e) {
+  console.log('Bundle visualizer not available, skipping...');
 }
 
 export default defineConfig(({ mode }) => ({
@@ -48,8 +67,8 @@ export default defineConfig(({ mode }) => ({
       }),
     ] : []),
     
-    // Progressive Web App
-    VitePWA({
+    // Progressive Web App (conditional)
+    ...(VitePWA ? [VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
@@ -88,10 +107,10 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       }
-    }),
+    })] : []),
     
     // Image optimization (production only)
-    mode === 'production' && viteImagemin({
+    ...(viteImagemin && mode === 'production' ? [viteImagemin({
       gifsicle: {
         optimizationLevel: 7,
         interlaced: false,
@@ -118,15 +137,15 @@ export default defineConfig(({ mode }) => ({
           },
         ],
       },
-    }),
+    })] : []),
     
     // Bundle analyzer (production only)
-    mode === 'production' && visualizer({
+    ...(visualizer && mode === 'production' ? [visualizer({
       open: false,
       gzipSize: true,
       brotliSize: true,
       filename: 'dist/stats.html',
-    }),
+    })] : []),
   ].filter(Boolean),
   resolve: {
     alias: {
