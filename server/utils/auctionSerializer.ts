@@ -230,7 +230,7 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(au
     startingPrice: toNumber(auction.startingPrice),
     currentPrice: Number(auction.currentPrice || 0),
     buyNowPrice: toNumber(auction.buyNowPrice),
-    reservePrice: toNumber(auction.reservePrice),
+    reservePrice: isOwner ? toNumber(auction.reservePrice) : undefined, // Hide reserve price from public
     endTime: auction.endTime instanceof Date ? auction.endTime.toISOString() : (auction.endTime as unknown as string),
     status: toLowerEnum(auction.status) as 'active' | 'ended' | 'cancelled' | undefined,
     reserveMet: !!auction.reserveMet,

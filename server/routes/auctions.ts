@@ -288,7 +288,7 @@ if (validatedEnv.NODE_ENV === 'development') {
     try {
       if (!prisma) return res.status(500).json({ error: 'Database not available' });
       const created = await performAuctionCreate(req, null);
-      cache.clear();
+      cache.invalidateResource('auction'); // Invalidate auction lists
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
       console.error('Error creating auction (dev):', error);
@@ -307,7 +307,7 @@ if (validatedEnv.NODE_ENV === 'development') {
       if (!prisma) return res.status(500).json({ error: 'Database not available' });
 
       const created = await performAuctionCreate(req, userId);
-      cache.clear();
+      cache.invalidateResource('auction');
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
       console.error('Error creating auction:', error);
@@ -403,7 +403,9 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
     });
 
     // Invalidate relevant cache entries
-    cache.clear();
+    // Invalidate relevant cache entries
+    cache.invalidateAuctionCache(auctionId);
+    cache.invalidateResource('auction'); // Refresh lists as status changed
     res.json({ success: true, finalPrice: result.amount, auctionId });
   } catch (error: any) {
     res.status(error.statusCode || 500).json({
@@ -422,7 +424,21 @@ router.put('/:id/admin', authMiddleware, validate(adminUpdateAuctionSchema), asy
     const role = req.user?.role;
     if (role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden: Admins only' });
 
-    const updatedAuction = await auctionService.adminUpdateAuction(req.params.id, req.body);
+    const { id } = req.params;
+    const data = req.body;
+    
+    // Manual update mirroring removed service method
+    const updateData: any = {};
+    if (data.currentPrice) updateData.currentPrice = new Prisma.Decimal(data.currentPrice);
+    if (data.buyNowPrice) updateData.buyNowPrice = new Prisma.Decimal(data.buyNowPrice);
+    if (data.endTime) updateData.endTime = new Date(data.endTime);
+    
+    const updatedAuction = await prisma.auction.update({
+        where: { id },
+        data: updateData
+    });
+    
+    cache.invalidateAuctionCache(id);
 
     res.json(serializeAuction(updatedAuction as any));
 

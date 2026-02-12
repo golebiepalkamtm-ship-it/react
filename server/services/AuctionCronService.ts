@@ -2,6 +2,7 @@ import { prisma } from '../lib/db.js';
 import NotificationManager from './NotificationManager.js';
 import logger from '../lib/logger.js';
 import { Prisma, PaymentType, PaymentStatus, AuctionStatus } from '@prisma/client';
+import redisClient from '../lib/redis.js';
 
 /**
  * Cron job responsible for closing ended auctions.
@@ -35,21 +36,44 @@ export class AuctionCronService {
       return;
     }
 
-    // Run every 1 minute to ensure timely updates
+    // Run every 10 seconds for more responsive closing (sniping)
     this.interval = setInterval(async () => {
+      // Prevent local re-entry
       if (this.isRunning) return;
       this.isRunning = true;
+
+      // Distributed Lock with Redis (Set if Not Exists with 15s expiry)
+      // This prevents multiple server instances from running the job simultaneously
+      let lockAcquired = false;
+      const LOCK_KEY = 'auction:cron:lock';
+      
       try {
+        if (redisClient && redisClient.isOpen) {
+          const set = await redisClient.set(LOCK_KEY, 'locked', { NX: true, EX: 15 });
+          if (!set) {
+            // Lock exists, another instance is processing
+            return; 
+          }
+          lockAcquired = true;
+        }
+
         await this.checkEndingAuctions();
         await NotificationManager.checkEndingAuctions();
       } catch (error) {
         logger.error('Error in auction cron job:', error);
       } finally {
+        // Release lock
+        if (lockAcquired && redisClient && redisClient.isOpen) {
+          await redisClient.del(LOCK_KEY).catch((err: any) => 
+            logger.error('Failed to release cron lock', err)
+          );
+        }
         this.isRunning = false;
       }
-    }, 60 * 1000);
+    }, 10 * 1000);
 
-    logger.info('Auction cron job started (runs every 1 minute)');
+    logger.info('Auction cron job started (runs every 10 seconds with Redis lock)');
+
     // Run immediately on start
     this.checkEndingAuctions().catch(e => logger.error('Initial check failed', e));
   }

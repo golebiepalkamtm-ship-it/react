@@ -1,31 +1,71 @@
-import express, { type Router } from 'express';
+
+import express, { type Router, type Request, type Response, type NextFunction } from 'express';
 import { prisma } from '../lib/db.js';
 import { createClient } from '@supabase/supabase-js';
 import { cache } from '../lib/cache.js';
+import { validatedEnv } from '../lib/env.js';
+import { rateLimit } from 'express-rate-limit';
+import { auctionService } from '../services/AuctionService.js';
+import { userService } from '../services/UserService.js';
+import { auditService } from '../services/AuditService.js';
+import {
+  UserRoleUpdateBodySchema,
+  UserUpdateSchema,
+  AuctionCreateSchema,
+  AuctionUpdateSchema,
+  UserCreateSchema
+} from '../validations/adminSchemas.js';
+import { z } from 'zod';
 
 const router: Router = express.Router();
-
-import { validatedEnv } from '../lib/env.js';
 
 // Initialize Supabase Admin Client if credentials exist
 const supabaseAdmin = validatedEnv.SUPABASE_URL && validatedEnv.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(validatedEnv.SUPABASE_URL, validatedEnv.SUPABASE_SERVICE_ROLE_KEY)
   : null;
 
+// Standard limiter for read operations
+const readLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 300, 
+  message: { error: 'Too many read requests, please try again later.' },
+  keyGenerator: (req) => (req as any).user?.id || req.ip || 'unknown' // Limit by User ID if available
+});
+
+// Stricter limiter for mutations (write operations)
+const mutationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 50, // Stricter limit for critical actions
+  message: { error: 'Too many modification requests, please try again later.' },
+  keyGenerator: (req) => (req as any).user?.id || req.ip || 'unknown'
+});
+
+// Apply read limiter globally to router, override for mutations
+router.use(readLimiter);
+
+// Custom Request type to include user information
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    role?: string;
+  };
+}
+
 /**
  * Middleware: ensure authenticated user is admin
  */
-async function ensureAdmin(req: any, res: any, next: any) {
+async function ensureAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Unauthenticated' });
 
+    // Use specific select for efficiency and security
     const user = await prisma!.user.findUnique({
       where: { id: userId },
-      select: { role: true } as any
+      select: { role: true }
     });
 
-    if (!user || (user as any).role !== 'ADMIN') {
+    if (!user || user.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Admin access required' });
     }
     next();
@@ -36,19 +76,41 @@ async function ensureAdmin(req: any, res: any, next: any) {
 }
 
 /**
+ * Helper to log mutations
+ */
+async function logAdminAction(req: AuthenticatedRequest, action: string, targetType: 'USER' | 'AUCTION' | 'SYSTEM', targetId?: string, details?: any) {
+  const actorId = req.user?.id;
+  if (!actorId) return;
+
+  await auditService.log({
+    action,
+    actorId,
+    targetId,
+    targetType,
+    details,
+    ipAddress: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+}
+
+/**
  * Pobiera statystyki systemowe
  */
-router.get('/stats', ensureAdmin, async (req, res) => {
+router.get('/stats', ensureAdmin, async (req: Request, res: Response) => {
   try {
-    const totalUsers = await prisma!.user.count();
-    const activeAuctions = await prisma!.auction.count({ where: { status: 'ACTIVE' } });
-    const totalAuctions = await prisma!.auction.count();
+    if (!prisma) throw new Error('Database not initialized');
 
-    // Suma najwyższych ofert (uproszczone statystyki finansowe)
-    const auctions = await prisma!.auction.findMany({
-      select: { currentPrice: true }
+    const totalUsers = await prisma.user.count();
+    const activeAuctions = await prisma.auction.count({ where: { status: 'ACTIVE' } });
+    const totalAuctions = await prisma.auction.count();
+
+    const volumeAggregate = await prisma.auction.aggregate({
+      _sum: {
+        currentPrice: true
+      }
     });
-    const totalVolume = auctions.reduce((sum, a) => sum + Number(a.currentPrice), 0);
+    
+    const totalVolume = Number(volumeAggregate._sum.currentPrice || 0);
 
     res.json({
       totalUsers,
@@ -62,15 +124,17 @@ router.get('/stats', ensureAdmin, async (req, res) => {
 });
 
 /**
- * Lista użytkowników z paginacją
+ * Lista użytkowników z paginacją - Optimized selection
  */
-router.get('/users', ensureAdmin, async (req, res) => {
+router.get('/users', ensureAdmin, async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string || '1');
-    const limit = parseInt(req.query.limit as string || '20');
+    if (!prisma) throw new Error('Database not initialized');
+
+    const page = Math.max(1, parseInt(req.query.page as string || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string || '20'))); // Strictly clamped 1-100
     const skip = (page - 1) * limit;
 
-    const users = await prisma!.user.findMany({
+    const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
@@ -82,11 +146,15 @@ router.get('/users', ensureAdmin, async (req, res) => {
         last_name: true,
         role: true,
         username: true,
-        createdAt: true
-      } as any
+        createdAt: true,
+        isBlocked: true,
+        isBanned: true,
+        trustScore: true
+        // PII minimization: removed phone, address etc. unless needed.
+      }
     });
 
-    const total = await prisma!.user.count();
+    const total = await prisma.user.count();
 
     res.json({
       users,
@@ -100,32 +168,45 @@ router.get('/users', ensureAdmin, async (req, res) => {
 });
 
 /**
- * Zarządzanie aukcjami (lista wszystkich)
+ * Zarządzanie aukcjami (lista wszystkich) - Optimized selection
  */
-router.get('/auctions', ensureAdmin, async (req, res) => {
+router.get('/auctions', ensureAdmin, async (req: Request, res: Response) => {
   try {
-    const auctions = await prisma!.auction.findMany({
+    if (!prisma) throw new Error('Database not initialized');
+
+    // Also paginate auctions if not already
+    const page = Math.max(1, parseInt(req.query.page as string || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string || '20')));
+    const skip = (page - 1) * limit;
+
+    const auctions = await prisma.auction.findMany({
+      skip,
+      take: limit,
       include: {
         seller: {
           select: {
+            // Minimal seller info
+            id: true,
+            username: true,
+            email: true, // Admin needs email usually
             first_name: true,
-            last_name: true,
-            email: true,
-            name: true
+            last_name: true
           }
         },
         bids: {
-          include: {
+          orderBy: { createdAt: 'desc' },
+          take: 1, // Only top bid
+          select: {
+            amount: true,
+            createdAt: true,
             bidder: {
               select: {
-                first_name: true,
-                last_name: true,
-                email: true
+                  id: true,
+                  username: true,
+                  email: true // Admin might need checking who is winning
               }
             }
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 1
+          }
         },
         _count: {
           select: {
@@ -136,7 +217,17 @@ router.get('/auctions', ensureAdmin, async (req, res) => {
       },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(auctions);
+    
+    const total = await prisma.auction.count();
+
+    res.json({
+        data: auctions,
+        meta: {
+            total,
+            page,
+            limit
+        }
+    });
   } catch (error: any) {
     console.error('Admin auctions error:', error);
     res.status(500).json({ error: error.message });
@@ -146,15 +237,24 @@ router.get('/auctions', ensureAdmin, async (req, res) => {
 /**
  * Zmiana roli użytkownika
  */
-router.put('/users/:id/role', ensureAdmin, async (req, res) => {
+router.put('/users/:id/role', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { role } = req.body;
-    const { id } = req.params;
+    if (!prisma) throw new Error('Database not initialized');
 
-    const updated = await prisma!.user.update({
+    const { id } = req.params;
+    
+    const validation = UserRoleUpdateBodySchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Invalid role', details: validation.error.errors });
+    }
+    const { role } = validation.data;
+
+    const updated = await prisma.user.update({
       where: { id },
-      data: { role: role } as any
+      data: { role }
     });
+
+    await logAdminAction(req, 'UPDATE_ROLE', 'USER', id, { newRole: role });
 
     res.json(updated);
   } catch (error: any) {
@@ -163,57 +263,55 @@ router.put('/users/:id/role', ensureAdmin, async (req, res) => {
 });
 
 /**
- * Akcje na aukcjach (np. zakończenie przed czasem)
+ * Akcje na aukcjach
  */
-router.post('/auctions/:id/:action', ensureAdmin, async (req, res) => {
+router.post('/auctions/:id/:action', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id, action } = req.params;
+    
+    // Validate Action Enum
+    const validActions = ['end', 'delete', 'cancel'];
+    if (!validActions.includes(action)) {
+        return res.status(400).json({ error: `Invalid action. Must be one of: ${validActions.join(', ')}` });
+    }
 
     if (action === 'end') {
-      const updated = await prisma!.auction.update({
-        where: { id },
-        data: { status: 'ENDED' }
-      });
-      cache.deletePattern('auctions:*');
-      cache.delete(`auction:${id}`);
+      const updated = await auctionService.adminEndAuction(id);
+      await logAdminAction(req, 'END_AUCTION', 'AUCTION', id);
       return res.json(updated);
     }
 
     if (action === 'delete') {
-      await prisma!.auction.delete({ where: { id } });
-      cache.deletePattern('auctions:*');
-      cache.delete(`auction:${id}`);
+      await auctionService.adminDeleteAuction(id);
+      await logAdminAction(req, 'DELETE_AUCTION', 'AUCTION', id);
       return res.json({ success: true });
     }
 
-    res.status(400).json({ error: 'Invalid action' });
+    if (action === 'cancel') {
+        const updated = await auctionService.adminCancelAuction(id);
+        await logAdminAction(req, 'CANCEL_AUCTION', 'AUCTION', id);
+        return res.json(updated);
+    }
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * Update user details (Full Admin Access)
+ * Update user details
  */
-router.patch('/users/:id', ensureAdmin, async (req, res) => {
+router.patch('/users/:id', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { email, first_name, last_name, role, isBlocked, isBanned, username } = req.body;
+    
+    const validation = UserUpdateSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Invalid user data', details: validation.error.errors });
+    }
 
-    // Optional: Add validation logic here
-
-    const updated = await prisma!.user.update({
-      where: { id },
-      data: {
-        email,
-        first_name,
-        last_name,
-        role,
-        isBlocked,
-        isBanned,
-        username
-      }
-    });
+    const updated = await userService.updateUser(id, validation.data);
+    
+    await logAdminAction(req, 'UPDATE_USER', 'USER', id, validation.data);
 
     res.json(updated);
   } catch (error: any) {
@@ -222,12 +320,15 @@ router.patch('/users/:id', ensureAdmin, async (req, res) => {
 });
 
 /**
- * Delete user (Full Admin Access)
+ * Delete user
  */
-router.delete('/users/:id', ensureAdmin, async (req, res) => {
+router.delete('/users/:id', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma!.user.delete({ where: { id } });
+    await userService.deleteUser(id);
+    
+    await logAdminAction(req, 'DELETE_USER', 'USER', id);
+    
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -235,44 +336,55 @@ router.delete('/users/:id', ensureAdmin, async (req, res) => {
 });
 
 /**
- * Update auction (Full Admin Access)
+ * Update auction
  */
-router.patch('/auctions/:id', ensureAdmin, async (req, res) => {
+router.patch('/auctions/:id', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, startingPrice, buyNowPrice, reservePrice, status, endTime } = req.body;
+    
+    const validation = AuctionUpdateSchema.safeParse(req.body);
+    if (!validation.success) {
+        return res.status(400).json({ error: 'Invalid auction data', details: validation.error.errors });
+    }
 
-    const updated = await prisma!.auction.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        startingPrice,
-        buyNowPrice: buyNowPrice || null,
-        reservePrice,
-        status,
-        endTime
-      }
+    const {
+        title, description, startingPrice, buyNowPrice, reservePrice, status, endTime
+    } = validation.data;
+
+    // Direct update via Prisma with manual cache invalidation
+    if (!prisma) throw new Error('Database not initialized');
+
+    const result = await prisma.auction.update({
+        where: { id },
+        data: {
+            title,
+            description,
+            startingPrice,
+            buyNowPrice: buyNowPrice || null,
+            reservePrice,
+            status,
+            endTime: endTime ? new Date(endTime) : undefined
+        }
     });
 
-    cache.deletePattern('auctions:*');
-    cache.delete(`auction:${id}`);
+    cache.invalidateAuctionCache(id);
+    
+    await logAdminAction(req, 'UPDATE_AUCTION', 'AUCTION', id, validation.data);
 
-    res.json(updated);
+    res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * Delete auction (Standard DELETE)
+ * Delete auction
  */
-router.delete('/auctions/:id', ensureAdmin, async (req, res) => {
+router.delete('/auctions/:id', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma!.auction.delete({ where: { id } });
-    cache.deletePattern('auctions:*');
-    cache.delete(`auction:${id}`);
+    await auctionService.adminDeleteAuction(id);
+    await logAdminAction(req, 'DELETE_AUCTION', 'AUCTION', id);
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -282,61 +394,85 @@ router.delete('/auctions/:id', ensureAdmin, async (req, res) => {
 /**
  * Create new user
  */
-router.post('/users', ensureAdmin, async (req, res) => {
+router.post('/users', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!prisma) throw new Error('Database not initialized');
     if (!supabaseAdmin) {
       return res.status(500).json({ error: 'Supabase Admin not configured on server' });
     }
-    const { email, password, first_name, last_name, role, phone, username } = req.body;
 
-    if (!email || !password || !username || String(username).trim().length === 0) {
-      return res.status(400).json({ error: 'Email, password i username są wymagane' });
+    const validation = UserCreateSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Validation Error', details: validation.error.errors });
     }
+
+    const { email, password, first_name, last_name, role, phone, username } = validation.data;
+
+    // Saga / Compensation Logic
+    let authUser: any = null;
 
     // 1. Create in Supabase Auth
-    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { first_name, last_name }
-    });
-
-    if (authError || !authUser.user) {
-      // Supabase zwraca 422 z komunikatem "A user with this email address has already been registered"
-      const alreadyExists = authError?.message?.toLowerCase().includes('already been registered');
-      const statusCode = alreadyExists ? 409 : authError?.status ?? 500;
-      const message = alreadyExists
-        ? 'User with this email already exists'
-        : `Auth creation failed: ${authError?.message || 'Unknown error'}`;
-      return res.status(statusCode).json({ error: message });
+    try {
+        const { data, error } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { first_name, last_name }
+        });
+        if (error) throw error;
+        authUser = data.user;
+    } catch (authError: any) {
+         const alreadyExists = authError?.message?.toLowerCase().includes('already been registered');
+         const statusCode = alreadyExists ? 409 : authError?.status ?? 500;
+         return res.status(statusCode).json({ error: authError.message });
     }
 
-    // 2. Create/Update in Public Schema
-    const newUser = await prisma!.user.upsert({
-      where: { id: authUser.user.id },
-      update: {
-        email,
-        first_name,
-        last_name,
-        role: role || 'USER_REGISTERED',
-        phone,
-        name: `${first_name} ${last_name}`.trim(),
-        username
-      },
-      create: {
-        id: authUser.user.id,
-        email,
-        first_name,
-        last_name,
-        role: role || 'USER_REGISTERED',
-        phone,
-        trustScore: 0,
-        name: `${first_name} ${last_name}`.trim(),
-        username
-      }
-    });
+    if (!authUser) {
+        return res.status(500).json({ error: 'Failed to create auth user' });
+    }
 
-    res.json(newUser);
+    // 2. Create/Update in Public Schema with Compensation
+    try {
+        const newUser = await prisma.user.upsert({
+          where: { id: authUser.id },
+          update: {
+            email,
+            first_name,
+            last_name,
+            role: role || 'USER_REGISTERED',
+            phone,
+            name: `${first_name || ''} ${last_name || ''}`.trim(),
+            username
+          },
+          create: {
+            id: authUser.id,
+            email,
+            first_name,
+            last_name,
+            role: role || 'USER_REGISTERED',
+            phone,
+            trustScore: 0,
+            name: `${first_name || ''} ${last_name || ''}`.trim(),
+            username
+          }
+        });
+        
+        await logAdminAction(req, 'CREATE_USER', 'USER', newUser.id, { email, role });
+        return res.json(newUser);
+
+    } catch (dbError: any) {
+        console.error('Prisma Create User Error. Compensating by deleting Supabase user...', dbError);
+        // Compensation: Delete the user from Supabase to maintain consistency
+        try {
+            await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+            console.log('Compensation successful: Supabase user deleted.');
+        } catch (compError) {
+            console.error('CRITICAL: Compensation failed. Orphaned Supabase user:', authUser.id, compError);
+            // In a real system, we might push this to a dead-letter queue
+        }
+        
+        return res.status(500).json({ error: 'Database creation failed, rolled back auth user.' });
+    }
 
   } catch (error: any) {
     console.error('Create User Error:', error);
@@ -347,20 +483,30 @@ router.post('/users', ensureAdmin, async (req, res) => {
 /**
  * Create new auction
  */
-router.post('/auctions', ensureAdmin, async (req, res) => {
+router.post('/auctions', mutationLimiter, ensureAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { title, description, startingPrice, buyNowPrice, reservePrice, status, endTime, sellerId, category, sex, minBidIncrement } = req.body;
+    if (!prisma) throw new Error('Database not initialized');
 
-    // Validate seller exists
-    let finalSellerId = sellerId;
-    if (finalSellerId) {
-      const userExists = await prisma!.user.findUnique({ where: { id: finalSellerId } });
-      if (!userExists) return res.status(400).json({ error: 'Provided sellerId does not exist' });
-    } else {
-      finalSellerId = (req as any).user?.id;
+    const validation = AuctionCreateSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Validation Error', details: validation.error.errors });
     }
 
-    const newAuction = await prisma!.auction.create({
+    const { title, description, startingPrice, buyNowPrice, reservePrice, status, endTime, sellerId, category, sex, minBidIncrement } = validation.data;
+
+    let finalSellerId = sellerId;
+    if (finalSellerId) {
+      const userExists = await prisma.user.findUnique({ where: { id: finalSellerId } });
+      if (!userExists) return res.status(400).json({ error: 'Provided sellerId does not exist' });
+    } else {
+      finalSellerId = req.user?.id;
+    }
+
+    if (!finalSellerId) {
+        return res.status(400).json({ error: 'Seller ID is required' });
+    }
+
+    const newAuction = await prisma.auction.create({
       data: {
         title,
         description,
@@ -372,10 +518,17 @@ router.post('/auctions', ensureAdmin, async (req, res) => {
         endTime: endTime ? new Date(endTime) : null,
         category: category || 'RACING',
         sellerId: finalSellerId,
-        minBidIncrement: minBidIncrement || 100
+        minBidIncrement: minBidIncrement || 100,
+        gender: sex || 'MALE'
       }
     });
-    cache.deletePattern('auctions:*');
+
+    cache.invalidateAuctionCache(newAuction.id); // Invalidate new auction related lists
+    // Actually we should invalidate lists generally.
+    cache.invalidateResource('auction'); // Invalidate all auctions lists
+    
+    await logAdminAction(req, 'CREATE_AUCTION', 'AUCTION', newAuction.id, { title, status });
+
     res.json(newAuction);
   } catch (error: any) {
     console.error('Create Auction Error:', error);

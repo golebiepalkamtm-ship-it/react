@@ -7,6 +7,7 @@ import "./index.css";
 import { logger } from '@/lib/logger';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { TimeProvider } from '@/providers/TimeProvider';
 
 // Debug tools - uruchom w konsoli: window.debugAnimations()
 import './utils/debugAnimations';
@@ -77,9 +78,11 @@ const root = createRoot(document.getElementById("root")!);
 root.render(
   <React.StrictMode>
     <FeedbackProvider>
-      <App />
-      <Analytics />
-      <SpeedInsights />
+      <TimeProvider>
+        <App />
+        <Analytics />
+        <SpeedInsights />
+      </TimeProvider>
     </FeedbackProvider>
   </React.StrictMode>
 );

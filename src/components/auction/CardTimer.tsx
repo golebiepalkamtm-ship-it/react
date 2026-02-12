@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useServerTime } from '@/providers/TimeProvider';
 
 interface CardTimerProps {
   endTime?: string;
@@ -7,6 +8,7 @@ interface CardTimerProps {
 }
 
 export const CardTimer: React.FC<CardTimerProps> = ({ endTime, className, endingSoon }) => {
+  const { offset, isSynced } = useServerTime();
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
@@ -14,14 +16,15 @@ export const CardTimer: React.FC<CardTimerProps> = ({ endTime, className, ending
 
     const update = () => {
       const end = new Date(endTime).getTime();
-      const now = Date.now();
+      // Use local time + offset to approximate server time
+      const now = Date.now() + offset;
       setTimeLeft(Math.max(0, end - now));
     };
 
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [endTime]);
+  }, [endTime, offset]);
 
   const timeMeta = useMemo(() => {
     const days = Math.floor(timeLeft / 86400000).toString().padStart(2, "0");

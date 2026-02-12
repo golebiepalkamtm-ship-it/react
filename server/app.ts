@@ -1,5 +1,6 @@
 import express, { type Application, Request, Response, NextFunction, type RequestHandler } from 'express';
 import type { Request as CoreRequest, RequestHandler as CoreRequestHandler } from 'express-serve-static-core';
+import { HealthController } from './controllers/HealthController.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -25,6 +26,7 @@ import paymentRoutes, { stripeWebhookHandler } from './routes/payments.js';
 import proxyRoutes from './routes/proxy.js';
 import { testCSRFEndpoint } from './routes/testCSRF.js';
 import metricsRoutes from './routes/metrics.js';
+import timeRoutes from './routes/time.js'; // Added time sync route
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -125,13 +127,8 @@ app.use(express.static(path.join(__dirname, '../public'), {
   }
 }));
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
+app.get('/health', HealthController.liveness);
+app.get('/api/health', HealthController.readiness);
 
 app.get('/api', (req, res) => {
   res.json({
@@ -160,6 +157,8 @@ const maybeCsrf: RequestHandler = (req, res, next) => {
 
 // Public metrics endpoint should not require CSRF; mount before CSRF
 app.use('/api/metrics', metricsRoutes);
+app.use('/api/time', timeRoutes); // Public time sync endpoint
+
 
 // Apply CSRF protection for state-changing routes (prod only)
 app.use(maybeCsrf);

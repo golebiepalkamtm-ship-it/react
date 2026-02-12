@@ -56,10 +56,8 @@ const FONT_ORIGINS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com
 const DEV_HOST_REGEX =
   /^https?:\/\/((localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}))(:\d+)?$/i;
 
-const PROD_WILDCARD_PATTERNS = [
-  /^https?:\/\/([a-z0-9-]+\.)*onrender\.com$/i,
-  /^https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i
-];
+const PROD_WILDCARD_PATTERNS: RegExp[] = []; // Wildcards removed for security
+
 
 let cachedOrigins: string[] | null = null;
 

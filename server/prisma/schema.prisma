@@ -85,9 +85,29 @@ model User {
   reviewsReceived Review[]       @relation("RevieweeReviews")
   savedSearches   SavedSearch[]
   payments        Payment[]
+  auditLogs       AuditLog[]     @relation("UserAuditLogs")
 
   /// Map to existing Supabase table "users"
   @@map("users")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  action     String // e.g., "CREATE_USER", "UPDATE_ROLE", "DELETE_AUCTION"
+  actorId    String   @map("actor_id") @db.Uuid
+  targetId   String?  @map("target_id") @db.Uuid // ID opcjonalny, bo może dotyczyć ogółu
+  targetType String   @map("target_type") // e.g., "USER", "AUCTION", "SYSTEM"
+  details    Json? // Detailed payload, diff, etc.
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User @relation("UserAuditLogs", fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 model Auction {
@@ -133,6 +153,9 @@ model Auction {
   @@index([category])
   @@index([sellerId])
   @@index([winnerId])
+  @@index([status, endTime]) // For cron jobs and listing active auctions
+  @@index([category, status]) // For filtering by category
+  @@index([sellerId, status]) // For user dashboards
   /// Map to existing Supabase table "auctions"
   @@map("auctions")
 }

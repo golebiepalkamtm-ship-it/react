@@ -10,7 +10,7 @@ services:
   api:
     build:
       context: ./server
-      dockerfile: Dockerfile.production
+      dockerfile: ../docker/api.Dockerfile
     container_name: auction-api
     restart: unless-stopped
     env_file:
@@ -30,7 +30,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile.web
+      dockerfile: docker/web.Dockerfile
     container_name: auction-web
     restart: unless-stopped
     ports:
