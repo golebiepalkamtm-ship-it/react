@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import compression from 'vite-plugin-compression';
 import { VitePWA } from 'vite-plugin-pwa';
 import viteImagemin from 'vite-plugin-imagemin';
 import { visualizer } from 'rollup-plugin-visualizer';
+
+// Conditional compression plugin import
+let compression: any = null;
+try {
+  compression = require('vite-plugin-compression');
+} catch (e) {
+  console.log('Compression plugin not available, skipping...');
+}
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -25,19 +32,21 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     
-    // Brotli + Gzip compression
-    compression({
-      algorithm: 'brotliCompress',
-      ext: '.br',
-      threshold: 10240, // Only compress files > 10KB
-      deleteOriginFile: false,
-    }),
-    compression({
-      algorithm: 'gzip',
-      ext: '.gz',
-      threshold: 10240,
-      deleteOriginFile: false,
-    }),
+    // Brotli + Gzip compression (conditional)
+    ...(compression ? [
+      compression({
+        algorithm: 'brotliCompress',
+        ext: '.br',
+        threshold: 10240, // Only compress files > 10KB
+        deleteOriginFile: false,
+      }),
+      compression({
+        algorithm: 'gzip',
+        ext: '.gz',
+        threshold: 10240,
+        deleteOriginFile: false,
+      }),
+    ] : []),
     
     // Progressive Web App
     VitePWA({
