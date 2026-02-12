@@ -1948,3 +1948,308 @@
   will-change: transform;
   filter: brightness(0.7) contrast(1.1);
 }
+
+/* ==========================================
+ * ACHIEVEMENTS TIMELINE STYLES
+ * ========================================== */
+
+/* Luxury Design Tokens for Timeline */
+:root {
+  --glass-bg: 225 25% 18%; /* Lighter navy for brighter cards */
+  --glass-border: 43 85% 52%;
+  --year-ghost: 43 85% 52%;
+  --tunnel-depth: 225 30% 3%;
+  --glow-primary: 48 100% 65%; /* Bardzo jasny złoty */
+  --glow-secondary: 45 100% 70%;
+  --glow-tertiary: 200 80% 60%;
+  --parallax-bg: 225 25% 8%;
+  --aurora-1: 48 100% 60%;
+  --aurora-2: 45 100% 65%;
+  --aurora-3: 200 60% 50%;
+  --aurora-4: 280 60% 45%;
+  --medal-gold: 48 100% 60%; /* Mocny złoty */
+  --medal-silver: 220 10% 90%;
+  --medal-bronze: 25 80% 55%;
+}
+
+/* GPU Acceleration */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Luxury Glassmorphism */
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: linear-gradient(
+    145deg,
+    hsl(var(--glass-bg) / 0.8) 0%,
+    hsl(var(--glass-bg) / 0.5) 50%,
+    hsl(var(--glass-bg) / 0.7) 100%
+  );
+  backdrop-filter: blur(40px) saturate(1.5);
+  -webkit-backdrop-filter: blur(40px) saturate(1.5);
+  border: 1px solid hsl(var(--glass-border) / 0.4); /* Stronger border */
+  box-shadow: 
+    0 0 0 1px hsl(var(--foreground) / 0.1),
+    0 20px 60px -15px hsl(var(--tunnel-depth) / 0.8),
+    0 0 calc(40px * var(--glow-intensity, 0)) hsl(var(--glow-primary) / calc(0.4 * var(--glow-intensity, 0))),
+    inset 0 1px 0 0 hsl(255 100% 100% / 0.1); /* White inset highlight */
+  --glow-intensity: 0;
+  transition: box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.6s ease;
+}
+
+.glass-card:hover {
+  border-color: hsl(var(--glass-border) / 0.25);
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 5%,
+    hsl(var(--glow-primary) / 0.4) 20%,
+    hsl(var(--glow-secondary) / 0.6) 50%,
+    hsl(var(--glow-primary) / 0.4) 80%,
+    transparent 95%
+  );
+  opacity: calc(0.5 + 0.5 * var(--glow-intensity, 0));
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--glow-primary) / 0.15),
+    transparent
+  );
+}
+
+/* Holographic Card Effect */
+.holographic-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    hsl(var(--glow-primary) / 0.08) 45%,
+    hsl(var(--glow-tertiary) / 0.05) 50%,
+    hsl(var(--aurora-4) / 0.04) 55%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.glass-card:hover .holographic-shimmer {
+  opacity: 1;
+}
+
+/* Year Ghost Typography */
+.year-ghost {
+  font-family: 'Orbitron', monospace;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--year-ghost) / 0.12) 0%,
+    hsl(var(--year-ghost) / 0.03) 60%,
+    transparent 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  will-change: transform, opacity;
+  filter: blur(0.5px);
+}
+
+/* Tunnel Perspective */
+.tunnel-perspective {
+  perspective: 1500px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+}
+
+.tunnel-card {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+.tunnel-ring {
+  will-change: transform, opacity;
+  transform-origin: center center;
+}
+
+/* Glow Effects */
+.glow-primary {
+  box-shadow: 
+    0 0 20px hsl(var(--glow-primary) / 0.3),
+    0 0 60px hsl(var(--glow-primary) / 0.1);
+}
+
+.glow-text {
+  text-shadow: 
+    0 0 20px hsl(var(--glow-primary) / 0.4),
+    0 0 60px hsl(var(--glow-primary) / 0.15),
+    0 0 100px hsl(var(--glow-primary) / 0.05);
+}
+
+/* Progress Bar */
+.progress-glow {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--glow-primary)) 0%,
+    hsl(var(--glow-secondary)) 100%
+  );
+  box-shadow: 
+    0 0 20px hsl(var(--glow-primary) / 0.5),
+    0 0 40px hsl(var(--glow-primary) / 0.2);
+}
+
+/* Aurora Background */
+.bg-tunnel {
+  background: 
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      hsl(var(--aurora-1) / 0.04) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 20%,
+      hsl(var(--aurora-3) / 0.03) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at center,
+      hsl(var(--background)) 0%,
+      hsl(var(--tunnel-depth)) 100%
+    );
+}
+
+/* Noise Overlay */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: overlay;
+}
+
+/* Grid Overlay */
+.grid-overlay {
+  background-image: 
+    linear-gradient(hsl(var(--primary) / 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--primary) / 0.02) 1px, transparent 1px);
+  background-size: 100px 100px;
+}
+
+/* Medal Badges */
+.medal-gold {
+  background: linear-gradient(135deg, hsl(var(--medal-gold)) 0%, hsl(35 80% 45%) 100%);
+  box-shadow: 0 0 15px hsl(var(--medal-gold) / 0.4);
+}
+
+.medal-silver {
+  background: linear-gradient(135deg, hsl(var(--medal-silver)) 0%, hsl(220 5% 60%) 100%);
+  box-shadow: 0 0 15px hsl(var(--medal-silver) / 0.3);
+}
+
+.medal-bronze {
+  background: linear-gradient(135deg, hsl(var(--medal-bronze)) 0%, hsl(20 60% 35%) 100%);
+  box-shadow: 0 0 15px hsl(var(--medal-bronze) / 0.3);
+}
+
+/* Parallax Layers */
+.parallax-layer-deep,
+.parallax-layer-mid,
+.parallax-layer-front,
+.parallax-float,
+.mouse-parallax {
+  will-change: transform;
+}
+
+/* Animation Hints */
+.achievement-item,
+.hero-section,
+.hero-title,
+.hero-subtitle,
+.scroll-indicator,
+.footer-section,
+.footer-text {
+  will-change: transform, opacity;
+}
+
+.stat-card {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+}
+
+/* Split Text */
+.split-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* Luxury Divider */
+.luxury-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary) / 0.3) 20%,
+    hsl(var(--primary) / 0.6) 50%,
+    hsl(var(--primary) / 0.3) 80%,
+    transparent
+  );
+}
+
+/* Card Lighting Effects */
+.card-front-light {
+  background: radial-gradient(
+    ellipse at center top,
+    hsl(var(--primary) / calc(0.1 + 0.2 * var(--glow-intensity, 0))) 0%,
+    transparent 60%
+  );
+  will-change: opacity;
+}
+
+/* Luxury Badge */
+.luxury-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid hsl(var(--primary) / 0.2);
+  background: hsl(var(--primary) / 0.08);
+  color: hsl(var(--primary));
+}
+
+/* Particle Styles */
+.particle {
+  will-change: transform, opacity;
+  pointer-events: none;
+}

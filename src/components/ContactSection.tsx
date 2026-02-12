@@ -5,7 +5,9 @@ import { contactService } from "@/services/contactService";
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { MagneticButton } from "@/components/effects/MagneticButton";
-import { gsap } from '@/lib/gsapConfig';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
+import { useScrollTriggerSync } from '@/hooks/useScrollTriggerSync';
 
 const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ const ContactFormCard = ({ handleSubmit, formData, setFormData, isSubmitting }: 
           <h3 className="font-display text-2xl text-foreground font-semibold mb-6">
             Wyślij wiadomość
           </h3>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5 contact-form">
             <div className="grid sm:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Imię i Nazwisko</label>
@@ -354,59 +356,123 @@ const ContactSection = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Używamy hooka do synchronizacji ScrollTrigger z Lenis
+  const { refresh } = useScrollTriggerSync({
+    refreshOnMount: true,
+    refreshDelay: 200
+  });
+
+  // Bezpośrednie animacje GSAP zamiast useScrollAnimation
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const cards = section.querySelectorAll(".contact-card-reveal");
-    const header = section.querySelector('h2');
-    const subtext = section.querySelector('p');
-    
+    // Tworzymy kontekst GSAP dla czystego sprzątania
     const ctx = gsap.context(() => {
-      // Header animation
-      const headerTl = gsap.timeline({
+      // Ustawienie początkowych stanów elementów
+      gsap.set(titleRef.current, { opacity: 0, y: 80, rotateX: 45, clipPath: 'inset(0% 0% 100% 0%)' });
+      gsap.set(descRef.current, { opacity: 0, y: 50 });
+      
+      cardsRef.current.forEach((card, i) => {
+        if (!card) return;
+        const direction = i % 2 === 0 ? -1 : 1;
+        const rotateAngle = direction * 10;
+        gsap.set(card, { opacity: 0, y: 80, x: direction * 20, rotateY: rotateAngle, scale: 0.9 });
+      });
+      
+      // Animacja tytułu
+      gsap.to(titleRef.current, {
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        clipPath: 'inset(0% 0% 0% 0%)',
+        duration: 1.2,
+        ease: 'expo.out',
         scrollTrigger: {
-          trigger: section,
-          start: 'top 85%',
-          end: 'top 40%',
-          scrub: 1.5,
+          trigger: sectionRef.current,
+          start: 'top bottom',
+          end: 'top 60%',
+          toggleActions: 'play none none none',
+          once: true,
+          id: 'contact-title'
         }
       });
       
-      if (header) headerTl.fromTo(header, 
-        { y: 80, opacity: 0, skewY: 2 },
-        { y: 0, opacity: 1, skewY: 0, duration: 0.5, ease: 'expo.out' }
-      );
-      if (subtext) headerTl.fromTo(subtext,
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
-        '-=0.3'
-      );
-      
-      // Cards animation with stagger
-      gsap.fromTo(cards, 
-        { y: 100, opacity: 0, scale: 0.9, rotateY: -10 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          rotateY: 0,
-          duration: 1.2,
-          stagger: 0.15,
-          ease: 'expo.out',
-          scrollTrigger: {
-            trigger: cards[0],
-            start: 'top 85%',
-            end: 'top 30%',
-            scrub: 1.5,
-          }
+      // Animacja opisu
+      gsap.to(descRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        ease: 'power2.out',
+        delay: 0.3,
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top bottom',
+          end: 'top 60%',
+          toggleActions: 'play none none none',
+          once: true,
+          id: 'contact-desc'
         }
-      );
-    }, section);
+      });
+      
+      // Animacje kart kontaktowych
+      cardsRef.current.forEach((card, i) => {
+        if (!card) return;
+        const direction = i % 2 === 0 ? -1 : 1;
+        const rotateAngle = direction * 10;
+        
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          x: 0,
+          rotateY: 0,
+          scale: 1,
+          duration: 1.0,
+          ease: 'expo.out',
+          delay: i * 0.08,
+          scrollTrigger: {
+            trigger: card,
+            start: 'top bottom',
+            end: 'top 70%',
+            toggleActions: 'play none none none',
+            once: true,
+            id: `contact-card-${i}`
+          }
+        });
+      });
+      
+      // Animacje formularza kontaktowego
+      const formElements = document.querySelectorAll('.contact-form input, .contact-form textarea, .contact-form button');
+      if (formElements.length > 0) {
+        gsap.fromTo(
+          formElements, 
+          { opacity: 0, y: 20 },
+          { 
+            opacity: 1, 
+            y: 0, 
+            stagger: 0.1, 
+            duration: 0.8, 
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: formElements[0],
+              start: 'top bottom',
+              end: 'top 70%',
+              toggleActions: 'play none none none',
+              once: true,
+              id: 'contact-form'
+            }
+          }
+        );
+      }
+      
+      // Wymuszamy odświeżenie ScrollTrigger
+      refresh(true);  // Używamy funkcji z hooka dla bezpiecznego odświeżenia
+    }, sectionRef);
     
+    // Sprzątanie po odmontowaniu komponentu
     return () => ctx.revert();
-  }, []);
+  }, [refresh]);  // Dodajemy refresh jako zależność
 
   const contactInfo: ContactInfoItem[] = [
     { icon: MapPin, label: "Adres", value: "ul. Stawowa 6", detail: "59-800 Lubań, Polska", href: `https://www.google.com/maps/search/?api=1&query=ul.+Stawowa+6,+59-800+Lubań` },
@@ -431,31 +497,81 @@ const ContactSection = () => {
   };
 
   return (
-    <section id="contact" ref={sectionRef} className="py-20 sm:py-32 text-foreground">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight text-gold">
+    <section
+      id="contact"
+      data-section="contact"
+      ref={sectionRef}
+      className="py-20 sm:py-32 text-foreground"
+      style={{
+        perspective: '2000px',
+        transformStyle: 'preserve-3d',
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/[0.02] to-transparent pointer-events-none" />
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-16" style={{ transformStyle: 'preserve-3d' }}>
+          <h2
+            ref={titleRef}
+            className="font-display text-4xl sm:text-5xl font-bold tracking-tight text-gold"
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
+          >
             Skontaktuj się z nami
           </h2>
-          <p className="mt-4 text-lg text-foreground/80 max-w-3xl mx-auto">
+          <p
+            ref={descRef}
+            className="mt-4 text-lg text-foreground/80 max-w-3xl mx-auto"
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
+          >
             Masz pytania lub chcesz dowiedzieć się więcej? Jesteśmy tutaj, aby pomóc. Wypełnij formularz lub skorzystaj z poniższych informacji kontaktowych.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+        <div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start"
+          style={{
+            perspective: '1500px',
+            transformStyle: 'preserve-3d',
+          }}
+        >
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {contactInfo.map((info, index) => (
-                <div key={index} className="contact-card-reveal">
+                <div
+                  key={index}
+                  ref={(el) => { cardsRef.current[index] = el; }}
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    backfaceVisibility: 'hidden',
+                  }}
+                >
                   <StyledContactCard info={info} index={index} />
                 </div>
               ))}
             </div>
-            <div className="contact-card-reveal">
+            <div
+              ref={(el) => { cardsRef.current[4] = el; }}
+              style={{
+                transformStyle: 'preserve-3d',
+                backfaceVisibility: 'hidden',
+              }}
+            >
               <GoogleMapCard />
             </div>
           </div>
-          <div className="contact-card-reveal">
+          <div
+            ref={(el) => { cardsRef.current[5] = el; }}
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
+          >
             <ContactFormCard 
               handleSubmit={handleSubmit}
               formData={formData}

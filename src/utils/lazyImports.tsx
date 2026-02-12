@@ -2,7 +2,7 @@ import { lazy } from 'react';
 
 // Lazy load all page components
 export const LazyIndex = lazy(() => import('@/pages/Index'));
-export const LazyAchievements = lazy(() => import('@/pages/Achievements'));
+export const LazyFlightResults = lazy(() => import('@/pages/FlightResults'));
 export const LazyAuctions = lazy(() => import('@/pages/Auctions'));
 export const LazyAuctionDetail = lazy(() => import('@/pages/AuctionDetail'));
 export const LazyAuctionSuccess = lazy(() => import('@/pages/AuctionSuccess'));

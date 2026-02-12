@@ -598,49 +598,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Brak połączenia z bazą danych');
     }
 
-    // Strip protected fields to avoid trigger rejection
+    // Strip protected fields
     const safeUpdates = { ...updates };
     delete (safeUpdates as any).role;
     delete (safeUpdates as any).id;
     delete (safeUpdates as any).email;
 
-    // Construct payload with ID and Email (critical for upserting if row is missing)
-    // Always update updated_at to satisfy NOT NULL constraint and ensure freshness
-    const payload: any = { 
-      id: user.id, 
-      email: user.email,
-      updated_at: new Date().toISOString(),
-      ...safeUpdates 
-    };
-    
     // Validate username if present in updates
-    if ('username' in safeUpdates) {
-      if (typeof payload.username === 'string') {
-        payload.username = sanitizeUsername(payload.username);
-      }
-      if (!payload.username || payload.username.length < 3) {
-        throw new Error('Nazwa użytkownika jest nieprawidłowa (min. 3 znaki, tylko litery/cyfry i myślniki).');
+    if ('username' in safeUpdates && safeUpdates.username) {
+      safeUpdates.username = sanitizeUsername(safeUpdates.username);
+      if (safeUpdates.username.length < 3) {
+        throw new Error('Nazwa użytkownika jest nieprawidłowa (min. 3 znaki).');
       }
     }
 
-    const { data, error } = await client
-      .from('users')
-      .upsert(payload)
-      .select('*')
-      .maybeSingle();
+    try {
+      const response = await apiClient.patch<Profile>('/users/profile', safeUpdates);
+      
+      if (!response) {
+        throw new Error('Nie udało się zapisać profilu');
+      }
 
-    if (error) {
-      logger.error('Error upserting profile:', { error, payload });
-      // Re-throw so callers can show a friendly message
+      // Refetch everything to ensure synchronization
+      await refreshSession();
+    } catch (error: any) {
+      logger.error('Error updating profile through API:', error);
       throw error;
     }
-
-    if (!data) {
-      throw new Error('Nie udało się zapisać profilu');
-    }
-
-    // Refetch user and profile to ensure we have the latest state (including triggers)
-    await refreshSession();
   };
 
   const showUserPanel = () => {

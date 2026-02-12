@@ -1,5 +1,8 @@
 import type { Config } from "tailwindcss";
 import tailwindAnimate from "tailwindcss-animate";
+import typography from "@tailwindcss/typography";
+import forms from "@tailwindcss/forms";
+import tailwindcss3d from "tailwindcss-3d";
 
 export default {
   darkMode: "class",
@@ -204,17 +207,31 @@ export default {
   },
   plugins: [
     tailwindAnimate,
-    // Plugin for 3D transforms
+    typography,
+    forms({
+      strategy: 'class', // Use 'form-input', 'form-select' classes
+    }),
+    tailwindcss3d,
+    // Custom 3D utilities
     function({ addUtilities }: { addUtilities: (utilities: Record<string, Record<string, string>>) => void }) {
       addUtilities({
         '.perspective-1000': {
           perspective: '1000px',
+        },
+        '.perspective-1500': {
+          perspective: '1500px',
+        },
+        '.perspective-2000': {
+          perspective: '2000px',
         },
         '.preserve-3d': {
           transformStyle: 'preserve-3d',
         },
         '.backface-hidden': {
           backfaceVisibility: 'hidden',
+        },
+        '.transform-style-flat': {
+          transformStyle: 'flat',
         },
       });
     },

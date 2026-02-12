@@ -1,9 +1,21 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gavel, Heart, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring, useScroll } from "framer-motion";
 import { gsap } from "@/lib/gsapConfig";
+import { CardTimer } from "./CardTimer";
+
+const AuctionImage = memo(({ src, alt, className, onError }: { src: string, alt: string, className: string, onError: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void }) => (
+  <img
+    src={src}
+    alt={alt}
+    loading="lazy"
+    className={className}
+    onError={onError}
+  />
+));
+AuctionImage.displayName = "AuctionImage";
 
 const AUCTION_PLACEHOLDER_SRC = "/placeholder.svg";
 
@@ -54,19 +66,33 @@ export const UnifiedAuctionCard = ({
 }: UnifiedAuctionCardProps) => {
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
-  const [referenceNow, setReferenceNow] = useState(() =>
-    typeof nowMs === "number" ? nowMs : Date.now(),
-  );
+
+  
+  // Use passed nowMs for stable, low-frequency updates (e.g. every minute)
+  // avoiding 1Hz re-renders of the entire card
+  const referenceTime = typeof nowMs === "number" ? nowMs : Date.now();
 
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
 
-  // Subtle 3D effect with reduced rotation
+
+  const [isHovered, setIsHovered] = useState(false);
+
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]);
+  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.9, 1, 1, 0.9]);
+
+  // Enhanced 3D effect matching PressArticleCard
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [5, -5]), { stiffness: 200, damping: 25 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-5, 5]), { stiffness: 200, damping: 25 });
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { stiffness: 150, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 150, damping: 20 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
@@ -78,11 +104,13 @@ export const UnifiedAuctionCard = ({
     mouseY.set(y);
     card.style.setProperty('--mouse-x', `${(x + 0.5) * 100}%`);
     card.style.setProperty('--mouse-y', `${(y + 0.5) * 100}%`);
+    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
     mouseX.set(0);
     mouseY.set(0);
+    setIsHovered(false);
   };
 
   // GSAP animations on mount
@@ -92,13 +120,14 @@ export const UnifiedAuctionCard = ({
 
     if (!card) return;
 
-    // Initial animation
+    // Initial animation matching PressArticleCard
     gsap.fromTo(
       card,
       { 
         opacity: 0, 
-        y: 30,
-        scale: 0.95
+        y: 100,
+        rotateX: 10,
+        scale: 0.9
       },
       {
         opacity: 1,
@@ -139,34 +168,21 @@ export const UnifiedAuctionCard = ({
     };
   }, []);
 
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setReferenceNow((previous) => previous + 1000);
-    }, 1000);
-    return () => window.clearInterval(intervalId);
-  }, [endTime]); // Removed nowMs to avoid unnecessary restarts
+  // Removed internal timer effect to prevent re-renders. 
+  // Timer precision is handled by isolated CardTimer component.
 
   const timeMeta = useMemo(() => {
-    if (!endTime || referenceNow === 0) {
-      return { days: "00", hours: "00", minutes: "00", seconds: "00", centiseconds: "00", ended: false, endingSoon: false };
+    if (!endTime) {
+      return { ended: false, endingSoon: false };
     }
     const end = new Date(endTime).getTime();
-    const diff = Math.max(end - referenceNow, 0);
-    const days = Math.floor(diff / 86400000).toString().padStart(2, "0");
-    const hours = Math.floor((diff % 86400000) / 3600000).toString().padStart(2, "0");
-    const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, "0");
-    const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, "0");
-    const centiseconds = Math.floor((diff % 1000) / 10).toString().padStart(2, "0");
+    const diff = Math.max(end - referenceTime, 0);
+    
     return {
-      days,
-      hours,
-      minutes,
-      seconds,
-      centiseconds: "00", // Centiseconds not needed in list view
       ended: diff === 0,
       endingSoon: diff > 0 && diff < 3600000,
     };
-  }, [endTime, referenceNow]);
+  }, [endTime, referenceTime]);
 
   const isPigeon = useMemo(() => {
     const cat = (category || "").toUpperCase();
@@ -249,10 +265,25 @@ export const UnifiedAuctionCard = ({
           transformStyle: "preserve-3d",
           rotateX, 
           rotateY,
+          opacity,
+          y,
+          scale
         }}
         whileHover={{ scale: 1.015 }}
         transition={{ scale: { duration: 0.3, ease: "easeOut" } }}
+        onMouseEnter={() => setIsHovered(true)}
       >
+        {/* Light sweep effect */}
+        <motion.div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none z-10"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)',
+          }}
+          animate={{
+            opacity: isHovered ? [0.5, 0.8, 0.5] : 0.0,
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
         {/* Decorative gold lines */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
@@ -299,11 +330,9 @@ export const UnifiedAuctionCard = ({
 
         {/* Image section */}
         <div className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-black">
-          <img
-            ref={imageRef}
+          <AuctionImage
             src={imgSrc}
             alt={title}
-            loading="lazy"
             className={`w-full h-full ${imageObjectClass} transition-all duration-700`}
             onError={(e) => {
               const t = e.currentTarget as HTMLImageElement;
@@ -354,17 +383,8 @@ export const UnifiedAuctionCard = ({
           {/* Timer */}
           <div className="space-y-2">
             <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 font-medium">Pozostało czasu</p>
-            <div className="flex items-center justify-between gap-2">
-              {["days", "hours", "minutes", "seconds", "centiseconds"].map((label, idx) => (
-                <div key={label} className="flex flex-col items-center flex-1 bg-white/5 rounded-xl py-2 border border-white/10">
-                  <span className={`text-lg font-bold leading-none transition-colors ${timeMeta.endingSoon ? 'text-red-400' : 'text-white'}`}>
-                    {timeMeta.ended ? "00" : (timeMeta as any)[label]}
-                  </span>
-                  <span className="text-[9px] uppercase tracking-wider text-white/40 mt-1">
-                    {["Dni", "Godz", "Min", "Sek", "Cs"][idx]}
-                  </span>
-                </div>
-              ))}
+            <div className="w-full">
+              <CardTimer endTime={endTime} className="w-full gap-2" endingSoon={timeMeta.endingSoon} />
             </div>
           </div>
 

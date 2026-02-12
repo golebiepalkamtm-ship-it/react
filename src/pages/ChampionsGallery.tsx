@@ -5,7 +5,7 @@
  * - Premium text reveals and hover effects
  */
 import { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { X, Trophy, Calendar, Award, Sparkles, Star } from 'lucide-react';
 import { ChampionCard } from '@/components/gallery/ChampionCard';
 import { PedigreeModal } from '@/components/gallery/PedigreeModal';
@@ -24,6 +24,7 @@ export const ChampionsGallery = () => {
   const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
   const { champions, loading, error } = useChampions();
   const heroRef = useRef<HTMLElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -101,7 +102,11 @@ export const ChampionsGallery = () => {
         <motion.section
           ref={heroRef}
           className="relative pt-20 md:pt-32 pb-24 md:pb-32 px-4 overflow-hidden min-h-[70vh] flex items-center"
-          style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
+          style={
+            prefersReducedMotion
+              ? undefined
+              : { opacity: heroOpacity, scale: heroScale, y: heroY }
+          }
         >
           <div className="container mx-auto text-center relative z-10">
             <ScrollReveal delay={0}>
@@ -212,21 +217,14 @@ export const ChampionsGallery = () => {
                 staggerDelay={0.1}
               >
                 {champions.map((champion, index) => (
-                  <motion.div
+                  <ChampionCard
                     key={champion.id}
+                    champion={champion}
+                    index={index}
+                    onSelect={handleSelect}
+                    onViewPedigree={handleViewPedigree}
                     variants={staggerItemVariants}
-                    whileHover={{
-                      y: -10,
-                      transition: { duration: 0.3 }
-                    }}
-                  >
-                    <ChampionCard
-                      champion={champion}
-                      index={index}
-                      onSelect={handleSelect}
-                      onViewPedigree={handleViewPedigree}
-                    />
-                  </motion.div>
+                  />
                 ))}
               </StaggerContainer>
             )}

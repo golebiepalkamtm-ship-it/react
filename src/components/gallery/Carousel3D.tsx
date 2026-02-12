@@ -33,48 +33,55 @@ export const Carousel3D = () => {
   const activeChampion = items[activeIndex];
 
   const carouselRef = useRef<HTMLElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const detailsContainerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       if (!carouselRef.current) return;
 
-      const tl = gsap.timeline({
+      // Force initial states
+      gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
+      gsap.set(titleRef.current, { opacity: 0, y: 60 });
+      gsap.set(imageContainerRef.current, { opacity: 0, scale: 0.9, rotateY: -15 });
+      gsap.set(detailsContainerRef.current, { opacity: 0, x: 50, rotateY: 15 });
+
+      const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: carouselRef.current,
-          start: 'top 95%',
-          end: 'bottom 5%',
-          scrub: 2,
-          id: 'carousel3d-main',
+          start: 'top 80%',
+          toggleActions: 'play none none none',
+          once: true,
         },
       });
 
-      tl.fromTo(
-        carouselRef.current,
-        { opacity: 0.3, scale: 0.92, y: 60 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.25, ease: 'power1.out' },
-        0
-      )
-        .to(carouselRef.current, {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          duration: 0.5,
-          ease: 'none',
-        })
-        .to(carouselRef.current, {
-          opacity: 0.4,
-          scale: 0.94,
-          y: -40,
-          duration: 0.25,
-          ease: 'power1.in',
-        });
-
-      animationRef.current = tl;
-
-      return () => {
-        tl.kill();
-        ScrollTrigger.getById('carousel3d-main')?.kill();
-      };
+      mainTl
+        .fromTo(
+          badgeRef.current,
+          { opacity: 0, y: 40, scale: 0.9 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'back.out(1.5)' },
+          0
+        )
+        .fromTo(
+          titleRef.current,
+          { opacity: 0, y: 60, clipPath: 'inset(0% 0% 100% 0%)' },
+          { opacity: 1, y: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'expo.out' },
+          0.2
+        )
+        .fromTo(
+          imageContainerRef.current,
+          { opacity: 0, scale: 0.9, rotateY: -15 },
+          { opacity: 1, scale: 1, rotateY: 0, duration: 1.3, ease: 'expo.out' },
+          0.4
+        )
+        .fromTo(
+          detailsContainerRef.current,
+          { opacity: 0, x: 50, rotateY: 15 },
+          { opacity: 1, x: 0, rotateY: 0, duration: 1.2, ease: 'expo.out' },
+          0.6
+        );
     },
     { scope: carouselRef }
   );
@@ -178,6 +185,7 @@ export const Carousel3D = () => {
   return (
     <section
       ref={carouselRef}
+      id="carousel"
       className="relative min-h-screen overflow-hidden section-surface"
       onMouseEnter={pauseAutoPlay}
       onMouseMove={handleUserInteraction}
@@ -197,14 +205,16 @@ export const Carousel3D = () => {
 
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
-      <div className="relative z-20 pt-16 md:pt-24 pb-8 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <span className="inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-primary mb-4">
+      <div className="relative z-20 pt-16 md:pt-24 pb-8 text-center" style={{ transformStyle: 'preserve-3d' }}>
+        <div>
+          <span
+            ref={badgeRef}
+            className="inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-primary mb-4"
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
+          >
             <motion.div
               animate={{ 
                 scale: [1, 1.15, 1],
@@ -234,11 +244,18 @@ export const Carousel3D = () => {
               <Trophy className="w-4 h-4" />
             </motion.div>
           </span>
-          <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-light">
+          <h2
+            ref={titleRef}
+            className="font-display text-4xl md:text-6xl lg:text-7xl font-light"
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
+          >
             <span className="text-foreground">Galeria </span>
             <span className="text-gold">Mistrzów</span>
           </h2>
-        </motion.div>
+        </div>
       </div>
 
       <div className="relative z-10 flex items-center justify-center px-4 md:px-8 lg:px-16 pb-32">
@@ -258,8 +275,15 @@ export const Carousel3D = () => {
             <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          <div className="relative flex flex-col lg:flex-row items-start gap-8 lg:gap-16">
-            <div className="relative w-full lg:w-3/5 aspect-[4/3] overflow-hidden rounded-3xl">
+          <div className="relative flex flex-col lg:flex-row items-start gap-8 lg:gap-16" style={{ perspective: '1500px', transformStyle: 'preserve-3d' }}>
+            <div
+              ref={imageContainerRef}
+              className="relative w-full lg:w-3/5 aspect-[4/3] overflow-hidden rounded-3xl"
+              style={{
+                transformStyle: 'preserve-3d',
+                backfaceVisibility: 'hidden',
+              }}
+            >
               {/* Złota poświata wokół ramki */}
               <div className="absolute inset-0 rounded-3xl z-10 pointer-events-none">
                 <div className="absolute inset-0 rounded-3xl shadow-[0_0_60px_rgba(212,175,55,0.4),0_0_100px_rgba(212,175,55,0.2),inset_0_0_60px_rgba(212,175,55,0.1)]" />
@@ -301,7 +325,14 @@ export const Carousel3D = () => {
               </AnimatePresence>
             </div>
 
-            <div className="relative w-full lg:w-2/5 text-center lg:text-left">
+            <div
+              ref={detailsContainerRef}
+              className="relative w-full lg:w-2/5 text-center lg:text-left"
+              style={{
+                transformStyle: 'preserve-3d',
+                backfaceVisibility: 'hidden',
+              }}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeIndex}

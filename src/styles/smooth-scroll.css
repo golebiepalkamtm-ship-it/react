@@ -31,11 +31,22 @@ html.lenis.lenis-scrolling iframe {
 }
 
 /* Reduced motion override */
-html.lenis.lenis-reduced-motion * {
+html.lenis.lenis-reduced-motion *,
+html.reduced-motion * {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
+}
+
+html.reduced-motion {
+  scroll-behavior: auto !important;
+}
+
+html.reduced-motion .hero-blur-spot,
+html.reduced-motion .floating-element {
+  animation: none !important;
+  transform: none !important;
 }
 
 /* Performance optimization - GPU acceleration baseline */

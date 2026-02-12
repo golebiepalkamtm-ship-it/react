@@ -371,7 +371,6 @@ router.post('/auctions', ensureAdmin, async (req, res) => {
         status: status || 'ACTIVE',
         endTime: endTime ? new Date(endTime) : null,
         category: category || 'RACING',
-        sex: sex || 'MALE',
         sellerId: finalSellerId,
         minBidIncrement: minBidIncrement || 100
       }

@@ -13,15 +13,18 @@
  * - Multi-layer parallax
  * - Magnetic interactions
  * - Auth flow handling
+ * - Construction on Scroll pattern (component-level animations)
  */
 
-import React, { useRef, useEffect, useCallback, memo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useRef, useEffect, useCallback, memo, useState, RefObject } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 import { registerCustomEasings, gsapEasings } from '@/lib/customEasings';
 import { ArrowRight, Trophy, Zap, Award, ChevronDown, Star } from 'lucide-react';
-import { useSpringPhysics, customExpoEase, customBezier, splitTextToChars, splitTextToWords } from '@/hooks/useCustomPhysics';
+import { useSpringPhysics, customExpoEase, customBezier } from '@/hooks/useCustomPhysics';
+import { useScrollAnimation, useSplitText } from '@/hooks/useScrollAnimation';
+import { DOMBatcher, throttle } from '@/utils/performanceOptimizer';
 import Header from '@/components/Header';
 import { Carousel3D } from '@/components/gallery/Carousel3D';
 import AboutSection from '@/components/AboutSection';
@@ -50,6 +53,8 @@ const HeroPremium = memo(() => {
   const contentRef = useRef<HTMLDivElement>(null);
   const videoOverlayRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const statsContainerRef = useRef<HTMLDivElement>(null);
+  const titleContainerRef = useRef<HTMLDivElement>(null);
 
   /* 
    * VIDEO ENCODING FOR SCRUBBING:
@@ -59,176 +64,89 @@ const HeroPremium = memo(() => {
    * "-g 1" ensures every frame is a keyframe (Intra-frame only), allowing instant seeking without decoding artifacts.
    */
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+  // Use the custom hook for hero animations
+  useScrollAnimation(heroRef, [
+    // Badge reveal animation
+    {
+      targets: () => contentRef.current?.querySelector('.inline-flex'),
+      fromVars: { opacity: 0, scale: 0.8, y: 30, rotateX: -90 },
+      toVars: { opacity: 1, scale: 1, y: 0, rotateX: 0, duration: 0.8, ease: 'back.out(1.7)', delay: 0.3 },
+      timeline: true
+    },
+    // Title character-by-character reveal
+    {
+      targets: () => {
+        const titleElement = titleContainerRef.current;
+        if (!titleElement) return null;
+        
+        const text = titleElement.textContent || '';
+        const chars = text.split('');
+        
+        titleElement.innerHTML = chars
+          .map((char) => `<span class="char-reveal" style="display: inline-block;">${char === ' ' ? '&nbsp;' : char}</span>`)
+          .join('');
 
-    // Use a loadedmetadata handler to properly set up the ScrollTrigger duration/start
-    const handleLoadedMetadata = () => {
-      let progress = 0;
-      let lastRenderedTime = -1;
-
-      // 1. ScrollTrigger updates progress ONLY (very light)
-      ScrollTrigger.create({
-        trigger: heroRef.current,
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 1.0,
-        onUpdate: (self) => {
-          progress = self.progress;
-        }
-      });
-
-      // 2. GSAP Ticker handles the actual render (decoupled from scroll frequency)
-      const render = () => {
-        if (!video.duration) return;
-
-        const targetTime = video.duration * progress;
-
-        // Threshold + Throttling
-        if (Math.abs(targetTime - lastRenderedTime) > 0.033) { // ~30fps target for seek
-          lastRenderedTime = targetTime;
-
-          if ('fastSeek' in video) {
-            (video as any).fastSeek(targetTime);
-          } else {
-            video.currentTime = targetTime;
-          }
-        }
-      };
-
-      gsap.ticker.add(render);
-      return render;
-    };
-
-    let tickerRef: any = null;
-    video.addEventListener('loadedmetadata', () => {
-      tickerRef = handleLoadedMetadata();
-    });
-
-    // Trigger handler immediately if metadata already loaded
-    if (video.readyState >= 1) tickerRef = handleLoadedMetadata();
-
-    return () => {
-      if (tickerRef) gsap.ticker.remove(tickerRef);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Premium Text Reveal Animation
-    const content = contentRef.current;
-    if (!content) return;
-
-    // Dynamically import MotionSystem to ensure architecture is used
-    import('@/lib/MotionSystem').then(({ PhysicsUtils, AnimationController }) => {
-      // Ensure the controller is running
-      const controller = AnimationController.getInstance();
-
-      // Manual Split Text Implementation
-      const splitTargets = content.querySelectorAll('[data-split-text]');
-      splitTargets.forEach(target => {
-        if (!target.textContent) return;
-        const chars = splitTextToChars(target.textContent);
-        target.innerHTML = chars.map(char =>
-          `<span class="char" style="display:inline-block; will-change:transform;">${char}</span>`
-        ).join('');
-      });
-
-      const titleChars = content.querySelectorAll('[data-split-text] .char');
-      const stats = content.querySelectorAll('.hero-stat-item');
-
-      const tl = gsap.timeline({
-        delay: 0.5,
-        defaults: { ease: PhysicsUtils.premiumEase } // Use the architectural ease
-      });
-
-      // 1. Staggered Character Reveal (translate3d/scale for optimization)
-      if (titleChars.length > 0) {
-        gsap.set(titleChars, { opacity: 0, scale: 0.8, y: 100, rotateX: -90 });
-        tl.to(titleChars, {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          rotateX: 0,
-          stagger: 0.02,
-          duration: 1.4,
-          force3D: true // Ensure GPU acceleration
-        });
-      }
-
-      // 2. Stats Reveal
-      if (stats.length > 0) {
-        gsap.set(stats, { opacity: 0, y: 30, scale: 0.95 });
-        tl.to(stats, {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 1,
-          stagger: 0.1,
-          force3D: true,
-          ease: 'power3.out'
-        }, "-=0.8");
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!heroRef.current || !contentRef.current) return;
-
-    const content = contentRef.current;
-    const badge = content.querySelector('.inline-flex'); // Badge
-    const paragraph = content.querySelector('p');
-    const button = content.querySelector('a');
-
-
-    const ctx = gsap.context(() => {
-      // Timeline dla elementów hero (po h1 i statsach)
-      const tl = gsap.timeline({
-        defaults: { ease: 'expo.out' },
-      });
-
-      // Badge
-      if (badge) {
-        gsap.set(badge, { opacity: 0, y: 30 });
-        tl.to(badge, { opacity: 1, y: 0, duration: 1 }, 0.3);
-      }
-
-      // Paragraph (po h1 split-text animation)
-      if (paragraph) {
-        gsap.set(paragraph, { opacity: 0, y: 40 });
-        tl.to(paragraph, { opacity: 1, y: 0, duration: 1.2 }, 1.5);
-      }
-
-      // Button
-      if (button) {
-        gsap.set(button, { opacity: 0, y: 30, scale: 0.95 });
-        tl.to(button, { opacity: 1, y: 0, scale: 1, duration: 1 }, 1.8);
-      }
-
-    }, content);
-
-    // Parallax on scroll with Custom Bezier
-    const parallaxTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 1.4, // Smoother follow
+        return titleElement.querySelectorAll('.char-reveal');
       },
-    });
-
-    parallaxTl.to(content, {
-      y: 200,
-      opacity: 0,
-      ease: (t) => customBezier(t, 0.76, 0, 0.24, 1),
-    }, 0);
-
-    return () => {
-      ctx.revert();
-      parallaxTl.kill();
-    };
-  }, []);
+      fromVars: { opacity: 0, y: 30, rotateX: -90 },
+      toVars: { 
+        opacity: 1, 
+        y: 0, 
+        rotateX: 0, 
+        stagger: 0.03, 
+        duration: 0.6, 
+        ease: 'back.out(1.7)',
+        delay: 0.6
+      },
+      timeline: true
+    },
+    // Description clip-path reveal
+    {
+      targets: () => contentRef.current?.querySelector('p'),
+      fromVars: { opacity: 0, clipPath: 'inset(0% 0% 100% 0%)', y: 40 },
+      toVars: { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)', y: 0, duration: 1.2, ease: 'expo.out', delay: 0.8 },
+      timeline: true,
+      constructionEffect: 'reveal'
+    },
+    // Button construction
+    {
+      targets: () => contentRef.current?.querySelector('a'),
+      fromVars: { opacity: 0, y: 30, scale: 0.9, rotateY: -15 },
+      toVars: { opacity: 1, y: 0, scale: 1, rotateY: 0, duration: 1, ease: 'expo.out', delay: 1.2 },
+      timeline: true
+    },
+    // Stats stagger reveal
+    {
+      targets: () => statsContainerRef.current?.querySelectorAll('.hero-stat-item'),
+      fromVars: { opacity: 0, y: 60, scale: 0.9, rotateX: 45 },
+      toVars: { 
+        opacity: 1, 
+        y: 0, 
+        scale: 1, 
+        rotateX: 0, 
+        stagger: 0.15, 
+        duration: 1, 
+        ease: 'expo.out',
+        delay: 1.5
+      },
+      timeline: true,
+      constructionEffect: 'build'
+    },
+    // Parallax blur spots on scroll
+    {
+      targets: () => heroRef.current?.querySelectorAll('.hero-blur'),
+      toVars: {
+        y: (index) => window.innerHeight * (0.5 + (index * 0.15)) * -0.3,
+        ease: 'none',
+      },
+      scrollTrigger: {
+        trigger: () => heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 1
+      }
+    }
+  ], []);
 
   return (
     <section
@@ -237,16 +155,14 @@ const HeroPremium = memo(() => {
       data-section="hero"
     >
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <video
-          ref={videoRef}
-          className="absolute top-1/2 left-1/2 min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover opacity-60"
-          muted
-          playsInline
-          preload="auto"
-        >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-lightbulb-hanging-in-the-dark-turning-on-and-off-repeatedly-30928-large.mp4" type="video/mp4" />
-        </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+        
+        {/* Animated blur spots - ScrollSmoother parallax */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="hero-blur absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gold/20 rounded-full blur-[120px]" data-speed="0.8" />
+          <div className="hero-blur absolute top-1/3 -left-32 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[100px]" data-speed="0.6" />
+          <div className="hero-blur absolute top-1/4 -right-32 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[100px]" data-speed="0.7" />
+        </div>
       </div>
       <div
         ref={contentRef}
@@ -260,8 +176,9 @@ const HeroPremium = memo(() => {
         </MagneticElement>
 
         <h1
-          data-split-text
+          ref={titleContainerRef}
           className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-white mb-6"
+          style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
         >
           Pałka MTM - Geny Zwycięzców
         </h1>
@@ -286,7 +203,9 @@ const HeroPremium = memo(() => {
         </div>
 
         <div
+          ref={statsContainerRef}
           className="grid grid-cols-3 gap-8 max-w-3xl mx-auto hero-stats"
+          style={{ perspective: '1500px', transformStyle: 'preserve-3d' }}
         >
           {[
             { icon: Trophy, value: 150, suffix: '+', label: 'Mistrzostw' },
@@ -469,55 +388,42 @@ const FeaturesSectionPremium = () => {
     },
   ];
 
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    const section = sectionRef.current;
-    const header = section.querySelector('.features-header');
-    const cards = section.querySelectorAll('.feature-card-item');
-
-    const ctx = gsap.context(() => {
-      // Header animation
-      const headerTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: 'top 80%',
-          end: 'top 30%',
-          scrub: 1.5,
-        }
-      });
-
-      if (header) {
-        headerTl.fromTo(header,
-          { y: 60, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5, ease: 'expo.out' }
-        );
-      }
-
-      // Cards animation with stagger
-      if (cards.length > 0) {
-        gsap.fromTo(cards,
-          { y: 80, opacity: 0, scale: 0.92 },
-          {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 0.5,
-            ease: 'expo.out',
-            stagger: 0.12,
-            scrollTrigger: {
-              trigger: cards[0],
-              start: 'top 85%',
-              end: 'top 35%',
-              scrub: 1.5,
-            }
-          }
-        );
-      }
-    }, section);
-
-    return () => ctx.revert();
-  }, []);
+  // Use the custom hook for features section animations
+  useScrollAnimation(sectionRef, [
+    // Header animation
+    {
+      targets: () => sectionRef.current?.querySelector('.features-header'),
+      fromVars: { y: 60, opacity: 0 },
+      toVars: { y: 0, opacity: 1, duration: 0.5, ease: 'expo.out' },
+      scrollTrigger: {
+        trigger: () => sectionRef.current,
+        start: 'top 80%',
+        end: 'top 30%',
+        scrub: 1.5
+      },
+      constructionEffect: 'reveal'
+    },
+    // Cards animation with stagger
+    {
+      targets: () => sectionRef.current?.querySelectorAll('.feature-card-item'),
+      fromVars: { y: 80, opacity: 0, scale: 0.92 },
+      toVars: {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.5,
+        ease: 'expo.out',
+        stagger: 0.12
+      },
+      scrollTrigger: {
+        trigger: () => sectionRef.current?.querySelector('.feature-card-item'),
+        start: 'top 85%',
+        end: 'top 35%',
+        scrub: 1.5
+      },
+      constructionEffect: 'build'
+    }
+  ], []);
 
   return (
     <SeamlessSection
@@ -553,44 +459,50 @@ const FeaturesSectionPremium = () => {
 const CTASectionPremium = () => {
   const ctaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!ctaRef.current) return;
-
-    const section = ctaRef.current;
-    const heading = section.querySelector('h2');
-    const paragraph = section.querySelector('p');
-    const button = section.querySelector('a');
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: 'top 80%',
-          end: 'top 30%',
-          scrub: 1.5,
-        }
-      });
-
-      if (heading) tl.fromTo(heading,
-        { y: 80, opacity: 0, scale: 0.95 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'expo.out' }
-      );
-
-      if (paragraph) tl.fromTo(paragraph,
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' },
-        '-=0.2'
-      );
-
-      if (button) tl.fromTo(button,
-        { y: 40, opacity: 0, scale: 0.9 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'expo.out' },
-        '-=0.15'
-      );
-    }, section);
-
-    return () => ctx.revert();
-  }, []);
+  // Use the custom hook for CTA section animations
+  useScrollAnimation(ctaRef, [
+    // Heading animation
+    {
+      targets: () => ctaRef.current?.querySelector('h2'),
+      fromVars: { y: 80, opacity: 0, scale: 0.95 },
+      toVars: { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'expo.out' },
+      scrollTrigger: {
+        trigger: () => ctaRef.current,
+        start: 'top 80%',
+        end: 'top 30%',
+        scrub: 1.5
+      },
+      timeline: true,
+      constructionEffect: 'reveal'
+    },
+    // Paragraph animation
+    {
+      targets: () => ctaRef.current?.querySelector('p'),
+      fromVars: { y: 50, opacity: 0 },
+      toVars: { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out', delay: 0.2 },
+      scrollTrigger: {
+        trigger: () => ctaRef.current,
+        start: 'top 80%',
+        end: 'top 30%',
+        scrub: 1.5
+      },
+      timeline: true
+    },
+    // Button animation
+    {
+      targets: () => ctaRef.current?.querySelector('a'),
+      fromVars: { y: 40, opacity: 0, scale: 0.9 },
+      toVars: { y: 0, opacity: 1, scale: 1, duration: 0.3, ease: 'expo.out', delay: 0.35 },
+      scrollTrigger: {
+        trigger: () => ctaRef.current,
+        start: 'top 80%',
+        end: 'top 30%',
+        scrub: 1.5
+      },
+      timeline: true,
+      constructionEffect: 'build'
+    }
+  ], []);
 
   return (
     <SeamlessSection className="py-24 px-4" transitionIn="fade" data-section="cta">
@@ -623,10 +535,63 @@ const CTASectionPremium = () => {
 const Index = () => {
   const { user, profile, loading } = useAuth();
   const [showAuthMessage, setShowAuthMessage] = useState(false);
-
+  const [authMessage, setAuthMessage] = useState<AuthMessage | null>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const followerRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
+  // Block hash navigation auto-scroll
+  useEffect(() => {
+    if (location.hash) {
+      // Remove hash from URL without triggering scroll
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    
+    // Prevent default hash navigation behavior
+    const preventHashScroll = (e: Event) => {
+      if (window.location.hash) {
+        e.preventDefault();
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    };
+    
+    window.addEventListener('hashchange', preventHashScroll);
+    return () => window.removeEventListener('hashchange', preventHashScroll);
+  }, [location]);
+
+  // Obsługa nawigacji z headera z location.state.scrollTo (O nas / Kontakt)
+  useEffect(() => {
+    const state = (location.state as any) || {};
+    if (!state.scrollTo) return;
+
+    const anchor = state.scrollTo as string;
+
+    // Czyścimy state w historii, żeby nie powtarzać scrolla przy kolejnych zmianach
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    // Małe opóźnienie, żeby sekcje i GSAP zdążyły się zainicjalizować
+    const timer = setTimeout(() => {
+      const el = document.getElementById(anchor);
+      if (!el) return;
+
+      const header = document.querySelector('header') as HTMLElement | null;
+      const headerHeight = header?.offsetHeight ?? 88;
+
+      // Delikatnie inne offsety dla about / contact, żeby nagłówki były idealnie widoczne
+      let offset = headerHeight + 32;
+      if (anchor === 'about') {
+        offset = headerHeight + 64; // trochę niżej, sekcja jest wysoka
+      } else if (anchor === 'contact') {
+        offset = headerHeight + 16; // trochę wyżej, żeby nagłówek nie był za bardzo pod spodem
+      }
+
+      const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - offset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    }, 80);
+
+    return () => clearTimeout(timer);
+  }, [location]);
 
   const cursorSpring = useSpringPhysics({ stiffness: 0.15, damping: 0.25 });
   const followerSpring = useSpringPhysics({ stiffness: 0.08, damping: 0.3 });
@@ -670,9 +635,14 @@ const Index = () => {
 
   useEffect(() => {
     document.body.classList.add('home-page');
-    ScrollTrigger.refresh();
+    
+    // Delay refresh to ensure all components are mounted
+    const refreshTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
 
     return () => {
+      clearTimeout(refreshTimer);
       document.body.classList.remove('home-page');
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
@@ -776,87 +746,23 @@ const Index = () => {
     }
   };
 
+  // Component-level animation architecture:
+  // Each section manages its own ScrollTriggers via useScrollAnimation hook for proper encapsulation
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const reveals = document.querySelectorAll('[data-reveal]');
-      reveals.forEach((el) => {
-        const type = el.getAttribute('data-reveal');
-
-        // COMMON CONFIG: Soft Rise & Blur (Premium Feel)
-        const softBase = {
-          opacity: 0,
-          y: 30, // Subtle movement
-          filter: 'blur(10px)', // Cinematic blur
-          scale: 0.98,
-        };
-
-        const visibleBase = {
-          opacity: 1,
-          y: 0,
-          filter: 'blur(0px)',
-          scale: 1,
-          duration: 1.4,
-          ease: 'power3.out', // Smooth deceleration
-        };
-
-        switch (type) {
-          case 'slide-up':
-          case 'stagger':
-            gsap.fromTo(el, softBase, {
-              ...visibleBase,
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 85%',
-                toggleActions: 'play none none reverse'
-              }
-            });
-            break;
-          case 'scale':
-            gsap.fromTo(el,
-              { ...softBase, scale: 0.95 },
-              {
-                ...visibleBase,
-                duration: 1.6,
-                scrollTrigger: {
-                  trigger: el,
-                  start: 'top 85%',
-                  toggleActions: 'play none none reverse'
-                }
-              }
-            );
-            break;
-          case 'clip':
-            gsap.fromTo(el,
-              { clipPath: 'inset(10% 0 5% 0)', opacity: 0, filter: 'blur(5px)' },
-              {
-                clipPath: 'inset(0% 0 0% 0)',
-                opacity: 1,
-                filter: 'blur(0px)',
-                duration: 1.5,
-                ease: 'power3.out',
-                scrollTrigger: {
-                  trigger: el,
-                  start: 'top 80%',
-                  toggleActions: 'play none none reverse'
-                }
-              }
-            );
-            break;
-        }
-      });
-    });
-
-    return () => ctx.revert();
-  }, []);
-
-  const authMessage = getAuthMessage();
+    // Single refresh after DOM ready - components handle their own triggers
+    if (ScrollTrigger) {
+      const refreshTimer = setTimeout(() => {
+        ScrollTrigger.refresh(true); // true forces a deep refresh
+      }, 200);
+      return () => clearTimeout(refreshTimer);
+    }
+  }, [location]);
 
   return (
-    <div className="min-h-screen relative isolate overflow-hidden">
+    <div className="min-h-screen relative">
       <Header />
 
       <ProgressIndicator />
-
 
       <div
         ref={cursorRef}
@@ -866,8 +772,6 @@ const Index = () => {
         ref={followerRef}
         className="cursor-follower-main"
       />
-
-
 
       <div className="fixed inset-0 -z-10 pointer-events-none">
       </div>
@@ -889,31 +793,23 @@ const Index = () => {
         />
       )}
 
-      {/* Increased spacing to prevent overlapping (space-y-48) */}
-      <div className="relative z-10 space-y-48">
+      {/* Sections with dedicated scroll-triggered animations */}
+      <div className="relative z-10">
         <HeroPremium />
-
-        <div data-reveal="slide-up">
+        
+        <div className="mt-24">
           <AboutSection />
         </div>
 
-        <div id="champions" data-reveal="scale" data-section="champions">
+        <div className="mt-24">
           <Carousel3D />
         </div>
 
-        <SeamlessSection pin scrub={1} transitionIn="fade">
-          <FeaturesSectionPremium />
-        </SeamlessSection>
-
-        <div data-reveal="slide-up">
+        <div className="mt-24">
           <PressSection />
         </div>
 
-        <div data-reveal="scale">
-          <CTASectionPremium />
-        </div>
-
-        <div data-reveal="clip">
+        <div className="mt-24">
           <ContactSection />
         </div>
 

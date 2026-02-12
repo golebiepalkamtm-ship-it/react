@@ -3,10 +3,10 @@ import { Newspaper, Calendar, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion, useTransform, useMotionValue, useSpring, useScroll } from 'framer-motion';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 import { PressService, PressArticle } from '@/services/pressService';
 import { logger } from '@/lib/logger';
+import { useScrollTriggerSync } from '@/hooks/useScrollTriggerSync';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,6 +42,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     mouseX.set(x);
     mouseY.set(y);
+    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
@@ -148,7 +149,11 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
 
 const PressSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const cardsContainerRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const ctaRef = useRef<HTMLDivElement>(null);
   const [articles, setArticles] = useState<PressArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -173,48 +178,170 @@ const PressSection = () => {
     fetchArticles();
   }, []);
 
+  // Używamy hooka do synchronizacji ScrollTrigger z Lenis
+  const { refresh } = useScrollTriggerSync({
+    refreshOnMount: true,
+    refreshDelay: 200
+  });
+
   useEffect(() => {
-    // Global GSAP handles the cinema reveals via data-attributes
-  }, [loading, articles, prefersReducedMotion]);
+    const ctx = gsap.context(() => {
+      // Force initial states
+      gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
+      gsap.set(titleRef.current, { opacity: 0, y: 60 });
+      gsap.set(descRef.current, { opacity: 0, y: 40 });
+      
+      cardsRef.current.forEach((card, i) => {
+        if (!card) return;
+        const angle = (i % 2 === 0 ? -1 : 1) * 5;
+        gsap.set(card, { opacity: 0, y: 100, rotateX: 10, rotateY: angle, scale: 0.9 });
+      });
+
+      const headerTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "top 60%",
+          toggleActions: "play none none reverse",
+          once: true,
+        },
+      });
+
+      headerTl
+        .fromTo(
+          badgeRef.current,
+          { opacity: 0, y: 40, scale: 0.9 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" },
+          0
+        )
+        .fromTo(
+          titleRef.current,
+          { opacity: 0, y: 60, clipPath: "inset(0% 0% 100% 0%)" },
+          { opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: "expo.out" },
+          0.2
+        )
+        .fromTo(
+          descRef.current,
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" },
+          0.4
+        );
+
+      cardsRef.current.forEach((card, i) => {
+        if (!card) return;
+
+        const angle = (i % 2 === 0 ? -1 : 1) * 5;
+
+        gsap.fromTo(
+          card,
+          {
+            opacity: 0,
+            y: 100,
+            rotateX: 10,
+            rotateY: angle,
+            scale: 0.9,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            rotateX: 0,
+            rotateY: 0,
+            scale: 1,
+            duration: 1.0,
+            ease: "expo.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top bottom",
+              end: "top 70%",
+              toggleActions: "play none none reverse",
+              once: true,
+            },
+          }
+        );
+      });
+
+      if (ctaRef.current) {
+        gsap.fromTo(
+          ctaRef.current,
+          { opacity: 0, y: 50, scale: 0.95 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 1,
+            ease: "back.out(1.3)",
+            scrollTrigger: {
+              trigger: ctaRef.current,
+              start: "top bottom",
+              end: "top 70%",
+              toggleActions: "play none none reverse",
+              once: true,
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    // Odświeżamy ScrollTriggery po zakończeniu animacji
+    refresh(true);
+    
+    return () => ctx.revert();
+  }, [loading, articles, prefersReducedMotion, refresh]);
 
   return (
     <section
       ref={sectionRef}
       id="press-section"
       className="py-20 relative overflow-hidden"
-      data-section-reveal
+      style={{
+        perspective: '2000px',
+        transformStyle: 'preserve-3d',
+      }}
     >
-      <div className="container mx-auto px-4 relative z-10" data-stagger-container>
-        <div className="text-center mb-16">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/[0.015] to-transparent pointer-events-none" />
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-16" style={{ transformStyle: 'preserve-3d' }}>
           <span
-            className="header-badge inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
+            ref={badgeRef}
+            className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
           >
             Media o nas
           </span>
           <h2
-            className="header-title font-display text-3xl md:text-4xl text-white font-bold leading-tight mb-4"
+            ref={titleRef}
+            className="font-display text-3xl md:text-4xl text-white font-bold leading-tight mb-4"
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
           >
             W centrum <span className="text-gold">uwagi</span>
           </h2>
           <p
-            className="header-desc text-white/70 max-w-2xl mx-auto"
+            ref={descRef}
+            className="text-white/70 max-w-2xl mx-auto"
+            style={{
+              transformStyle: 'preserve-3d',
+              backfaceVisibility: 'hidden',
+            }}
           >
             Zobacz, jak media opisują nasze sukcesy w hodowli gołębi pocztowych.
           </p>
         </div>
 
         {!loading && articles.length > 0 && (
-          <div
-            ref={cardsContainerRef}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
-            style={{ perspective: '1200px' }}
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {articles.map((article, index) => (
               <div
                 key={article.id}
-                className="press-card"
-                style={{ transformStyle: 'preserve-3d' }}
-                data-stagger-item
+                ref={(el) => {
+                  if (el) cardsRef.current[index] = el;
+                }}
               >
                 <PressArticleCard article={article} index={index} />
               </div>
@@ -222,7 +349,14 @@ const PressSection = () => {
           </div>
         )}
 
-        <div className="cta-button text-center">
+        <div
+          ref={ctaRef}
+          className="text-center"
+          style={{
+            transformStyle: 'preserve-3d',
+            backfaceVisibility: 'hidden',
+          }}
+        >
           <Button variant="outline" size="lg" className="border-gold/50 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300" asChild>
             <Link to="/press">
               Zobacz wszystkie artykuły

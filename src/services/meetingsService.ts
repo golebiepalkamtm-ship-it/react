@@ -1,6 +1,6 @@
-import { supabase } from '@/lib/supabase';
+import { apiClient } from './api';
 
-// Static data for breeder meetings when Supabase is not available
+// Static data for breeder meetings when API is not available
 export interface Meeting {
   id: string;
   name: string;
@@ -93,56 +93,28 @@ const staticBreederMeetings: Meeting[] = [
 export const meetingsService = {
   getMeetings: async () => {
     try {
-      // Check if supabase is initialized
-      if (!supabase) {
-        console.warn('Supabase client is not initialized, using static data');
-        return staticBreederMeetings;
+      // Try fetching from our backend API instead of direct Supabase to avoid RLS/CORS issues in browsers
+      const data = await apiClient.get<Meeting[]>('/breeder-meetings');
+      
+      if (data && Array.isArray(data) && data.length > 0) {
+        // Użyj wyłącznie danych z API (zakładamy, że backend ma aktualny zestaw)
+        return data;
       }
 
-      const { data, error } = await supabase
-        .from('meetings')  // Changed from 'breeder_meetings'
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching breeder meetings:', error);
-        console.log('Falling back to static data');
-        return staticBreederMeetings;
-      }
-
-      // Combine Supabase data with static historical meetings
-      // New meetings from Supabase are shown first, then static (historical) meetings
-      const supabaseMeetings = data || [];
-      return [...supabaseMeetings, ...staticBreederMeetings];
+      // Fallback na statyczne jeśli API zwróciło pustą/niepoprawną odpowiedź
+      return staticBreederMeetings;
     } catch (error) {
-      console.error('Error fetching breeder meetings:', error);
+      console.error('Error fetching breeder meetings from API:', error);
       console.log('Falling back to static data');
       return staticBreederMeetings;
     }
   },
 
-  addMeeting: async (meetingData: {
-    name: string;
-    location?: string;
-    date?: string;
-    description?: string;
-    images: string[];
-  }) => {
+  addMeeting: async (meetingData: CreateMeetingRequest) => {
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-
-      const { data, error } = await supabase
-        .from('meetings')  // Changed from 'breeder_meetings'
-        .insert([meetingData])
-        .select();
-
-      if (error) {
-        throw error;
-      }
-
-      return data?.[0] || null;
+      return await apiClient.post<Meeting>('/breeder-meetings', meetingData);
     } catch (error) {
-      console.error('Error adding breeder meeting:', error);
+      console.error('Error adding breeder meeting via API:', error);
       throw error;
     }
   },

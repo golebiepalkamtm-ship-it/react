@@ -5,6 +5,15 @@ import App from "./App.tsx";
 import { FeedbackProvider } from "@/components/ui/feedback/FeedbackProvider";
 import "./index.css";
 import { logger } from '@/lib/logger';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+
+// Debug tools - uruchom w konsoli: window.debugAnimations()
+import './utils/debugAnimations';
+import './utils/scrollMetrics';
+import './utils/scrollOptimizer';
+import './utils/checkSections';
+import './utils/animationDebugger';
 
 document.documentElement.classList.add('dark');
 
@@ -63,8 +72,14 @@ if (import.meta.env.PROD) {
   };
 }
 
-createRoot(document.getElementById("root")!).render(
-  <FeedbackProvider>
-    <App />
-  </FeedbackProvider>
+const root = createRoot(document.getElementById("root")!);
+
+root.render(
+  <React.StrictMode>
+    <FeedbackProvider>
+      <App />
+      <Analytics />
+      <SpeedInsights />
+    </FeedbackProvider>
+  </React.StrictMode>
 );

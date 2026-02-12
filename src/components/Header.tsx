@@ -90,7 +90,7 @@ const Header = () => {
       { label: "Aukcje", href: "/auctions" },
       // { label: "Forum", href: "/forum" }, // Ukryte
       { label: "Championy", href: "/champions" },
-      { label: "Historia", href: "/achievements" },
+      { label: "Wyniki lotowe", href: "/flight-results" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
       { label: "Referencje", href: "/references" },
       { label: "Prasa i media", href: "/press" },
@@ -116,8 +116,10 @@ const Header = () => {
   }, []);
 
   const scrollToAnchor = useCallback((anchor: string) => {
+    // Jeśli nie jesteśmy na stronie głównej, nawiguj na / z informacją dokąd scrollować
     if (!isHomePage) {
-      window.location.assign(`/#${anchor}`);
+      navigate('/', { state: { scrollTo: anchor } });
+      closeMobileMenu();
       return;
     }
 
@@ -131,16 +133,21 @@ const Header = () => {
     const el = document.getElementById(anchor);
     if (el) {
       const headerHeight = headerRef.current?.offsetHeight ?? 88;
-      const isAbout = anchor === 'about';
-      // About potrzebuje mocnego ujemnego offsetu (sekcja pinowana); reszta standardowy offset
-      const safeOffset = isAbout ? -(headerHeight + 520) : headerHeight + 32;
+      let offset = headerHeight + 32;
+
+      if (anchor === 'about') {
+        offset = headerHeight + 64; // sekcja wysoka – trochę niżej
+      } else if (anchor === 'contact') {
+        offset = headerHeight + 16; // nagłówek sekcji bliżej górnej krawędzi
+      }
+
       const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - safeOffset;
+      const offsetPosition = elementPosition - offset;
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
 
     closeMobileMenu();
-  }, [closeMobileMenu, isHomePage]);
+  }, [closeMobileMenu, isHomePage, navigate]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;

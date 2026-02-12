@@ -1,6 +1,6 @@
 // Framer Motion animations
-export * from './ScrollAnimations';
-export * from './ScrollReveal';
+export { SectionReveal, StaggerContainer, StaggerItem, FadeIn, SlideIn } from './ScrollAnimations';
+export { ScrollReveal } from './ScrollReveal';
 export { default as AnimatedSections } from './AnimatedSections';
 
 // GSAP scroll animations
@@ -22,7 +22,7 @@ export {
 export { useGsapScroll, useGsapTimeline, gsapUtils } from '../../hooks/useGsapScroll';
 
 // Living Web Animation System
-export { SmoothScrollProvider } from './SmoothScrollProvider';
+export { SmoothScrollProvider, useLenis } from './SmoothScrollProvider';
 export { SplitText } from './SplitText';
 export { LottieScroll } from './LottieScroll';
 export { ParallaxSection, ParallaxLayer } from './ParallaxSection';

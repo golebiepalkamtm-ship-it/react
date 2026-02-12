@@ -41,18 +41,9 @@ router.get('/', async (req, res) => {
     const cached = cache.get(cacheKey);
     if (cached) return res.json(cached);
 
-    if (!prisma) {
-      console.error('❌ Database connection (Prisma) is not initialized');
-      return res.status(500).json({
-        error: 'Baza danych niedostępna',
-        details: 'Prisma client is not initialized. Check server logs.'
-      });
-    }
-
     const where: Prisma.AuctionWhereInput = {};
     if (status && status !== 'all') where.status = status.toUpperCase() as any;
     if (category && category !== 'all') where.category = normalizeCategory(category) as any;
-    if (gender && gender !== 'all') where.sex = gender.toUpperCase() as any;
     if (priceMin || priceMax) {
       where.currentPrice = {};
       if (priceMin) where.currentPrice.gte = new Prisma.Decimal(priceMin);
@@ -63,6 +54,14 @@ router.get('/', async (req, res) => {
         { title: { contains: String(search), mode: 'insensitive' } },
         { description: { contains: String(search), mode: 'insensitive' } }
       ];
+    }
+
+    if (!prisma) {
+      console.error('❌ Database connection (Prisma) is not initialized');
+      return res.status(500).json({
+        error: 'Baza danych niedostępna',
+        details: 'Prisma client is not initialized. Check server logs.'
+      });
     }
 
     const normalizedSortBy = typeof sortBy === 'string' ? sortBy.split(':')[0] : undefined;
@@ -158,134 +157,141 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Shared create logic for both dev and prod
+async function performAuctionCreate(req: any, userId: string | null) {
+  const {
+    title, description, startingPrice, buyNowPrice, reservePrice,
+    endTime, pigeon, category, location, images, videos, documents, pedigreeUrl
+  } = req.body;
+
+  const imagesCreate = Array.isArray(images)
+    ? images.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0)
+        .map((url: string, idx: number) => ({ url, ordering: idx }))
+    : undefined;
+
+  const videosCreate = Array.isArray(videos)
+    ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0)
+        .map((url: string) => ({ url }))
+    : undefined;
+
+  let documentsCreate = Array.isArray(documents)
+    ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0)
+        .map((url: string) => ({ url }))
+    : undefined;
+  
+  if (typeof pedigreeUrl === 'string' && pedigreeUrl.trim().length > 0) {
+    documentsCreate = [
+      ...(documentsCreate || []),
+      { url: pedigreeUrl.trim() }
+    ];
+  }
+
+  // Handle traits extraction
+  const traits: Record<string, string[]> = {};
+  if (pigeon && typeof pigeon === 'object') {
+    const traitFields = [
+      'colorTraits', 'eyeTraits', 'bodyStructureTraits', 'breastboneTraits',
+      'forkTraits', 'musculatureTraits', 'backTraits', 'wingTraits',
+      'wingBehaviorTraits', 'breedingValueTraits', 'distanceTraits'
+    ];
+    for (const field of traitFields) {
+      if (Array.isArray(pigeon[field])) {
+        traits[field] = pigeon[field];
+      }
+    }
+  }
+
+  const rawPigeonPayload = pigeon && typeof pigeon === 'object'
+    ? {
+        ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
+        eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
+        featherColor: typeof pigeon.pigeonColor === 'string' ? pigeon.pigeonColor : undefined,
+        construction: typeof pigeon.construction === 'string' ? pigeon.construction : undefined,
+        vitality: typeof pigeon.vitality === 'string' ? pigeon.vitality : undefined,
+        length: typeof pigeon.length === 'string' ? pigeon.length : undefined,
+        endurance: typeof pigeon.endurance === 'string' ? pigeon.endurance : undefined,
+        forkStrength: typeof pigeon.forkStrength === 'string' ? pigeon.forkStrength : undefined,
+        forkAlignment: typeof pigeon.forkAlignment === 'string' ? pigeon.forkAlignment : undefined,
+        muscles: typeof pigeon.muscles === 'string' ? pigeon.muscles : undefined,
+        balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
+        back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
+        purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
+        shoulders: typeof pigeon.shoulders === 'string' ? pigeon.shoulders : undefined,
+        feathers: typeof pigeon.feathers === 'string' ? pigeon.feathers : undefined,
+        traits: traits as any,
+        pedigreeUrl: (typeof pedigreeUrl === 'string' && pedigreeUrl.trim().length > 0) ? pedigreeUrl.trim() : undefined,
+        imageUrl: (Array.isArray(images) && images.length > 0) ? images[0] : undefined,
+      }
+    : null;
+
+  const pigeonHasTraits = rawPigeonPayload ? Object.values(rawPigeonPayload).some(v => v !== undefined && v !== null && v !== '') : false;
+
+  const pigeonPayload = pigeonHasTraits
+    ? {
+        ...rawPigeonPayload!,
+        gender: typeof pigeon?.gender === 'string' ? (pigeon.gender || 'MALE').toUpperCase() : 'MALE',
+      }
+    : null;
+
+  // Build description with traits for search/legacy display
+  let finalDescription = description;
+  if (Object.keys(traits).length > 0) {
+    const lines: string[] = [];
+    const traitLabels: Record<string, string> = {
+      colorTraits: 'Cechy koloru',
+      eyeTraits: 'Cechy oka',
+      bodyStructureTraits: 'Budowa ciała',
+      breastboneTraits: 'Mostek',
+      forkTraits: 'Widełki',
+      musculatureTraits: 'Musculatura',
+      backTraits: 'Plecy',
+      wingTraits: 'Skrzydła',
+      wingBehaviorTraits: 'Zachowanie skrzydeł',
+      breedingValueTraits: 'Wartość hodowlana',
+      distanceTraits: 'Przeznaczenie dystansowe'
+    };
+    for (const [key, values] of Object.entries(traits)) {
+      if (values.length > 0) {
+        lines.push(`${traitLabels[key] || key}: ${values.join(', ')}`);
+      }
+    }
+    if (lines.length > 0) {
+      finalDescription = `${description || ''}\n\nCharakterystyka:\n- ${lines.join('\n- ')}`.trim();
+    }
+  }
+
+  return await prisma.auction.create({
+    data: {
+      title,
+      description: finalDescription,
+      startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
+      currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
+      buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
+      reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
+      endTime: new Date(endTime),
+      status: 'ACTIVE',
+      category: normalizeCategory(category || 'RACING') as any,
+      location: location || 'Lubań, Polska',
+      sellerId: userId,
+      pigeon: pigeonPayload ? { create: pigeonPayload as any } : undefined,
+      images: imagesCreate ? { create: imagesCreate } : undefined,
+      videos: videosCreate ? { create: videosCreate } : undefined,
+      documents: documentsCreate ? { create: documentsCreate } : undefined,
+    },
+    include: detailAuctionInclude,
+  });
+}
+
 // Create auction
 if (validatedEnv.NODE_ENV === 'development') {
   router.post('/', validate(createAuctionSchema), async (req, res) => {
     try {
-      const userId = null; // for development, no user
-      const sellerId = null; // for development, no seller
-      if (!prisma) {
-        console.error('❌ Database connection (Prisma) is not initialized');
-        return res.status(500).json({
-          error: 'Baza danych niedostępna',
-          details: 'Prisma client is not initialized. Check server logs.'
-        });
-      }
-
-      const {
-        title, description, startingPrice, buyNowPrice, reservePrice,
-        endTime, pigeon, category, location, images, videos, documents, pedigreeUrl
-      } = req.body;
-
-      const imagesCreate = Array.isArray(images)
-        ? images.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string, idx: number) => ({ url, ordering: idx }))
-        : undefined;
-
-      const videosCreate = Array.isArray(videos)
-        ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
-        : undefined;
-
-      let documentsCreate = Array.isArray(documents)
-        ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
-        : undefined;
-      if (typeof pedigreeUrl === 'string' && pedigreeUrl.trim().length > 0) {
-        documentsCreate = [
-          ...(documentsCreate || []),
-          { url: pedigreeUrl.trim() }
-        ];
-      }
-
-      // Build pigeon payload without gender first
-      const rawPigeonPayload = pigeon && typeof pigeon === 'object'
-        ? {
-            ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
-            eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
-            featherColor: typeof pigeon.pigeonColor === 'string' ? pigeon.pigeonColor : undefined,
-            construction: typeof pigeon.construction === 'string' ? pigeon.construction : undefined,
-            vitality: typeof pigeon.vitality === 'string' ? pigeon.vitality : undefined,
-            length: typeof pigeon.length === 'string' ? pigeon.length : undefined,
-            endurance: typeof pigeon.endurance === 'string' ? pigeon.endurance : undefined,
-            forkStrength: typeof pigeon.forkStrength === 'string' ? pigeon.forkStrength : undefined,
-            forkAlignment: typeof pigeon.forkAlignment === 'string' ? pigeon.forkAlignment : undefined,
-            muscles: typeof pigeon.muscles === 'string' ? pigeon.muscles : undefined,
-            balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
-            back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
-            purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
-          }
-        : null;
-
-      const pigeonHasTraits =
-        rawPigeonPayload
-          ? Object.entries(rawPigeonPayload).some(
-              ([key, v]) => key !== 'gender' && v !== undefined && v !== null && v !== ''
-            )
-          : false;
-
-      const pigeonPayload = pigeonHasTraits
-        ? {
-            ...rawPigeonPayload!,
-            gender:
-              typeof pigeon?.gender === 'string'
-                ? (pigeon.gender || 'MALE').toUpperCase()
-                : 'MALE',
-          }
-        : null;
-
-      // Append selected trait tags to description (fallback until schema supports JSON traits)
-      let finalDescription = description;
-      if (pigeon && typeof pigeon === 'object') {
-        const traitSections: Array<{ label: string; values?: string[] }> = [
-          { label: 'Cechy koloru', values: Array.isArray((pigeon as any).colorTraits) ? (pigeon as any).colorTraits : undefined },
-          { label: 'Cechy oka', values: Array.isArray((pigeon as any).eyeTraits) ? (pigeon as any).eyeTraits : undefined },
-          { label: 'Budowa ciała', values: Array.isArray((pigeon as any).bodyStructureTraits) ? (pigeon as any).bodyStructureTraits : undefined },
-          { label: 'Mostek', values: Array.isArray((pigeon as any).breastboneTraits) ? (pigeon as any).breastboneTraits : undefined },
-          { label: 'Widełki', values: Array.isArray((pigeon as any).forkTraits) ? (pigeon as any).forkTraits : undefined },
-          { label: 'Musculatura', values: Array.isArray((pigeon as any).musculatureTraits) ? (pigeon as any).musculatureTraits : undefined },
-          { label: 'Plecy', values: Array.isArray((pigeon as any).backTraits) ? (pigeon as any).backTraits : undefined },
-          { label: 'Skrzydła', values: Array.isArray((pigeon as any).wingTraits) ? (pigeon as any).wingTraits : undefined },
-          { label: 'Zachowanie skrzydeł', values: Array.isArray((pigeon as any).wingBehaviorTraits) ? (pigeon as any).wingBehaviorTraits : undefined },
-          { label: 'Wartość hodowlana', values: Array.isArray((pigeon as any).breedingValueTraits) ? (pigeon as any).breedingValueTraits : undefined },
-          { label: 'Przeznaczenie dystansowe', values: Array.isArray((pigeon as any).distanceTraits) ? (pigeon as any).distanceTraits : undefined },
-        ];
-        const lines: string[] = [];
-        for (const section of traitSections) {
-          const vals = (section.values || []).filter((v) => typeof v === 'string' && v.trim().length > 0);
-          if (vals.length > 0) {
-            lines.push(`${section.label}: ${vals.join(', ')}`);
-          }
-        }
-        if (lines.length > 0) {
-          finalDescription = `${description || ''}\n\nCechy charakterystyki:\n- ${lines.join('\n- ')}`.trim();
-        }
-      }
-
-      const created = await prisma.auction.create({
-        data: {
-          title,
-          description: finalDescription,
-          startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
-          currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
-          buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
-          reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
-          endTime: new Date(endTime),
-          status: 'ACTIVE',
-          category: normalizeCategory(category || 'RACING') as any,
-          sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
-          location: location || 'Lubań, Polska',
-          sellerId: userId,
-          pigeon: pigeonPayload ? { create: pigeonPayload as any } : undefined,
-          images: imagesCreate ? { create: imagesCreate } : undefined,
-          videos: videosCreate ? { create: videosCreate } : undefined,
-          documents: documentsCreate ? { create: documentsCreate } : undefined,
-        },
-        include: detailAuctionInclude,
-      });
-
-      // Invalidate relevant cache entries
+      if (!prisma) return res.status(500).json({ error: 'Database not available' });
+      const created = await performAuctionCreate(req, null);
       cache.clear();
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
-      console.error('Error creating auction:', error);
+      console.error('Error creating auction (dev):', error);
       res.status(500).json({ error: 'Failed to create auction' });
     }
   });
@@ -294,128 +300,13 @@ if (validatedEnv.NODE_ENV === 'development') {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-      if (!prisma) {
-        console.error('❌ Database connection (Prisma) is not initialized');
-        return res.status(500).json({
-          error: 'Baza danych niedostępna',
-          details: 'Prisma client is not initialized. Check server logs.'
-        });
-      }
-
       const role = req.user?.role;
       if (role !== 'USER_FULL_VERIFIED' && role !== 'ADMIN') {
         return res.status(403).json({ error: 'Account not fully verified' });
       }
+      if (!prisma) return res.status(500).json({ error: 'Database not available' });
 
-      const {
-        title, description, startingPrice, buyNowPrice, reservePrice,
-        endTime, pigeon, category, location, images, videos, documents, pedigreeUrl
-      } = req.body;
-
-      const imagesCreate = Array.isArray(images)
-        ? images.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string, idx: number) => ({ url, ordering: idx }))
-        : undefined;
-
-      const videosCreate = Array.isArray(videos)
-        ? videos.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
-        : undefined;
-
-      let documentsCreate = Array.isArray(documents)
-        ? documents.filter((url: unknown): url is string => typeof url === 'string' && url.length > 0).map((url: string) => ({ url }))
-        : undefined;
-      if (typeof pedigreeUrl === 'string' && pedigreeUrl.trim().length > 0) {
-        documentsCreate = [
-          ...(documentsCreate || []),
-          { url: pedigreeUrl.trim() }
-        ];
-      }
-
-      const rawPigeonPayloadProd = pigeon && typeof pigeon === 'object'
-        ? {
-            ringNumber: typeof pigeon.ringNumber === 'string' ? pigeon.ringNumber.trim() : undefined,
-            eyeColor: typeof pigeon.eyeColor === 'string' ? pigeon.eyeColor : undefined,
-            featherColor: typeof pigeon.pigeonColor === 'string' ? pigeon.pigeonColor : undefined,
-            construction: typeof pigeon.construction === 'string' ? pigeon.construction : undefined,
-            vitality: typeof pigeon.vitality === 'string' ? pigeon.vitality : undefined,
-            length: typeof pigeon.length === 'string' ? pigeon.length : undefined,
-            endurance: typeof pigeon.endurance === 'string' ? pigeon.endurance : undefined,
-            forkStrength: typeof pigeon.forkStrength === 'string' ? pigeon.forkStrength : undefined,
-            forkAlignment: typeof pigeon.forkAlignment === 'string' ? pigeon.forkAlignment : undefined,
-            muscles: typeof pigeon.muscles === 'string' ? pigeon.muscles : undefined,
-            balance: typeof pigeon.balance === 'string' ? pigeon.balance : undefined,
-            back: typeof pigeon.back === 'string' ? pigeon.back : undefined,
-            purpose: typeof pigeon.purpose === 'string' ? pigeon.purpose : undefined,
-          }
-        : null;
-
-      const pigeonHasTraitsProd =
-        rawPigeonPayloadProd
-          ? Object.entries(rawPigeonPayloadProd).some(
-              ([key, v]) => key !== 'gender' && v !== undefined && v !== null && v !== ''
-            )
-          : false;
-
-      const pigeonPayload = pigeonHasTraitsProd
-        ? {
-            ...rawPigeonPayloadProd!,
-            gender:
-              typeof pigeon?.gender === 'string'
-                ? (pigeon.gender || 'MALE').toUpperCase()
-                : 'MALE',
-          }
-        : null;
-
-      // Append selected trait tags to description (fallback until schema supports JSON traits)
-      let finalDescription = description;
-      if (pigeon && typeof pigeon === 'object') {
-        const traitSections: Array<{ label: string; values?: string[] }> = [
-          { label: 'Cechy koloru', values: Array.isArray((pigeon as any).colorTraits) ? (pigeon as any).colorTraits : undefined },
-          { label: 'Cechy oka', values: Array.isArray((pigeon as any).eyeTraits) ? (pigeon as any).eyeTraits : undefined },
-          { label: 'Budowa ciała', values: Array.isArray((pigeon as any).bodyStructureTraits) ? (pigeon as any).bodyStructureTraits : undefined },
-          { label: 'Mostek', values: Array.isArray((pigeon as any).breastboneTraits) ? (pigeon as any).breastboneTraits : undefined },
-          { label: 'Widełki', values: Array.isArray((pigeon as any).forkTraits) ? (pigeon as any).forkTraits : undefined },
-          { label: 'Musculatura', values: Array.isArray((pigeon as any).musculatureTraits) ? (pigeon as any).musculatureTraits : undefined },
-          { label: 'Plecy', values: Array.isArray((pigeon as any).backTraits) ? (pigeon as any).backTraits : undefined },
-          { label: 'Skrzydła', values: Array.isArray((pigeon as any).wingTraits) ? (pigeon as any).wingTraits : undefined },
-          { label: 'Zachowanie skrzydeł', values: Array.isArray((pigeon as any).wingBehaviorTraits) ? (pigeon as any).wingBehaviorTraits : undefined },
-          { label: 'Wartość hodowlana', values: Array.isArray((pigeon as any).breedingValueTraits) ? (pigeon as any).breedingValueTraits : undefined },
-          { label: 'Przeznaczenie dystansowe', values: Array.isArray((pigeon as any).distanceTraits) ? (pigeon as any).distanceTraits : undefined },
-        ];
-        const lines: string[] = [];
-        for (const section of traitSections) {
-          const vals = (section.values || []).filter((v) => typeof v === 'string' && v.trim().length > 0);
-          if (vals.length > 0) {
-            lines.push(`${section.label}: ${vals.join(', ')}`);
-          }
-        }
-        if (lines.length > 0) {
-          finalDescription = `${description || ''}\n\nCechy charakterystyki:\n- ${lines.join('\n- ')}`.trim();
-        }
-      }
-
-      const created = await prisma.auction.create({
-        data: {
-          title,
-          description: finalDescription,
-          startingPrice: startingPrice ? new Prisma.Decimal(startingPrice) : undefined,
-          currentPrice: startingPrice ? new Prisma.Decimal(startingPrice) : (buyNowPrice ? new Prisma.Decimal(buyNowPrice) : 0),
-          buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
-          reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
-          endTime: new Date(endTime),
-          status: 'ACTIVE',
-          category: normalizeCategory(category || 'RACING') as any,
-          sex: (pigeon?.gender || 'MALE').toUpperCase() as any,
-          location: location || 'Lubań, Polska',
-          sellerId: userId,
-          pigeon: pigeonPayload ? { create: pigeonPayload as any } : undefined,
-          images: imagesCreate ? { create: imagesCreate } : undefined,
-          videos: videosCreate ? { create: videosCreate } : undefined,
-          documents: documentsCreate ? { create: documentsCreate } : undefined,
-        },
-        include: detailAuctionInclude,
-      });
-
-      // Invalidate relevant cache entries
+      const created = await performAuctionCreate(req, userId);
       cache.clear();
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
@@ -473,13 +364,7 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
     if (role !== 'USER_FULL_VERIFIED' && role !== 'ADMIN') {
       return res.status(403).json({ error: 'Account not fully verified' });
     }
-    if (!prisma) {
-      console.error('❌ Database connection (Prisma) is not initialized');
-      return res.status(500).json({
-        error: 'Baza danych niedostępna',
-        details: 'Prisma client is not initialized. Check server logs.'
-      });
-    }
+    if (!prisma) return res.status(500).json({ error: 'Database not available' });
 
     const { auctionId } = req.body;
 
@@ -518,10 +403,7 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
     });
 
     // Invalidate relevant cache entries
-    cache.delete('auctions:*');
-    cache.delete(`auction:${auctionId}`);
-    cache.delete(`auction:${auctionId}:bids`);
-    cache.delete(`user:${userId}:auctions`);
+    cache.clear();
     res.json({ success: true, finalPrice: result.amount, auctionId });
   } catch (error: any) {
     res.status(error.statusCode || 500).json({
@@ -535,14 +417,10 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
 router.put('/:id/admin', authMiddleware, validate(adminUpdateAuctionSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const idValidation = auctionIdParamSchema.safeParse(req.params);
-    if (!idValidation.success) {
-      return res.status(400).json({ error: 'Invalid auction id' });
-    }
+    if (!idValidation.success) return res.status(400).json({ error: 'Invalid auction id' });
 
     const role = req.user?.role;
-    if (role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Forbidden: Admins only' });
-    }
+    if (role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden: Admins only' });
 
     const updatedAuction = await auctionService.adminUpdateAuction(req.params.id, req.body);
 
@@ -560,14 +438,10 @@ router.put('/:id/admin', authMiddleware, validate(adminUpdateAuctionSchema), asy
 router.delete('/:id/admin', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const idValidation = auctionIdParamSchema.safeParse(req.params);
-    if (!idValidation.success) {
-      return res.status(400).json({ error: 'Invalid auction id' });
-    }
+    if (!idValidation.success) return res.status(400).json({ error: 'Invalid auction id' });
 
     const role = req.user?.role;
-    if (role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Forbidden: Admins only' });
-    }
+    if (role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden: Admins only' });
 
     const cancelledAuction = await auctionService.adminCancelAuction(req.params.id);
 

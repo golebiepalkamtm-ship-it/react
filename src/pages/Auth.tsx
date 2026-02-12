@@ -43,19 +43,52 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Parallax 3D state (Press-style)
+  const [isHovered, setIsHovered] = useState(false);
+  const [isLogoHovered, setIsLogoHovered] = useState(false);
+
+  // Parallax 3D state (Press-style) - formularz
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
     damping: 20,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
     stiffness: 150,
     damping: 20,
   });
+
+  const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
+  const lightY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
+
+  const lightBackground = useTransform(
+    [lightX, lightY],
+    ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
+  );
+
+  // Parallax 3D state (Press-style) - logo Pałka MTM
+  const logoRef = useRef<HTMLDivElement>(null);
+  const logoMouseX = useMotionValue(0);
+  const logoMouseY = useMotionValue(0);
+
+  const logoRotateX = useSpring(useTransform(logoMouseY, [-0.5, 0.5], [15, -15]), {
+    stiffness: 150,
+    damping: 20,
+  });
+  const logoRotateY = useSpring(useTransform(logoMouseX, [-0.5, 0.5], [-15, 15]), {
+    stiffness: 150,
+    damping: 20,
+  });
+
+  const logoLightX = useTransform(logoMouseX, [-0.5, 0.5], [0, 100]);
+  const logoLightY = useTransform(logoMouseY, [-0.5, 0.5], [0, 100]);
+
+  const logoLightBackground = useTransform(
+    [logoLightX, logoLightY],
+    ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
+  );
 
   // Unified modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,7 +106,7 @@ export default function Auth() {
     setModalOpen(true);
   };
 
-  // Parallax 3D effect (Press-style)
+  // Parallax 3D effect (Press-style) - formularz
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current || reduceMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -81,11 +114,30 @@ export default function Auth() {
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     mouseX.set(x);
     mouseY.set(y);
+    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
     mouseX.set(0);
     mouseY.set(0);
+    setIsHovered(false);
+  };
+
+  // Parallax 3D effect (Press-style) - logo Pałka MTM
+  const handleLogoMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!logoRef.current || reduceMotion) return;
+    const rect = logoRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    logoMouseX.set(x);
+    logoMouseY.set(y);
+    setIsLogoHovered(true);
+  };
+
+  const handleLogoMouseLeave = () => {
+    logoMouseX.set(0);
+    logoMouseY.set(0);
+    setIsLogoHovered(false);
   };
 
   const handleModalConfirm = () => {
@@ -353,21 +405,33 @@ export default function Auth() {
             className="absolute inset-0 w-full h-full object-contain scale-[0.78] translate-x-[15%] translate-y-8 sm:translate-y-16 lg:translate-y-20 z-0"
           />
 
-          <div style={{ perspective: "1000px" }}>
+          <div
+            ref={logoRef}
+            className="absolute top-20 left-[25%] sm:top-36 sm:left-[30%] z-30 max-w-[240px] sm:max-w-[320px] lg:max-w-[420px]"
+            style={{ perspective: "2000px" }}
+            onMouseMove={handleLogoMouseMove}
+            onMouseLeave={handleLogoMouseLeave}
+          >
             <motion.div
               initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0, scale: isLogoHovered ? 1.02 : 1 }}
               transition={{ duration: reduceMotion ? 0 : 0.6 }}
-              className="absolute top-20 left-[25%] sm:top-36 sm:left-[30%] z-30 max-w-[240px] sm:max-w-[320px] lg:max-w-[420px]"
+              className="rounded-3xl border-2 border-gold/40 bg-white/10 backdrop-blur-2xl px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center text-center overflow-hidden"
+              style={{
+                rotateX: logoRotateX,
+                rotateY: logoRotateY,
+                transformStyle: "preserve-3d",
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
+              }}
             >
+              {/* Dynamic light reflection */}
               <motion.div
-                className="rounded-3xl border-2 border-gold/40 bg-white/10 backdrop-blur-2xl px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center text-center"
-                whileHover={reduceMotion ? undefined : { rotateX: -8, rotateY: 8, scale: 1.02, transition: { duration: 0.3 } }}
-                style={{ 
-                  transformStyle: "preserve-3d",
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
+                className="absolute inset-0 pointer-events-none z-10"
+                style={{
+                  background: logoLightBackground,
+                  opacity: isLogoHovered ? 1 : 0,
                 }}
-              >
+ />
               <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-tight text-center whitespace-nowrap">
                 Pałka <span className="text-gold">MTM</span>
               </h1>
@@ -375,29 +439,42 @@ export default function Auth() {
                 Mistrzowie sprintu
               </p>
             </motion.div>
-            </motion.div>
           </div>
         </div>
 
-        {/* Prawy panel formularza */}
         <div className="w-full lg:w-[38%] xl:w-[40%] flex items-center justify-center relative">
 
-          <div style={{ perspective: "1000px" }}>
+          <div 
+            ref={cardRef}
+            className="w-full max-w-sm relative"
+            style={{ perspective: "2000px" }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
             <motion.div
-              ref={cardRef}
               initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 24 }}
               animate={{ 
                 opacity: 1, 
-                y: 0
+                y: 0,
+                scale: isHovered ? 1.02 : 1
               }}
               transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={reduceMotion ? undefined : { rotateX: -8, rotateY: 8, scale: 1.02, transition: { duration: 0.3 } }}
-              className="w-full max-w-sm relative z-50 rounded-3xl bg-white/10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] p-5 sm:p-6 border-2 border-gold/40"
+              className="relative z-50 rounded-3xl backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] p-5 sm:p-6 border-2 border-gold/40 overflow-hidden"
               style={{ 
+                rotateX,
+                rotateY,
                 transformStyle: "preserve-3d",
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
               }}
             >
+              {/* Dynamic light reflection */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none z-10"
+                style={{
+                  background: lightBackground,
+                  opacity: isHovered ? 1 : 0,
+                }}
+              />
             <div className="text-center mb-4">
               <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight mb-1">
                 {mode === "register" ? "Dołącz do nas" : "Witaj ponownie"}
