@@ -42,95 +42,9 @@ export const SeamlessSection = ({
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!sectionRef.current || !contentRef.current) return;
-
-    const section = sectionRef.current;
-    const content = contentRef.current;
-    const triggers: ScrollTrigger[] = [];
-
-    content.style.willChange = 'transform, opacity';
-
-    const transitions: Record<string, { from: gsap.TweenVars; to: gsap.TweenVars }> = {
-      fade: {
-        from: { opacity: 0 },
-        to: { opacity: 1 },
-      },
-      slide: {
-        from: { y: 100, opacity: 0 },
-        to: { y: 0, opacity: 1 },
-      },
-      scale: {
-        from: { scale: 0.8, opacity: 0 },
-        to: { scale: 1, opacity: 1 },
-      },
-      reveal: {
-        from: { clipPath: 'inset(100% 0% 0% 0%)' },
-        to: { clipPath: 'inset(0% 0% 0% 0%)' },
-      },
-      none: {
-        from: {},
-        to: {},
-      },
-    };
-
-    if (transitionIn !== 'none') {
-      const { from, to } = transitions[transitionIn];
-      gsap.set(content, from);
-
-      const inTrigger = ScrollTrigger.create({
-        trigger: section,
-        start: 'top 80%',
-        end: 'top 20%',
-        scrub,
-        onUpdate: (self) => {
-          const progressValue = self.progress;
-          gsap.to(content, {
-            ...to,
-            duration: 0,
-            ease: 'none',
-            overwrite: 'auto',
-          });
-        },
-      });
-      triggers.push(inTrigger);
-    }
-
-    if (transitionOut !== 'none') {
-      const { from } = transitions[transitionOut];
-      
-      const outTrigger = ScrollTrigger.create({
-        trigger: section,
-        start: 'bottom 80%',
-        end: 'bottom 20%',
-        scrub,
-        onUpdate: (self) => {
-          const progressValue = self.progress;
-          gsap.to(content, {
-            ...from,
-            duration: 0,
-            ease: 'none',
-            overwrite: 'auto',
-          });
-        },
-      });
-      triggers.push(outTrigger);
-    }
-
-    if (pin) {
-      const pinTrigger = ScrollTrigger.create({
-        trigger: section,
-        start: 'top top',
-        end: '+=100%',
-        pin: true,
-        pinSpacing,
-      });
-      triggers.push(pinTrigger);
-    }
-
-    return () => {
-      content.style.willChange = '';
-      triggers.forEach((t) => t.kill());
-    };
+    // DISABLED: All SeamlessSection animations disabled for performance
+    // Sections are visible by default - no opacity manipulation
+    // This prevents sections from being invisible due to opacity: 0
   }, [transitionIn, transitionOut, pin, pinSpacing, scrub, start, end]);
 
   const style: CSSProperties = backgroundColor 

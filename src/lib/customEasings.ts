@@ -13,6 +13,36 @@
  */
 
 import { gsap } from '@/lib/gsapConfig';
+import { CustomEase } from 'gsap/CustomEase';
+
+gsap.registerPlugin(CustomEase);
+
+/**
+ * Register custom easing functions
+ * Based on premium example animations
+ */
+export const registerCustomEasings = () => {
+  // Premium expo ease - ultra smooth deceleration
+  CustomEase.create('premiumExpo', '0.16, 1, 0.3, 1');
+  
+  // Bounce ease - playful spring effect
+  CustomEase.create('premiumBounce', '0.68, -0.55, 0.265, 1.55');
+  
+  // Smooth in-out - balanced acceleration/deceleration
+  CustomEase.create('premiumInOut', '0.87, 0, 0.13, 1');
+  
+  // From example - preloader ease
+  CustomEase.create('preloaderEase', '0.87, 0.00, 0.13, 1.00');
+  
+  // From example - header/text reveal ease
+  CustomEase.create('headerEase', '0.16, 1.00, 0.30, 1.00');
+  
+  // From example - title animation ease
+  CustomEase.create('titleEase', '0.17, 0.00, 0.17, 1.00');
+  
+  // From example - title hide ease
+  CustomEase.create('titleEaseHide', '0.55, 0.00, 0.83, 0.83');
+};
 
 export const customBezierCurves = {
   // Ultra-smooth agency-level curves
@@ -97,7 +127,7 @@ export const cinematicEase = (t: number): number => {
     : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * c4);
 };
 
-export const registerCustomEasings = (): void => {
+export const registerAdvancedEasings = (): void => {
   if (typeof gsap.parseEase !== 'function') return;
   
   const customEasings: Record<string, (t: number) => number> = {

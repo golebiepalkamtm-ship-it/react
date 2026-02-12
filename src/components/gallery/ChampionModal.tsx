@@ -30,9 +30,8 @@ export const ChampionModal = ({
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const [imageLoading, setImageLoading] = useState(true);
     const [imageError, setImageError] = useState(false);
+    const [displaySrc, setDisplaySrc] = useState('');
     const hasMultiplePhotos = !!(champion && champion.images.length > 1);
-
-    const currentImageSrc = champion?.images?.[currentPhotoIndex] ?? '';
 
     useEffect(() => {
         if (champion) {
@@ -44,6 +43,63 @@ export const ChampionModal = ({
         if (champion && champion.images?.length) {
             trackMetric('GALLERY_IMAGE', `${champion.id}:${champion.images[currentPhotoIndex] || currentPhotoIndex}`).catch(() => { });
         }
+    }, [champion, currentPhotoIndex]);
+
+    // Reset indeks i preładowanie pierwszego zdjęcia przy zmianie championa
+    useEffect(() => {
+        if (!champion) return;
+        const firstSrc = champion.images?.[0] ?? '';
+        const frame = requestAnimationFrame(() => {
+            setCurrentPhotoIndex(0);
+            setImageError(false);
+            setImageLoading(true);
+            if (!firstSrc) {
+                setImageError(true);
+                setImageLoading(false);
+                setDisplaySrc('');
+                return;
+            }
+            const img = new Image();
+            img.decoding = 'async';
+            img.onload = () => {
+                setDisplaySrc(firstSrc);
+                setImageLoading(false);
+            };
+            img.onerror = () => {
+                setImageError(true);
+                setImageLoading(false);
+                setDisplaySrc('');
+            };
+            img.src = firstSrc;
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [champion]);
+
+    // Preload i podmiana źródła przy zmianie indeksu zdjęcia (bez mrugania)
+    useEffect(() => {
+        if (!champion) return;
+        const nextSrc = champion.images?.[currentPhotoIndex] ?? '';
+        const frame = requestAnimationFrame(() => {
+            if (!nextSrc) {
+                setImageError(true);
+                setImageLoading(false);
+                return;
+            }
+            setImageError(false);
+            setImageLoading(true);
+            const img = new Image();
+            img.decoding = 'async';
+            img.onload = () => {
+                setDisplaySrc(nextSrc);
+                setImageLoading(false);
+            };
+            img.onerror = () => {
+                setImageError(true);
+                setImageLoading(false);
+            };
+            img.src = nextSrc;
+        });
+        return () => cancelAnimationFrame(frame);
     }, [champion, currentPhotoIndex]);
 
     useEffect(() => {
@@ -110,16 +166,13 @@ export const ChampionModal = ({
                                 <div className="w-full h-full flex items-start justify-center relative z-10">
                                     <motion.img
                                         layoutId={currentPhotoIndex === 0 ? `champion-image-${champion.id}` : undefined}
-                                        key={champion.images[currentPhotoIndex]}
-                                        src={currentImageSrc}
+                                        key={displaySrc}
+                                        src={displaySrc}
                                         alt={champion.name}
-                                        className={`w-full h-screen object-contain object-top ${(imageLoading && currentPhotoIndex !== 0) ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full h-screen object-contain object-top transition-opacity duration-300"
                                         style={{ width: '100%', height: '100vh', objectPosition: 'top center' }}
-                                        onLoad={() => setImageLoading(false)}
-                                        onError={() => {
-                                            setImageError(true);
-                                            setImageLoading(false);
-                                        }}
                                     />
                                 </div>
                             )}

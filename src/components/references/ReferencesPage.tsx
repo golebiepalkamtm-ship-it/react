@@ -20,9 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedModal } from '@/components/ui/UnifiedModal';
 import AccountModal from '@/components/AccountModal';
-import { gsap } from '@/lib/gsapConfig';
-
-
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 interface ReferenceCardProps {
   reference: Reference;
@@ -177,66 +175,70 @@ export function ReferencesPage() {
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  // Animacje GSAP dla hero i scroll
-  useEffect(() => {
-    if (!heroRef.current || !heroContentRef.current) return;
-
-    const ctx = gsap.context(() => {
-      const heroContent = heroContentRef.current;
-      const children = heroContent?.children;
-
-      if (children) {
-        gsap.set(children, { opacity: 0, y: 60 });
-        
-        gsap.to(children, {
-          opacity: 1,
-          y: 0,
-          stagger: 0.25,
-          duration: 1.8,
-          ease: 'power3.out',
-          delay: 0.5,
-        });
+  // Component-level animations using useScrollAnimation hook
+  useScrollAnimation(heroRef as React.RefObject<HTMLElement>, [
+    // Hero content children animation
+    {
+      targets: () => {
+        const heroContent = heroContentRef.current;
+        return heroContent?.children ? Array.from(heroContent.children) : [];
+      },
+      fromVars: { opacity: 0, y: 60 },
+      toVars: {
+        opacity: 1,
+        y: 0,
+        stagger: 0.25,
+        duration: 1.8,
+        ease: 'power3.out',
+        delay: 0.5
+      },
+      constructionEffect: 'reveal',
+      scrollTrigger: {
+        trigger: heroRef,
+        start: 'top+=100 bottom',  // Dodano offset +100px - jeszcze wcześniejsze rozpoczęcie animacji
+        end: 'top 70%',           // Zwiększono end point z 60% na 70%
+        toggleActions: 'play none none none',
+        once: true
       }
-
-      // Parallax scroll dla hero
-      if (heroContent) {
-        gsap.to(heroContent, {
-          y: 150,
-          opacity: 0.3,
-          scale: 0.95,
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 0.5,
-          },
-        });
+    },
+    // Parallax scroll for hero
+    {
+      targets: heroContentRef,
+      toVars: {
+        y: 150,
+        opacity: 0.3,
+        scale: 0.95
+      },
+      scrollTrigger: {
+        trigger: heroRef,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.5
       }
-
-      // Animacja reference cards
-      const refCards = document.querySelectorAll('.reference-card');
-      refCards.forEach((card) => {
-        gsap.fromTo(
-          card,
-          { opacity: 0, y: 50 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1.2,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top bottom-=100',
-              end: 'top center',
-              toggleActions: 'play none none reverse',
-            },
-          }
-        );
-      });
-    }, heroRef);
-
-    return () => ctx.revert();
-  }, [references]);
+    }
+  ], [references]);
+  
+  // Reference cards animation
+  useScrollAnimation(containerRef as React.RefObject<HTMLElement>, [
+    {
+      targets: '.reference-card',
+      fromVars: { opacity: 0, y: 50 },
+      toVars: {
+        opacity: 1,
+        y: 0,
+        duration: 1.2,
+        ease: 'power3.out'
+      },
+      scrollTrigger: {
+        trigger: '.reference-card',
+        start: 'top bottom-=100',
+        end: 'top center',
+        toggleActions: 'play none none reverse',
+        once: true
+      },
+      constructionEffect: 'build'
+    }
+  ], [references]);
 
   const roleActions = useMemo(() => ({
     'USER_REGISTERED': () => {

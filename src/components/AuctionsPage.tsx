@@ -360,6 +360,7 @@ const AuctionsPage = () => {
                     color={auction.color}
                     category={auction.category}
                     bidsCount={auction.bidsCount}
+                    nowMs={now}
                   />
                 </div>
               ))}

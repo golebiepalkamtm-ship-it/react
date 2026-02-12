@@ -10,10 +10,20 @@ import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 
 const envTracing = import.meta.env.VITE_ENABLE_TRACING;
-const enabled = envTracing === undefined ? true : envTracing === 'true';
+const isProd = import.meta.env.PROD;
+const configuredEndpoint = import.meta.env.VITE_OTEL_EXPORTER_ENDPOINT;
+
+// Tracing logic:
+// 1. If PROD: only enable if VITE_ENABLE_TRACING is "true" AND a VITE_OTEL_EXPORTER_ENDPOINT is provided.
+//    (Prevents "localhost" errors on client machines in production).
+// 2. If DEV: enable unless VITE_ENABLE_TRACING is "false".
+const enabled = isProd 
+  ? (envTracing === 'true' && !!configuredEndpoint)
+  : (envTracing !== 'false');
+
 if (enabled) {
   const serviceName = import.meta.env.VITE_OTEL_SERVICE_NAME || 'champion-pigeon-web';
-  const endpoint = import.meta.env.VITE_OTEL_EXPORTER_ENDPOINT || 'http://localhost:4318/v1/traces';
+  const endpoint = configuredEndpoint || 'http://localhost:4318/v1/traces';
 
   const provider = new WebTracerProvider({});
   const exporter = new OTLPTraceExporter({ url: endpoint });

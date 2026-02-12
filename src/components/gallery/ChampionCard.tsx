@@ -17,9 +17,10 @@ interface ChampionCardProps {
   index: number;
   onSelect?: (champion: Champion) => void;
   onViewPedigree?: (pedigreeUrl: string) => void;
+  variants?: any;
 }
 
-export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: ChampionCardProps) => {
+export const ChampionCard = ({ champion, index, onSelect, onViewPedigree, variants }: ChampionCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
@@ -28,19 +29,19 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  // Spring animation dla smooth tilt
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
-    stiffness: 150,
-    damping: 20,
-  });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
-    stiffness: 150,
-    damping: 20,
-  });
+  // Direct transform dla instant parallax (bez spring)
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [15, -15]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-15, 15]);
   
   // Light position dla shine effect
   const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
   const lightY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
+  
+  const lightBackground = useTransform(
+    [lightX, lightY],
+    ([x, y]) =>
+      `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
+  );
   
   const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -49,8 +50,15 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     
+    // Direct CSS transforms - bez Framer Motion
+    const innerCard = cardRef.current.querySelector('.champion-card-inner') as HTMLElement;
+    if (innerCard) {
+      innerCard.style.transform = `rotateX(${-y * 25}deg) rotateY(${x * 25}deg)`;
+    }
+    
     mouseX.set(x);
     mouseY.set(y);
+    setIsHovered(true);
     
     // Normalizuj dla shadera (0-1)
     setMousePos({
@@ -60,6 +68,12 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
   };
   
   const handleMouseLeave = () => {
+    // Reset CSS transform
+    const innerCard = cardRef.current?.querySelector('.champion-card-inner') as HTMLElement;
+    if (innerCard) {
+      innerCard.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    }
+    
     setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
@@ -80,35 +94,31 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
   return (
     <motion.div
       ref={cardRef}
-      className="relative cursor-pointer group gallery-card-perspective"
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
+      className="relative cursor-pointer group"
+      style={{ perspective: '2000px' }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
+      variants={variants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
       onClick={() => onSelect?.(champion)}
     >
-      <motion.div
-        className="relative rounded-2xl overflow-hidden glass-card gold-border shadow-glow border border-zinc-800 group-hover:border-zinc-600 transition-colors duration-500"
+      <div
+        className="champion-card-inner relative rounded-2xl overflow-hidden glass-card gold-border shadow-glow border-[2px] border-white transition-colors duration-500 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black/96 shadow-[0_14px_32px_rgba(0,0,0,0.6),0_0_32px_rgba(255,255,255,0.28),inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-2px_8px_rgba(0,0,0,0.45)]"
         style={{
-          rotateX,
-          rotateY,
           transformStyle: 'preserve-3d',
+          transition: 'transform 0.1s ease-out',
         }}
-        whileHover={{ scale: 1.02 }}
-        transition={{ scale: { duration: 0.2 } }}
       >
+        {/* Jedna widoczna ramka wokół całej karty */}
+
         {/* Dynamic light reflection */}
         <motion.div
           className="absolute inset-0 pointer-events-none z-10"
           style={{
-            background: useTransform(
-              [lightX, lightY],
-              ([x, y]) =>
-                `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
-            ),
+            background: lightBackground,
             opacity: isHovered ? 1 : 0,
           }}
         />
@@ -131,13 +141,19 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
           {/* Obrazek championa */}
           {champion.images?.[0] ? (
             <motion.img
-              layoutId={`champion-image-${champion.id}`}
               src={champion.images[0]}
               alt={champion.name}
-              className="w-full h-full object-contain object-top filter brightness-110 contrast-105"
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-contain object-top filter brightness-110 contrast-105 will-change-transform"
               onError={(e) => {
-                // Fallback do gradientu jeśli obraz nie załaduje się
-                (e.target as HTMLImageElement).style.display = 'none';
+                const img = e.target as HTMLImageElement;
+                if (!img.dataset.fallback) {
+                  img.dataset.fallback = '1';
+                  img.src = '/back.png';
+                } else {
+                  img.style.display = 'none';
+                }
               }}
             />
           ) : (
@@ -184,7 +200,7 @@ export const ChampionCard = ({ champion, index, onSelect, onViewPedigree }: Cham
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 };

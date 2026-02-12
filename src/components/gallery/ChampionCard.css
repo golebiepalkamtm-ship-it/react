@@ -3,11 +3,11 @@
 }
 
 .gallery-card-content {
-  transform: translateZ(20px);
+  /* Usunięto translateZ - powodowało problemy z parallax */
 }
 
 .gallery-card-title {
-  transform: translateZ(30px);
+  /* Usunięto translateZ - powodowało problemy z parallax */
 }
 
 .gallery-scanline-pattern {

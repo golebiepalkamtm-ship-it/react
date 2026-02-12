@@ -41,9 +41,7 @@ RUN npm ci --only=production && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
-# Run metrics migration
-RUN node scripts/run-metrics-migration.js
+COPY --from=builder /app/scripts ./scripts
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
@@ -62,4 +60,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start application with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/bootstrap.js"]
+CMD ["node", "dist/index.js"]

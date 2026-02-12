@@ -21,6 +21,11 @@ const GlobalParallaxBackground = () => {
     };
   }, []);
 
+  // Wyłącz na stronie wyników lotowych - ma własne tło
+  if (window.location.pathname === '/wyniki-lotowe' || window.location.pathname === '/flight-results') {
+    return null;
+  }
+
   return (
     <div
       ref={containerRef}

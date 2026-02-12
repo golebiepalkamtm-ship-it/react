@@ -7,7 +7,8 @@ import Footer from "@/components/Footer";
 import { PedigreeModal } from "@/components/gallery/PedigreeModal";
 import { Button } from "@/components/ui/button";
 import { FullscreenImageModal } from "@/components/ui/FullscreenImageModal";
-import { useAuction, useBid, usePreciseAuctionTimer } from "@/hooks/useAuctions";
+import { useAuction, useBid, useAuctionTimer } from "@/hooks/useAuctions";
+import { AuctionCountDown } from "@/components/auction/AuctionCountDown";
 import { useAuth } from "@/contexts/AuthContext";
 import { auctionService } from "@/services/auctionService";
 import { paymentService } from "@/services/paymentService";
@@ -26,7 +27,7 @@ const AuctionDetail: React.FC = () => {
   const navigate = useNavigate();
   const { session, user, profile } = useAuth();
   const { auction, isLoading: loading, error, refetch: refetchAuction } = useAuction({ auctionId: id || '' });
-  const { days, hours, minutes, seconds, centiseconds, isEnded } = usePreciseAuctionTimer(auction?.endTime);
+  const { isEnded } = useAuctionTimer(auction?.endTime);
   const [bidAmount, setBidAmount] = useState<string>('');
   const [isWatched, setIsWatched] = useState<boolean>(false);
   const [canReview, setCanReview] = useState(false);
@@ -519,32 +520,7 @@ const AuctionDetail: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-white/40 uppercase tracking-widest text-[10px] mb-2 font-semibold">Pozostały czas</p>
-                    <div className="flex items-center gap-2 text-white font-mono font-bold">
-                      <div className="flex flex-col items-center">
-                        <span className="text-2xl sm:text-3xl">{days}</span>
-                        <span className="text-[8px] tracking-[0.2em] opacity-40">DNI</span>
-                      </div>
-                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
-                      <div className="flex flex-col items-center">
-                        <span className="text-2xl sm:text-3xl">{hours}</span>
-                        <span className="text-[8px] tracking-[0.2em] opacity-40">GODZ</span>
-                      </div>
-                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
-                      <div className="flex flex-col items-center">
-                        <span className="text-2xl sm:text-3xl">{minutes}</span>
-                        <span className="text-[8px] tracking-[0.2em] opacity-40">MIN</span>
-                      </div>
-                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
-                      <div className="flex flex-col items-center text-primary">
-                        <span className="text-2xl sm:text-3xl">{seconds}</span>
-                        <span className="text-[8px] tracking-[0.2em] opacity-40">SEK</span>
-                      </div>
-                      <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
-                      <div className="flex flex-col items-center text-primary/80">
-                        <span className="text-2xl sm:text-3xl">{centiseconds}</span>
-                        <span className="text-[8px] tracking-[0.2em] opacity-40">SET</span>
-                      </div>
-                    </div>
+                    <AuctionCountDown endTime={displayAuction?.endTime} />
                   </div>
                 </div>
 
