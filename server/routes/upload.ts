@@ -9,8 +9,6 @@ import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { validatedEnv } from '../lib/env.js';
 import logger from '../lib/logger.js';
-import s3Client from '../lib/s3.js';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 const router: Router = express.Router();
 
@@ -85,7 +83,9 @@ function sanitizeFilename(filename: string): string {
 }
 
 function validateFileType(buffer: Buffer, mimetype: string): boolean {
-  return true;
+  const magic = MIME_MAGIC_NUMBERS[mimetype as keyof typeof MIME_MAGIC_NUMBERS];
+  if (!magic) return false;
+  return buffer.subarray(0, magic.length).equals(magic);
 }
 
 function containsMaliciousContent(buffer: Buffer, mimetype: string): boolean {
@@ -187,21 +187,33 @@ router.post('/image', unifiedAuthMiddleware, upload.single('file'), async (req: 
     const filename = `${auctionId || 'misc'}/${fileUuid}${ext}`;
     
     const bucket = bucketName || validatedEnv.SUPABASE_BUCKET;
-    const bucketPublic = String(validatedEnv.SUPABASE_BUCKET_PUBLIC ?? 'true').toLowerCase() === 'true';
-
-    const command = new PutObjectCommand({
-      Bucket: bucket,
-      Key: filename,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    });
 
     try {
-      await s3Client.send(command);
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filename, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false
+        });
+
+      if (error) {
+        logger.error('Supabase storage upload error', { 
+          error: error.message,
+          bucket: bucket,
+          filename: filename
+        });
+        return res.status(500).json({ error: 'Failed to upload to storage', details: error.message });
+      }
     } catch (error) {
-      logger.error('S3 upload error', { error });
-      return res.status(500).json({ error: 'Failed to upload to S3' });
+      logger.error('Supabase storage upload error', { 
+        error: error instanceof Error ? error.message : error,
+        bucket: bucket,
+        filename: filename
+      });
+      return res.status(500).json({ error: 'Failed to upload to storage', details: error instanceof Error ? error.message : 'Unknown storage error' });
     }
+    
+    const bucketPublic = String(validatedEnv.SUPABASE_BUCKET_PUBLIC ?? 'true').toLowerCase() === 'true';
     
     if (bucketPublic) {
       const url = `${validatedEnv.SUPABASE_URL}/storage/v1/object/public/${bucket}/${filename}`;
@@ -269,21 +281,33 @@ router.post('/video', unifiedAuthMiddleware, upload.single('file'), async (req: 
     const filename = `${auctionId || 'misc'}/videos/${fileUuid}${ext}`;
     
     const bucket = bucketName || validatedEnv.SUPABASE_BUCKET;
-    const bucketPublic = String(validatedEnv.SUPABASE_BUCKET_PUBLIC ?? 'true').toLowerCase() === 'true';
-
-    const command = new PutObjectCommand({
-      Bucket: bucket,
-      Key: filename,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    });
 
     try {
-      await s3Client.send(command);
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filename, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false
+        });
+
+      if (error) {
+        logger.error('Supabase storage upload error', { 
+          error: error.message,
+          bucket: bucket,
+          filename: filename
+        });
+        return res.status(500).json({ error: 'Failed to upload to storage', details: error.message });
+      }
     } catch (error) {
-      logger.error('S3 upload error', { error });
-      return res.status(500).json({ error: 'Failed to upload to S3' });
+      logger.error('Supabase storage upload error', { 
+        error: error instanceof Error ? error.message : error,
+        bucket: bucket,
+        filename: filename
+      });
+      return res.status(500).json({ error: 'Failed to upload to storage', details: error instanceof Error ? error.message : 'Unknown storage error' });
     }
+    
+    const bucketPublic = String(validatedEnv.SUPABASE_BUCKET_PUBLIC ?? 'true').toLowerCase() === 'true';
     
     if (bucketPublic) {
       const url = `${validatedEnv.SUPABASE_URL}/storage/v1/object/public/${bucket}/${filename}`;
@@ -363,21 +387,33 @@ router.post('/document', unifiedAuthMiddleware, upload.single('file'), async (re
     const filename = `${auctionId || 'misc'}/docs/${fileUuid}${ext}`;
     
     const bucket = bucketName || validatedEnv.SUPABASE_BUCKET;
-    const bucketPublic = String(validatedEnv.SUPABASE_BUCKET_PUBLIC ?? 'true').toLowerCase() === 'true';
-
-    const command = new PutObjectCommand({
-      Bucket: bucket,
-      Key: filename,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    });
 
     try {
-      await s3Client.send(command);
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filename, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false
+        });
+
+      if (error) {
+        logger.error('Supabase storage upload error', { 
+          error: error.message,
+          bucket: bucket,
+          filename: filename
+        });
+        return res.status(500).json({ error: 'Failed to upload to storage', details: error.message });
+      }
     } catch (error) {
-      logger.error('S3 upload error', { error });
-      return res.status(500).json({ error: 'Failed to upload to S3' });
+      logger.error('Supabase storage upload error', { 
+        error: error instanceof Error ? error.message : error,
+        bucket: bucket,
+        filename: filename
+      });
+      return res.status(500).json({ error: 'Failed to upload to storage', details: error instanceof Error ? error.message : 'Unknown storage error' });
     }
+    
+    const bucketPublic = String(validatedEnv.SUPABASE_BUCKET_PUBLIC ?? 'true').toLowerCase() === 'true';
     
     if (bucketPublic) {
       const url = `${validatedEnv.SUPABASE_URL}/storage/v1/object/public/${bucket}/${filename}`;
