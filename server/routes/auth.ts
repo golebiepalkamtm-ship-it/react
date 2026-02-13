@@ -46,6 +46,7 @@ router.post('/sync', authMiddleware, async (req: AuthenticatedRequest, res: Resp
       create: {
         id: userId,
         email: email || '',
+        username: email?.split('@')[0] || `user_${userId.slice(0, 8)}`,
         role: 'USER_REGISTERED',
         trustScore: 0,
       },
