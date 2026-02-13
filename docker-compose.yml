@@ -9,6 +9,17 @@ services:
     ports:
       - "8001:8001"
     restart: unless-stopped
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: auction-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
 
   web:
     container_name: auction-web
@@ -34,3 +45,6 @@ services:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     command: ["--config", "/etc/otel-collector-config.yaml"]
     restart: unless-stopped
+
+volumes:
+  redis_data:
