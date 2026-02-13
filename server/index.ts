@@ -7,9 +7,23 @@ import { setupWebSocketEvents } from './websocket/bidding.js';
 import { initSocket } from './lib/socket.js';
 import app, { allowedOrigins } from './app.js';
 import { initializeAuth } from './middleware/auth.js';
+import { validatedEnv } from './lib/env.js';
+import { execSync } from 'child_process';
 
 // Initialize auth system
 initializeAuth();
+
+// Run migrations in production
+if (validatedEnv.NODE_ENV === 'production' && validatedEnv.PRISMA_MIGRATE_DEPLOY === 'true') {
+  try {
+    console.log('🔄 Running database migrations...');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit', cwd: __dirname });
+    console.log('✅ Database migrations completed');
+  } catch (error) {
+    console.error('❌ Database migration failed:', error);
+    process.exit(1);
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
