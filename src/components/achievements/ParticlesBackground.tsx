@@ -16,7 +16,7 @@ const ParticlesBackground = () => {
   
   // DUST PARTICLES - Massive amount, larger size
   const [particles] = useState(() => 
-    Array.from({ length: 600 }, (_, i) => ({
+    Array.from({ length: 100 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -30,7 +30,7 @@ const ParticlesBackground = () => {
 
   // STARS - Dense field, larger stars
   const [stars] = useState(() => 
-    Array.from({ length: 800 }, (_, i) => ({
+    Array.from({ length: 150 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
