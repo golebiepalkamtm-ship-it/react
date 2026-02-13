@@ -87,7 +87,7 @@ function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardPro
             <img 
               src={getPrimaryImage() as string} 
               alt={reference.breederName}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
               loading="lazy"
             />
           ) : (
@@ -578,7 +578,7 @@ export function ReferencesPage() {
 
                 <div className="relative">
                   <motion.div 
-                    className="aspect-square rounded-2xl overflow-hidden border border-gold/30 shadow-[0_0_60px_rgba(212,175,55,0.2)]"
+                    className="relative rounded-2xl overflow-hidden border border-gold/30 shadow-[0_0_60px_rgba(212,175,55,0.2)] bg-black/40"
                     key={`image-${currentRef.id}`}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -586,14 +586,16 @@ export function ReferencesPage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10 pointer-events-none" />
                     {getPrimaryImage(currentRef) ? (
-                      <img 
-                        src={getPrimaryImage(currentRef) as string} 
-                        alt={getReferenceTitle(currentRef)}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
+                      <div className="flex items-center justify-center min-h-[300px] max-h-[500px]">
+                        <img 
+                          src={getPrimaryImage(currentRef) as string} 
+                          alt={getReferenceTitle(currentRef)}
+                          className="w-full h-full object-contain max-h-[500px]"
+                          loading="lazy"
+                        />
+                      </div>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                      <div className="w-full aspect-square flex items-center justify-center bg-zinc-900">
                         <div className="text-center text-white/40">
                           <ImageOff className="w-16 h-16 mx-auto mb-4" />
                           <div>Brak zdjęcia</div>
