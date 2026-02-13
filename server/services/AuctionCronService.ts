@@ -2,7 +2,7 @@ import { prisma } from '../lib/db.js';
 import NotificationManager from './NotificationManager.js';
 import logger from '../lib/logger.js';
 import { Prisma, PaymentType, PaymentStatus, AuctionStatus } from '@prisma/client';
-import redisClient from '../lib/redis.js';
+import redisClient, { getRedisReady } from '../lib/redis.js';
 
 /**
  * Cron job responsible for closing ended auctions.
@@ -48,7 +48,9 @@ export class AuctionCronService {
       const LOCK_KEY = 'auction:cron:lock';
       
       try {
-        if (redisClient && redisClient.isOpen) {
+        // Use getRedisReady() to perform lock only if connection is active
+        // This avoids throwing errors if Redis is configured but unreachable
+        if (redisClient && getRedisReady()) {
           const set = await redisClient.set(LOCK_KEY, 'locked', { NX: true, EX: 15 });
           if (!set) {
             // Lock exists, another instance is processing
