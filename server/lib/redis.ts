@@ -2,6 +2,14 @@ import { createClient, type RedisClientType } from 'redis';
 import logger from './logger.js';
 import { validatedEnv } from './env.js';
 
+// DEBUG: Check if env vars are visible nicely
+console.log('--- REDIS ENV DEBUG ---');
+console.log('REDIS_URL present:', !!process.env.REDIS_URL);
+if (process.env.REDIS_URL) console.log('REDIS_URL starts with:', process.env.REDIS_URL.substring(0, 10) + '...');
+console.log('REDIS_HOST present:', !!process.env.REDIS_HOST);
+console.log('REDIS_PORT present:', !!process.env.REDIS_PORT);
+console.log('-----------------------');
+
 // Check env vars for Redis config
 const hasRedisConfig = Boolean(
   validatedEnv.REDIS_URL ||
