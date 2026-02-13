@@ -122,8 +122,8 @@ const App = () => {
                       <GSAPPageTransition
                         defaultStyle="reveal"
                         duration={0.9}
-                        primaryColor="#46403E"
-                        accentColor="#C5B378"
+                        primaryColor="#D4AF37"
+                        accentColor="#B3A07E"
                         useRouteStyles={false}
                       >
                         <Suspense fallback={<LoadingSpinner />}>

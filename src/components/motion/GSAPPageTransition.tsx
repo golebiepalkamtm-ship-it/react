@@ -249,7 +249,7 @@ export const GSAPPageTransition = ({
       scaleY: 0,
       transformOrigin: "top left",
       visibility: "visible",
-      background: `linear-gradient(135deg, ${color} 0%, #1a1a2e 100%)`,
+      background: `linear-gradient(135deg, ${color} 0%, ${primaryColor} 100%)`,
       rotation: 0,
     })
     .to(contentRef.current, {
@@ -286,7 +286,7 @@ export const GSAPPageTransition = ({
     tl.set(overlayRef.current, { 
       clipPath: "circle(0% at 50% 50%)",
       visibility: "visible",
-      background: `radial-gradient(circle, ${color} 0%, #1a1a2e 100%)`,
+      background: `radial-gradient(circle, ${color} 0%, ${primaryColor} 100%)`,
     })
     .set(logoRef.current, { opacity: 0, scale: 0.5, rotation: -180 })
     .to(contentRef.current, {
@@ -349,7 +349,7 @@ export const GSAPPageTransition = ({
       scaleX: 0, 
       transformOrigin: "left center",
       visibility: "visible",
-      background: `linear-gradient(90deg, ${color} 0%, #1a1a2e 100%)`,
+      background: `linear-gradient(90deg, ${color} 0%, ${primaryColor} 100%)`,
     })
     .set(logoRef.current, { opacity: 0, x: -50, scale: 0.9 })
     .to(contentRef.current, {
@@ -473,7 +473,7 @@ export const GSAPPageTransition = ({
         ref={curtain3Ref}
         className="fixed inset-0 z-[9999] pointer-events-none"
         style={{ 
-          backgroundColor: "#1a1a2e",
+          backgroundColor: primaryColor,
           visibility: "hidden",
           transformOrigin: "bottom",
         }}
