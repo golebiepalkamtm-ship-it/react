@@ -2,11 +2,15 @@ import { createClient, type RedisClientType } from 'redis';
 import logger from './logger.js';
 import { validatedEnv } from './env.js';
 
+// FORCE DISABLE REDIS to prevent connection loop errors on envs without actual Redis service
+const hasRedisConfig = false; 
+/*
 const hasRedisConfig = Boolean(
   validatedEnv.REDIS_URL ||
   validatedEnv.REDIS_HOST ||
   validatedEnv.REDIS_PORT
 );
+*/
 
 let redisClient: any | null = null;
 let isRedisReady = false;
