@@ -20,7 +20,8 @@ const __dirname = path.dirname(__filename);
 if (validatedEnv.NODE_ENV === 'production' && validatedEnv.PRISMA_MIGRATE_DEPLOY === 'true') {
   try {
     console.log('🔄 Running database migrations...');
-    execSync('npx prisma migrate deploy', { stdio: 'inherit', cwd: __dirname });
+    const rootDir = path.resolve(__dirname, '..');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit', cwd: rootDir });
     console.log('✅ Database migrations completed');
   } catch (error) {
     console.error('❌ Database migration failed:', error);
