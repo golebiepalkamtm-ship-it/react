@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, XCircle, AlertTriangle, Info, LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLenisContext } from '@/components/animations/SmoothScrollProvider';
 
 export type ModalType = 'default' | 'success' | 'error' | 'warning' | 'info';
 
@@ -113,6 +114,9 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   const modalPos = useRef({ x: 0, y: 0 });
   const previousBodyOverflow = useRef<string | null>(null);
 
+  // Lenis scroll integration — stop/start smooth scroll with modal
+  const { stopScroll, startScroll } = useLenisContext();
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && closeOnEscape && isOpen) {
@@ -126,6 +130,8 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
         previousBodyOverflow.current = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
       }
+      // Block Lenis smooth scrolling while modal is open
+      stopScroll();
     }
 
     return () => {
@@ -133,8 +139,10 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
       if (typeof document !== 'undefined' && previousBodyOverflow.current !== null) {
         document.body.style.overflow = previousBodyOverflow.current;
       }
+      // Resume Lenis smooth scrolling when modal closes
+      startScroll();
     };
-  }, [isOpen, closeOnEscape, onClose]);
+  }, [isOpen, closeOnEscape, onClose, stopScroll, startScroll]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (draggable && window.innerWidth >= 768 && modalRef.current) {

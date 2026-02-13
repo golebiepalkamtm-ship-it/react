@@ -286,25 +286,25 @@ async function performAuctionCreate(req: any, userId: string | null) {
 if (validatedEnv.NODE_ENV === 'development') {
   router.post('/', validate(createAuctionSchema), async (req, res) => {
     try {
-      if (!prisma) return res.status(500).json({ error: 'Database not available' });
+      if (!prisma) return res.status(500).json({ error: 'Błąd połączenia z bazą danych.' });
       const created = await performAuctionCreate(req, null);
       cache.invalidateResource('auction'); // Invalidate auction lists
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
       console.error('Error creating auction (dev):', error);
-      res.status(500).json({ error: 'Failed to create auction' });
+      res.status(500).json({ error: 'Nie udało się utworzyć aukcji.' });
     }
   });
 } else {
   router.post('/', authMiddleware, validate(createAuctionSchema), async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      if (!userId) return res.status(401).json({ error: 'Musisz być zalogowany, aby wykonać tę akcję.' });
       const role = req.user?.role;
       if (role !== 'USER_FULL_VERIFIED' && role !== 'ADMIN') {
-        return res.status(403).json({ error: 'Account not fully verified' });
+        return res.status(403).json({ error: 'Twoje konto nie jest w pełni zweryfikowane.' });
       }
-      if (!prisma) return res.status(500).json({ error: 'Database not available' });
+      if (!prisma) return res.status(500).json({ error: 'Błąd połączenia z bazą danych.' });
 
       const created = await performAuctionCreate(req, userId);
       cache.invalidateResource('auction');
@@ -313,10 +313,12 @@ if (validatedEnv.NODE_ENV === 'development') {
       console.error('Error creating auction:', {
         error: error instanceof Error ? error.message : error,
         stack: error instanceof Error ? error.stack : undefined,
-        body: req.body,
-        userId
+        body: req.body
       });
-      res.status(500).json({ error: 'Failed to create auction', details: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ 
+          error: 'Nie udało się utworzyć aukcji.', 
+          details: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   });
 }
@@ -325,14 +327,14 @@ if (validatedEnv.NODE_ENV === 'development') {
 router.post('/:id/bids', authMiddleware, biddingLimiter, validate(placeBidSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const idValidation = auctionIdSchema.safeParse(req.params.id);
-    if (!idValidation.success) return res.status(400).json({ error: 'Invalid auction id' });
+    if (!idValidation.success) return res.status(400).json({ error: 'Nieprawidłowe ID aukcji.' });
 
     const { amount, isProxy, maxBid } = req.body;
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId) return res.status(401).json({ error: 'Musisz być zalogowany, aby licytować.' });
     const role = req.user?.role;
     if (role !== 'USER_FULL_VERIFIED' && role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Account not fully verified' });
+      return res.status(403).json({ error: 'Twoje konto nie jest w pełni zweryfikowane.' });
     }
 
     const result = await auctionService.placeBid(
@@ -353,8 +355,16 @@ router.post('/:id/bids', authMiddleware, biddingLimiter, validate(placeBidSchema
       }
     });
   } catch (error: any) {
+    // Tłumaczenie błędów reguł biznesowych z serwisu aukcyjnego
+    let message = error.message || 'Błąd składania oferty';
+    if (message.includes('Auction not found')) message = 'Nie znaleziono aukcji.';
+    if (message.includes('Auction not active')) message = 'Aukcja nie jest aktywna.';
+    if (message.includes('Outbid')) message = 'Twoja oferta została przebita.';
+    if (message.includes('Bid amount too low')) message = 'Kwota oferty jest za niska.';
+    if (message.includes('Cannot bid on own auction')) message = 'Nie możesz licytować własnej aukcji.';
+    
     res.status(error.statusCode || 500).json({
-      error: error.message || 'Błąd składania oferty',
+      error: message,
       code: error.code || 'UNKNOWN_ERROR'
     });
   }
@@ -364,12 +374,12 @@ router.post('/:id/bids', authMiddleware, biddingLimiter, validate(placeBidSchema
 router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId) return res.status(401).json({ error: 'Musisz być zalogowany, aby kupić.' });
     const role = req.user?.role;
     if (role !== 'USER_FULL_VERIFIED' && role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Account not fully verified' });
+      return res.status(403).json({ error: 'Twoje konto nie jest w pełni zweryfikowane.' });
     }
-    if (!prisma) return res.status(500).json({ error: 'Database not available' });
+    if (!prisma) return res.status(500).json({ error: 'Błąd połączenia z bazą danych.' });
 
     const { auctionId } = req.body;
 
@@ -379,20 +389,20 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
         include: detailAuctionInclude 
       });
       
-      if (!auction) throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_FOUND, 'Auction not found');
+      if (!auction) throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_FOUND, 'Nie znaleziono aukcji.');
 
       // Check if user is trying to buy their own auction
       if (auction.sellerId === userId) {
-        throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Cannot buy your own auction');
+        throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Nie możesz kupić własnej aukcji.');
       }
 
       const now = Date.now();
       const endsAt = auction.endTime ? new Date(auction.endTime).getTime() : 0;
       if (auction.status !== 'ACTIVE' || endsAt <= now) {
-        throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_ACTIVE, 'Aukcja nie jest aktywna');
+        throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_ACTIVE, 'Aukcja nie jest aktywna lub zakończona.');
       }
 
-      if (!auction.buyNowPrice) throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Brak ceny Kup teraz');
+      if (!auction.buyNowPrice) throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Ta aukcja nie ma opcji Kup Teraz.');
       const amount = Number(auction.buyNowPrice);
 
       const bid = await tx.bid.create({
@@ -408,13 +418,12 @@ router.post('/:id/buy-now', authMiddleware, biddingLimiter, validate(buyNowSchem
     });
 
     // Invalidate relevant cache entries
-    // Invalidate relevant cache entries
     cache.invalidateAuctionCache(auctionId);
     cache.invalidateResource('auction'); // Refresh lists as status changed
     res.json({ success: true, finalPrice: result.amount, auctionId });
   } catch (error: any) {
     res.status(error.statusCode || 500).json({
-      error: error.message || 'Błąd Kup teraz',
+      error: error.message || 'Błąd opcji Kup Teraz',
       code: error.code || 'UNKNOWN_ERROR'
     });
   }

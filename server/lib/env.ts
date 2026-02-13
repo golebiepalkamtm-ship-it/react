@@ -6,6 +6,9 @@ const envSchema = z.object({
   PORT: z.string().regex(/^\d+$/, 'PORT must be a number').transform(Number).pipe(z.number().min(1).max(65535)).default('8001'),
   CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL').default('http://localhost:5173'),
   
+  // Prisma
+  PRISMA_MIGRATE_DEPLOY: z.string().default('false'),
+  
   // Baza Danych
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DIRECT_URL: z.string().url('DIRECT_URL must be a valid URL').optional(),

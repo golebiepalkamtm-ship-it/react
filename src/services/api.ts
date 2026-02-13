@@ -136,7 +136,10 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(errorData.message || 'Błąd serwera');
+        // Backend returns { error: 'message', details: ... } usually
+        const errorMessage = errorData.error || errorData.message || 'Błąd serwera';
+        const errorDetails = errorData.details ? ` (${JSON.stringify(errorData.details)})` : '';
+        throw new Error(errorMessage + errorDetails);
       }
 
       return response.json();
@@ -168,7 +171,10 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(errorData.message || 'Błąd serwera');
+        // Backend returns { error: 'message', details: ... } usually
+        const errorMessage = errorData.error || errorData.message || 'Błąd serwera';
+        const errorDetails = errorData.details ? ` (${JSON.stringify(errorData.details)})` : '';
+        throw new Error(errorMessage + errorDetails);
       }
 
       return response.json();

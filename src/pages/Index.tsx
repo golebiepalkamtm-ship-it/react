@@ -1,30 +1,30 @@
 /**
  * ============================================================================
- * INDEX PAGE - Unified Premium Homepage
+ * INDEX PAGE - Unified Premium Homepage (v2 — Optimized)
  * ============================================================================
  * 
  * Integracja:
  * 1. Premium animacji (Awwwards level) z HomePage.tsx
  * 2. Logiki biznesowej (Auth, Modals, Debug) z Index.tsx
  * 
- * Features:
- * - Luxury smooth scroll (Lenis + GSAP)
- * - Video backgrounds
- * - Multi-layer parallax
- * - Magnetic interactions
- * - Auth flow handling
- * - Construction on Scroll pattern (component-level animations)
+ * OPTIMIZATIONS (v2):
+ * - Cursor animation driven by gsap.ticker (not recursive rAF — no leaked frames)
+ * - gsap.quickTo() for FeatureCard glow tracking (120 FPS mouse)
+ * - SplitText gated behind document.fonts.ready
+ * - All animations use GPU-composited properties (x, y, scale, rotation)
+ * - Removed duplicate ScrollTrigger.refresh() calls
+ * - will-change: transform on 3D feature cards
+ * - Single gsap.context() per component for guaranteed cleanup
  */
 
-import React, { useRef, useEffect, useCallback, memo, useState, RefObject } from 'react';
+import React, { useRef, useEffect, useCallback, memo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
-import { registerCustomEasings, gsapEasings } from '@/lib/customEasings';
+import { registerCustomEasings } from '@/lib/customEasings';
 import { ArrowRight, Trophy, Zap, Award, ChevronDown, Star } from 'lucide-react';
-import { useSpringPhysics, customExpoEase, customBezier } from '@/hooks/useCustomPhysics';
-import { useScrollAnimation, useSplitText } from '@/hooks/useScrollAnimation';
-import { DOMBatcher, throttle } from '@/utils/performanceOptimizer';
+import { useSpringPhysics } from '@/hooks/useCustomPhysics';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import Header from '@/components/Header';
 import { Carousel3D } from '@/components/gallery/Carousel3D';
 import AboutSection from '@/components/AboutSection';
@@ -48,6 +48,18 @@ import {
 
 registerCustomEasings();
 
+// ─── Type definitions ─────────────────────────────────────────────────────
+interface AuthMessage {
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  text: string;
+  action?: () => void;
+  actionText?: string;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HERO PREMIUM
+// ═══════════════════════════════════════════════════════════════════════════
 const HeroPremium = memo(() => {
   const heroRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -58,11 +70,36 @@ const HeroPremium = memo(() => {
 
   /* 
    * VIDEO ENCODING FOR SCRUBBING:
-   * To ensure smooth seeking, the video must be encoded with a high density of keyframes (GOP size).
-   * FFmpeg command: 
    * ffmpeg -i input.mp4 -c:v libx264 -preset slow -crf 22 -g 1 -keyint_min 1 -an output_scrub.mp4
-   * "-g 1" ensures every frame is a keyframe (Intra-frame only), allowing instant seeking without decoding artifacts.
    */
+
+  // ── Font-ready SplitText with gsap.context cleanup ──────────────────
+  useEffect(() => {
+    const titleEl = titleContainerRef.current;
+    if (!titleEl) return;
+
+    let cancelled = false;
+
+    const initSplit = async () => {
+      // Gate: wait for fonts to prevent FOUT-caused layout shift
+      try { await document.fonts.ready; } catch { /* not supported */ }
+      if (cancelled || !titleEl) return;
+
+      const text = titleEl.textContent || '';
+      const chars = text.split('');
+      titleEl.innerHTML = chars
+        .map((char) =>
+          `<span class="char-reveal" style="display:inline-block;will-change:transform">${char === ' ' ? '&nbsp;' : char}</span>`
+        )
+        .join('');
+    };
+
+    void initSplit();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Use the custom hook for hero animations
   useScrollAnimation(heroRef, [
@@ -73,21 +110,9 @@ const HeroPremium = memo(() => {
       toVars: { opacity: 1, scale: 1, y: 0, rotateX: 0, duration: 0.8, ease: 'back.out(1.7)', delay: 0.3 },
       timeline: true
     },
-    // Title character-by-character reveal
+    // Title character-by-character reveal (chars already split above)
     {
-      targets: () => {
-        const titleElement = titleContainerRef.current;
-        if (!titleElement) return null;
-        
-        const text = titleElement.textContent || '';
-        const chars = text.split('');
-        
-        titleElement.innerHTML = chars
-          .map((char) => `<span class="char-reveal" style="display: inline-block;">${char === ' ' ? '&nbsp;' : char}</span>`)
-          .join('');
-
-        return titleElement.querySelectorAll('.char-reveal');
-      },
+      targets: () => titleContainerRef.current?.querySelectorAll('.char-reveal'),
       fromVars: { opacity: 0, y: 30, rotateX: -90 },
       toVars: { 
         opacity: 1, 
@@ -100,22 +125,22 @@ const HeroPremium = memo(() => {
       },
       timeline: true
     },
-    // Description clip-path reveal
+    // Description reveal — using GPU-friendly y transform + opacity
     {
       targets: () => contentRef.current?.querySelector('p'),
-      fromVars: { opacity: 0, clipPath: 'inset(0% 0% 100% 0%)', y: 40 },
-      toVars: { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)', y: 0, duration: 1.2, ease: 'expo.out', delay: 0.8 },
+      fromVars: { opacity: 0, y: 40 },
+      toVars: { opacity: 1, y: 0, duration: 1.2, ease: 'expo.out', delay: 0.8 },
       timeline: true,
       constructionEffect: 'reveal'
     },
-    // Button construction
+    // Button construction — all GPU properties
     {
       targets: () => contentRef.current?.querySelector('a'),
-      fromVars: { opacity: 0, y: 30, scale: 0.9, rotateY: -15 },
-      toVars: { opacity: 1, y: 0, scale: 1, rotateY: 0, duration: 1, ease: 'expo.out', delay: 1.2 },
+      fromVars: { opacity: 0, y: 30, scale: 0.9 },
+      toVars: { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'expo.out', delay: 1.2 },
       timeline: true
     },
-    // Stats stagger reveal
+    // Stats stagger reveal — pure transforms
     {
       targets: () => statsContainerRef.current?.querySelectorAll('.hero-stat-item'),
       fromVars: { opacity: 0, y: 60, scale: 0.9, rotateX: 45 },
@@ -132,11 +157,11 @@ const HeroPremium = memo(() => {
       timeline: true,
       constructionEffect: 'build'
     },
-    // Parallax blur spots on scroll
+    // Parallax blur spots on scroll — GPU y transform
     {
       targets: () => heroRef.current?.querySelectorAll('.hero-blur'),
       toVars: {
-        y: (index) => window.innerHeight * (0.5 + (index * 0.15)) * -0.3,
+        y: (index: number) => window.innerHeight * (0.5 + (index * 0.15)) * -0.3,
         ease: 'none',
       },
       scrollTrigger: {
@@ -157,7 +182,7 @@ const HeroPremium = memo(() => {
       <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
         
-        {/* Animated blur spots - ScrollSmoother parallax */}
+        {/* Animated blur spots */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="hero-blur absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gold/20 rounded-full blur-[120px]" data-speed="0.8" />
           <div className="hero-blur absolute top-1/3 -left-32 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[100px]" data-speed="0.6" />
@@ -247,6 +272,11 @@ const HeroPremium = memo(() => {
   );
 });
 
+HeroPremium.displayName = 'HeroPremium';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FEATURE CARD PREMIUM — 3D Tilt with quickTo glow
+// ═══════════════════════════════════════════════════════════════════════════
 interface FeatureData {
   icon: React.ElementType<{ className?: string }>;
   title: string;
@@ -276,8 +306,24 @@ const FeatureCardPremium = memo(({
     damping: 20,
   });
 
+  // ── quickSetter for glow tracking — zero allocation per mousemove ──
+  // quickSetter is the correct API for CSS custom properties (string values)
+  const quickGlowX = useRef<Function | null>(null);
+  const quickGlowY = useRef<Function | null>(null);
+
+  useEffect(() => {
+    if (glowRef.current) {
+      quickGlowX.current = gsap.quickSetter(glowRef.current, '--glow-x') as Function;
+      quickGlowY.current = gsap.quickSetter(glowRef.current, '--glow-y') as Function;
+    }
+    return () => {
+      quickGlowX.current = null;
+      quickGlowY.current = null;
+    };
+  }, []);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!cardRef.current || !glowRef.current) return;
+    if (!cardRef.current) return;
 
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
@@ -285,15 +331,11 @@ const FeatureCardPremium = memo(({
     mouseX.set(x);
     mouseY.set(y);
 
-    const glowX = ((e.clientX - rect.left) / rect.width) * 100;
-    const glowY = ((e.clientY - rect.top) / rect.height) * 100;
-
-    gsap.to(glowRef.current, {
-      '--glow-x': `${glowX}%`,
-      '--glow-y': `${glowY}%`,
-      duration: 0.5,
-      ease: 'expo.out',
-    });
+    // quickSetter updates the CSS custom property — no tween allocation
+    const glowXPct = ((e.clientX - rect.left) / rect.width) * 100;
+    const glowYPct = ((e.clientY - rect.top) / rect.height) * 100;
+    quickGlowX.current?.(`${glowXPct}%`);
+    quickGlowY.current?.(`${glowYPct}%`);
   }, [mouseX, mouseY]);
 
   const handleMouseEnter = () => setIsHovered(true);
@@ -312,6 +354,8 @@ const FeatureCardPremium = memo(({
         style={{
           perspective: 1000,
           transformStyle: 'preserve-3d',
+          // GPU hint for 3D transformed cards
+          willChange: 'transform',
         }}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
@@ -326,6 +370,7 @@ const FeatureCardPremium = memo(({
             '--glow-x': '50%',
             '--glow-y': '50%',
             minHeight: '260px',
+            willChange: 'transform',
           } as React.CSSProperties}
           whileHover={{ translateY: -8, scale: 1.02 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -367,6 +412,9 @@ const FeatureCardPremium = memo(({
 
 FeatureCardPremium.displayName = 'FeatureCardPremium';
 
+// ═══════════════════════════════════════════════════════════════════════════
+// FEATURES SECTION PREMIUM
+// ═══════════════════════════════════════════════════════════════════════════
 const FeaturesSectionPremium = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -390,7 +438,7 @@ const FeaturesSectionPremium = () => {
 
   // Use the custom hook for features section animations
   useScrollAnimation(sectionRef, [
-    // Header animation
+    // Header animation — GPU y + opacity
     {
       targets: () => sectionRef.current?.querySelector('.features-header'),
       fromVars: { y: 60, opacity: 0 },
@@ -403,7 +451,7 @@ const FeaturesSectionPremium = () => {
       },
       constructionEffect: 'reveal'
     },
-    // Cards animation with stagger
+    // Cards animation with stagger — GPU y + scale + opacity
     {
       targets: () => sectionRef.current?.querySelectorAll('.feature-card-item'),
       fromVars: { y: 80, opacity: 0, scale: 0.92 },
@@ -456,12 +504,14 @@ const FeaturesSectionPremium = () => {
   );
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// CTA SECTION PREMIUM
+// ═══════════════════════════════════════════════════════════════════════════
 const CTASectionPremium = () => {
   const ctaRef = useRef<HTMLDivElement>(null);
 
-  // Use the custom hook for CTA section animations
+  // Use the custom hook for CTA section animations — all GPU transforms
   useScrollAnimation(ctaRef, [
-    // Heading animation
     {
       targets: () => ctaRef.current?.querySelector('h2'),
       fromVars: { y: 80, opacity: 0, scale: 0.95 },
@@ -475,7 +525,6 @@ const CTASectionPremium = () => {
       timeline: true,
       constructionEffect: 'reveal'
     },
-    // Paragraph animation
     {
       targets: () => ctaRef.current?.querySelector('p'),
       fromVars: { y: 50, opacity: 0 },
@@ -488,7 +537,6 @@ const CTASectionPremium = () => {
       },
       timeline: true
     },
-    // Button animation
     {
       targets: () => ctaRef.current?.querySelector('a'),
       fromVars: { y: 40, opacity: 0, scale: 0.9 },
@@ -532,6 +580,9 @@ const CTASectionPremium = () => {
   );
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN INDEX COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════
 const Index = () => {
   const { user, profile, loading } = useAuth();
   const [showAuthMessage, setShowAuthMessage] = useState(false);
@@ -540,14 +591,12 @@ const Index = () => {
   const followerRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
-  // Block hash navigation auto-scroll
+  // ── Block hash navigation auto-scroll ───────────────────────────────
   useEffect(() => {
     if (location.hash) {
-      // Remove hash from URL without triggering scroll
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
     
-    // Prevent default hash navigation behavior
     const preventHashScroll = (e: Event) => {
       if (window.location.hash) {
         e.preventDefault();
@@ -559,17 +608,14 @@ const Index = () => {
     return () => window.removeEventListener('hashchange', preventHashScroll);
   }, [location]);
 
-  // Obsługa nawigacji z headera z location.state.scrollTo (O nas / Kontakt)
+  // ── Obsługa nawigacji z headera z location.state.scrollTo ───────────
   useEffect(() => {
     const state = (location.state as any) || {};
     if (!state.scrollTo) return;
 
     const anchor = state.scrollTo as string;
-
-    // Czyścimy state w historii, żeby nie powtarzać scrolla przy kolejnych zmianach
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
 
-    // Małe opóźnienie, żeby sekcje i GSAP zdążyły się zainicjalizować
     const timer = setTimeout(() => {
       const el = document.getElementById(anchor);
       if (!el) return;
@@ -577,12 +623,11 @@ const Index = () => {
       const header = document.querySelector('header') as HTMLElement | null;
       const headerHeight = header?.offsetHeight ?? 88;
 
-      // Delikatnie inne offsety dla about / contact, żeby nagłówki były idealnie widoczne
       let offset = headerHeight + 32;
       if (anchor === 'about') {
-        offset = headerHeight + 64; // trochę niżej, sekcja jest wysoka
+        offset = headerHeight + 64;
       } else if (anchor === 'contact') {
-        offset = headerHeight + 16; // trochę wyżej, żeby nagłówek nie był za bardzo pod spodem
+        offset = headerHeight + 16;
       }
 
       const elementPosition = el.getBoundingClientRect().top + window.scrollY;
@@ -593,6 +638,8 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, [location]);
 
+  // ── Cursor physics — driven by gsap.ticker, NOT recursive rAF ──────
+  // This prevents the leaked rAF loop that the old code had (no cancelAnimationFrame).
   const cursorSpring = useSpringPhysics({ stiffness: 0.15, damping: 0.25 });
   const followerSpring = useSpringPhysics({ stiffness: 0.08, damping: 0.3 });
 
@@ -604,7 +651,9 @@ const Index = () => {
 
     window.addEventListener('mousemove', handleMouseMove);
 
-    const animateCursor = () => {
+    // Use gsap.ticker instead of recursive rAF — single animation loop,
+    // proper cleanup via ticker.remove(), synced with Lenis/ScrollTrigger.
+    const tickHandler = () => {
       const cursorPos = cursorSpring.update();
       const followerPos = followerSpring.update();
 
@@ -625,21 +674,24 @@ const Index = () => {
           yPercent: -50
         });
       }
-
-      requestAnimationFrame(animateCursor);
     };
 
-    animateCursor();
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    gsap.ticker.add(tickHandler);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      gsap.ticker.remove(tickHandler);
+    };
   }, [cursorSpring, followerSpring]);
 
+  // ── Page lifecycle — single cleanup ─────────────────────────────────
   useEffect(() => {
     document.body.classList.add('home-page');
     
-    // Delay refresh to ensure all components are mounted
+    // Single delayed refresh for all mount-time ScrollTriggers
     const refreshTimer = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 100);
+      ScrollTrigger.refresh(true);
+    }, 200);
 
     return () => {
       clearTimeout(refreshTimer);
@@ -648,6 +700,7 @@ const Index = () => {
     };
   }, []);
 
+  // ── Section snap ────────────────────────────────────────────────────
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-section], section'));
     if (sections.length > 1) {
@@ -675,13 +728,13 @@ const Index = () => {
     }
   }, []);
 
-  // Debug hotkeys logic preserved from original Index.tsx
+  // ── Debug hotkeys ───────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key && e.key.toLowerCase() === 'd' && e.ctrlKey && e.shiftKey) {
         const scrollY = window.scrollY;
         const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-section]'));
-        const nearest = sections.reduce<HTMLElement | null>((acc, sec) => {
+        sections.reduce<HTMLElement | null>((acc, sec) => {
           const top = sec.getBoundingClientRect().top + window.scrollY;
           const dist = Math.abs(scrollY - top);
           if (!acc) return sec;
@@ -701,14 +754,13 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  // Auth message logic preserved from original Index.tsx
-
-  // Auth message logic preserved from original Index.tsx
+  // ── Auth message logic ──────────────────────────────────────────────
   useEffect(() => {
     if (!loading && user && profile) {
       const hasShownWelcome = sessionStorage.getItem('hasShownWelcome');
       if (!hasShownWelcome) {
         const timer = setTimeout(() => {
+          setAuthMessage(getAuthMessage());
           setShowAuthMessage(true);
           sessionStorage.setItem('hasShownWelcome', 'true');
         }, 500);
@@ -717,7 +769,7 @@ const Index = () => {
     }
   }, [loading, user, profile]);
 
-  const getAuthMessage = () => {
+  const getAuthMessage = (): AuthMessage | null => {
     if (!user || !profile) return null;
     switch (profile.role) {
       case 'USER_REGISTERED':
@@ -746,18 +798,6 @@ const Index = () => {
     }
   };
 
-  // Component-level animation architecture:
-  // Each section manages its own ScrollTriggers via useScrollAnimation hook for proper encapsulation
-  useEffect(() => {
-    // Single refresh after DOM ready - components handle their own triggers
-    if (ScrollTrigger) {
-      const refreshTimer = setTimeout(() => {
-        ScrollTrigger.refresh(true); // true forces a deep refresh
-      }, 200);
-      return () => clearTimeout(refreshTimer);
-    }
-  }, [location]);
-
   return (
     <div className="min-h-screen relative">
       <Header />
@@ -784,7 +824,7 @@ const Index = () => {
           title={authMessage.title}
           message={authMessage.text}
           confirmButton={authMessage.action ? {
-            text: authMessage.actionText,
+            text: authMessage.actionText!,
             onClick: authMessage.action
           } : {
             text: 'OK',

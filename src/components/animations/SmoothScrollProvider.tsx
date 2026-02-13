@@ -1,25 +1,37 @@
 /**
- * SMOOTH SCROLL PROVIDER - LENIS + GSAP SCROLLTRIGGER
+ * SMOOTH SCROLL PROVIDER - LENIS + GSAP SCROLLTRIGGER (v2)
  * Awwwards-level smooth scrolling z pełną integracją GSAP
  * 
- * Features:
- * - Lenis smooth scroll z physics-based easing
- * - GSAP ScrollTrigger sync
- * - prefer-reduced-motion support
- * - Scroll velocity tracking dla efektów
+ * OPTIMIZATIONS:
+ * - Single animation loop: Lenis.raf is driven by gsap.ticker (no rAF duplication)
+ * - Lenis.stop()/start() API exposed for modal integration
+ * - Debounced resize handler to prevent ScrollTrigger spam
+ * - Proper cleanup order: listeners → ticker → Lenis.destroy()
+ * - lagSmoothing(0) for tightest Lenis↔ScrollTrigger sync
  */
 
-import { ReactNode, useEffect, createContext, useContext, useRef } from 'react';
+import { ReactNode, useEffect, createContext, useContext, useRef, useCallback } from 'react';
 import Lenis from 'lenis';
 import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
 
 interface LenisContextValue {
   getLenis: () => Lenis | null;
   isReduced: boolean;
+  /** Block Lenis scrolling (e.g. when a modal is open) */
+  stopScroll: () => void;
+  /** Resume Lenis scrolling */
+  startScroll: () => void;
 }
 
-const LenisContext = createContext<LenisContextValue>({ getLenis: () => null, isReduced: false });
+const LenisContext = createContext<LenisContextValue>({
+  getLenis: () => null,
+  isReduced: false,
+  stopScroll: () => {},
+  startScroll: () => {},
+});
 
+export const useLenisContext = () => useContext(LenisContext);
+// Keep backward-compatible alias
 export const useLenis = () => useContext(LenisContext);
 
 interface SmoothScrollProviderProps {
@@ -40,92 +52,102 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
       return;
     }
 
-    // Initialize Lenis smooth scroll - wolniejszy i płynniejszy scroll
+    // ── Initialize Lenis ──────────────────────────────────────────────
     const lenis = new Lenis({
-      duration: 2.4,                // Zwiększono z 1.2 na 2.4 - wolniejszy scroll
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),  // Exponential easing
+      duration: 2.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // expo.out
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.8,         // Zmniejszono z 1 na 0.8 - wolniejszy scroll kołem myszy
-      touchMultiplier: 1.5,         // Zmniejszono z 2 na 1.5 - wolniejszy scroll dotykiem
+      wheelMultiplier: 0.8,
+      touchMultiplier: 1.5,
       infinite: false,
     });
 
     lenisRef.current = lenis;
 
-    // Expose to window for debugging
+    // Expose for debugging
     if (typeof window !== 'undefined') {
       (window as any).lenis = lenis;
     }
 
-    // Sync Lenis with GSAP ScrollTrigger - używamy named function dla łatwiejszego usunięcia
+    // ── Sync Lenis → ScrollTrigger ───────────────────────────────────
+    // On every Lenis scroll event, update ScrollTrigger positions.
+    // This is the ONLY scroll sync — no duplicate rAF loops.
     const scrollUpdate = () => {
       ScrollTrigger.update();
     };
     lenis.on('scroll', scrollUpdate);
 
-    // Integrate Lenis with GSAP ticker - używamy named function dla łatwiejszego usunięcia
+    // ── Drive Lenis from GSAP ticker (single loop) ──────────────────
+    // gsap.ticker runs at display refresh rate (60/120/144 Hz).
+    // Driving Lenis from it avoids a separate requestAnimationFrame loop.
     const rafHandler = (time: number) => {
       lenis.raf(time * 1000);
     };
     gsap.ticker.add(rafHandler);
 
-    // Wyłączamy lag smoothing dla lepszej synchronizacji
+    // Disable GSAP's lag smoothing so ticker and Lenis stay in lock-step
     gsap.ticker.lagSmoothing(0);
 
-    // Refresh po pełnej inicjalizacji - używamy krótszego timeoutu
+    // ── Delayed initial refresh ─────────────────────────────────────
     const refreshTimer = setTimeout(() => {
-      // Głębokie odświeżenie wszystkich ScrollTriggerów
       ScrollTrigger.refresh(true);
     }, 300);
 
-    console.log(' Lenis smooth scroll enabled');
-
     return () => {
-      // Usuwamy event listenery
+      // 1. Remove Lenis scroll listener
       lenis.off('scroll', scrollUpdate);
-      
-      // Usuwamy ticker
+      // 2. Remove from GSAP ticker
       gsap.ticker.remove(rafHandler);
-      
-      // Czyścimy timeout
+      // 3. Clear timeout
       clearTimeout(refreshTimer);
-      
-      // Niszczymy instancję Lenis
+      // 4. Destroy Lenis
       lenis.destroy();
-      
-      // Czyścimy referencję w window
+      lenisRef.current = null;
+      // 5. Clean window reference
       if (typeof window !== 'undefined') {
         (window as any).lenis = null;
       }
     };
   }, [isReduced]);
 
-  // Getter function to access lenis - avoids ref access during render
-  const getLenis = () => lenisRef.current;
-
-  // Dodajemy funkcję pomocniczą do odświeżania ScrollTriggerów
+  // ── Debounced resize handler ──────────────────────────────────────
   useEffect(() => {
-    // Dodajemy event listener na resize dla lepszej responsywności
+    if (isReduced) return;
+
+    let resizeTimer: ReturnType<typeof setTimeout>;
+
     const handleResize = () => {
-      if (!isReduced && lenisRef.current) {
-        // Dajemy czas na zakończenie resizu przed odświeżeniem
-        setTimeout(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (lenisRef.current) {
           ScrollTrigger.refresh(true);
-        }, 100);
-      }
+        }
+      }, 150);
     };
     
     window.addEventListener('resize', handleResize);
     
     return () => {
+      clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
     };
   }, [isReduced]);
 
+  // ── Public API ────────────────────────────────────────────────────
+  const getLenis = useCallback(() => lenisRef.current, []);
+  
+  const stopScroll = useCallback(() => {
+    lenisRef.current?.stop();
+  }, []);
+
+  const startScroll = useCallback(() => {
+    lenisRef.current?.start();
+  }, []);
+
   return (
-    <LenisContext.Provider value={{ getLenis, isReduced }}>
+    <LenisContext.Provider value={{ getLenis, isReduced, stopScroll, startScroll }}>
       {children}
     </LenisContext.Provider>
   );

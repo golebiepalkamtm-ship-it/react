@@ -3,6 +3,12 @@
  * 
  * Provides a clean way to create "Construction on Scroll" animations
  * with proper cleanup on unmount to prevent memory leaks.
+ * 
+ * OPTIMIZATIONS (v2):
+ * - gsap.context() scoping guarantees automatic revert() of ALL child tweens/timelines
+ * - Deduplicated ScrollTrigger config resolution via resolveScrollTrigger()
+ * - Font-ready gating for SplitText to prevent layout shifts
+ * - All animations use GPU-accelerated properties (x, y, scale, rotation)
  */
 
 import { useEffect, useRef } from 'react';
@@ -36,233 +42,189 @@ interface AnimationConfig {
   constructionEffect?: 'draw' | 'build' | 'reveal' | 'type' | 'fade' | string;
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
 /**
- * Hook for creating scroll-based animations with proper cleanup
+ * Resolve any AnimationTarget variant to a concrete DOM reference.
+ */
+const resolveTarget = (target: AnimationTarget | AnimationTarget[] | undefined): any => {
+  if (target === undefined || target === null) return null;
+  if (Array.isArray(target)) return target.map(t => resolveTarget(t));
+  if (typeof target === 'function') return target();
+  if (typeof target === 'object' && 'current' in target) return (target as React.RefObject<any>).current;
+  return target;
+};
+
+/**
+ * Build a GSAP-compatible scrollTrigger config from our typed config,
+ * reusing the same resolution logic everywhere.
+ */
+const resolveScrollTrigger = (
+  cfg: ScrollTriggerConfig,
+  fallbackTrigger: HTMLElement
+): ScrollTrigger.Vars => ({
+  trigger: resolveTarget(cfg.trigger) || fallbackTrigger,
+  start: cfg.start || 'top 80%',
+  end: cfg.end || 'bottom 20%',
+  scrub: cfg.scrub !== undefined ? cfg.scrub : false,
+  markers: cfg.markers || false,
+  pin: cfg.pin || false,
+  pinSpacing: cfg.pinSpacing !== undefined ? cfg.pinSpacing : true,
+  toggleActions: cfg.toggleActions || 'play none none none',
+  onEnter: cfg.onEnter,
+  onLeave: cfg.onLeave,
+  onEnterBack: cfg.onEnterBack,
+  onLeaveBack: cfg.onLeaveBack,
+});
+
+/**
+ * Apply construction-effect presets — merges defaults INTO user-provided vars
+ * so explicit caller values always win.
+ */
+const applyConstructionPreset = (
+  effect: string | undefined,
+  fromVars: gsap.TweenVars,
+  toVars: gsap.TweenVars
+): { from: gsap.TweenVars; to: gsap.TweenVars } => {
+  if (!effect) return { from: fromVars, to: toVars };
+
+  const presets: Record<string, { from: gsap.TweenVars; to: gsap.TweenVars }> = {
+    draw: {
+      from: { drawSVG: '0%', opacity: 0 },
+      to: { drawSVG: '100%', opacity: 1, duration: 1.5, ease: 'power2.inOut' },
+    },
+    build: {
+      from: { scale: 0.8, opacity: 0, y: 50 },
+      to: { scale: 1, opacity: 1, y: 0, duration: 1.2, ease: 'expo.out' },
+    },
+    reveal: {
+      from: { clipPath: 'inset(0% 0% 100% 0%)', y: 50 },
+      to: { clipPath: 'inset(0% 0% 0% 0%)', y: 0, duration: 1.3, ease: 'power3.out' },
+    },
+    type: {
+      from: { width: '0%' },
+      to: { width: '100%', duration: 2, ease: 'steps(30)' },
+    },
+    fade: {
+      from: { opacity: 0, y: 30 },
+      to: { opacity: 1, y: 0, duration: 1, ease: 'power2.out' },
+    },
+  };
+
+  const preset = presets[effect];
+  if (!preset) return { from: fromVars, to: toVars };
+
+  return {
+    from: { ...preset.from, ...fromVars },
+    to: { ...preset.to, ...toVars },
+  };
+};
+
+// ─── Main Hook ────────────────────────────────────────────────────────────
+
+/**
+ * Hook for creating scroll-based animations with proper cleanup.
+ * 
+ * All tweens/timelines created inside the callback are automatically
+ * registered with gsap.context() and reverted on unmount.
  */
 export const useScrollAnimation = (
   containerRef: React.RefObject<HTMLElement | null>,
   animations: (AnimationConfig | null | undefined)[],
   dependencies: any[] = []
 ) => {
-  const animationsRef = useRef<gsap.Context | null>(null);
+  const ctxRef = useRef<gsap.Context | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Create GSAP context for proper cleanup
+    // gsap.context() scopes ALL child tweens/timelines for automatic revert()
     const ctx = gsap.context(() => {
       animations.forEach((animation) => {
         if (!animation) return;
-        
-        // Type assertion to handle null/undefined safely
-        const { targets, fromVars, toVars, scrollTrigger, stagger, delay, timeline, constructionEffect } = animation as AnimationConfig;
-        
-        // Resolve targets if it's a function or RefObject
-        const resolvedTargets = typeof targets === 'function' ? targets() : 
-                              targets && typeof targets === 'object' && 'current' in targets ? targets.current : 
-                              targets;
-        
-        // Skip if no valid targets
-        if (!resolvedTargets) return;
-        
-        // Apply construction effect presets if specified
-        let finalFromVars = { ...(fromVars || {}) };
-        let finalToVars = { ...toVars };
-        
-        if (constructionEffect) {
-          switch (constructionEffect) {
-            case 'draw':
-              finalFromVars = { 
-                drawSVG: "0%", 
-                opacity: 0,
-                ...finalFromVars 
-              };
-              finalToVars = { 
-                drawSVG: "100%", 
-                opacity: 1, 
-                duration: finalToVars.duration || 1.5,
-                ease: finalToVars.ease || "power2.inOut",
-                ...finalToVars 
-              };
-              break;
-            case 'build':
-              finalFromVars = { 
-                scale: 0.8, 
-                opacity: 0, 
-                y: 50,
-                ...finalFromVars 
-              };
-              finalToVars = { 
-                scale: 1, 
-                opacity: 1, 
-                y: 0, 
-                duration: finalToVars.duration || 1.2,
-                ease: finalToVars.ease || "expo.out",
-                ...finalToVars 
-              };
-              break;
-            case 'reveal':
-              finalFromVars = { 
-                clipPath: "inset(0% 0% 100% 0%)", 
-                y: 50,
-                ...finalFromVars 
-              };
-              finalToVars = { 
-                clipPath: "inset(0% 0% 0% 0%)", 
-                y: 0, 
-                duration: finalToVars.duration || 1.3,
-                ease: finalToVars.ease || "power3.out",
-                ...finalToVars 
-              };
-              break;
-            case 'type':
-              // For text elements - simulates typing effect
-              finalFromVars = { 
-                width: "0%", 
-                ...finalFromVars 
-              };
-              finalToVars = { 
-                width: "100%", 
-                duration: finalToVars.duration || 2,
-                ease: finalToVars.ease || "steps(30)",
-                ...finalToVars 
-              };
-              break;
-            case 'fade':
-              finalFromVars = { 
-                opacity: 0, 
-                y: 30,
-                ...finalFromVars 
-              };
-              finalToVars = { 
-                opacity: 1, 
-                y: 0, 
-                duration: finalToVars.duration || 1,
-                ease: finalToVars.ease || "power2.out",
-                ...finalToVars 
-              };
-              break;
-          }
-        }
 
-        // Create animation
+        const {
+          targets,
+          fromVars,
+          toVars,
+          scrollTrigger,
+          stagger,
+          delay,
+          timeline,
+          constructionEffect,
+        } = animation;
+
+        const resolvedTargets = resolveTarget(targets);
+        if (!resolvedTargets) return;
+
+        // Merge construction-effect presets with user vars
+        const { from: finalFrom, to: finalTo } = applyConstructionPreset(
+          constructionEffect,
+          { ...(fromVars || {}) },
+          { ...toVars }
+        );
+
+        // Build ScrollTrigger config (if any)
+        const stConfig = scrollTrigger
+          ? resolveScrollTrigger(scrollTrigger, container)
+          : undefined;
+
+        // Shared tween vars
+        const sharedVars: gsap.TweenVars = {
+          ...finalTo,
+          stagger,
+          delay: delay || 0,
+        };
+
         if (timeline) {
+          // ── Timeline path ──
           const tl = gsap.timeline({
-            scrollTrigger: scrollTrigger ? {
-              trigger: (() => {
-                const trigger = scrollTrigger.trigger;
-                if (typeof trigger === 'function') return trigger();
-                if (typeof trigger === 'string') return trigger;
-                if (typeof trigger === 'object' && trigger && 'current' in trigger) return trigger.current;
-                return trigger || container;
-              })(),
-              start: scrollTrigger.start || "top 80%",
-              end: scrollTrigger.end || "bottom 20%",
-              scrub: scrollTrigger.scrub !== undefined ? scrollTrigger.scrub : false,
-              markers: scrollTrigger.markers || false,
-              pin: scrollTrigger.pin || false,
-              pinSpacing: scrollTrigger.pinSpacing !== undefined ? scrollTrigger.pinSpacing : true,
-              toggleActions: scrollTrigger.toggleActions || "play none none none",
-              onEnter: scrollTrigger.onEnter,
-              onLeave: scrollTrigger.onLeave,
-              onEnterBack: scrollTrigger.onEnterBack,
-              onLeaveBack: scrollTrigger.onLeaveBack,
-            } : undefined
+            scrollTrigger: stConfig,
           });
 
           if (fromVars) {
-            tl.fromTo(resolvedTargets, finalFromVars, {
-              ...finalToVars,
-              stagger: stagger,
-              delay: delay || 0,
-            });
+            tl.fromTo(resolvedTargets, finalFrom, sharedVars);
           } else {
-            tl.to(resolvedTargets, {
-              ...finalToVars,
-              stagger: stagger,
-              delay: delay || 0,
-            });
+            tl.to(resolvedTargets, sharedVars);
           }
         } else {
+          // ── Direct tween path ──
+          const tweenVars: gsap.TweenVars = {
+            ...sharedVars,
+            scrollTrigger: stConfig,
+          };
+
           if (fromVars) {
-            gsap.fromTo(resolvedTargets, finalFromVars, {
-              ...finalToVars,
-              stagger: stagger,
-              delay: delay || 0,
-              scrollTrigger: scrollTrigger ? {
-                trigger: (() => {
-                  const trigger = scrollTrigger.trigger;
-                  if (typeof trigger === 'function') return trigger();
-                  if (typeof trigger === 'string') return trigger;
-                  if (typeof trigger === 'object' && trigger && 'current' in trigger) return trigger.current;
-                  return trigger || container;
-                })(),
-                start: scrollTrigger.start || "top 80%",
-                end: scrollTrigger.end || "bottom 20%",
-                scrub: scrollTrigger.scrub !== undefined ? scrollTrigger.scrub : false,
-                markers: scrollTrigger.markers || false,
-                pin: scrollTrigger.pin || false,
-                pinSpacing: scrollTrigger.pinSpacing !== undefined ? scrollTrigger.pinSpacing : true,
-                toggleActions: scrollTrigger.toggleActions || "play none none none",
-                onEnter: scrollTrigger.onEnter,
-                onLeave: scrollTrigger.onLeave,
-                onEnterBack: scrollTrigger.onEnterBack,
-                onLeaveBack: scrollTrigger.onLeaveBack,
-              } : undefined
-            });
+            gsap.fromTo(resolvedTargets, finalFrom, tweenVars);
           } else {
-            gsap.to(resolvedTargets, {
-              ...finalToVars,
-              stagger: stagger,
-              delay: delay || 0,
-              scrollTrigger: scrollTrigger ? {
-                trigger: (() => {
-                  const trigger = scrollTrigger.trigger;
-                  if (typeof trigger === 'function') return trigger();
-                  if (typeof trigger === 'string') return trigger;
-                  if (typeof trigger === 'object' && trigger && 'current' in trigger) return trigger.current;
-                  return trigger || container;
-                })(),
-                start: scrollTrigger.start || "top 80%",
-                end: scrollTrigger.end || "bottom 20%",
-                scrub: scrollTrigger.scrub !== undefined ? scrollTrigger.scrub : false,
-                markers: scrollTrigger.markers || false,
-                pin: scrollTrigger.pin || false,
-                pinSpacing: scrollTrigger.pinSpacing !== undefined ? scrollTrigger.pinSpacing : true,
-                toggleActions: scrollTrigger.toggleActions || "play none none none",
-                onEnter: scrollTrigger.onEnter,
-                onLeave: scrollTrigger.onLeave,
-                onEnterBack: scrollTrigger.onEnterBack,
-                onLeaveBack: scrollTrigger.onLeaveBack,
-              } : undefined
-            });
+            gsap.to(resolvedTargets, tweenVars);
           }
         }
       });
-    }, containerRef);
+    }, containerRef); // scope to container — all selectors resolve inside it
 
-    animationsRef.current = ctx;
+    ctxRef.current = ctx;
 
-    // Cleanup function
+    // Cleanup: revert() kills all tweens + ScrollTriggers created in this context
     return () => {
-      if (animationsRef.current) {
-        animationsRef.current.revert(); // This properly cleans up all GSAP animations
-      }
+      ctxRef.current?.revert();
+      ctxRef.current = null;
     };
   }, [containerRef, ...dependencies]);
 
   return {
     refresh: () => {
-      gsap.utils.toArray("ScrollTrigger").forEach((trigger: any) => {
-        trigger.refresh();
+      import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
+        ScrollTrigger.refresh();
       });
-    }
+    },
   };
 };
 
 /**
- * Utility for creating text splitting animations
+ * Utility for creating text splitting animations.
+ * Waits for document.fonts.ready to prevent layout shifts from FOUT.
  */
 export const useSplitText = (
   containerRef: React.RefObject<HTMLElement>,
@@ -272,53 +234,62 @@ export const useSplitText = (
     linesClass?: string;
     charsClass?: string;
     wordsClass?: string;
+    autoSplit?: boolean;
   } = {}
 ) => {
-  const splitTextRef = useRef<any>(null);
+  const splitTextRef = useRef<any[]>([]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Import SplitText dynamically to avoid SSR issues
-    const importSplitText = async () => {
+    let cancelled = false;
+
+    const init = async () => {
+      // ── Gate: wait for fonts to load to prevent layout shifts ──
       try {
-        // Check if SplitText is already available globally
-        const SplitText = (window as any).SplitText || (gsap as any).SplitText;
-        
-        if (SplitText) {
-          const elements = container.querySelectorAll(selector);
-          if (elements.length === 0) return;
-
-          const splits = Array.from(elements).map(element => {
-            return new SplitText(element, {
-              type: options.type || "chars,words,lines",
-              linesClass: options.linesClass || "split-line",
-              charsClass: options.charsClass || "split-char",
-              wordsClass: options.wordsClass || "split-word",
-            });
-          });
-
-          splitTextRef.current = splits;
-        } else {
-          console.warn('SplitText plugin not found. Make sure it is loaded.');
-        }
-      } catch (error) {
-        console.error('Error initializing SplitText:', error);
+        await document.fonts.ready;
+      } catch {
+        // fonts.ready not supported — proceed anyway
       }
+
+      if (cancelled) return;
+
+      const SplitText =
+        (window as any).SplitText || (gsap as any).SplitText;
+
+      if (!SplitText) {
+        console.warn('SplitText plugin not found. Make sure it is loaded.');
+        return;
+      }
+
+      const elements = container.querySelectorAll(selector);
+      if (elements.length === 0) return;
+
+      const splits = Array.from(elements).map((element) =>
+        new SplitText(element, {
+          type: options.type || 'chars,words,lines',
+          linesClass: options.linesClass || 'split-line',
+          charsClass: options.charsClass || 'split-char',
+          wordsClass: options.wordsClass || 'split-word',
+          ...(options.autoSplit !== false ? { autoSplit: true } : {}),
+        })
+      );
+
+      splitTextRef.current = splits;
     };
 
-    void importSplitText();
+    void init();
 
     return () => {
-      // Cleanup split text
-      if (splitTextRef.current) {
-        splitTextRef.current.forEach((split: any) => {
-          if (split && typeof split.revert === 'function') {
-            split.revert();
-          }
-        });
-      }
+      cancelled = true;
+      // Revert all split instances to restore original DOM
+      splitTextRef.current.forEach((split) => {
+        if (split && typeof split.revert === 'function') {
+          split.revert();
+        }
+      });
+      splitTextRef.current = [];
     };
   }, [containerRef, selector]);
 

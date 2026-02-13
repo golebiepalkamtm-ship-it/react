@@ -13,6 +13,9 @@ import { execSync } from 'child_process';
 // Initialize auth system
 initializeAuth();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Run migrations in production
 if (validatedEnv.NODE_ENV === 'production' && validatedEnv.PRISMA_MIGRATE_DEPLOY === 'true') {
   try {
@@ -24,9 +27,6 @@ if (validatedEnv.NODE_ENV === 'production' && validatedEnv.PRISMA_MIGRATE_DEPLOY
     process.exit(1);
   }
 }
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const server = createServer(app);
 const io = initSocket(server, allowedOrigins());

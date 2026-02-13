@@ -1,13 +1,20 @@
 /**
  * ============================================================================
- * MAGNETIC CURSOR - Premium Micro-Interactions
+ * MAGNETIC CURSOR - Premium Micro-Interactions (v2 — quickTo)
  * ============================================================================
  * 
  * Efekt magnetycznego kursora z physics-based motion.
  * Elementy "przyciągają" kursor tworząc subtelną interakcję.
+ *
+ * OPTIMIZATIONS:
+ * - gsap.quickTo() replaces gsap.to() per mousemove — eliminates tween
+ *   allocation overhead for 120 FPS mouse tracking.
+ * - will-change: transform applied during hover only (saves compositing
+ *   memory when idle).
+ * - Cleanup properly removes will-change to release GPU layers.
  */
 
-import { useRef, useEffect, ReactNode, useCallback } from 'react';
+import React, { useRef, useEffect, ReactNode, useCallback } from 'react';
 import { gsap } from '@/lib/gsapConfig';
 
 interface MagneticElementProps {
@@ -15,7 +22,7 @@ interface MagneticElementProps {
   className?: string;
   strength?: number;
   ease?: number;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   onHover?: () => void;
   onLeave?: () => void;
 }
@@ -31,58 +38,69 @@ export const MagneticElement = ({
 }: MagneticElementProps) => {
   const elementRef = useRef<HTMLElement>(null);
   const boundingRef = useRef<DOMRect | null>(null);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!elementRef.current || !boundingRef.current) return;
-
-    const { clientX, clientY } = e;
-    const { left, top, width, height } = boundingRef.current;
-    
-    const centerX = left + width / 2;
-    const centerY = top + height / 2;
-    
-    const deltaX = (clientX - centerX) * strength;
-    const deltaY = (clientY - centerY) * strength;
-
-    gsap.to(elementRef.current, {
-      x: deltaX,
-      y: deltaY,
-      duration: ease,
-      ease: 'power3.out',
-    });
-  }, [strength, ease]);
-
-  const handleMouseEnter = useCallback(() => {
-    if (!elementRef.current) return;
-    boundingRef.current = elementRef.current.getBoundingClientRect();
-    onHover?.();
-    
-    gsap.to(elementRef.current, {
-      scale: 1.05,
-      duration: 0.3,
-      ease: 'power2.out',
-    });
-  }, [onHover]);
-
-  const handleMouseLeave = useCallback(() => {
-    if (!elementRef.current) return;
-    boundingRef.current = null;
-    onLeave?.();
-
-    gsap.to(elementRef.current, {
-      x: 0,
-      y: 0,
-      scale: 1,
-      duration: 0.5,
-      ease: 'elastic.out(1, 0.3)',
-    });
-  }, [onLeave]);
+  // quickTo setters — created once, reused every frame
+  const quickXRef = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
+  const quickYRef = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return;
 
-    element.style.willChange = 'transform';
+    // Create quickTo setters — these bypass tween allocation entirely
+    // easing at expo.out with 0.3s duration for buttery 120 FPS tracking
+    quickXRef.current = gsap.quickTo(element, 'x', {
+      duration: 0.4,
+      ease: 'expo.out',
+    });
+    quickYRef.current = gsap.quickTo(element, 'y', {
+      duration: 0.4,
+      ease: 'expo.out',
+    });
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!boundingRef.current || !quickXRef.current || !quickYRef.current) return;
+
+      const { left, top, width, height } = boundingRef.current;
+      const centerX = left + width / 2;
+      const centerY = top + height / 2;
+
+      const deltaX = (e.clientX - centerX) * strength;
+      const deltaY = (e.clientY - centerY) * strength;
+
+      // quickTo() updates the existing tween target — zero allocation
+      quickXRef.current(deltaX);
+      quickYRef.current(deltaY);
+    };
+
+    const handleMouseEnter = () => {
+      boundingRef.current = element.getBoundingClientRect();
+      // Apply will-change only during active interaction (saves GPU memory)
+      element.style.willChange = 'transform';
+      onHover?.();
+
+      gsap.to(element, {
+        scale: 1.05,
+        duration: 0.3,
+        ease: 'power2.out',
+      });
+    };
+
+    const handleMouseLeave = () => {
+      boundingRef.current = null;
+      onLeave?.();
+
+      gsap.to(element, {
+        x: 0,
+        y: 0,
+        scale: 1,
+        duration: 0.5,
+        ease: 'elastic.out(1, 0.3)',
+        onComplete: () => {
+          // Release GPU compositing layer when idle
+          if (element) element.style.willChange = '';
+        },
+      });
+    };
 
     element.addEventListener('mouseenter', handleMouseEnter);
     element.addEventListener('mouseleave', handleMouseLeave);
@@ -93,8 +111,11 @@ export const MagneticElement = ({
       element.removeEventListener('mouseenter', handleMouseEnter);
       element.removeEventListener('mouseleave', handleMouseLeave);
       element.removeEventListener('mousemove', handleMouseMove);
+      // Null out quickTo refs
+      quickXRef.current = null;
+      quickYRef.current = null;
     };
-  }, [handleMouseEnter, handleMouseLeave, handleMouseMove]);
+  }, [strength, ease, onHover, onLeave]);
 
   const ElementComponent = Component as any;
   
@@ -128,33 +149,19 @@ export const CursorFollower = ({
     const cursorDot = cursorDotRef.current;
     if (!cursor || !cursorDot) return;
 
-    let mouseX = 0;
-    let mouseY = 0;
-    let cursorX = 0;
-    let cursorY = 0;
+    // quickTo for the outer ring — much more efficient than gsap.set per frame
+    const quickCursorX = gsap.quickTo(cursor, 'x', { duration: 0.6, ease: 'expo.out' });
+    const quickCursorY = gsap.quickTo(cursor, 'y', { duration: 0.6, ease: 'expo.out' });
+
+    // quickTo for the inner dot
+    const quickDotX = gsap.quickTo(cursorDot, 'x', { duration: 0.1, ease: 'power2.out' });
+    const quickDotY = gsap.quickTo(cursorDot, 'y', { duration: 0.1, ease: 'power2.out' });
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      
-      gsap.to(cursorDot, {
-        x: mouseX,
-        y: mouseY,
-        duration: 0.1,
-        ease: 'power2.out',
-      });
-    };
-
-    const animate = () => {
-      cursorX += (mouseX - cursorX) * 0.08;
-      cursorY += (mouseY - cursorY) * 0.08;
-      
-      gsap.set(cursor, {
-        x: cursorX - size / 2,
-        y: cursorY - size / 2,
-      });
-
-      requestAnimationFrame(animate);
+      quickDotX(e.clientX);
+      quickDotY(e.clientY);
+      quickCursorX(e.clientX - size / 2);
+      quickCursorY(e.clientY - size / 2);
     };
 
     const handleMouseEnter = () => {
@@ -174,8 +181,6 @@ export const CursorFollower = ({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseenter', handleMouseEnter);
     document.addEventListener('mouseleave', handleMouseLeave);
-    
-    const animationId = requestAnimationFrame(animate);
 
     const hoverElements = document.querySelectorAll('a, button, [data-magnetic]');
     
@@ -204,7 +209,6 @@ export const CursorFollower = ({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseenter', handleMouseEnter);
       document.removeEventListener('mouseleave', handleMouseLeave);
-      cancelAnimationFrame(animationId);
       
       hoverElements.forEach((el) => {
         el.removeEventListener('mouseenter', handleHoverEnter);

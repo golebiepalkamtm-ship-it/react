@@ -22,7 +22,7 @@ export {
 export { useGsapScroll, useGsapTimeline, gsapUtils } from '../../hooks/useGsapScroll';
 
 // Living Web Animation System
-export { SmoothScrollProvider, useLenis } from './SmoothScrollProvider';
+export { SmoothScrollProvider, useLenis, useLenisContext } from './SmoothScrollProvider';
 export { SplitText } from './SplitText';
 export { LottieScroll } from './LottieScroll';
 export { ParallaxSection, ParallaxLayer } from './ParallaxSection';
