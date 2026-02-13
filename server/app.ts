@@ -204,29 +204,59 @@ app.use('/api/proxy', proxyRoutes);
 app.post('/api/test-csrf', testCSRFEndpoint);
 app.get('/api/test-csrf', testCSRFEndpoint);
 
+
+const getLocalDataPath = (filename: string): string => {
+  const possiblePaths = [
+    path.join(process.cwd(), 'server/data', filename),
+    path.join(process.cwd(), 'data', filename),
+    path.join(__dirname, 'data', filename),
+    path.join(__dirname, '../data', filename)
+  ];
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+  // Default fallback for error message
+  return possiblePaths[0];
+};
+
 app.get('/api/breeder-meetings', async (req: Request, res: Response) => {
   try {
-    const meetingsPath = path.join(process.cwd(), 'server/data/meetings.json');
+    const meetingsPath = getLocalDataPath('meetings.json');
+    
+    if (!fs.existsSync(meetingsPath)) {
+      console.error(`Meetings data file not found. Checked: ${meetingsPath} and alternatives.`);
+      return res.status(500).json({ error: 'Meetings data file not found' });
+    }
+
     const meetingsData = await fs.promises.readFile(meetingsPath, 'utf-8');
     const meetings = JSON.parse(meetingsData);
     res.json(meetings.meetings);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error reading meetings data:', error);
-    res.status(500).json({ error: 'Failed to load meetings data' });
+    res.status(500).json({ error: `Failed to load meetings data: ${error.message}` });
   }
 });
 
 app.get('/api/references', async (req: Request, res: Response) => {
   try {
-    const referencesPath = path.join(process.cwd(), 'server/data/references.json');
+    const referencesPath = getLocalDataPath('references.json');
+    
+    if (!fs.existsSync(referencesPath)) {
+      console.error(`References data file not found. Checked: ${referencesPath} and alternatives.`);
+      return res.status(500).json({ error: 'References data file not found' });
+    }
+
     const referencesData = await fs.promises.readFile(referencesPath, 'utf-8');
     const references = JSON.parse(referencesData);
     // Many versions of references.json use different structures, normalize to array
     const data = Array.isArray(references) ? references : (references.references || []);
     res.json(data);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error reading references data:', error);
-    res.status(500).json({ error: 'Failed to load references data' });
+    res.status(500).json({ error: `Failed to load references data: ${error.message}` });
   }
 });
 
