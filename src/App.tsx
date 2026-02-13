@@ -86,7 +86,7 @@ const BackgroundWrapper = () => {
           right: 0,
           bottom: 0,
           zIndex: -100,
-          background: 'linear-gradient(to bottom, #A8A19F 0%, #F4F3E3 100%)',
+          background: 'linear-gradient(to bottom, #867F7D 0%, #D6D5C2 100%)',
           pointerEvents: 'none'
         }}
       />
