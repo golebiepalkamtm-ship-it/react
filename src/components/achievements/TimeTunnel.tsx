@@ -596,7 +596,7 @@ const TimeTunnel = () => {
             transition={{ duration: 0.6, delay: 2 }}
           >
             <span className="text-xs tracking-[0.3em] uppercase text-yellow-400 font-extrabold drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]">
-              Scroll
+              PRZEWIŃ
             </span>
             <div className="w-[2px] h-16 relative overflow-hidden bg-yellow-900/30 rounded-full">
               <motion.div
