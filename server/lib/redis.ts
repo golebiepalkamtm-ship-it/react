@@ -24,7 +24,16 @@ const createRedisClient = () => {
 
   const client = createClient({
     url,
-    socket,
+    socket: {
+      ...socket,
+      reconnectStrategy: (retries) => {
+        if (retries > 20) {
+          logger.error('Redis connection retry exhausted. Giving up.');
+          return new Error('Redis connection retry exhausted');
+        }
+        return Math.min(retries * 100, 3000);
+      }
+    },
     username: validatedEnv.REDIS_USERNAME,
     password: validatedEnv.REDIS_PASSWORD || undefined
   });
