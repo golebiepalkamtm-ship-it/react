@@ -103,12 +103,16 @@
   background: linear-gradient(135deg, rgba(11, 19, 40, 0.95), rgba(6, 8, 15, 0.98));
   border: 1px solid rgba(216, 168, 56, 0.15);
   border-radius: 0.5rem;
+  /* Static base shadow - cheap to render once */
   box-shadow: var(--shadow-champion);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  transform: translateZ(0); /* Promote to layer */
+  will-change: transform;
 }
 
+/* Top border gradient line */
 .champion-card::before {
   content: '';
   position: absolute;
@@ -118,12 +122,34 @@
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--champion-gold), transparent);
   opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+/* Hover Shadow Layer */
+.champion-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--shadow-elite);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  pointer-events: none;
 }
 
 .champion-card:hover {
-  border-color: rgba(216, 168, 56, 0.3);
-  box-shadow: var(--shadow-elite);
-  transform: translateY(-2px);
+  /* Removed border-color change to avoid repaint - effect handled by opacity or ignored if minor */
+  /* border-color: rgba(216, 168, 56, 0.3); */
+  transform: translateY(-2px) translateZ(0);
+}
+
+.champion-card:hover::after {
+  opacity: 1;
+}
+
+.champion-card:hover::before {
+  opacity: 0.8; /* Intensify top line on hover */
 }
 
 /* Premium Button System */

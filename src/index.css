@@ -757,9 +757,46 @@
   background-blend-mode: overlay;
 }
 
-.glass-card:hover {
-  @apply border-white/20;
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px; /* border width */
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent); 
+  -webkit-mask: 
+     linear-gradient(#fff 0 0) content-box, 
+     linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   box-shadow: 0 0 40px rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glass-card:hover {
+  /* Removed border-white/20 apply to avoid border repaint if possible, relying on pseudo-element */
+  /* @apply border-white/20; */ 
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+.glass-card:hover::after {
+  opacity: 1;
 }
 
 .glass-vault {
@@ -770,7 +807,7 @@
 }
 
 .premium-card {
-  @apply glass-card border-gold/20 hover:border-gold/40 shadow-gold/5 transition-all duration-700;
+  @apply glass-card border-gold/20 shadow-gold/5 transition-all duration-700;
   background-image: linear-gradient(
     to bottom right,
     #020611,
@@ -780,6 +817,12 @@
   background-blend-mode: normal;
   position: relative;
   overflow: hidden;
+  transform: translateZ(0);
+}
+
+.premium-card:hover {
+  /* Removed direct border change */
+  /* hover:border-gold/40 removed from @apply */
 }
 
 /* Radial glow effect following mouse */
@@ -792,6 +835,7 @@
     transparent 50%
   );
   z-index: 1;
+  will-change: opacity;
 }
 
 .premium-card:hover::after {
