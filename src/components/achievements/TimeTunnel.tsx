@@ -542,13 +542,11 @@ const TimeTunnel = () => {
                   opacity: 0, 
                   y: 80, 
                   rotateX: 90,
-                  filter: "blur(8px)",
                 }}
                 animate={isLoaded ? { 
                   opacity: 1, 
                   y: 0, 
                   rotateX: 0,
-                  filter: "blur(0px)",
                 } : {}}
                 transition={{
                   duration: 0.8,

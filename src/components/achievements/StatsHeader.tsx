@@ -182,8 +182,8 @@ const AnimatedCounter = ({ value, delay }: { value: number; delay: number }) => 
     <motion.span
       ref={displayRef}
       className="text-2xl md:text-3xl font-bold text-foreground tabular-nums"
-      initial={{ opacity: 0, scale: 0.5, filter: "blur(4px)" }}
-      animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{
         duration: 0.6,
         delay,
