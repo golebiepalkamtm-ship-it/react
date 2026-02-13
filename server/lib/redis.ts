@@ -25,6 +25,7 @@ const createRedisClient = () => {
   const client = createClient({
     url,
     socket,
+    username: validatedEnv.REDIS_USERNAME,
     password: validatedEnv.REDIS_PASSWORD || undefined
   });
 

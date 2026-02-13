@@ -59,6 +59,7 @@ const envSchema = z.object({
   REDIS_HOST: z.string().optional(),
   REDIS_PORT: z.string().regex(/^\d+$/, 'REDIS_PORT must be a number').transform(Number).pipe(z.number().min(1).max(65535)).optional(),
   REDIS_PASSWORD: z.string().optional(),
+  REDIS_USERNAME: z.string().optional().default('default'),
 });
 
 export const loadConfig = () => {
