@@ -106,40 +106,43 @@ function fileToDataUrl(file: File): Promise<string> {
 export const referenceService = {
   async getReferences(): Promise<Reference[]> {
     const local = readLocalReferences();
+    let remote: Reference[] = [];
 
     if (supabase) {
       try {
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from('references')
           .select('*')
           .order('created_at', { ascending: false });
 
-        // Fallback for legacy column naming
-        if (error) {
-          const retry = await supabase
-            .from('references')
-            .select('*')
-            .order('createdAt', { ascending: false });
-          data = retry.data;
-          error = retry.error;
-        }
-
         if (!error && Array.isArray(data)) {
-          const remote = data.map(normalizeReference);
-          const merged = [...local, ...remote];
-          const seen = new Set<string>();
-          const deduped = merged.filter(ref => (seen.has(ref.id) ? false : (seen.add(ref.id), true)));
-          deduped.sort(
-            (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime(),
-          );
-          return deduped;
+          remote = data.map(normalizeReference);
+        } else if (error) {
+          console.warn('Supabase references fetch error:', error.message);
+          try {
+            const resp = await fetch('/api/references');
+            if (resp.ok) {
+              const d = await resp.json();
+              if (Array.isArray(d)) remote = d.map(normalizeReference);
+            }
+          } catch (e) {
+            console.error('Internal references API fallback failed:', e);
+          }
         }
-      } catch {
-        // fallback below
+      } catch (err) {
+        console.error('Supabase fetch failed:', err);
       }
+    } else {
+      try {
+        const resp = await fetch('/api/references');
+        if (resp.ok) {
+          const d = await resp.json();
+          if (Array.isArray(d)) remote = d.map(normalizeReference);
+        }
+      } catch (e) { /* ignore */ }
     }
 
-    const merged = [...local];
+    const merged = [...local, ...remote];
     const seen = new Set<string>();
     const deduped = merged.filter(ref => (seen.has(ref.id) ? false : (seen.add(ref.id), true)));
     deduped.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());

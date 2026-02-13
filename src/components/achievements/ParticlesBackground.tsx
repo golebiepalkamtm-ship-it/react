@@ -8,11 +8,13 @@
  */
 
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useState } from "react";
 
 const ParticlesBackground = () => {
-  const particles = useMemo(() => {
-    return Array.from({ length: 80 }, (_, i) => ({
+  // Use state with initializer to ensure purity during render
+  // and maintain stable values across re-renders.
+  const [particles] = useState(() => 
+    Array.from({ length: 200 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -20,19 +22,20 @@ const ParticlesBackground = () => {
       duration: Math.random() * 20 + 10,
       delay: Math.random() * 5,
       opacity: Math.random() * 0.5 + 0.3,
-    }));
-  }, []);
+      randomX: Math.random() * 100 - 50,
+    }))
+  );
 
-  const stars = useMemo(() => {
-    return Array.from({ length: 100 }, (_, i) => ({
+  const [stars] = useState(() => 
+    Array.from({ length: 250 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: Math.random() * 2 + 0.5,
       twinkle: Math.random() * 3 + 1,
       delay: Math.random() * 3,
-    }));
-  }, []);
+    }))
+  );
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden -z-5">
@@ -75,7 +78,7 @@ const ParticlesBackground = () => {
           }}
           animate={{
             y: [0, -200, 0],
-            x: [0, Math.random() * 100 - 50, 0],
+            x: [0, p.randomX, 0],
             opacity: [0, p.opacity, 0],
             scale: [0, 1, 0],
           }}

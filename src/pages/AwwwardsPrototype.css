@@ -3,12 +3,9 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
-  cursor: none;
 }
 
-.awwwards-prototype * {
-  cursor: none !important;
-}
+
 
 /* ===== CUSTOM CURSOR ===== */
 .custom-cursor {

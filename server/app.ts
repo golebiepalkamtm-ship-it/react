@@ -197,13 +197,27 @@ app.get('/api/test-csrf', testCSRFEndpoint);
 
 app.get('/api/breeder-meetings', async (req: Request, res: Response) => {
   try {
-    const meetingsPath = path.join(__dirname, 'data/meetings.json');
+    const meetingsPath = path.join(process.cwd(), 'server/data/meetings.json');
     const meetingsData = await fs.promises.readFile(meetingsPath, 'utf-8');
     const meetings = JSON.parse(meetingsData);
     res.json(meetings.meetings);
   } catch (error) {
     console.error('Error reading meetings data:', error);
     res.status(500).json({ error: 'Failed to load meetings data' });
+  }
+});
+
+app.get('/api/references', async (req: Request, res: Response) => {
+  try {
+    const referencesPath = path.join(process.cwd(), 'server/data/references.json');
+    const referencesData = await fs.promises.readFile(referencesPath, 'utf-8');
+    const references = JSON.parse(referencesData);
+    // Many versions of references.json use different structures, normalize to array
+    const data = Array.isArray(references) ? references : (references.references || []);
+    res.json(data);
+  } catch (error) {
+    console.error('Error reading references data:', error);
+    res.status(500).json({ error: 'Failed to load references data' });
   }
 });
 

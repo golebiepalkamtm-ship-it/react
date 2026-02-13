@@ -1054,11 +1054,7 @@
   left: 0;
 }
 
-/* Hide default cursor globally on homepage */
-.home-page,
-.home-page * {
-  cursor: none !important;
-}
+/* Cursor hidden by USER request removed */
 
 /* Smooth Video Container */
 .premium-video-bg {
@@ -1902,10 +1898,7 @@
    PREMIUM AWWWARDS EFFECTS
    ======================================== */
 
-.home-page,
-.home-page * {
-  cursor: none !important;
-}
+/* Cursor hidden by USER request removed */
 
 .custom-cursor-main {
   width: 10px;
@@ -1993,13 +1986,16 @@
   backdrop-filter: blur(40px) saturate(1.5);
   -webkit-backdrop-filter: blur(40px) saturate(1.5);
   border: 1px solid hsl(var(--glass-border) / 0.4); /* Stronger border */
-  box-shadow: 
+  box-shadow:
     0 0 0 1px hsl(var(--foreground) / 0.1),
     0 20px 60px -15px hsl(var(--tunnel-depth) / 0.8),
-    0 0 calc(40px * var(--glow-intensity, 0)) hsl(var(--glow-primary) / calc(0.4 * var(--glow-intensity, 0))),
+    0 0 calc(40px * var(--glow-intensity, 0))
+      hsl(var(--glow-primary) / calc(0.4 * var(--glow-intensity, 0))),
     inset 0 1px 0 0 hsl(255 100% 100% / 0.1); /* White inset highlight */
   --glow-intensity: 0;
-  transition: box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.6s ease;
+  transition:
+    box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.6s ease;
 }
 
 .glass-card:hover {
@@ -2007,7 +2003,7 @@
 }
 
 .glass-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -2025,7 +2021,7 @@
 }
 
 .glass-card::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 10%;
@@ -2064,7 +2060,7 @@
 
 /* Year Ghost Typography */
 .year-ghost {
-  font-family: 'Orbitron', monospace;
+  font-family: "Orbitron", monospace;
   background: linear-gradient(
     180deg,
     hsl(var(--year-ghost) / 0.12) 0%,
@@ -2098,13 +2094,13 @@
 
 /* Glow Effects */
 .glow-primary {
-  box-shadow: 
+  box-shadow:
     0 0 20px hsl(var(--glow-primary) / 0.3),
     0 0 60px hsl(var(--glow-primary) / 0.1);
 }
 
 .glow-text {
-  text-shadow: 
+  text-shadow:
     0 0 20px hsl(var(--glow-primary) / 0.4),
     0 0 60px hsl(var(--glow-primary) / 0.15),
     0 0 100px hsl(var(--glow-primary) / 0.05);
@@ -2117,14 +2113,14 @@
     hsl(var(--glow-primary)) 0%,
     hsl(var(--glow-secondary)) 100%
   );
-  box-shadow: 
+  box-shadow:
     0 0 20px hsl(var(--glow-primary) / 0.5),
     0 0 40px hsl(var(--glow-primary) / 0.2);
 }
 
 /* Aurora Background */
 .bg-tunnel {
-  background: 
+  background:
     radial-gradient(
       ellipse 80% 60% at 50% 0%,
       hsl(var(--aurora-1) / 0.04) 0%,
@@ -2156,7 +2152,7 @@
 
 /* Grid Overlay */
 .grid-overlay {
-  background-image: 
+  background-image:
     linear-gradient(hsl(var(--primary) / 0.02) 1px, transparent 1px),
     linear-gradient(90deg, hsl(var(--primary) / 0.02) 1px, transparent 1px);
   background-size: 100px 100px;
@@ -2164,17 +2160,29 @@
 
 /* Medal Badges */
 .medal-gold {
-  background: linear-gradient(135deg, hsl(var(--medal-gold)) 0%, hsl(35 80% 45%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--medal-gold)) 0%,
+    hsl(35 80% 45%) 100%
+  );
   box-shadow: 0 0 15px hsl(var(--medal-gold) / 0.4);
 }
 
 .medal-silver {
-  background: linear-gradient(135deg, hsl(var(--medal-silver)) 0%, hsl(220 5% 60%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--medal-silver)) 0%,
+    hsl(220 5% 60%) 100%
+  );
   box-shadow: 0 0 15px hsl(var(--medal-silver) / 0.3);
 }
 
 .medal-bronze {
-  background: linear-gradient(135deg, hsl(var(--medal-bronze)) 0%, hsl(20 60% 35%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--medal-bronze)) 0%,
+    hsl(20 60% 35%) 100%
+  );
   box-shadow: 0 0 15px hsl(var(--medal-bronze) / 0.3);
 }
 
