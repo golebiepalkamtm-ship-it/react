@@ -124,6 +124,7 @@ const App = () => {
                         duration={0.9}
                         primaryColor="#0a0a0f"
                         accentColor="#B8860B"
+                        useRouteStyles={false}
                       >
                         <Suspense fallback={<LoadingSpinner />}>
                           <Routes>
