@@ -435,7 +435,7 @@ const TimeTunnel = () => {
         <div
           className="absolute w-[600px] h-[600px] rounded-full opacity-30"
           style={{
-            background: 'radial-gradient(circle, hsl(45 30% 60% / 0.4) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, hsl(45 38% 47% / 0.4) 0%, transparent 70%)',
             filter: 'blur(80px)',
             top: '10%', left: '10%',
           }}
@@ -443,7 +443,7 @@ const TimeTunnel = () => {
         <div
           className="absolute w-[500px] h-[500px] rounded-full opacity-25"
           style={{
-            background: 'radial-gradient(circle, hsl(45 30% 60% / 0.3) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, hsl(45 38% 47% / 0.3) 0%, transparent 70%)',
             filter: 'blur(100px)',
             top: '40%', right: '5%',
           }}
@@ -451,7 +451,7 @@ const TimeTunnel = () => {
         <div
           className="absolute w-[350px] h-[350px] rounded-full opacity-35"
           style={{
-            background: 'radial-gradient(circle, hsl(45 30% 60% / 0.5) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, hsl(45 38% 47% / 0.5) 0%, transparent 70%)',
             filter: 'blur(60px)',
             bottom: '20%', left: '20%',
           }}

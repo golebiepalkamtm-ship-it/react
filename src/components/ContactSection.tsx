@@ -329,7 +329,7 @@ const StyledContactCard = ({ info, index }: { info: ContactInfoItem; index: numb
         <div className="mb-4 text-gold">
           <info.icon className="w-8 h-8" />
         </div>
-        <h4 className="font-bold text-lg text-foreground">{info.label}</h4>
+        <h3 className="font-bold text-lg text-foreground">{info.label}</h3>
         <p className="text-foreground/80 text-sm mt-1">{info.value}</p>
         <p className="text-foreground/60 text-xs mt-2 flex-grow">{info.detail}</p>
       </div>

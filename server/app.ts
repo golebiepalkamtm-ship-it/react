@@ -3,6 +3,7 @@ import type { Request as CoreRequest, RequestHandler as CoreRequestHandler } fro
 import { HealthController } from './controllers/HealthController.js';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { 
   globalLimiter, 
@@ -105,6 +106,7 @@ const corsOptions = {
 };
 
 app.use(helmet());
+app.use(compression());
 app.use(cspMiddleware);
 
 // Explicit preflight handler for health so tests get 200 (and CORS headers when allowed)
@@ -137,10 +139,17 @@ app.set('trust proxy', 1); // Fix X-Forwarded-For warning
 app.use(globalLimiter);
 
 app.use(express.static(path.join(__dirname, '../public'), {
-  setHeaders: (res, path) => {
+  maxAge: '1y', // Cache static assets for 1 year
+  setHeaders: (res, filePath) => {
     // No-cache for sourcemaps in production
-    if (validatedEnv.NODE_ENV === 'production' && path.endsWith('.map')) {
+    if (validatedEnv.NODE_ENV === 'production' && filePath.endsWith('.map')) {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    } else if (filePath.endsWith('.html')) {
+        // HTML files should verify with server
+        res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    } else {
+        // Other static assets (images, fonts, scripts) get long cache
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
   }
 }));

@@ -72,7 +72,7 @@ const ParticlesBackground = () => {
             top: `${p.y}%`,
             width: p.size,
             height: p.size,
-            background: '#fbbf24',
+            background: '#A68E4E',
           }}
           animate={{
             y: [0, -300, 0],
@@ -92,14 +92,14 @@ const ParticlesBackground = () => {
       <div
         className="absolute top-[10%] left-[15%] w-[500px] h-[500px] rounded-full opacity-20"
         style={{
-          background: 'radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(166, 142, 78, 0.1) 0%, transparent 70%)',
           filter: 'blur(60px)',
         }}
       />
       <div
         className="absolute bottom-[20%] right-[10%] w-[600px] h-[600px] rounded-full opacity-10"
         style={{
-          background: 'radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(166, 142, 78, 0.05) 0%, transparent 70%)',
           filter: 'blur(80px)',
         }}
       />

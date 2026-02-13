@@ -4,7 +4,7 @@
  * Properly integrated without conflicts
  */
 
-import React, { useRef, useEffect, memo, useState } from 'react';
+import { lazy, Suspense, useRef, useEffect, memo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
@@ -12,11 +12,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Trophy, Zap, Award, ChevronDown, Star, type LucideIcon } from 'lucide-react';
 import Header from '@/components/Header';
 import { Carousel3D } from '@/components/gallery/Carousel3D';
-import AboutSection from '@/components/AboutSection';
-import PressSection from '@/components/PressSection';
-import PressScrollEffect from '@/components/PressScrollEffect';
-import ContactSection from '@/components/ContactSection';
-import Footer from '@/components/Footer';
+
+const AboutSection = lazy(() => import('@/components/AboutSection'));
+const PressSection = lazy(() => import('@/components/PressSection'));
+const ContactSection = lazy(() => import('@/components/ContactSection'));
+const Footer = lazy(() => import('@/components/Footer'));
 import { PressService } from '@/services/pressService';
 import type { PressArticle } from '@/services/pressService';
 
@@ -388,11 +388,19 @@ export const HomePage = () => {
         </section>
         
         <FeaturesSection />
-        <AboutSection />
-        <PressSection />
+        <Suspense fallback={<div className="h-64 bg-zinc-900" />}>
+          <AboutSection />
+        </Suspense>
+        <Suspense fallback={<div className="h-64 bg-zinc-900" />}>
+          <PressSection />
+        </Suspense>
         <CTASection />
-        <ContactSection />
-        <Footer />
+        <Suspense fallback={<div className="h-64 bg-zinc-900" />}>
+          <ContactSection />
+        </Suspense>
+        <Suspense fallback={<div className="h-24 bg-zinc-900" />}>
+          <Footer />
+        </Suspense>
       </main>
     </div>
   );
