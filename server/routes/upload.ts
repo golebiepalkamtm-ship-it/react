@@ -28,7 +28,7 @@ const imageFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilter
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Dozwolone formaty: JPEG, PNG, WebP, GIF'));
+    cb(new Error('Ups! Ten format nie przejdzie. Wrzuć zwykłe zdjęcie (JPG, PNG) i będzie dobrze.'));
   }
 };
 
@@ -37,7 +37,7 @@ const documentFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFil
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Dozwolone formaty: PDF, JPEG, PNG, WebP'));
+    cb(new Error('Tego typu pliku nie otworzymy. Przyjmujemy tylko PDF-y i zdjęcia.'));
   }
 };
 
@@ -46,7 +46,7 @@ const videoFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilter
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Dozwolone formaty: MP4, WebM, MOV'));
+    cb(new Error('Ten filmik nie zadziała. Spróbuj wrzucić MP4.'));
   }
 };
 
@@ -86,7 +86,7 @@ const uploadToS3 = async (
   key: string,
   contentType: string
 ): Promise<string> => {
-  const bucket = validatedEnv.SUPABASE_BUCKET || 'uploads';
+  const bucket: string = validatedEnv.SUPABASE_BUCKET || 'auction-media';
 
   await s3Client.send(
     new PutObjectCommand({
@@ -116,18 +116,27 @@ router.post(
       if (!userId) return res.status(401).json({ error: 'Brak autoryzacji.' });
 
       const file = req.file;
-      if (!file) return res.status(400).json({ error: 'Nie przesłano pliku.' });
+      if (!file) return res.status(400).json({ error: 'Hej, zapomniałeś dodać plik! Wybierz coś z dysku i spróbuj ponownie.' });
 
       const filePath = generateFilePath(userId, 'images', file.originalname);
       const url = await uploadToS3(file.buffer, filePath, file.mimetype);
 
       res.json({ url, path: filePath });
     } catch (error: any) {
-      console.error('Image upload error:', error);
-      if (error.message?.includes('Dozwolone formaty')) {
+      console.error('Image upload error:', {
+        message: error.message,
+        code: error.code,
+        bucket: validatedEnv.SUPABASE_BUCKET || 'auction-media',
+        stack: error.stack,
+        details: error.$metadata
+      });
+      if (error.message?.includes('nie przejdzie') || error.message?.includes('nie zadziała') || error.message?.includes('nie otworzymy')) {
         return res.status(400).json({ error: error.message });
       }
-      res.status(500).json({ error: 'Wystąpił błąd podczas przesyłania obrazu.' });
+      res.status(500).json({ 
+        error: 'Coś poszło nie tak przy wrzucaniu zdjęcia. Spróbuj jeszcze raz za chwilę.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      });
     }
   }
 );
@@ -142,10 +151,10 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: 'Brak autoryzacji.' });
+      if (!userId) return res.status(401).json({ error: 'Najpierw musisz się zalogować, żeby to zrobić.' });
 
       const file = req.file;
-      if (!file) return res.status(400).json({ error: 'Nie przesłano pliku.' });
+      if (!file) return res.status(400).json({ error: 'Hej, zapomniałeś o pliku! Wybierz dokument i spróbuj ponownie.' });
 
       const filePath = generateFilePath(userId, 'documents', file.originalname);
       const url = await uploadToS3(file.buffer, filePath, file.mimetype);
@@ -153,10 +162,10 @@ router.post(
       res.json({ url, path: filePath });
     } catch (error: any) {
       console.error('Document upload error:', error);
-      if (error.message?.includes('Dozwolone formaty')) {
+      if (error.message?.includes('nie otworzymy')) {
         return res.status(400).json({ error: error.message });
       }
-      res.status(500).json({ error: 'Wystąpił błąd podczas przesyłania dokumentu.' });
+      res.status(500).json({ error: 'Mamy mały problem z przesłaniem tego dokumentu. Spróbuj później.' });
     }
   }
 );
@@ -171,10 +180,10 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: 'Brak autoryzacji.' });
+      if (!userId) return res.status(401).json({ error: 'Zaloguj się, żeby wrzucić wideo.' });
 
       const file = req.file;
-      if (!file) return res.status(400).json({ error: 'Nie przesłano pliku.' });
+      if (!file) return res.status(400).json({ error: 'Nie wybrałeś żadnego filmu. Spróbuj jeszcze raz.' });
 
       const filePath = generateFilePath(userId, 'videos', file.originalname);
       const url = await uploadToS3(file.buffer, filePath, file.mimetype);
@@ -182,10 +191,10 @@ router.post(
       res.json({ url, path: filePath });
     } catch (error: any) {
       console.error('Video upload error:', error);
-      if (error.message?.includes('Dozwolone formaty')) {
+      if (error.message?.includes('nie zadziała')) {
         return res.status(400).json({ error: error.message });
       }
-      res.status(500).json({ error: 'Wystąpił błąd podczas przesyłania wideo.' });
+      res.status(500).json({ error: 'Coś nie pykło przy wysyłaniu filmu. Daj nam chwilę i spróbuj ponownie.' });
     }
   }
 );

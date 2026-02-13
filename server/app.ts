@@ -205,6 +205,8 @@ app.post('/api/test-csrf', testCSRFEndpoint);
 app.get('/api/test-csrf', testCSRFEndpoint);
 
 
+import { prisma } from './lib/db.js';
+
 const getLocalDataPath = (filename: string): string => {
   const possiblePaths = [
     path.join(process.cwd(), 'server/data', filename),
@@ -222,31 +224,108 @@ const getLocalDataPath = (filename: string): string => {
   return possiblePaths[0];
 };
 
+// API: Breeder Meetings (Get All)
 app.get('/api/breeder-meetings', async (req: Request, res: Response) => {
   try {
+    // 1. Try DB
+    if (prisma) {
+      try {
+        const dbMeetings = await prisma.meeting.findMany({
+          orderBy: { createdAt: 'desc' }
+        });
+        if (dbMeetings.length > 0) {
+           return res.json(dbMeetings);
+        }
+      } catch (dbErr) {
+        console.warn('DB fetch for meetings failed, falling back into file', dbErr);
+      }
+    }
+
+    // 2. Fallback to File
     const meetingsPath = getLocalDataPath('meetings.json');
-    
     if (!fs.existsSync(meetingsPath)) {
-      console.error(`Meetings data file not found. Checked: ${meetingsPath} and alternatives.`);
-      return res.status(500).json({ error: 'Meetings data file not found' });
+      // If no DB and no File, return empty array instead of 500
+      return res.json([]);
     }
 
     const meetingsData = await fs.promises.readFile(meetingsPath, 'utf-8');
     const meetings = JSON.parse(meetingsData);
-    res.json(meetings.meetings);
+    res.json(meetings.meetings || []);
   } catch (error: any) {
     console.error('Error reading meetings data:', error);
     res.status(500).json({ error: `Failed to load meetings data: ${error.message}` });
   }
 });
 
+// API: Breeder Meetings (Add New)
+app.post('/api/breeder-meetings', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!prisma) {
+      return res.status(503).json({ error: 'Baza danych jest tymczasowo niedostępna. Spróbuj ponownie później.' });
+    }
+
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Musisz być zalogowany, aby dodać spotkanie.' });
+    }
+
+    const { name, location, date, description, images } = req.body;
+
+    // Basic validation
+    if (!name || !location) {
+      return res.status(400).json({ error: 'Nazwa i lokalizacja są wymagane.' });
+    }
+
+    const newMeeting = await prisma.meeting.create({
+      data: {
+        name,
+        location,
+        date: date ? new Date(date) : undefined,
+        description,
+        images: images || [],
+        authorId: userId
+      }
+    });
+
+    res.json(newMeeting);
+  } catch (error: any) {
+    console.error('Error adding breeder meeting:', error);
+    // Check for common Prisma errors
+    if (error?.code === 'P2021') {
+      // Table does not exist
+      return res.status(503).json({ error: 'Tabela spotkań nie istnieje w bazie danych. Skontaktuj się z administratorem.' });
+    }
+    if (error?.code === 'P2003') {
+      // Foreign key constraint failed
+      return res.status(400).json({ error: 'Nie znaleziono użytkownika w bazie danych.' });
+    }
+    res.status(500).json({ error: 'Nie udało się dodać spotkania. Spróbuj ponownie później.' });
+  }
+});
+
+// API: References (Get All)
 app.get('/api/references', async (req: Request, res: Response) => {
   try {
+    // 1. Try DB
+    if (prisma) {
+      try {
+        const dbReferences = await prisma.reference.findMany({
+          where: { isApproved: true }, // Filter only approved by default
+          orderBy: { createdAt: 'desc' }
+        });
+        if (dbReferences.length > 0) {
+           return res.json(dbReferences);
+        }
+      } catch (dbErr) {
+        console.warn('DB fetch for references failed, falling back into file', dbErr);
+      }
+    }
+
+    // 2. Fallback to File
     const referencesPath = getLocalDataPath('references.json');
     
     if (!fs.existsSync(referencesPath)) {
-      console.error(`References data file not found. Checked: ${referencesPath} and alternatives.`);
-      return res.status(500).json({ error: 'References data file not found' });
+       return res.json([]);
     }
 
     const referencesData = await fs.promises.readFile(referencesPath, 'utf-8');

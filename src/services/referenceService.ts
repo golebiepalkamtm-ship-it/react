@@ -45,6 +45,7 @@ function normalizeReference(input: any): Reference {
     ? input.images.filter((value: unknown) => typeof value === 'string' && value.length > 0)
     : [];
 
+  // Handle both camelCase and snake_case from DB responses
   const createdAt =
     typeof input?.createdAt === 'string'
       ? input.createdAt
@@ -52,9 +53,30 @@ function normalizeReference(input: any): Reference {
         ? input.created_at
         : new Date().toISOString();
 
+  const breederName =
+    typeof input?.breederName === 'string'
+      ? input.breederName
+      : typeof input?.breeder_name === 'string'
+        ? input.breeder_name
+        : '';
+
+  const pigeonName =
+    typeof input?.pigeonName === 'string'
+      ? input.pigeonName
+      : typeof input?.pigeon_name === 'string'
+        ? input.pigeon_name
+        : undefined;
+
+  const isApproved =
+    typeof input?.isApproved === 'boolean'
+      ? input.isApproved
+      : typeof input?.is_approved === 'boolean'
+        ? input.is_approved
+        : true;
+
   return {
     id: typeof input?.id === 'string' && input.id.length > 0 ? input.id : makeId(),
-    breederName: typeof input?.breederName === 'string' ? input.breederName : '',
+    breederName,
     location: typeof input?.location === 'string' ? input.location : '',
     rating: typeof input?.rating === 'number' ? input.rating : Number(input?.rating ?? 5) || 5,
     opinion,
@@ -65,9 +87,9 @@ function normalizeReference(input: any): Reference {
         : input?.achievements
           ? JSON.stringify(input.achievements)
           : undefined,
-    pigeonName: typeof input?.pigeonName === 'string' ? input.pigeonName : undefined,
+    pigeonName,
     images,
-    isApproved: typeof input?.isApproved === 'boolean' ? input.isApproved : true,
+    isApproved,
     createdAt,
   };
 }
@@ -184,21 +206,21 @@ export const referenceService = {
 
     if (supabase) {
       try {
+        // Use snake_case column names matching the actual DB schema (Prisma @map)
         const { data, error } = await supabase
           .from('references')
           .insert([
             {
               id: created.id,
-              breederName: created.breederName,
+              breeder_name: created.breederName,
               location: created.location,
               experience: created.experience,
               opinion: created.opinion,
               rating: created.rating,
               achievements: created.achievements,
-              pigeonName: created.pigeonName,
+              pigeon_name: created.pigeonName,
               images: created.images ?? [],
-              isApproved: created.isApproved ?? true,
-              createdAt: created.createdAt,
+              is_approved: created.isApproved ?? true,
             },
           ])
           .select()

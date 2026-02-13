@@ -32,7 +32,8 @@ const STATIC_CLIENT_ORIGINS = [
 const SUPABASE_ORIGINS = [
   parseOrigin(validatedEnv.SUPABASE_URL),
   'https://*.supabase.co',
-  'https://*.supabase.in'
+  'https://*.supabase.in',
+  'https://nctvwxiqzbedgcmetyal.storage.supabase.co'
 ].filter(Boolean) as string[];
 
 const STRIPE_ORIGINS = [

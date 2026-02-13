@@ -120,11 +120,14 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
   };
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
-      style={{ y, opacity: cardOpacity }}
       className="timeline-card-wrapper relative mb-32 md:mb-44"
     >
+      <motion.div
+        style={{ y, opacity: cardOpacity }}
+        className="w-full"
+      >
       <div className={`flex items-center gap-8 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
         
         {/* ==========================================
@@ -507,6 +510,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
         </div>
       </div>
     </motion.div>
+  </div>
   );
 };
 
