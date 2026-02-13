@@ -65,7 +65,7 @@ const ScrollToTopOnRouteChange = () => {
     if (state.scrollTo) return;
 
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname]);
+  }, [location.pathname, location.state]);
 
   return null;
 };
@@ -122,8 +122,8 @@ const App = () => {
                       <GSAPPageTransition
                         defaultStyle="reveal"
                         duration={0.9}
-                        primaryColor="#D4AF37"
-                        accentColor="#D4AF37"
+                        primaryColor="#C5A059"
+                        accentColor="#C5A059"
                         useRouteStyles={false}
                       >
                         <Suspense fallback={<LoadingSpinner />}>
