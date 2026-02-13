@@ -123,7 +123,7 @@ const App = () => {
                         defaultStyle="reveal"
                         duration={0.9}
                         primaryColor="#D4AF37"
-                        accentColor="#B3A07E"
+                        accentColor="#D4AF37"
                         useRouteStyles={false}
                       >
                         <Suspense fallback={<LoadingSpinner />}>

@@ -88,15 +88,15 @@
     --color-input: hsl(var(--input));
     --color-ring: hsl(var(--ring));
 
-    --gold: 45 30% 60%;
-    /* Refined Champagne Gold */
-    --gold-light: 45 40% 75%;
-    --gold-dark: 45 25% 45%;
+    --gold: 45 63% 53%;
+    /* Refined Champagne Gold - Cleaner & Brighter */
+    --gold-light: 45 70% 70%;
+    --gold-dark: 45 50% 40%;
 
     /* EtheReal overrides -> visual tokens */
-    --glow-gold: 0 0 60px hsl(45 30% 60% / 0.3);
-    --glow-soft: 0 0 100px hsl(45 30% 60% / 0.15);
-    --gradient-gold: linear-gradient(135deg, hsl(45 30% 60%), hsl(45 40% 75%));
+    --glow-gold: 0 0 60px hsl(45 63% 53% / 0.4);
+    --glow-soft: 0 0 100px hsl(45 63% 53% / 0.2);
+    --gradient-gold: linear-gradient(135deg, hsl(45 63% 53%), hsl(45 70% 70%));
 
     /* Timeline Colors */
     --timeline-gold: 45 30% 60%;
