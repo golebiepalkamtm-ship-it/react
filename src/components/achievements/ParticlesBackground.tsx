@@ -14,13 +14,13 @@ const ParticlesBackground = () => {
   // Use state with initializer to ensure purity during render
   // and maintain stable values across re-renders.
   
-  // DUST PARTICLES - Increased to 600 for a "heavy" atmosphere
+  // DUST PARTICLES - Massive amount, larger size
   const [particles] = useState(() => 
     Array.from({ length: 600 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 2.5 + 0.5, // Smaller particles as requested
+      size: Math.random() * 6 + 2, // Larger particles
       duration: Math.random() * 15 + 8,
       delay: Math.random() * 10,
       opacity: Math.random() * 0.4 + 0.2,
@@ -28,13 +28,13 @@ const ParticlesBackground = () => {
     }))
   );
 
-  // STARS - Increased to 800 for a very dense field
+  // STARS - Dense field, larger stars
   const [stars] = useState(() => 
     Array.from({ length: 800 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 1.5 + 0.3,
+      size: Math.random() * 4 + 1, // Larger stars
       twinkle: Math.random() * 4 + 1,
       delay: Math.random() * 5,
     }))
