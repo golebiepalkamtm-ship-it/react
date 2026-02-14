@@ -294,8 +294,7 @@ app.post(
     try {
       if (!prisma) {
         return res.status(503).json({
-          error:
-            "Baza danych jest tymczasowo niedostępna. Spróbuj ponownie później.",
+          error: "Baza danych jest niedostępna.",
         });
       }
 
@@ -303,25 +302,38 @@ app.post(
       if (!userId) {
         return res
           .status(401)
-          .json({ error: "Musisz być zalogowany, aby dodać spotkanie." });
+          .json({ error: "Brak autoryzacji (brak ID użytkownika)." });
       }
 
       const { name, location, date, description, images } = req.body;
 
-      // Basic validation
       if (!name || !location) {
         return res
           .status(400)
           .json({ error: "Nazwa i lokalizacja są wymagane." });
       }
 
-      // Validate date to prevent invalid format errors
-      let parsedDate: Date | undefined;
+      let parsedDate: Date | null = null;
       if (date) {
         parsedDate = new Date(date);
         if (isNaN(parsedDate.getTime())) {
           return res.status(400).json({ error: "Nieprawidłowy format daty." });
         }
+      }
+
+      // Check if user exists in our DB first (Supabase Auth != Prisma User automatically)
+      const userExists = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+      if (!userExists) {
+        console.error(
+          `User ${userId} not found in database for meeting creation.`,
+        );
+        return res.status(403).json({
+          error:
+            "Twój profil nie został jeszcze zsynchronizowany z bazą danych. Spróbuj się przelogować.",
+          details: "User record missing in 'users' table.",
+        });
       }
 
       const newMeeting = await prisma.meeting.create({
@@ -330,36 +342,27 @@ app.post(
           location,
           date: parsedDate,
           description,
-          images: images || [],
+          images: Array.isArray(images) ? images : [],
           authorId: userId,
         },
       });
 
-      res.json(newMeeting);
+      res.status(201).json(newMeeting);
     } catch (error: any) {
-      console.error("❌ CRITICAL: Error adding breeder meeting:", error);
-      if (error instanceof Error) {
-        console.error("Stack trace:", error.stack);
-      }
+      console.error("❌ Error adding breeder meeting:", error);
 
-      // Check for common Prisma errors
-      if (error?.code === "P2021") {
-        return res.status(503).json({
-          error: "Tabela spotkań nie istnieje w bazie danych.",
-          code: error.code,
-        });
-      }
-      if (error?.code === "P2003") {
-        return res.status(400).json({
-          error: "Nie znaleziono powiązanego użytkownika w bazie danych.",
-          code: error.code,
-        });
-      }
+      // Detailed error for client
+      const details = error?.message || "Unknown error";
+      const code = error?.code || "NO_CODE";
 
       res.status(500).json({
-        error: "Nie udało się dodać spotkania. Błąd serwera.",
-        details: error instanceof Error ? error.message : String(error),
-        code: error?.code,
+        error: "Nie udało się dodać spotkania.",
+        details,
+        code,
+        suggestion:
+          code === "P2021"
+            ? "Table 'meetings' missing - run migrations."
+            : undefined,
       });
     }
   },

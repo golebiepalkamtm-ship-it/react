@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef, memo } from "react";
 import type { CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Gavel, Heart, Clock, TrendingUp } from "lucide-react";
+import { Gavel, Heart, Clock, TrendingUp, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   motion,
@@ -99,6 +99,7 @@ export const UnifiedAuctionCard = ({
   imageFit = "cover",
   highlight = false,
   nowMs,
+  viewsCount = 0,
 }: UnifiedAuctionCardProps) => {
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
@@ -134,11 +135,11 @@ export const UnifiedAuctionCard = ({
     damping: 30,
   });
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [-15, 15]), {
     stiffness: 400,
     damping: 30,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [15, -15]), {
     stiffness: 400,
     damping: 30,
   });
@@ -308,7 +309,7 @@ export const UnifiedAuctionCard = ({
         backgroundImage: cardStyles.gradient,
         backgroundColor: cardStyles.base,
         borderColor: cardStyles.border,
-        borderWidth: "4px",
+        borderWidth: "7px",
         boxShadow: cardStyles.glow,
       }}
       whileHover={{}}
@@ -393,12 +394,20 @@ export const UnifiedAuctionCard = ({
 
         {/* Content section */}
         <div
-          className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-transparent backdrop-blur-2xl"
+          className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-transparent backdrop-blur-2xl relative overflow-hidden"
           style={{
             backgroundImage: CONTENT_BACKGROUND,
             backgroundBlendMode: "normal",
           }}
         >
+          {/* Views Counter - Top Right */}
+          <div className="absolute right-4 top-4 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm z-10 transition-all hover:bg-white/10 group/views">
+            <Eye className="w-3.5 h-3.5 text-white/50 group-hover/views:text-gold transition-colors" />
+            <span className="text-[11px] font-medium text-white/60 tracking-tight">
+              {viewsCount.toLocaleString()}
+            </span>
+          </div>
+
           {/* Gold guide line under photo */}
           <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
 
