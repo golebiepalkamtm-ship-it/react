@@ -229,7 +229,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!editingUser || !session?.access_token) return;
     try {
-      await apiClient.put(
+      await apiClient.patch(
         `/admin/users/${editingUser.id}`,
         editingUser,
         session.access_token,

@@ -309,11 +309,9 @@ router.post(
       // Validate Action Enum
       const validActions = ["end", "delete", "cancel"];
       if (!validActions.includes(action)) {
-        return res
-          .status(400)
-          .json({
-            error: `Invalid action. Must be one of: ${validActions.join(", ")}`,
-          });
+        return res.status(400).json({
+          error: `Invalid action. Must be one of: ${validActions.join(", ")}`,
+        });
       }
 
       if (action === "end") {
@@ -352,21 +350,66 @@ router.patch(
 
       const validation = UserUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res
-          .status(400)
-          .json({
-            error: "Invalid user data",
-            details: validation.error.errors,
-          });
+        return res.status(400).json({
+          error: "Nieprawidłowe dane użytkownika",
+          details: validation.error.errors,
+        });
       }
 
-      const updated = await userService.updateUser(id, validation.data);
+      const { password, ...prismaData } = req.body; // Take password separately
 
-      await logAdminAction(req, "UPDATE_USER", "USER", id, validation.data);
+      // 1. If password provided, update in Supabase Auth
+      if (password && password.length >= 6) {
+        if (!supabaseAdmin) {
+          console.warn(
+            "Supabase Admin client not initialized, skipping password update",
+          );
+        } else {
+          try {
+            const { error: authError } =
+              await supabaseAdmin.auth.admin.updateUserById(id, {
+                password: password,
+              });
+            if (authError) throw authError;
+            console.log(`✅ Password updated for user ${id}`);
+          } catch (authErr: any) {
+            console.error("Error updating password in Supabase:", authErr);
+            return res
+              .status(400)
+              .json({ error: `Błąd podczas zmiany hasła: ${authErr.message}` });
+          }
+        }
+      }
 
-      res.json(updated);
+      // 2. Update in Prisma
+      try {
+        const validatedPrismaData = UserUpdateSchema.parse(prismaData);
+        const updated = await userService.updateUser(id, validatedPrismaData);
+        await logAdminAction(
+          req,
+          "UPDATE_USER",
+          "USER",
+          id,
+          validatedPrismaData,
+        );
+        res.json(updated);
+      } catch (dbError: any) {
+        console.error("DB Update Error:", dbError);
+        // Handle unique constraint violations
+        if (dbError.code === "P2002") {
+          const field = dbError.meta?.target?.[0] || "pole";
+          return res.status(409).json({
+            error: `Użytkownik z takimi danymi już istnieje (${field}).`,
+            field,
+          });
+        }
+        throw dbError;
+      }
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      console.error("Admin PATCH User Error:", error);
+      res.status(500).json({
+        error: error.message || "Wystąpił nieoczekiwany błąd serwera",
+      });
     }
   },
 );
@@ -405,12 +448,10 @@ router.patch(
 
       const validation = AuctionUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res
-          .status(400)
-          .json({
-            error: "Invalid auction data",
-            details: validation.error.errors,
-          });
+        return res.status(400).json({
+          error: "Invalid auction data",
+          details: validation.error.errors,
+        });
       }
 
       const {
@@ -493,16 +534,23 @@ router.post(
 
       const validation = UserCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res
-          .status(400)
-          .json({
-            error: "Validation Error",
-            details: validation.error.errors,
-          });
+        return res.status(400).json({
+          error: "Validation Error",
+          details: validation.error.errors,
+        });
       }
 
-      const { email, password, first_name, last_name, role, phone, username } =
-        validation.data;
+      const {
+        email,
+        password,
+        first_name,
+        last_name,
+        role,
+        phone,
+        username,
+        isBlocked,
+        isBanned,
+      } = validation.data;
 
       // Saga / Compensation Logic
       let authUser: any = null;
@@ -541,6 +589,8 @@ router.post(
             phone,
             name: `${first_name || ""} ${last_name || ""}`.trim(),
             username,
+            isBlocked: !!isBlocked,
+            isBanned: !!isBanned,
           },
           create: {
             id: authUser.id,
@@ -552,6 +602,8 @@ router.post(
             trustScore: 0,
             name: `${first_name || ""} ${last_name || ""}`.trim(),
             username,
+            isBlocked: !!validation.data.isBlocked,
+            isBanned: !!validation.data.isBanned,
           },
         });
 
@@ -565,6 +617,26 @@ router.post(
           "Prisma Create User Error. Compensating by deleting Supabase user...",
           dbError,
         );
+
+        // Handle unique constraint violations
+        if (dbError.code === "P2002") {
+          const field = dbError.meta?.target?.[0] || "pole";
+          // Try to compensate anyway to be clean
+          try {
+            await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+          } catch (e) {
+            console.warn(
+              "Supabase compensation delete failed during duplicate check",
+              e,
+            );
+          }
+
+          return res.status(409).json({
+            error: `Użytkownik z takimi danymi już istnieje (${field}).`,
+            field,
+          });
+        }
+
         // Compensation: Delete the user from Supabase to maintain consistency
         try {
           await supabaseAdmin.auth.admin.deleteUser(authUser.id);
@@ -575,16 +647,17 @@ router.post(
             authUser.id,
             compError,
           );
-          // In a real system, we might push this to a dead-letter queue
         }
 
-        return res
-          .status(500)
-          .json({ error: "Database creation failed, rolled back auth user." });
+        return res.status(500).json({
+          error: "Błąd bazy danych podczas tworzenia profilu użytkownika.",
+        });
       }
     } catch (error: any) {
       console.error("Create User Error:", error);
-      res.status(500).json({ error: error.message });
+      res
+        .status(500)
+        .json({ error: error.message || "Błąd podczas tworzenia użytkownika" });
     }
   },
 );
@@ -602,12 +675,10 @@ router.post(
 
       const validation = AuctionCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res
-          .status(400)
-          .json({
-            error: "Validation Error",
-            details: validation.error.errors,
-          });
+        return res.status(400).json({
+          error: "Validation Error",
+          details: validation.error.errors,
+        });
       }
 
       const {

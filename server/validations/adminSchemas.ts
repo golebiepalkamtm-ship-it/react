@@ -1,7 +1,11 @@
+import { z } from "zod";
 
-import { z } from 'zod';
-
-export const UserRoleSchema = z.enum(['USER_REGISTERED', 'USER_EMAIL_VERIFIED', 'USER_FULL_VERIFIED', 'ADMIN']);
+export const UserRoleSchema = z.enum([
+  "USER_REGISTERED",
+  "USER_EMAIL_VERIFIED",
+  "USER_FULL_VERIFIED",
+  "ADMIN",
+]);
 
 export const UserUpdateSchema = z.object({
   email: z.string().email().optional(),
@@ -13,9 +17,15 @@ export const UserUpdateSchema = z.object({
   username: z.string().min(1).optional(),
 });
 
-export const AuctionStatusSchema = z.enum(['ACTIVE', 'ENDED', 'CANCELLED']);
-export const AuctionCategorySchema = z.enum(['RACING', 'BREEDING', 'SHOW', 'SUPPLEMENTS', 'ACCESSORIES']);
-export const SexSchema = z.enum(['MALE', 'FEMALE']);
+export const AuctionStatusSchema = z.enum(["ACTIVE", "ENDED", "CANCELLED"]);
+export const AuctionCategorySchema = z.enum([
+  "RACING",
+  "BREEDING",
+  "SHOW",
+  "SUPPLEMENTS",
+  "ACCESSORIES",
+]);
+export const SexSchema = z.enum(["MALE", "FEMALE"]);
 
 export const AuctionCreateSchema = z.object({
   title: z.string().min(1),
@@ -24,9 +34,12 @@ export const AuctionCreateSchema = z.object({
   buyNowPrice: z.number().nonnegative().optional(),
   reservePrice: z.number().nonnegative().optional(),
   status: AuctionStatusSchema.optional(),
-  endTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid date format",
-  }).optional(),
+  endTime: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid date format",
+    })
+    .optional(),
   sellerId: z.string().uuid().optional(),
   category: AuctionCategorySchema.optional(),
   sex: SexSchema.optional(),
@@ -40,9 +53,12 @@ export const AuctionUpdateSchema = z.object({
   buyNowPrice: z.number().nonnegative().optional(),
   reservePrice: z.number().nonnegative().optional(),
   status: AuctionStatusSchema.optional(),
-  endTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Invalid date format",
-  }).optional(),
+  endTime: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid date format",
+    })
+    .optional(),
 });
 
 export const UserCreateSchema = z.object({
@@ -53,6 +69,8 @@ export const UserCreateSchema = z.object({
   role: UserRoleSchema.optional(),
   phone: z.string().optional(),
   username: z.string().min(1),
+  isBlocked: z.boolean().optional(),
+  isBanned: z.boolean().optional(),
 });
 
 export const UserRoleUpdateBodySchema = z.object({

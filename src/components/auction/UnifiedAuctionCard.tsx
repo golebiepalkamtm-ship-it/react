@@ -382,7 +382,7 @@ export const UnifiedAuctionCard = ({
         </div>
 
         {/* Content section */}
-        <div className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-transparent backdrop-blur-sm">
+        <div className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-gradient-to-b from-[#003d4d] via-[#006070] to-[#008ba0]">
           {/* Gold guide line under photo */}
           <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
 
