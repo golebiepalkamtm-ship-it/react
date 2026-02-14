@@ -7,6 +7,319 @@ datasource db {
   provider = "postgresql"
 }
 
+model SavedSearch {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  filters   Json
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("saved_searches")
+}
+
+model User {
+  username        String         @unique
+  id              String         @id @db.Uuid
+  email           String?        @unique
+  phone           String?
+  name            String?
+  first_name      String?
+  last_name       String?
+  street          String?
+  postal_code     String?
+  city            String?
+  country         String?
+  isBlocked       Boolean        @default(false) @map("is_blocked")
+  isBanned        Boolean        @default(false) @map("is_banned")
+  blockedUntil    DateTime?      @map("blocked_until")
+  bannedUntil     DateTime?      @map("banned_until")
+  trustScore      Decimal        @default(0.00) @map("trust_score") @db.Decimal(3, 2)
+  avatarUrl       String?        @map("avatar_url")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  role            UserRole       @default(USER_REGISTERED)
+  auctions        Auction[]      @relation("SellerAuctions")
+  wonAuctions     Auction[]      @relation("WinnerAuctions")
+  auditLogs       AuditLog[]     @relation("UserAuditLogs")
+  bids            Bid[]
+  meetings        Meeting[]
+  notifications   Notification[]
+  payments        Payment[]
+  reviewsReceived Review[]       @relation("RevieweeReviews")
+  reviewsGiven    Review[]       @relation("ReviewerReviews")
+  savedSearches   SavedSearch[]
+  watchlist       Watchlist[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  action     String
+  actorId    String   @map("actor_id") @db.Uuid
+  targetId   String?  @map("target_id") @db.Uuid
+  targetType String   @map("target_type")
+  details    Json?
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+  actor      User     @relation("UserAuditLogs", fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Auction {
+  id                    String            @id @default(uuid()) @db.Uuid
+  title                 String
+  description           String?
+  startingPrice         Decimal?          @map("starting_price") @db.Decimal(12, 2)
+  currentPrice          Decimal           @map("current_price") @db.Decimal(12, 2)
+  buyNowPrice           Decimal?          @map("buy_now_price") @db.Decimal(12, 2)
+  reservePrice          Decimal?          @map("reserve_price") @db.Decimal(12, 2)
+  endTime               DateTime?         @map("ends_at") @db.Timestamptz(6)
+  startsAt              DateTime?         @map("starts_at")
+  snipeThresholdMinutes Int               @default(5) @map("snipe_threshold_minutes")
+  snipeExtensionMinutes Int               @default(5) @map("snipe_extension_minutes")
+  minBidIncrement       Int               @default(100) @map("min_bid_increment")
+  status                AuctionStatus     @default(ACTIVE)
+  reserveMet            Boolean           @default(false) @map("reserve_met")
+  version               Int               @default(1)
+  category              AuctionCategory   @default(RACING)
+  gender                Sex               @default(MALE) @map("sex")
+  location              String?
+  age                   Int?
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+  winnerId              String?           @map("winner_id") @db.Uuid
+  sellerId              String?           @map("owner_id") @db.Uuid
+  documents             AuctionDocument[]
+  images                AuctionImage[]
+  videos                AuctionVideo[]
+  seller                User?             @relation("SellerAuctions", fields: [sellerId], references: [id])
+  winner                User?             @relation("WinnerAuctions", fields: [winnerId], references: [id])
+  bids                  Bid[]
+  notifications         Notification[]
+  payments              Payment[]
+  pigeon                PigeonProfile?
+  reviews               Review[]
+  watchlist             Watchlist[]
+
+  @@index([status])
+  @@index([endTime])
+  @@index([category])
+  @@index([sellerId])
+  @@index([winnerId])
+  @@index([status, endTime])
+  @@index([category, status])
+  @@index([sellerId, status])
+  @@map("auctions")
+}
+
+model PigeonProfile {
+  id            String   @id @default(uuid()) @db.Uuid
+  auctionId     String   @unique @map("auction_id") @db.Uuid
+  eyeColor      String?  @map("eye_color")
+  featherColor  String?  @map("feather_color")
+  construction  String?
+  vitality      String?
+  length        String?
+  endurance     String?
+  forkStrength  String?  @map("fork_strength")
+  forkAlignment String?  @map("fork_alignment")
+  muscles       String?
+  balance       String?
+  back          String?
+  purpose       String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  ringNumber    String   @map("ring_number")
+  gender        Sex      @default(MALE)
+  auction       Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@map("pigeon_profiles")
+}
+
+model AuctionImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  auctionId String   @map("auction_id") @db.Uuid
+  url       String
+  ordering  Int?
+  createdAt DateTime @default(now()) @map("created_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+  @@map("auction_images")
+}
+
+model AuctionVideo {
+  id        String   @id @default(uuid()) @db.Uuid
+  auctionId String   @map("auction_id") @db.Uuid
+  url       String
+  createdAt DateTime @default(now()) @map("created_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+  @@map("auction_videos")
+}
+
+model AuctionDocument {
+  id        String   @id @default(uuid()) @db.Uuid
+  auctionId String   @map("auction_id") @db.Uuid
+  url       String
+  createdAt DateTime @default(now()) @map("created_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+  @@map("auction_documents")
+}
+
+model Bid {
+  id          String   @id @default(uuid()) @db.Uuid
+  auctionId   String   @map("auction_id") @db.Uuid
+  bidderId    String?  @map("bidder_id") @db.Uuid
+  displayName String?  @map("display_name")
+  amount      Decimal  @db.Decimal(12, 2)
+  isProxy     Boolean  @default(false) @map("is_proxy")
+  maxBid      Decimal? @map("max_bid") @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  auction     Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder      User?    @relation(fields: [bidderId], references: [id])
+
+  @@index([auctionId, createdAt])
+  @@index([bidderId])
+  @@map("bids")
+}
+
+model Watchlist {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  auctionId String   @map("auction_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, auctionId])
+  @@index([userId])
+  @@index([auctionId])
+  @@map("watchlists")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  auctionId String?  @map("auction_id") @db.Uuid
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+  auction   Auction? @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([auctionId])
+  @@index([read])
+  @@index([type])
+  @@map("notifications")
+}
+
+model Review {
+  id         String   @id @default(uuid()) @db.Uuid
+  auctionId  String   @map("auction_id") @db.Uuid
+  reviewerId String   @map("reviewer_id") @db.Uuid
+  revieweeId String   @map("reviewee_id") @db.Uuid
+  rating     Int
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+  auction    Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  reviewee   User     @relation("RevieweeReviews", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewer   User     @relation("ReviewerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([auctionId, reviewerId])
+  @@index([auctionId])
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+model Meeting {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  location    String?
+  date        DateTime?
+  description String?
+  images      Json      @default("[]")
+  authorId    String    @map("author_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@map("meetings")
+}
+
+model Payment {
+  id          String           @id @default(uuid()) @db.Uuid
+  auctionId   String           @map("auction_id") @db.Uuid
+  userId      String?          @map("user_id") @db.Uuid
+  amount      Decimal          @db.Decimal(12, 2)
+  type        PaymentType      @default(BUY_NOW)
+  status      PaymentStatus    @default(INITIATED)
+  externalId  String?          @map("external_id")
+  approvalUrl String?          @map("approval_url")
+  rawResponse Json?            @map("raw_response")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  provider    PaymentProvider?
+  auction     Auction          @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user        User?            @relation(fields: [userId], references: [id])
+
+  @@index([auctionId])
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Reference {
+  id           String   @id @default(uuid()) @db.Uuid
+  breederName  String   @map("breeder_name")
+  location     String
+  rating       Int      @default(5)
+  opinion      String?
+  experience   String?
+  achievements String?
+  pigeonName   String?  @map("pigeon_name")
+  images       Json     @default("[]")
+  isApproved   Boolean  @default(false) @map("is_approved")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("references")
+}
+
+model Metric {
+  id        String      @id @default(uuid()) @db.Uuid
+  scope     MetricScope
+  targetId  String      @default("global") @map("target_id")
+  count     Int         @default(0)
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@unique([scope, targetId], name: "metrics_scope_target_id_key")
+  @@index([targetId])
+  @@map("metrics")
+}
+
 enum AuctionStatus {
   ACTIVE
   ENDED
@@ -39,287 +352,11 @@ enum MetricScope {
   GALLERY_IMAGE
 }
 
-model SavedSearch {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  name      String
-  filters   Json // Store search filters as JSON
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([isActive])
-  @@map("saved_searches")
-}
-
-model User {
-  username        String         @unique
-  id              String         @id @db.Uuid
-  email           String?        @unique
-  phone           String?
-  name            String?
-  first_name      String?
-  last_name       String?
-  street          String?
-  postal_code     String?
-  city            String?
-  country         String?
-  isBlocked       Boolean        @default(false) @map("is_blocked")
-  isBanned        Boolean        @default(false) @map("is_banned")
-  blockedUntil    DateTime?      @map("blocked_until")
-  bannedUntil     DateTime?      @map("banned_until")
-  trustScore      Decimal        @default(0.00) @map("trust_score") @db.Decimal(3, 2)
-  role            UserRole       @default(USER_REGISTERED)
-  avatarUrl       String?        @map("avatar_url")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  auctions        Auction[]      @relation("SellerAuctions")
-  wonAuctions     Auction[]      @relation("WinnerAuctions")
-  bids            Bid[]
-  watchlist       Watchlist[]
-  notifications   Notification[]
-  reviewsGiven    Review[]       @relation("ReviewerReviews")
-  reviewsReceived Review[]       @relation("RevieweeReviews")
-  savedSearches   SavedSearch[]
-  payments        Payment[]
-  auditLogs       AuditLog[]     @relation("UserAuditLogs")
-  meetings        Meeting[]
-
-  /// Map to existing Supabase table "users"
-  @@map("users")
-}
-
-model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
-  action     String // e.g., "CREATE_USER", "UPDATE_ROLE", "DELETE_AUCTION"
-  actorId    String   @map("actor_id") @db.Uuid
-  targetId   String?  @map("target_id") @db.Uuid // ID opcjonalny, bo może dotyczyć ogółu
-  targetType String   @map("target_type") // e.g., "USER", "AUCTION", "SYSTEM"
-  details    Json? // Detailed payload, diff, etc.
-  ipAddress  String?  @map("ip_address")
-  userAgent  String?  @map("user_agent")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  actor User @relation("UserAuditLogs", fields: [actorId], references: [id])
-
-  @@index([actorId])
-  @@index([action])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
-model Auction {
-  id                    String          @id @default(uuid()) @db.Uuid
-  title                 String
-  description           String?
-  startingPrice         Decimal?        @map("starting_price") @db.Decimal(12, 2)
-  currentPrice          Decimal         @map("current_price") @db.Decimal(12, 2)
-  buyNowPrice           Decimal?        @map("buy_now_price") @db.Decimal(12, 2)
-  reservePrice          Decimal?        @map("reserve_price") @db.Decimal(12, 2)
-  endTime               DateTime?       @map("ends_at") @db.Timestamptz
-  startsAt              DateTime?       @map("starts_at")
-  snipeThresholdMinutes Int             @default(5) @map("snipe_threshold_minutes")
-  snipeExtensionMinutes Int             @default(5) @map("snipe_extension_minutes")
-  minBidIncrement       Int             @default(100) @map("min_bid_increment")
-  status                AuctionStatus   @default(ACTIVE)
-  reserveMet            Boolean         @default(false) @map("reserve_met")
-  version               Int             @default(1)
-  category              AuctionCategory @default(RACING)
-  gender                Sex             @default(MALE) @map("sex")
-  location              String?
-  age                   Int?
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
-  winnerId              String?         @map("winner_id") @db.Uuid
-  sellerId              String?         @map("owner_id") @db.Uuid
-  seller                User?           @relation("SellerAuctions", fields: [sellerId], references: [id])
-  winner                User?           @relation("WinnerAuctions", fields: [winnerId], references: [id])
-
-  pigeon PigeonProfile?
-
-  bids          Bid[]
-  images        AuctionImage[]
-  videos        AuctionVideo[]
-  documents     AuctionDocument[]
-  watchlist     Watchlist[]
-  notifications Notification[]
-  reviews       Review[]
-  payments      Payment[]
-
-  @@index([status])
-  @@index([endTime])
-  @@index([category])
-  @@index([sellerId])
-  @@index([winnerId])
-  @@index([status, endTime]) // For cron jobs and listing active auctions
-  @@index([category, status]) // For filtering by category
-  @@index([sellerId, status]) // For user dashboards
-  /// Map to existing Supabase table "auctions"
-  @@map("auctions")
-}
-
-model PigeonProfile {
-  id            String   @id @default(uuid()) @db.Uuid
-  auctionId     String   @unique @map("auction_id") @db.Uuid
-  ringNumber    String   @map("ring_number")
-  eyeColor      String?  @map("eye_color")
-  featherColor  String?  @map("feather_color")
-  construction  String?
-  vitality      String?
-  length        String?
-  endurance     String?
-  forkStrength  String?  @map("fork_strength")
-  forkAlignment String?  @map("fork_alignment")
-  muscles       String?
-  balance       String?
-  back          String?
-  purpose       String?
-  gender        Sex      @default(MALE)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  @@map("pigeon_profiles")
-}
-
-model AuctionImage {
-  id        String   @id @default(uuid()) @db.Uuid
-  auctionId String   @map("auction_id") @db.Uuid
-  url       String
-  ordering  Int?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  @@index([auctionId])
-  @@map("auction_images")
-}
-
-model AuctionVideo {
-  id        String   @id @default(uuid()) @db.Uuid
-  auctionId String   @map("auction_id") @db.Uuid
-  url       String
-  createdAt DateTime @default(now()) @map("created_at")
-
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  @@index([auctionId])
-  @@map("auction_videos")
-}
-
-model AuctionDocument {
-  id        String   @id @default(uuid()) @db.Uuid
-  auctionId String   @map("auction_id") @db.Uuid
-  url       String
-  createdAt DateTime @default(now()) @map("created_at")
-
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  @@index([auctionId])
-  @@map("auction_documents")
-}
-
-model Bid {
-  id          String   @id @default(uuid()) @db.Uuid
-  auctionId   String   @map("auction_id") @db.Uuid
-  bidderId    String?  @map("bidder_id") @db.Uuid
-  displayName String?  @map("display_name")
-  amount      Decimal  @db.Decimal(12, 2)
-  isProxy     Boolean  @default(false) @map("is_proxy")
-  maxBid      Decimal? @map("max_bid") @db.Decimal(12, 2)
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  bidder  User?   @relation(fields: [bidderId], references: [id], onDelete: SetNull)
-
-  @@index([auctionId, createdAt])
-  @@index([bidderId])
-  @@map("bids")
-}
-
-model Watchlist {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  auctionId String   @map("auction_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, auctionId])
-  @@index([userId])
-  @@index([auctionId])
-  @@map("watchlists")
-}
-
 enum NotificationType {
   OUTBID
   AUCTION_WON
   AUCTION_ENDING
   BID_PLACED
-}
-
-model Notification {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  auctionId String?  @map("auction_id") @db.Uuid
-  type      String   @db.Text
-  title     String
-  message   String
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  auction Auction? @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([auctionId])
-  @@index([read])
-  @@index([type])
-  @@map("notifications")
-}
-
-model Review {
-  id         String   @id @default(uuid()) @db.Uuid
-  auctionId  String   @map("auction_id") @db.Uuid
-  reviewerId String   @map("reviewer_id") @db.Uuid
-  revieweeId String   @map("reviewee_id") @db.Uuid
-  rating     Int
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp
-  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp
-
-  auction  Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  reviewer User    @relation("ReviewerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
-  reviewee User    @relation("RevieweeReviews", fields: [revieweeId], references: [id], onDelete: Cascade)
-
-  @@unique([auctionId, reviewerId])
-  @@index([auctionId])
-  @@index([reviewerId])
-  @@index([revieweeId])
-  @@index([rating])
-  @@map("reviews")
-}
-
-model Meeting {
-  id          String    @id @default(uuid()) @db.Uuid
-  name        String
-  location    String?
-  date        DateTime?
-  description String?
-  images      Json      @default("[]")
-  authorId    String    @map("author_id") @db.Uuid
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@index([authorId])
-  @@map("meetings")
 }
 
 enum PaymentStatus {
@@ -340,57 +377,4 @@ enum PaymentType {
   BUY_NOW
   LISTING_FEE
   COMMISSION
-}
-
-model Payment {
-  id          String           @id @default(uuid()) @db.Uuid
-  auctionId   String           @map("auction_id") @db.Uuid
-  userId      String?          @map("user_id") @db.Uuid
-  amount      Decimal          @db.Decimal(12, 2)
-  provider    PaymentProvider?
-  type        PaymentType      @default(BUY_NOW)
-  status      PaymentStatus    @default(INITIATED)
-  externalId  String?          @map("external_id")
-  approvalUrl String?          @map("approval_url")
-  rawResponse Json?            @map("raw_response")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-
-  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([auctionId])
-  @@index([userId])
-  @@index([status])
-  @@map("payments")
-}
-
-model Reference {
-  id           String   @id @default(uuid()) @db.Uuid
-  breederName  String   @map("breeder_name")
-  location     String
-  rating       Int      @default(5)
-  opinion      String?
-  experience   String?
-  achievements String?
-  pigeonName   String?  @map("pigeon_name")
-  images       Json     @default("[]")
-  isApproved   Boolean  @default(true) @map("is_approved")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
-
-  @@map("references")
-}
-
-model Metric {
-  id        String      @id @default(uuid()) @db.Uuid
-  scope     MetricScope
-  targetId  String      @default("global") @map("target_id")
-  count     Int         @default(0)
-  updatedAt DateTime    @updatedAt @map("updated_at")
-  createdAt DateTime    @default(now()) @map("created_at")
-
-  @@unique([scope, targetId], name: "metrics_scope_target_id_key")
-  @@index([targetId], name: "metrics_target_id_idx")
-  @@map("metrics")
 }
