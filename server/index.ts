@@ -1,14 +1,14 @@
-import './env.js'; // Must be first
-import './tracing.js'; // OpenTelemetry bootstrap — initialize before other imports
-import { createServer } from 'http';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { setupWebSocketEvents } from './websocket/bidding.js';
-import { initSocket } from './lib/socket.js';
-import app, { allowedOrigins } from './app.js';
-import { initializeAuth } from './middleware/auth.js';
-import { validatedEnv } from './lib/env.js';
-import { execSync } from 'child_process';
+import "./env.js"; // Must be first
+import "./tracing.js"; // OpenTelemetry bootstrap — initialize before other imports
+import { createServer } from "http";
+import path from "path";
+import { fileURLToPath } from "url";
+import { setupWebSocketEvents } from "./websocket/bidding.js";
+import { initSocket } from "./lib/socket.js";
+import app, { allowedOrigins } from "./app.js";
+import { initializeAuth } from "./middleware/auth.js";
+import { validatedEnv } from "./lib/env.js";
+import { execSync } from "child_process";
 
 // Initialize auth system
 initializeAuth();
@@ -17,14 +17,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Run migrations in production
-if (validatedEnv.NODE_ENV === 'production' && validatedEnv.PRISMA_MIGRATE_DEPLOY === 'true') {
+if (
+  validatedEnv.NODE_ENV === "production" &&
+  validatedEnv.PRISMA_MIGRATE_DEPLOY === "true"
+) {
   try {
-    console.log('🔄 Running database migrations...');
-    const rootDir = path.resolve(__dirname, '..');
-    execSync('npx prisma migrate deploy', { stdio: 'inherit', cwd: rootDir });
-    console.log('✅ Database migrations completed');
+    console.log("🔄 Running database migrations...");
+    const rootDir = path.resolve(__dirname, "..");
+    execSync(
+      "npx prisma migrate deploy --schema=./server/prisma/schema.prisma",
+      { stdio: "inherit", cwd: rootDir },
+    );
+    console.log("✅ Database migrations completed");
   } catch (error) {
-    console.error('❌ Database migration failed:', error);
+    console.error("❌ Database migration failed:", error);
     process.exit(1);
   }
 }
@@ -33,11 +39,18 @@ const server = createServer(app);
 const io = initSocket(server, allowedOrigins());
 setupWebSocketEvents(io);
 
-const findAvailablePort = (startPort: number, attempts = 0): Promise<number> => {
+const findAvailablePort = (
+  startPort: number,
+  attempts = 0,
+): Promise<number> => {
   const MAX_ATTEMPTS = 20;
   return new Promise((resolve, reject) => {
     if (attempts >= MAX_ATTEMPTS) {
-      return reject(new Error(`No free port found after ${MAX_ATTEMPTS} attempts starting from ${startPort - attempts}`));
+      return reject(
+        new Error(
+          `No free port found after ${MAX_ATTEMPTS} attempts starting from ${startPort - attempts}`,
+        ),
+      );
     }
 
     const testServer = createServer();
@@ -46,8 +59,8 @@ const findAvailablePort = (startPort: number, attempts = 0): Promise<number> => 
         resolve(startPort);
       });
     });
-    testServer.on('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
+    testServer.on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code === "EADDRINUSE") {
         resolve(findAvailablePort(startPort + 1, attempts + 1));
       } else {
         reject(err);
@@ -57,7 +70,9 @@ const findAvailablePort = (startPort: number, attempts = 0): Promise<number> => 
 };
 
 const PORT = Number(process.env.PORT) || 8001;
-const isProdStaticPort = process.env.NODE_ENV === 'production' && process.env.FORCE_DYNAMIC_PORT !== 'true';
+const isProdStaticPort =
+  process.env.NODE_ENV === "production" &&
+  process.env.FORCE_DYNAMIC_PORT !== "true";
 
 const startServer = (listenPort: number) => {
   server.listen(listenPort, () => {
@@ -66,8 +81,8 @@ const startServer = (listenPort: number) => {
     console.log(`📡 API endpoint: http://localhost:${listenPort}/api`);
   });
 
-  server.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EADDRINUSE') {
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
       console.error(`❌ Port ${listenPort} is already in use!`);
       if (isProdStaticPort) {
         process.exit(1);
@@ -78,7 +93,7 @@ const startServer = (listenPort: number) => {
             startServer(fallbackPort);
           })
           .catch((findErr) => {
-            console.error('Failed to find available fallback port:', findErr);
+            console.error("Failed to find available fallback port:", findErr);
             process.exit(1);
           });
       }
@@ -94,7 +109,7 @@ if (isProdStaticPort) {
   findAvailablePort(PORT)
     .then((availablePort) => startServer(availablePort))
     .catch((err) => {
-      console.error('Failed to find available port:', err);
+      console.error("Failed to find available port:", err);
       process.exit(1);
     });
 }

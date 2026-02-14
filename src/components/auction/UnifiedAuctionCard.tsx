@@ -74,6 +74,9 @@ type UnifiedAuctionCardProps = {
   nowMs?: number;
 };
 
+const CONTENT_BACKGROUND =
+  "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)";
+
 const formatNumber = (value?: number, suffix = "zł") => {
   if (typeof value !== "number") return "—";
   return `${value.toLocaleString("pl-PL")} ${suffix}`.trim();
@@ -93,7 +96,7 @@ export const UnifiedAuctionCard = ({
   category,
   bidsCount = 0,
   featured = false,
-  imageFit = "contain",
+  imageFit = "cover",
   highlight = false,
   nowMs,
 }: UnifiedAuctionCardProps) => {
@@ -246,6 +249,7 @@ export const UnifiedAuctionCard = ({
       return {
         gradient:
           "radial-gradient(circle at top, rgba(255,255,255,0.08) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #030308 55%, #080b12 100%)",
+        base: "#010104",
         border: "transparent",
         glow: "none",
       };
@@ -254,6 +258,7 @@ export const UnifiedAuctionCard = ({
       return {
         gradient:
           "radial-gradient(circle at top, rgba(255,125,125,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #080103 55%, #150205 100%)",
+        base: "#040003",
         border: "transparent",
         glow: "none",
       };
@@ -262,6 +267,7 @@ export const UnifiedAuctionCard = ({
       return {
         gradient:
           "radial-gradient(circle at top, rgba(100,150,255,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #01050e 55%, #020a16 100%)",
+        base: "#01030a",
         border: "transparent",
         glow: "none",
       };
@@ -269,6 +275,7 @@ export const UnifiedAuctionCard = ({
     return {
       gradient:
         "radial-gradient(circle at top, rgba(64,195,210,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #01060a 55%, #021216 100%)",
+      base: "#010509",
       border: "transparent",
       glow: "none",
     };
@@ -299,8 +306,9 @@ export const UnifiedAuctionCard = ({
         rotateX,
         rotateY,
         backgroundImage: cardStyles.gradient,
+        backgroundColor: cardStyles.base,
         borderColor: cardStyles.border,
-        borderWidth: "2px",
+        borderWidth: "4px",
         boxShadow: cardStyles.glow,
       }}
       whileHover={{}}
@@ -369,7 +377,9 @@ export const UnifiedAuctionCard = ({
             alt={title}
             className={`w-full h-full ${imageObjectClass} transition-all duration-700`}
             style={{
-              transform: "scale(1) translateZ(0px)",
+              transform: isHovered
+                ? "scale(1.05) translateZ(20px)"
+                : "scale(1) translateZ(0px)",
             }}
             onError={(e) => {
               const t = e.currentTarget as HTMLImageElement;
@@ -382,7 +392,10 @@ export const UnifiedAuctionCard = ({
         </div>
 
         {/* Content section */}
-        <div className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-gradient-to-b from-[#003d4d] via-[#006070] to-[#008ba0]">
+        <div
+          className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 border border-white/5 bg-transparent backdrop-blur-2xl shadow-[inset_0_8px_35px_rgba(0,0,0,0.45)] rounded-3xl"
+          style={{ backgroundImage: CONTENT_BACKGROUND, backgroundBlendMode: "screen" }}
+        >
           {/* Gold guide line under photo */}
           <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
 
