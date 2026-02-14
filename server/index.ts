@@ -24,10 +24,13 @@ if (
   try {
     console.log("🔄 Running database migrations...");
     const rootDir = path.resolve(__dirname, "..");
-    execSync(
-      "npx prisma migrate deploy --schema=./server/prisma/schema.prisma",
-      { stdio: "inherit", cwd: rootDir },
-    );
+    // More robust path detection for Railway/Production
+    const schemaPath = path.join(rootDir, "prisma", "schema.prisma");
+    console.log(`📂 Using schema at: ${schemaPath}`);
+    execSync(`npx prisma migrate deploy --schema="${schemaPath}"`, {
+      stdio: "inherit",
+      cwd: rootDir,
+    });
     console.log("✅ Database migrations completed");
   } catch (error) {
     console.error("❌ Database migration failed:", error);
