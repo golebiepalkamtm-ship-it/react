@@ -26,6 +26,7 @@ const STATIC_CLIENT_ORIGINS = [
   'https://net-pocket.com',
   'https://www.net-pocket.com',
   'https://api.net-pocket.com',
+  'https://react-e4y0fh2w4-marcins-projects-59088b6e.vercel.app',
   ...(validatedEnv.ALLOWED_ORIGINS ? validatedEnv.ALLOWED_ORIGINS.split(',').map(normalizeOrigin) : [])
 ].map(normalizeOrigin).filter(Boolean) as string[];
 
