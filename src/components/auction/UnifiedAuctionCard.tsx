@@ -316,7 +316,7 @@ export const UnifiedAuctionCard = ({
     >
       {/* Inner container for 3D parallax effect */}
       <div
-        className="auction-card-inner relative h-full w-full"
+        className="auction-card-inner relative h-full w-full flex flex-col"
         style={{
           transformStyle: "preserve-3d",
         }}
@@ -393,8 +393,11 @@ export const UnifiedAuctionCard = ({
 
         {/* Content section */}
         <div
-          className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 border border-white/5 bg-transparent backdrop-blur-2xl shadow-[inset_0_8px_35px_rgba(0,0,0,0.45)] rounded-3xl"
-          style={{ backgroundImage: CONTENT_BACKGROUND, backgroundBlendMode: "screen" }}
+          className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-transparent backdrop-blur-2xl"
+          style={{
+            backgroundImage: CONTENT_BACKGROUND,
+            backgroundBlendMode: "normal",
+          }}
         >
           {/* Gold guide line under photo */}
           <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
