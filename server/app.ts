@@ -293,12 +293,10 @@ app.post(
   async (req: Request, res: Response) => {
     try {
       if (!prisma) {
-        return res
-          .status(503)
-          .json({
-            error:
-              "Baza danych jest tymczasowo niedostępna. Spróbuj ponownie później.",
-          });
+        return res.status(503).json({
+          error:
+            "Baza danych jest tymczasowo niedostępna. Spróbuj ponownie później.",
+        });
       }
 
       const userId = (req as any).user?.id;
@@ -339,31 +337,27 @@ app.post(
 
       res.json(newMeeting);
     } catch (error: any) {
-      console.error("Error adding breeder meeting:", error);
-      // Check for common Prisma errors
-      if (error?.code === "P2021") {
-        // Table does not exist
-        return res
-          .status(503)
-          .json({
-            error:
-              "Tabela spotkań nie istnieje w bazie danych. Skontaktuj się z administratorem.",
-            code: error.code,
-          });
-      }
-      if (error?.code === "P2003") {
-        // Foreign key constraint failed
-        return res
-          .status(400)
-          .json({
-            error: "Nie znaleziono powiązanego użytkownika w bazie danych.",
-            code: error.code,
-          });
+      console.error("❌ CRITICAL: Error adding breeder meeting:", error);
+      if (error instanceof Error) {
+        console.error("Stack trace:", error.stack);
       }
 
-      // Return detailed error info for debugging
+      // Check for common Prisma errors
+      if (error?.code === "P2021") {
+        return res.status(503).json({
+          error: "Tabela spotkań nie istnieje w bazie danych.",
+          code: error.code,
+        });
+      }
+      if (error?.code === "P2003") {
+        return res.status(400).json({
+          error: "Nie znaleziono powiązanego użytkownika w bazie danych.",
+          code: error.code,
+        });
+      }
+
       res.status(500).json({
-        error: "Nie udało się dodać spotkania. Spróbuj ponownie później.",
+        error: "Nie udało się dodać spotkania. Błąd serwera.",
         details: error instanceof Error ? error.message : String(error),
         code: error?.code,
       });

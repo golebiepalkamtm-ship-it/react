@@ -253,7 +253,7 @@ export const UnifiedAuctionCard = ({
     if (timeMeta.endingSoon) {
       return {
         gradient:
-          "radial-gradient(circle at top, rgba(255,125,125,0.08) 0%, transparent 35%), linear-gradient(165deg, #020001 0%, #100206 55%, #26040c 100%)",
+          "radial-gradient(circle at top, rgba(255,125,125,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #080103 55%, #150205 100%)",
         border: "transparent",
         glow: "none",
       };
@@ -261,14 +261,14 @@ export const UnifiedAuctionCard = ({
     if (featured || highlight) {
       return {
         gradient:
-          "radial-gradient(circle at top, rgba(100,150,255,0.08) 0%, transparent 35%), linear-gradient(165deg, #000208 0%, #020c1b 55%, #051a32 100%)",
+          "radial-gradient(circle at top, rgba(100,150,255,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #01050e 55%, #020a16 100%)",
         border: "transparent",
         glow: "none",
       };
     }
     return {
       gradient:
-        "radial-gradient(circle at top, rgba(64,195,210,0.08) 0%, transparent 35%), linear-gradient(165deg, #000206 0%, #02101a 55%, #04313a 100%)",
+        "radial-gradient(circle at top, rgba(64,195,210,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #01060a 55%, #021216 100%)",
       border: "transparent",
       glow: "none",
     };
@@ -300,7 +300,7 @@ export const UnifiedAuctionCard = ({
         rotateY,
         backgroundImage: cardStyles.gradient,
         borderColor: cardStyles.border,
-        borderWidth: "4px",
+        borderWidth: "2px",
         boxShadow: cardStyles.glow,
       }}
       whileHover={{}}
@@ -382,7 +382,7 @@ export const UnifiedAuctionCard = ({
         </div>
 
         {/* Content section */}
-        <div className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-gradient-to-br from-[#006688] via-[#0088aa] to-[#99e6ff]">
+        <div className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-transparent backdrop-blur-sm">
           {/* Gold guide line under photo */}
           <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
 
@@ -475,8 +475,8 @@ export const UnifiedAuctionCard = ({
                   className="flex-1"
                 >
                   <Button
-                    variant="outline"
-                    className="w-full h-11 text-sm font-semibold bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30 transition-all rounded-xl"
+                    variant="graphite"
+                    className="w-full h-11 text-sm font-semibold rounded-xl"
                   >
                     <Gavel className="h-4 w-4 mr-1.5" /> Licytuj
                   </Button>
@@ -502,8 +502,8 @@ export const UnifiedAuctionCard = ({
                 className="w-full"
               >
                 <Button
-                  variant="premiumGold"
-                  className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl"
+                  variant="graphite"
+                  className="w-full h-12 text-sm font-semibold rounded-xl"
                 >
                   <Gavel className="h-4 w-4 mr-2" /> Licytuj Teraz
                 </Button>

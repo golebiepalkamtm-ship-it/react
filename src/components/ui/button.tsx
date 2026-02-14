@@ -9,17 +9,26 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         gold: "bg-gradient-to-r from-gold to-gold-light text-black font-semibold hover:shadow-gold hover:-translate-y-0.5",
         hero: "bg-primary/10 text-primary-foreground border border-primary-foreground/30 backdrop-blur-sm hover:bg-primary-foreground/10 hover:border-primary-foreground/50",
-        heroGold: "bg-gradient-to-r from-gold to-gold-light text-black font-semibold hover:shadow-gold hover:-translate-y-0.5 px-8",
-        premium: "bg-white text-gold border border-gold/30 hover:border-gold hover:shadow-gold",
-        premiumGold: "relative overflow-hidden bg-gradient-to-r from-gold-dark via-gold to-gold-dark text-white font-bold tracking-wider uppercase border border-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:animate-[shimmer_3s_infinite]",
+        heroGold:
+          "bg-gradient-to-r from-gold to-gold-light text-black font-semibold hover:shadow-gold hover:-translate-y-0.5 px-8",
+        premium:
+          "bg-white text-gold border border-gold/30 hover:border-gold hover:shadow-gold",
+        premiumGold:
+          "relative overflow-hidden bg-gradient-to-r from-gold-dark via-gold to-gold-dark text-white font-bold tracking-wider uppercase border border-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 hover:scale-[1.03] active:scale-[0.98] before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:animate-[shimmer_3s_infinite]",
+        graphite:
+          "bg-gradient-to-br from-[#2c2c2c] to-[#1a1a1a] text-white border border-white/10 hover:border-white/20 hover:from-[#3a3a3a] hover:to-[#252525] shadow-lg",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -37,25 +46,45 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-  VariantProps<typeof buttonVariants> {
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   deferInteraction?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, deferInteraction = false, onClick, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      deferInteraction = false,
+      onClick,
+      ...props
+    },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : "button";
-    const handleClick: React.MouseEventHandler<HTMLButtonElement> | undefined = onClick
-      ? (e) => {
-        if (deferInteraction) {
-          requestAnimationFrame(() => onClick(e));
-        } else {
-          onClick(e);
-        }
-      }
-      : undefined;
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} onClick={handleClick} {...props} />;
+    const handleClick: React.MouseEventHandler<HTMLButtonElement> | undefined =
+      onClick
+        ? (e) => {
+            if (deferInteraction) {
+              requestAnimationFrame(() => onClick(e));
+            } else {
+              onClick(e);
+            }
+          }
+        : undefined;
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        onClick={handleClick}
+        {...props}
+      />
+    );
   },
 );
 Button.displayName = "Button";
