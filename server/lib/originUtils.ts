@@ -59,7 +59,9 @@ const FONT_ORIGINS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com
 const DEV_HOST_REGEX =
   /^https?:\/\/((localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}))(:\d+)?$/i;
 
-const PROD_WILDCARD_PATTERNS: RegExp[] = []; // Wildcards removed for security
+const PROD_WILDCARD_PATTERNS: RegExp[] = [
+  /^https:\/\/react-.*-marcins-projects-59088b6e\.vercel\.app$/
+]; // Wildcards allowed for Vercel previews
 
 
 let cachedOrigins: string[] | null = null;
