@@ -176,6 +176,15 @@ app.get('/api/csrf-token', (req, res) => {
 
 const csrfProtection = csrfSynchronisedProtection as unknown as CoreRequestHandler;
 const maybeCsrf: RequestHandler = (req, res, next) => {
+  // Skip CSRF for upload routes (handled by multer/auth) and webhooks
+  // This explicitly prevents CSRF checks on multipart/form-data requests which are problematic
+  if (
+    req.originalUrl.includes('/api/upload') || 
+    req.originalUrl.includes('/api/webhooks')
+  ) {
+    return next();
+  }
+
   if (validatedEnv.NODE_ENV === 'production') {
     return (csrfProtection as any)(req, res, next);
   }
