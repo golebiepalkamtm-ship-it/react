@@ -98,6 +98,7 @@ const AuctionsSection = () => {
                 image={resolveAuctionImage(auction.images?.[0])}
                 currentBid={auction.currentPrice}
                 startingPrice={auction.startingPrice}
+                buyNowPrice={auction.buyNowPrice}
                 endTime={auction.endTime}
                 ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
                 gender={auction.pigeon?.gender}

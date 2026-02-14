@@ -208,14 +208,18 @@ export const UnifiedAuctionCard = ({
     return !cat.includes("SUPPLEMENT") && !cat.includes("ACCESSOR");
   }, [category]);
 
+  const hasBuyNow = typeof buyNowPrice === "number" && buyNowPrice > 0;
+  const hasBidding =
+    typeof startingPrice === "number" && startingPrice !== null;
+
   const ringBadge = isPigeon ? ringNumber : null;
 
   const specBadges = useMemo(() => {
     const badges: string[] = [];
-    if (isPigeon && gender)
-      badges.push(
-        gender === "female" ? "Samica" : gender === "male" ? "Samiec" : gender,
-      );
+    if (isPigeon && gender) {
+      const g = gender.toLowerCase();
+      badges.push(g === "female" ? "Samica" : g === "male" ? "Samiec" : gender);
+    }
     if (isPigeon && color) badges.push(color);
     if (category) badges.push(category);
     return badges.slice(0, 3);
@@ -451,7 +455,7 @@ export const UnifiedAuctionCard = ({
 
           {/* Action buttons */}
           <div className="mt-auto flex flex-col gap-2">
-            {typeof buyNowPrice === "number" && buyNowPrice > 0 ? (
+            {hasBuyNow && hasBidding ? (
               <div className="flex gap-2">
                 <Link
                   to={`/auctions/${id}?mode=buy-now`}
@@ -478,7 +482,20 @@ export const UnifiedAuctionCard = ({
                   </Button>
                 </Link>
               </div>
-            ) : (
+            ) : hasBuyNow ? (
+              <Link
+                to={`/auctions/${id}?mode=buy-now`}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full"
+              >
+                <Button
+                  variant="premiumGold"
+                  className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl"
+                >
+                  Kup Teraz
+                </Button>
+              </Link>
+            ) : hasBidding ? (
               <Link
                 to={`/auctions/${id}#bid`}
                 onClick={(e) => e.stopPropagation()}
@@ -489,6 +506,19 @@ export const UnifiedAuctionCard = ({
                   className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl"
                 >
                   <Gavel className="h-4 w-4 mr-2" /> Licytuj Teraz
+                </Button>
+              </Link>
+            ) : (
+              <Link
+                to={`/auctions/${id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full"
+              >
+                <Button
+                  variant="outline"
+                  className="w-full h-12 text-sm font-semibold bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30 transition-all rounded-xl"
+                >
+                  Zobacz Szczegóły
                 </Button>
               </Link>
             )}

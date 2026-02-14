@@ -126,14 +126,15 @@ const AuctionsPage = () => {
       image: resolveAuctionImage(auction.images?.[0]) || "/placeholder.svg",
       ringNumber: auction.pigeon?.ringNumber || "Brak numeru",
       sex:
-        auction.pigeon?.gender === "male"
+        auction.pigeon?.gender?.toLowerCase() === "male"
           ? "samiec"
-          : auction.pigeon?.gender === "female"
+          : auction.pigeon?.gender?.toLowerCase() === "female"
             ? "samica"
             : "samica",
       color: auction.pigeon?.pigeonColor,
       currentPrice: auction.currentPrice ?? 0,
-      startPrice: auction.startingPrice ?? auction.currentPrice ?? 0,
+      startPrice: auction.startingPrice,
+      buyNowPrice: auction.buyNowPrice,
       bidsCount: auction._count?.bids ?? auction.bids?.length ?? 0,
       endTime: auction.endTime,
       category: auction.category,
@@ -470,6 +471,7 @@ const AuctionsPage = () => {
                   image={auction.image}
                   currentBid={auction.currentPrice}
                   startingPrice={auction.startPrice}
+                  buyNowPrice={auction.buyNowPrice}
                   endTime={auction.endTime}
                   ringNumber={auction.ringNumber}
                   gender={auction.sex}
