@@ -322,20 +322,23 @@ app.post(
       }
 
       // Check if user exists in our DB first (Supabase Auth != Prisma User automatically)
+      console.log(`🔍 [Meetings API] Verifying author existence: ${userId}`);
       const userExists = await prisma.user.findUnique({
         where: { id: userId },
       });
       if (!userExists) {
         console.error(
-          `User ${userId} not found in database for meeting creation.`,
+          `❌ User ${userId} not found in database for meeting creation.`,
         );
         return res.status(403).json({
           error:
             "Twój profil nie został jeszcze zsynchronizowany z bazą danych. Spróbuj się przelogować.",
-          details: "User record missing in 'users' table.",
+          details: `User record with ID ${userId} missing in 'users' table.`,
         });
       }
+      console.log(`✅ Author verified: ${userExists.email}`);
 
+      console.log("🚀 Creating meeting in database...");
       const newMeeting = await prisma.meeting.create({
         data: {
           name,
@@ -346,10 +349,11 @@ app.post(
           authorId: userId,
         },
       });
+      console.log(`✅ Meeting created successfully: ${newMeeting.id}`);
 
       res.status(201).json(newMeeting);
     } catch (error: any) {
-      console.error("❌ Error adding breeder meeting:", error);
+      console.error("❌ CRITICAL error adding breeder meeting:", error);
 
       // Detailed error for client
       const details = error?.message || "Unknown error";
@@ -359,10 +363,11 @@ app.post(
         error: "Nie udało się dodać spotkania.",
         details,
         code,
+        message: error.message,
         suggestion:
           code === "P2021"
             ? "Table 'meetings' missing - run migrations."
-            : undefined,
+            : "Sprawdź logi serwera.",
       });
     }
   },

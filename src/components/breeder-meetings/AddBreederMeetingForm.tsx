@@ -123,18 +123,27 @@ export default function AddBreederMeetingForm({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (err) {
-      const errorMsg =
-        err instanceof Error
-          ? err.message
-          : "Wystąpił błąd podczas wysyłania formularza";
+    } catch (err: any) {
+      console.error("Add meeting error:", err);
+      let errorMsg = "Wystąpił błąd podczas wysyłania formularza";
+      let detailedMsg = "";
+
+      if (err.response?.data) {
+        const data = err.response.data;
+        errorMsg = data.error || errorMsg;
+        detailedMsg = data.details ? `\nSzczegóły: ${data.details}` : "";
+        if (data.code) detailedMsg += ` (${data.code})`;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+
       setSubmitStatus("error");
-      setErrorMessage(errorMsg);
+      setErrorMessage(errorMsg + detailedMsg);
       setFeedbackModal({
         isOpen: true,
         type: "error",
         title: "Błąd",
-        message: errorMsg,
+        message: errorMsg + detailedMsg,
       });
     } finally {
       setIsSubmitting(false);

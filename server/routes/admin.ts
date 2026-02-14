@@ -552,40 +552,60 @@ router.post(
         isBanned,
       } = validation.data;
 
+      console.log(`👤 [Admin API] Creating user: ${email} (Role: ${role})`);
+
+      if (!supabaseAdmin) {
+        return res
+          .status(503)
+          .json({ error: "Usługa Supabase Admin nie jest skonfigurowana." });
+      }
+
       // Saga / Compensation Logic
       let authUser: any = null;
 
       // 1. Create in Supabase Auth
       try {
+        console.log("  Step 1: Creating Supabase Auth user...");
         const { data, error } = await supabaseAdmin.auth.admin.createUser({
           email,
           password,
           email_confirm: true,
           user_metadata: { first_name, last_name },
         });
-        if (error) throw error;
+        if (error) {
+          console.error("  ❌ Supabase Auth Error:", error);
+          throw error;
+        }
         authUser = data.user;
+        console.log(`  ✅ Auth user created with ID: ${authUser.id}`);
       } catch (authError: any) {
         const alreadyExists = authError?.message
           ?.toLowerCase()
           .includes("already been registered");
         const statusCode = alreadyExists ? 409 : (authError?.status ?? 500);
-        return res.status(statusCode).json({ error: authError.message });
+        return res.status(statusCode).json({
+          error: "Błąd podczas tworzenia konta w systemie Auth.",
+          details: authError.message,
+          code: authError.code || "AUTH_ERROR",
+        });
       }
 
       if (!authUser) {
-        return res.status(500).json({ error: "Failed to create auth user" });
+        return res.status(500).json({
+          error: "Nie udało się uzyskać danych nowo utworzonego użytkownika.",
+        });
       }
 
       // 2. Create/Update in Public Schema with Compensation
       try {
+        console.log("  Step 2: Syncing to public.users table...");
         const newUser = await prisma.user.upsert({
           where: { id: authUser.id },
           update: {
             email,
             first_name,
             last_name,
-            role: role || "USER_REGISTERED",
+            role: (role as any) || "USER_REGISTERED",
             phone,
             name: `${first_name || ""} ${last_name || ""}`.trim(),
             username,
@@ -597,7 +617,7 @@ router.post(
             email,
             first_name,
             last_name,
-            role: role || "USER_REGISTERED",
+            role: (role as any) || "USER_REGISTERED",
             phone,
             trustScore: 0,
             name: `${first_name || ""} ${last_name || ""}`.trim(),
@@ -606,45 +626,43 @@ router.post(
             isBanned: !!isBanned,
           },
         });
+        console.log("  ✅ User synced to database.");
 
+        console.log("  Step 3: Logging admin action...");
         await logAdminAction(req, "CREATE_USER", "USER", newUser.id, {
           email,
           username,
           role,
         });
 
+        console.log("✨ User creation completed successfully.");
         return res.status(201).json(newUser);
       } catch (dbError: any) {
-        console.error(
-          "Prisma Create User Error. Compensating by deleting Supabase user...",
-          dbError,
-        );
+        console.error("  ❌ Prisma Sync Error:", dbError);
+        console.log("  🔄 Compensating: Deleting Supabase user...");
 
-        // Handle unique constraint violations
-        if (dbError.code === "P2002") {
-          const field = dbError.meta?.target?.[0] || "pole";
-          try {
-            await supabaseAdmin.auth.admin.deleteUser(authUser.id);
-          } catch (e) {
-            console.warn("Supabase cleanup failed", e);
-          }
-
-          return res.status(409).json({
-            error: `Użytkownik z takimi danymi już istnieje (${field}).`,
-            field,
-          });
-        }
-
-        // Compensation
         try {
           await supabaseAdmin.auth.admin.deleteUser(authUser.id);
-        } catch (compError) {
-          console.error("CRITICAL: Compensation failed", compError);
+          console.log("  ✅ Compensation successful: Auth user deleted.");
+        } catch (cleanupError) {
+          console.error(
+            "  ⚠️ Compensation failed: Could not delete Auth user.",
+            cleanupError,
+          );
+        }
+
+        // Return detailed DB error
+        let message =
+          "Wystąpił błąd podczas zapisywania danych użytkownika w bazie.";
+        if (dbError.code === "P2002") {
+          const field = dbError.meta?.target?.[0] || "username/email";
+          message = `Użytkownik z takim ${field} już istnieje.`;
         }
 
         return res.status(500).json({
-          error: "Błąd bazy danych podczas tworzenia profilu.",
+          error: message,
           details: dbError.message,
+          code: dbError.code,
         });
       }
     } catch (error: any) {
