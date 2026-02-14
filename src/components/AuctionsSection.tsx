@@ -39,7 +39,7 @@ const AuctionsSection = () => {
       ref={sectionRef}
       id="auctions"
       className="pt-0 pb-24 section-surface-alt relative overflow-hidden"
-      style={{ perspective: "1000px" }}
+      style={{ perspective: "2000px" }}
       data-section-reveal
     >
       <div className="container mx-auto px-4" data-stagger-container>

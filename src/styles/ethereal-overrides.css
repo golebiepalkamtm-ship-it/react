@@ -52,11 +52,58 @@
       0 0 5px hsl(45 38% 52% / 0.5),
       0 0 10px hsl(45 38% 52% / 0.3),
       0 0 20px hsl(45 38% 52% / 0.2),
-      inset 0 0 5px hsla(45, 56%, 59%, 0.582)3);
+      inset 0 0 5px hsla(45, 56%, 59%, 0.582);
   }
 
   .magnetic-hover {
     transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .auction-card-frame {
+    position: relative;
+    padding: 3px;
+    border-radius: 1.75rem;
+    background: linear-gradient(135deg, #fce4a4 0%, #f0c15c 40%, #b67a22 80%);
+    box-shadow:
+      0 0 25px rgba(246, 209, 120, 0.35),
+      inset 0 0 12px rgba(255, 255, 255, 0.35);
+  }
+
+  .auction-card-frame > article {
+    border-radius: inherit;
+    background-origin: border-box;
+  }
+
+  .auction-card-shell {
+    position: relative;
+  }
+
+  .auction-card-shell::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    padding: 5px;
+    background: linear-gradient(135deg, rgba(255, 240, 187, 0.95), rgba(255, 209, 112, 0.85), rgba(182, 122, 34, 0.9));
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .auction-card-shell::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: inherit;
+    box-shadow:
+      0 0 32px rgba(255, 222, 165, 0.45),
+      0 0 60px rgba(255, 196, 123, 0.3);
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 0;
   }
 }
 
@@ -97,7 +144,7 @@
   }
   33% {
     opacity: 0.9;
-    text-shadow: 0 0 4px hsla(45, 63%, 52%, 0.733)1), 0 0 11px hsl(45 38% 52% / 0.2);
+    text-shadow: 0 0 4px hsla(45, 63%, 52%, 0.733), 0 0 11px hsl(45 38% 52% / 0.2);
   }
   66% {
     opacity: 1;

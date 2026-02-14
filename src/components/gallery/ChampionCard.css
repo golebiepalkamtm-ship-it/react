@@ -2,14 +2,6 @@
   perspective: 1000px;
 }
 
-.gallery-card-content {
-  /* Usunięto translateZ - powodowało problemy z parallax */
-}
-
-.gallery-card-title {
-  /* Usunięto translateZ - powodowało problemy z parallax */
-}
-
 .gallery-scanline-pattern {
   background-image: repeating-linear-gradient(
     0deg,
@@ -18,4 +10,28 @@
     rgba(255, 255, 255, 0.03) 2px,
     rgba(255, 255, 255, 0.03) 4px
   );
+}
+
+.auction-card-glass {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(1, 29, 44, 0.92) 0%, rgba(3, 52, 71, 0.88) 40%, rgba(24, 165, 176, 0.82) 100%);
+  background-blend-mode: screen;
+  box-shadow:
+    0 24px 60px rgba(2, 23, 34, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -6px 24px rgba(0, 16, 24, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.auction-card-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 55%);
+  opacity: 0.9;
+  pointer-events: none;
 }

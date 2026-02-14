@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useRef, memo } from "react";
+import type { CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gavel, Heart, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,17 @@ const AuctionImage = memo(
 AuctionImage.displayName = "AuctionImage";
 
 const AUCTION_PLACEHOLDER_SRC = "/placeholder.svg";
+
+const GOLD_LINE_BASE_STYLE: CSSProperties = {
+  height: "4px",
+  width: "100%",
+  borderRadius: "999px",
+  background:
+    "linear-gradient(90deg, transparent 0%, rgba(255,215,128,0.2) 8%, rgba(255,215,128,0.95) 50%, rgba(255,215,128,0.2) 92%, transparent 100%)",
+  clipPath: "polygon(0% 50%, 7% 0%, 93% 0%, 100% 50%, 93% 100%, 7% 100%)",
+  boxShadow: "0 0 22px rgba(255, 215, 128, 0.35)",
+  pointerEvents: "none",
+};
 
 type UnifiedAuctionCardProps = {
   id: string;
@@ -95,7 +107,6 @@ export const UnifiedAuctionCard = ({
 
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
 
   const [isHovered, setIsHovered] = useState(false);
 
@@ -112,25 +123,31 @@ export const UnifiedAuctionCard = ({
     [0.9, 1, 1, 0.9],
   );
 
-  // Enhanced 3D effect matching PressArticleCard
+  // Enhanced 3D effect - constant depth based on mouse position
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  const z = useSpring(useTransform(mouseY, [-0.5, 0.5], [25, -25]), {
+    stiffness: 400,
+    damping: 30,
+  });
+
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
-    stiffness: 150,
-    damping: 20,
+    stiffness: 400,
+    damping: 30,
   });
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
-    stiffness: 150,
-    damping: 20,
+    stiffness: 400,
+    damping: 30,
   });
-  const z = useSpring(isHovered ? 20 : 0, { stiffness: 150, damping: 20 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
     if (!card) return;
+
     const rect = card.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
+
     mouseX.set(x);
     mouseY.set(y);
     card.style.setProperty("--mouse-x", `${(x + 0.5) * 100}%`);
@@ -147,8 +164,6 @@ export const UnifiedAuctionCard = ({
   // GSAP animations on mount
   useEffect(() => {
     const card = cardRef.current;
-    const glow = glowRef.current;
-
     if (!card) return;
 
     // Initial animation matching PressArticleCard
@@ -169,33 +184,7 @@ export const UnifiedAuctionCard = ({
       },
     );
 
-    // Glow effect on hover
-    const handleMouseEnter = () => {
-      if (glow) {
-        gsap.to(glow, {
-          opacity: 0.6,
-          duration: 0.4,
-          ease: "power2.out",
-        });
-      }
-    };
-
-    const handleMouseLeaveGsap = () => {
-      if (glow) {
-        gsap.to(glow, {
-          opacity: 0,
-          duration: 0.4,
-          ease: "power2.out",
-        });
-      }
-    };
-
-    card.addEventListener("mouseenter", handleMouseEnter);
-    card.addEventListener("mouseleave", handleMouseLeaveGsap);
-
     return () => {
-      card.removeEventListener("mouseenter", handleMouseEnter);
-      card.removeEventListener("mouseleave", handleMouseLeaveGsap);
     };
   }, []);
 
@@ -252,93 +241,90 @@ export const UnifiedAuctionCard = ({
   const cardStyles = useMemo(() => {
     if (timeMeta.ended) {
       return {
-        gradient: "from-gray-900 via-gray-800 to-gray-900",
-        border: "border-gray-600/40",
-        glow: "shadow-gray-500/10",
+        gradient:
+          "radial-gradient(circle at top, rgba(255,255,255,0.08) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #030308 55%, #080b12 100%)",
+        border: "transparent",
+        glow: "none",
       };
     }
     if (timeMeta.endingSoon) {
       return {
-        gradient: "from-[#1a0a0a] via-[#3d1a1a] to-[#1a0a0a]",
-        border: "border-red-500/60",
-        glow: "shadow-red-500/30 shadow-2xl",
+        gradient:
+          "radial-gradient(circle at top, rgba(255,125,125,0.08) 0%, transparent 35%), linear-gradient(165deg, #020001 0%, #100206 55%, #26040c 100%)",
+        border: "transparent",
+        glow: "none",
       };
     }
     if (featured || highlight) {
       return {
-        gradient: "from-[#0f1729] via-[#1a2847] to-[#0f1729]",
-        border: "border-gold/60",
-        glow: "shadow-gold/30 shadow-2xl",
+        gradient:
+          "radial-gradient(circle at top, rgba(100,150,255,0.08) 0%, transparent 35%), linear-gradient(165deg, #000208 0%, #020c1b 55%, #051a32 100%)",
+        border: "transparent",
+        glow: "none",
       };
     }
     return {
-      gradient: "from-[#0B1D3A] via-[#0C3B52] to-[#0B1D3A]",
-      border: "border-gold/30",
-      glow: "shadow-gold/10",
+      gradient:
+        "radial-gradient(circle at top, rgba(64,195,210,0.08) 0%, transparent 35%), linear-gradient(165deg, #000206 0%, #02101a 55%, #04313a 100%)",
+      border: "transparent",
+      glow: "none",
     };
   }, [timeMeta.ended, timeMeta.endingSoon, featured, highlight]);
 
   return (
-    <div className="h-full w-full" style={{ perspective: "1500px" }}>
-      <motion.article
-        ref={cardRef}
-        data-auction-card
-        role="button"
-        tabIndex={0}
-        onClick={() => navigate(`/auctions/${id}`)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            navigate(`/auctions/${id}`);
-          }
-        }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className={`group relative mx-auto flex h-auto min-h-[580px] w-full flex-col overflow-hidden rounded-2xl border-2 backdrop-blur-xl transition-all duration-500 cursor-pointer ${cardStyles.border} ${cardStyles.glow} bg-gradient-to-br ${cardStyles.gradient}`}
+    <motion.article
+      ref={cardRef}
+      data-auction-card
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/auctions/${id}`)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          navigate(`/auctions/${id}`);
+        }
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="auction-card-shell group relative mx-auto flex h-auto min-h-[580px] w-full flex-col overflow-hidden rounded-2xl border cursor-pointer"
+      style={{
+        transformStyle: "preserve-3d",
+        z,
+        opacity,
+        y,
+        scale,
+        rotateX,
+        rotateY,
+        backgroundImage: cardStyles.gradient,
+        borderColor: cardStyles.border,
+        borderWidth: "4px",
+        boxShadow: cardStyles.glow,
+      }}
+      whileHover={{}}
+      onMouseEnter={() => setIsHovered(true)}
+    >
+      {/* Inner container for 3D parallax effect */}
+      <div
+        className="auction-card-inner relative h-full w-full"
         style={{
           transformStyle: "preserve-3d",
-          rotateX,
-          rotateY,
-          z,
-          opacity,
-          y,
-          scale,
         }}
-        whileHover={{ scale: 1.015 }}
-        transition={{ scale: { duration: 0.3, ease: "easeOut" } }}
-        onMouseEnter={() => setIsHovered(true)}
       >
-        {/* Light sweep effect */}
-        <motion.div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none z-10"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
-          }}
-          animate={{
-            opacity: isHovered ? [0.5, 0.8, 0.5] : 0.0,
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
         {/* Decorative gold lines */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
         <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
         <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
 
-        {/* Subtle top border accent */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none" />
-
         {/* Status badge */}
         {(timeMeta.endingSoon || featured || timeMeta.ended) && (
           <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border transition-all">
             {timeMeta.ended ? (
-              <>
-                <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                <span className="text-gray-300 bg-gray-900/60 border-gray-600/40 px-2 py-0.5 rounded-full">
-                  Zakończona
+              <div className="flex mt-2">
+                <span className="font-mono text-[11px] tracking-wider text-gold rounded-xl border border-gold/30 bg-gold/10 px-3 py-1 uppercase font-semibold">
+                  {ringBadge}
                 </span>
-              </>
+              </div>
             ) : timeMeta.endingSoon ? (
               <>
                 <Clock className="h-3 w-3 text-red-400 animate-pulse" />
@@ -371,14 +357,17 @@ export const UnifiedAuctionCard = ({
         </button>
 
         {/* Image section */}
-        <div className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-black">
+        <div
+          className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-black"
+          style={{ transformStyle: "preserve-3d" }}
+        >
           <AuctionImage
             src={imgSrc}
             alt={title}
             className={`w-full h-full ${imageObjectClass} transition-all duration-700`}
             style={{
               transform: isHovered
-                ? "scale(1.1) translateZ(40px)"
+                ? "scale(1.05) translateZ(20px)"
                 : "scale(1) translateZ(0px)",
             }}
             onError={(e) => {
@@ -389,19 +378,13 @@ export const UnifiedAuctionCard = ({
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-
-          {/* Hover glow effect */}
-          <div
-            ref={glowRef}
-            className="absolute inset-0 opacity-0 pointer-events-none"
-            style={{
-              background: `radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.15), transparent 60%)`,
-            }}
-          />
         </div>
 
         {/* Content section */}
-        <div className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-5">
+        <div className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-gradient-to-br from-[#006688] via-[#0088aa] to-[#99e6ff]">
+          {/* Gold guide line under photo */}
+          <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
+
           {/* Ring number badge above title */}
           {ringBadge && (
             <div className="flex mt-2">
@@ -431,8 +414,8 @@ export const UnifiedAuctionCard = ({
             ))}
           </div>
 
-          {/* Divider */}
-          <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-gold/30 to-transparent rounded-full" />
+          {/* Gold guide line above timer */}
+          <div style={GOLD_LINE_BASE_STYLE} />
 
           {/* Timer */}
           <div className="space-y-2">
@@ -448,8 +431,8 @@ export const UnifiedAuctionCard = ({
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-gold/30 to-transparent rounded-full" />
+          {/* Gold guide line above price */}
+          <div style={GOLD_LINE_BASE_STYLE} />
 
           {/* Price and bids */}
           <div className="flex items-end justify-between">
@@ -463,7 +446,9 @@ export const UnifiedAuctionCard = ({
             </div>
             <div className="text-right">
               <p className="text-xs text-white/50">
-                <span className="font-semibold text-white/70">{bidsCount}</span>{" "}
+                <span className="font-semibold text-white/70">
+                  {bidsCount}
+                </span>{" "}
                 {bidsCount === 1 ? "oferta" : "ofert"}
               </p>
             </div>
@@ -514,8 +499,8 @@ export const UnifiedAuctionCard = ({
             )}
           </div>
         </div>
-      </motion.article>
-    </div>
+      </div>
+    </motion.article>
   );
 };
 
