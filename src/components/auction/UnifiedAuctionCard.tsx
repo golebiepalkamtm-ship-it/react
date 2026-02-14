@@ -2,19 +2,40 @@ import { useEffect, useMemo, useState, useRef, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gavel, Heart, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, useMotionValue, useTransform, useSpring, useScroll } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  useSpring,
+  useScroll,
+} from "framer-motion";
 import { gsap } from "@/lib/gsapConfig";
 import { CardTimer } from "./CardTimer";
 
-const AuctionImage = memo(({ src, alt, className, onError }: { src: string, alt: string, className: string, onError: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void }) => (
-  <img
-    src={src}
-    alt={alt}
-    loading="lazy"
-    className={className}
-    onError={onError}
-  />
-));
+const AuctionImage = memo(
+  ({
+    src,
+    alt,
+    className,
+    onError,
+    style,
+  }: {
+    src: string;
+    alt: string;
+    className: string;
+    onError: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+    style?: React.CSSProperties;
+  }) => (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      className={className}
+      onError={onError}
+      style={style}
+    />
+  ),
+);
 AuctionImage.displayName = "AuctionImage";
 
 const AUCTION_PLACEHOLDER_SRC = "/placeholder.svg";
@@ -67,15 +88,14 @@ export const UnifiedAuctionCard = ({
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
 
-  
   // Use passed nowMs for stable, low-frequency updates (e.g. every minute)
   // avoiding 1Hz re-renders of the entire card
-  const referenceTime = typeof nowMs === "number" ? nowMs : Date.now();
+  const [initialNow] = useState(() => Date.now());
+  const referenceTime = typeof nowMs === "number" ? nowMs : initialNow;
 
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
-
 
   const [isHovered, setIsHovered] = useState(false);
 
@@ -86,13 +106,24 @@ export const UnifiedAuctionCard = ({
 
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
   const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]);
-  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.9, 1, 1, 0.9]);
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.7, 1],
+    [0.9, 1, 1, 0.9],
+  );
 
   // Enhanced 3D effect matching PressArticleCard
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { stiffness: 150, damping: 20 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 150, damping: 20 });
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
+    stiffness: 150,
+    damping: 20,
+  });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
+    stiffness: 150,
+    damping: 20,
+  });
+  const z = useSpring(isHovered ? 20 : 0, { stiffness: 150, damping: 20 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
@@ -102,8 +133,8 @@ export const UnifiedAuctionCard = ({
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     mouseX.set(x);
     mouseY.set(y);
-    card.style.setProperty('--mouse-x', `${(x + 0.5) * 100}%`);
-    card.style.setProperty('--mouse-y', `${(y + 0.5) * 100}%`);
+    card.style.setProperty("--mouse-x", `${(x + 0.5) * 100}%`);
+    card.style.setProperty("--mouse-y", `${(y + 0.5) * 100}%`);
     setIsHovered(true);
   };
 
@@ -123,19 +154,19 @@ export const UnifiedAuctionCard = ({
     // Initial animation matching PressArticleCard
     gsap.fromTo(
       card,
-      { 
-        opacity: 0, 
+      {
+        opacity: 0,
         y: 100,
         rotateX: 10,
-        scale: 0.9
+        scale: 0.9,
       },
       {
         opacity: 1,
         y: 0,
         duration: 0.6,
         ease: "power2.out",
-        clearProps: "all" // Important: clear GSAP styles after animation to let Framer Motion take over
-      }
+        clearProps: "all", // Important: clear GSAP styles after animation to let Framer Motion take over
+      },
     );
 
     // Glow effect on hover
@@ -168,7 +199,7 @@ export const UnifiedAuctionCard = ({
     };
   }, []);
 
-  // Removed internal timer effect to prevent re-renders. 
+  // Removed internal timer effect to prevent re-renders.
   // Timer precision is handled by isolated CardTimer component.
 
   const timeMeta = useMemo(() => {
@@ -177,7 +208,7 @@ export const UnifiedAuctionCard = ({
     }
     const end = new Date(endTime).getTime();
     const diff = Math.max(end - referenceTime, 0);
-    
+
     return {
       ended: diff === 0,
       endingSoon: diff > 0 && diff < 3600000,
@@ -193,7 +224,10 @@ export const UnifiedAuctionCard = ({
 
   const specBadges = useMemo(() => {
     const badges: string[] = [];
-    if (isPigeon && gender) badges.push(gender === "female" ? "Samica" : gender === "male" ? "Samiec" : gender);
+    if (isPigeon && gender)
+      badges.push(
+        gender === "female" ? "Samica" : gender === "male" ? "Samiec" : gender,
+      );
     if (isPigeon && color) badges.push(color);
     if (category) badges.push(category);
     return badges.slice(0, 3);
@@ -245,7 +279,7 @@ export const UnifiedAuctionCard = ({
   }, [timeMeta.ended, timeMeta.endingSoon, featured, highlight]);
 
   return (
-    <div className="h-full w-full" style={{ perspective: "1200px" }}>
+    <div className="h-full w-full" style={{ perspective: "1500px" }}>
       <motion.article
         ref={cardRef}
         data-auction-card
@@ -261,13 +295,14 @@ export const UnifiedAuctionCard = ({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         className={`group relative mx-auto flex h-auto min-h-[580px] w-full flex-col overflow-hidden rounded-2xl border-2 backdrop-blur-xl transition-all duration-500 cursor-pointer ${cardStyles.border} ${cardStyles.glow} bg-gradient-to-br ${cardStyles.gradient}`}
-        style={{ 
+        style={{
           transformStyle: "preserve-3d",
-          rotateX, 
+          rotateX,
           rotateY,
+          z,
           opacity,
           y,
-          scale
+          scale,
         }}
         whileHover={{ scale: 1.015 }}
         transition={{ scale: { duration: 0.3, ease: "easeOut" } }}
@@ -277,7 +312,8 @@ export const UnifiedAuctionCard = ({
         <motion.div
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none z-10"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)',
+            background:
+              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
           }}
           animate={{
             opacity: isHovered ? [0.5, 0.8, 0.5] : 0.0,
@@ -289,27 +325,33 @@ export const UnifiedAuctionCard = ({
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
         <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
         <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
-        
+
         {/* Subtle top border accent */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none" />
-        
+
         {/* Status badge */}
         {(timeMeta.endingSoon || featured || timeMeta.ended) && (
           <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border transition-all">
             {timeMeta.ended ? (
               <>
                 <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                <span className="text-gray-300 bg-gray-900/60 border-gray-600/40 px-2 py-0.5 rounded-full">Zakończona</span>
+                <span className="text-gray-300 bg-gray-900/60 border-gray-600/40 px-2 py-0.5 rounded-full">
+                  Zakończona
+                </span>
               </>
             ) : timeMeta.endingSoon ? (
               <>
                 <Clock className="h-3 w-3 text-red-400 animate-pulse" />
-                <span className="text-red-200 bg-red-950/60 border-red-500/40 px-2 py-0.5 rounded-full">Kończy się!</span>
+                <span className="text-red-200 bg-red-950/60 border-red-500/40 px-2 py-0.5 rounded-full">
+                  Kończy się!
+                </span>
               </>
             ) : featured ? (
               <>
                 <TrendingUp className="h-3 w-3 text-gold" />
-                <span className="text-gold bg-gold/10 border-gold/40 px-2 py-0.5 rounded-full">Wyróżniona</span>
+                <span className="text-gold bg-gold/10 border-gold/40 px-2 py-0.5 rounded-full">
+                  Wyróżniona
+                </span>
               </>
             ) : null}
           </div>
@@ -334,16 +376,22 @@ export const UnifiedAuctionCard = ({
             src={imgSrc}
             alt={title}
             className={`w-full h-full ${imageObjectClass} transition-all duration-700`}
+            style={{
+              transform: isHovered
+                ? "scale(1.1) translateZ(40px)"
+                : "scale(1) translateZ(0px)",
+            }}
             onError={(e) => {
               const t = e.currentTarget as HTMLImageElement;
-              if (t.src !== AUCTION_PLACEHOLDER_SRC) t.src = AUCTION_PLACEHOLDER_SRC;
+              if (t.src !== AUCTION_PLACEHOLDER_SRC)
+                t.src = AUCTION_PLACEHOLDER_SRC;
             }}
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-          
+
           {/* Hover glow effect */}
-          <div 
+          <div
             ref={glowRef}
             className="absolute inset-0 opacity-0 pointer-events-none"
             style={{
@@ -362,16 +410,22 @@ export const UnifiedAuctionCard = ({
               </span>
             </div>
           )}
-          
+
           {/* Title */}
-          <h3 className="font-display text-xl font-bold text-white leading-tight tracking-tight line-clamp-2">
+          <h3
+            className="font-display text-xl font-bold text-white leading-tight tracking-tight line-clamp-2"
+            style={{ transform: "translateZ(30px)" }}
+          >
             {displayTitle}
           </h3>
 
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2">
             {specBadges.map((badge) => (
-              <span key={`${id}-${badge}`} className="text-[10px] uppercase tracking-wider text-white/60 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1">
+              <span
+                key={`${id}-${badge}`}
+                className="text-[10px] uppercase tracking-wider text-white/60 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1"
+              >
                 {badge}
               </span>
             ))}
@@ -382,9 +436,15 @@ export const UnifiedAuctionCard = ({
 
           {/* Timer */}
           <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 font-medium">Pozostało czasu</p>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 font-medium">
+              Pozostało czasu
+            </p>
             <div className="w-full">
-              <CardTimer endTime={endTime} className="w-full gap-2" endingSoon={timeMeta.endingSoon} />
+              <CardTimer
+                endTime={endTime}
+                className="w-full gap-2"
+                endingSoon={timeMeta.endingSoon}
+              />
             </div>
           </div>
 
@@ -394,14 +454,17 @@ export const UnifiedAuctionCard = ({
           {/* Price and bids */}
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 mb-1.5 font-medium">Aktualna cena</p>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 mb-1.5 font-medium">
+                Aktualna cena
+              </p>
               <p className="font-display text-2xl font-bold text-gold drop-shadow-lg">
                 {formatNumber(currentBid)}
               </p>
             </div>
             <div className="text-right">
               <p className="text-xs text-white/50">
-                <span className="font-semibold text-white/70">{bidsCount}</span> {bidsCount === 1 ? 'oferta' : 'ofert'}
+                <span className="font-semibold text-white/70">{bidsCount}</span>{" "}
+                {bidsCount === 1 ? "oferta" : "ofert"}
               </p>
             </div>
           </div>
@@ -410,20 +473,41 @@ export const UnifiedAuctionCard = ({
           <div className="mt-auto flex flex-col gap-2">
             {typeof buyNowPrice === "number" && buyNowPrice > 0 ? (
               <div className="flex gap-2">
-                <Link to={`/auctions/${id}?mode=buy-now`} onClick={(e) => e.stopPropagation()} className="flex-1">
-                  <Button variant="premiumGold" className="w-full h-11 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl">
+                <Link
+                  to={`/auctions/${id}?mode=buy-now`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1"
+                >
+                  <Button
+                    variant="premiumGold"
+                    className="w-full h-11 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl"
+                  >
                     Kup Teraz
                   </Button>
                 </Link>
-                <Link to={`/auctions/${id}#bid`} onClick={(e) => e.stopPropagation()} className="flex-1">
-                  <Button variant="outline" className="w-full h-11 text-sm font-semibold bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30 transition-all rounded-xl">
+                <Link
+                  to={`/auctions/${id}#bid`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 text-sm font-semibold bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30 transition-all rounded-xl"
+                  >
                     <Gavel className="h-4 w-4 mr-1.5" /> Licytuj
                   </Button>
                 </Link>
               </div>
             ) : (
-              <Link to={`/auctions/${id}#bid`} onClick={(e) => e.stopPropagation()} className="w-full">
-                <Button variant="premiumGold" className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl">
+              <Link
+                to={`/auctions/${id}#bid`}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full"
+              >
+                <Button
+                  variant="premiumGold"
+                  className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl"
+                >
                   <Gavel className="h-4 w-4 mr-2" /> Licytuj Teraz
                 </Button>
               </Link>

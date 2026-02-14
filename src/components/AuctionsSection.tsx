@@ -17,9 +17,9 @@ const AuctionsSection = () => {
   const [now, setNow] = useState(() => Date.now());
 
   const { auctions, isLoading } = useAuctions({
-    status: 'active',
-    sortBy: 'newest',
-    sellerId: undefined
+    status: "active",
+    sortBy: "newest",
+    sellerId: undefined,
   });
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const AuctionsSection = () => {
 
   useEffect(() => {
     // We now use global initAllAnimations for a unified cinema entrance
-    console.log('✨ [AuctionsSection] Integration ready for global GSAP');
+    console.log("✨ [AuctionsSection] Integration ready for global GSAP");
   }, [isLoading]);
 
   return (
@@ -39,12 +39,15 @@ const AuctionsSection = () => {
       ref={sectionRef}
       id="auctions"
       className="pt-0 pb-24 section-surface-alt relative overflow-hidden"
-      style={{ perspective: '1000px' }}
+      style={{ perspective: "1000px" }}
       data-section-reveal
     >
       <div className="container mx-auto px-4" data-stagger-container>
         {/* Header */}
-        <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <div
+          ref={headerRef}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-12"
+        >
           <div>
             <span className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-4">
               Aukcje Na Żywo
@@ -61,7 +64,10 @@ const AuctionsSection = () => {
             whileTap="tap"
           >
             <Link to="/auctions">
-              <Button variant="outline" className="mt-6 md:mt-0 group border-gold/50 hover:bg-gold hover:text-navy">
+              <Button
+                variant="outline"
+                className="mt-6 md:mt-0 group border-gold/50 hover:bg-gold hover:text-navy"
+              >
                 Zobacz Wszystkie Aukcje
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -73,37 +79,48 @@ const AuctionsSection = () => {
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={`auction-skeleton-${i}`} className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] h-96 animate-pulse" />
+              <div
+                key={`auction-skeleton-${i}`}
+                className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] h-96 animate-pulse"
+              />
             ))}
           </div>
         ) : auctions.length > 0 ? (
-          <div ref={cardsContainerRef} className="grid gap-8 items-stretch md:grid-cols-2 lg:grid-cols-3">
+          <div
+            ref={cardsContainerRef}
+            className="grid gap-8 items-stretch md:grid-cols-2 lg:grid-cols-3"
+          >
             {auctions.slice(0, 3).map((auction, index) => (
-              <div key={auction.id || `auction-${index}`} data-stagger-item>
-                <UnifiedAuctionCard
-                  id={auction.id}
-                  title={auction.title}
-                  image={resolveAuctionImage(auction.images?.[0])}
-                  currentBid={auction.currentPrice}
-                  startingPrice={auction.startingPrice}
-                  endTime={auction.endTime}
-                  ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
-                  gender={auction.pigeon?.gender}
-                  color={auction.pigeon?.pigeonColor}
-                  category={auction.category}
-                  location={auction.location}
-                  watchCount={auction._count?.watchlist ?? 0}
-                  viewsCount={(auction as any)?.viewsCount ?? (auction._count as any)?.views ?? 0}
-                  bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
-                  featured={index === 1}
-                  nowMs={now}
-                />
-              </div>
+              <UnifiedAuctionCard
+                key={auction.id || `auction-${index}`}
+                id={auction.id}
+                title={auction.title}
+                image={resolveAuctionImage(auction.images?.[0])}
+                currentBid={auction.currentPrice}
+                startingPrice={auction.startingPrice}
+                endTime={auction.endTime}
+                ringNumber={auction.pigeon?.ringNumber || "Brak numeru"}
+                gender={auction.pigeon?.gender}
+                color={auction.pigeon?.pigeonColor}
+                category={auction.category}
+                location={auction.location}
+                watchCount={auction._count?.watchlist ?? 0}
+                viewsCount={
+                  (auction as any)?.viewsCount ??
+                  (auction._count as any)?.views ??
+                  0
+                }
+                bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
+                featured={index === 1}
+                nowMs={now}
+              />
             ))}
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-muted-foreground">Obecnie brak aktywnych aukcji</p>
+            <p className="text-muted-foreground">
+              Obecnie brak aktywnych aukcji
+            </p>
           </div>
         )}
 
