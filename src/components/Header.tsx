@@ -2,9 +2,14 @@ import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, Shield, CheckCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import UserPanel from './UserPanel';
-import AdminPanel from './AdminPanel';
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import UserPanel from "./UserPanel";
+import AdminPanel from "./AdminPanel";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
 import { fadeInDown, iconMicro } from "@/components/motion";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { NotificationModal } from "@/components/NotificationModal";
@@ -17,15 +22,16 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [isHeaderAdminPanelOpen, setIsHeaderAdminPanelOpen] = useState(false);
-  const [verificationSuccessModalOpen, setVerificationSuccessModalOpen] = useState(false);
+  const [verificationSuccessModalOpen, setVerificationSuccessModalOpen] =
+    useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Debug log
   useEffect(() => {
     if (isHeaderAdminPanelOpen) {
-      console.log('🔍 Header: Admin Modal OPENED');
-      console.trace('🔍 Stack trace for Admin Modal open:');
+      console.log("🔍 Header: Admin Modal OPENED");
+      console.trace("🔍 Stack trace for Admin Modal open:");
     }
   }, [isHeaderAdminPanelOpen]);
 
@@ -39,22 +45,35 @@ const Header = () => {
 
   useEffect(() => {
     const handleShowUserPanel = () => setShowAccountModal(true);
-    window.addEventListener('showUserPanel', handleShowUserPanel);
-    return () => window.removeEventListener('showUserPanel', handleShowUserPanel);
+    window.addEventListener("showUserPanel", handleShowUserPanel);
+    return () =>
+      window.removeEventListener("showUserPanel", handleShowUserPanel);
   }, []);
 
   useEffect(() => {
     if (user && session?.access_token) {
-      notificationService.getUnreadNotifications(session.access_token)
-        .then(notes => setUnreadCount(notes.length))
-        .catch(err => console.error('Failed to fetch unread count', err));
+      notificationService
+        .getUnreadNotifications(session.access_token)
+        .then((notes) =>
+          setUnreadCount(Array.isArray(notes) ? notes.length : 0),
+        )
+        .catch((err) => {
+          console.error("Failed to fetch unread count", err);
+          setUnreadCount(0);
+        });
     }
   }, [user, session]);
 
   const shouldOpenFromLocation = Boolean(location.state?.openAccount);
-  const shouldShowVerificationFromLocation = Boolean(location.state?.showVerificationSuccess);
-  const isAccountModalOpen = showAccountModal || (shouldOpenFromLocation && !shouldShowVerificationFromLocation);
-  const isVerificationModalOpen = verificationSuccessModalOpen || (shouldOpenFromLocation && shouldShowVerificationFromLocation);
+  const shouldShowVerificationFromLocation = Boolean(
+    location.state?.showVerificationSuccess,
+  );
+  const isAccountModalOpen =
+    showAccountModal ||
+    (shouldOpenFromLocation && !shouldShowVerificationFromLocation);
+  const isVerificationModalOpen =
+    verificationSuccessModalOpen ||
+    (shouldOpenFromLocation && shouldShowVerificationFromLocation);
 
   useEffect(() => {
     if (shouldOpenFromLocation) {
@@ -76,12 +95,31 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isHomePage = location.pathname === "/" || location.pathname === "/homepage" || location.pathname === "/homepage-premium";
-  const isBreederPage = location.pathname.startsWith('/breeder-meetings');
-  const isAuctionsPage = location.pathname.startsWith('/auctions');
-  const isContactPage = location.pathname.startsWith('/contact');
-  const isReferencesPage = location.pathname.startsWith('/references');
-  const isOverlay = useMemo(() => !isScrolled && (isHomePage || isBreederPage || isAuctionsPage || isContactPage || isReferencesPage), [isScrolled, isHomePage, isBreederPage, isAuctionsPage, isContactPage, isReferencesPage]);
+  const isHomePage =
+    location.pathname === "/" ||
+    location.pathname === "/homepage" ||
+    location.pathname === "/homepage-premium";
+  const isBreederPage = location.pathname.startsWith("/breeder-meetings");
+  const isAuctionsPage = location.pathname.startsWith("/auctions");
+  const isContactPage = location.pathname.startsWith("/contact");
+  const isReferencesPage = location.pathname.startsWith("/references");
+  const isOverlay = useMemo(
+    () =>
+      !isScrolled &&
+      (isHomePage ||
+        isBreederPage ||
+        isAuctionsPage ||
+        isContactPage ||
+        isReferencesPage),
+    [
+      isScrolled,
+      isHomePage,
+      isBreederPage,
+      isAuctionsPage,
+      isContactPage,
+      isReferencesPage,
+    ],
+  );
   const accountHref = user ? "/account" : "/auth";
 
   const navLinks = useMemo(() => {
@@ -100,54 +138,60 @@ const Header = () => {
     ];
 
     // Add admin link for admins
-    if (profile?.role === 'ADMIN') {
-      baseLinks.splice(baseLinks.length - 1, 0, { label: 'Panel admina', href: '/admin' });
+    if (profile?.role === "ADMIN") {
+      baseLinks.splice(baseLinks.length - 1, 0, {
+        label: "Panel admina",
+        href: "/admin",
+      });
     }
 
     return baseLinks;
   }, [profile?.role, accountHref]);
 
   const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(prev => !prev);
+    setIsMobileMenuOpen((prev) => !prev);
   }, []);
 
   const closeMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(false);
   }, []);
 
-  const scrollToAnchor = useCallback((anchor: string) => {
-    // Jeśli nie jesteśmy na stronie głównej, nawiguj na / z informacją dokąd scrollować
-    if (!isHomePage) {
-      navigate('/', { state: { scrollTo: anchor } });
-      closeMobileMenu();
-      return;
-    }
-
-    // dla "home" jedziemy na samą górę
-    if (anchor === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      closeMobileMenu();
-      return;
-    }
-
-    const el = document.getElementById(anchor);
-    if (el) {
-      const headerHeight = headerRef.current?.offsetHeight ?? 88;
-      let offset = headerHeight + 32;
-
-      if (anchor === 'about') {
-        offset = headerHeight + 64; // sekcja wysoka – trochę niżej
-      } else if (anchor === 'contact') {
-        offset = headerHeight + 16; // nagłówek sekcji bliżej górnej krawędzi
+  const scrollToAnchor = useCallback(
+    (anchor: string) => {
+      // Jeśli nie jesteśmy na stronie głównej, nawiguj na / z informacją dokąd scrollować
+      if (!isHomePage) {
+        navigate("/", { state: { scrollTo: anchor } });
+        closeMobileMenu();
+        return;
       }
 
-      const elementPosition = el.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
+      // dla "home" jedziemy na samą górę
+      if (anchor === "home") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        closeMobileMenu();
+        return;
+      }
 
-    closeMobileMenu();
-  }, [closeMobileMenu, isHomePage, navigate]);
+      const el = document.getElementById(anchor);
+      if (el) {
+        const headerHeight = headerRef.current?.offsetHeight ?? 88;
+        let offset = headerHeight + 32;
+
+        if (anchor === "about") {
+          offset = headerHeight + 64; // sekcja wysoka – trochę niżej
+        } else if (anchor === "contact") {
+          offset = headerHeight + 16; // nagłówek sekcji bliżej górnej krawędzi
+        }
+
+        const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+        const offsetPosition = elementPosition - offset;
+        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      }
+
+      closeMobileMenu();
+    },
+    [closeMobileMenu, isHomePage, navigate],
+  );
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -172,7 +216,7 @@ const Header = () => {
     mobileMenuButtonRef.current?.focus();
   }, [isMobileMenuOpen]);
 
-  const ariaExpanded: 'true' | 'false' = isMobileMenuOpen ? 'true' : 'false';
+  const ariaExpanded: "true" | "false" = isMobileMenuOpen ? "true" : "false";
 
   // Efekt podświetlenia dla tła nagłówka
   const headerGlowX = useMotionValue(0);
@@ -187,7 +231,8 @@ const Header = () => {
   };
 
   const handleHeaderMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    const rect = headerRectRef.current || e.currentTarget.getBoundingClientRect();
+    const rect =
+      headerRectRef.current || e.currentTarget.getBoundingClientRect();
     if (!headerRectRef.current) headerRectRef.current = rect;
 
     const x = (e.clientX - rect.left) / rect.width;
@@ -205,9 +250,9 @@ const Header = () => {
 
   const setAdminModalWithTrace = (value: boolean) => {
     if (value) {
-      console.group('🔍 Header: Opening Admin Modal');
-      console.log('Value:', value);
-      console.trace('Stack trace:');
+      console.group("🔍 Header: Opening Admin Modal");
+      console.log("Value:", value);
+      console.trace("Stack trace:");
       console.groupEnd();
     }
     setIsHeaderAdminPanelOpen(value);
@@ -222,10 +267,11 @@ const Header = () => {
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-500 ${isOverlay
-        ? "bg-transparent py-0"
-        : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-0"
-        }`}
+      className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-500 ${
+        isOverlay
+          ? "bg-transparent py-0"
+          : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-0"
+      }`}
     >
       {/* Efekt podświetlenia dla nagłówka */}
       <motion.div
@@ -233,9 +279,10 @@ const Header = () => {
         style={{
           background: useTransform(
             [headerGlowX, headerGlowY, headerGlowOpacity],
-            ([x, y, o]) => `radial-gradient(circle at ${x as number * 100}% ${y as number * 100}%, rgba(212, 175, 55, ${o as number}), transparent 30%)`
+            ([x, y, o]) =>
+              `radial-gradient(circle at ${(x as number) * 100}% ${(y as number) * 100}%, rgba(212, 175, 55, ${o as number}), transparent 30%)`,
           ),
-          opacity: headerGlowOpacity
+          opacity: headerGlowOpacity,
         }}
       />
       <div className="container mx-auto px-4 flex items-center justify-between">
@@ -249,16 +296,28 @@ const Header = () => {
             <motion.div
               className="w-11 h-11 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center relative z-10"
               whileHover={{
-                boxShadow: ["0 0 0 0 rgba(212,175,55,0)", "0 0 20px 5px rgba(212,175,55,0.5)", "0 0 0 0 rgba(212,175,55,0)"],
-                transition: { duration: 1.5, repeat: Infinity }
+                boxShadow: [
+                  "0 0 0 0 rgba(212,175,55,0)",
+                  "0 0 20px 5px rgba(212,175,55,0.5)",
+                  "0 0 0 0 rgba(212,175,55,0)",
+                ],
+                transition: { duration: 1.5, repeat: Infinity },
               }}
             >
               <motion.span
                 className="font-display font-bold text-lg text-white"
                 animate={{
-                  textShadow: ["0 0 0px rgba(255,255,255,0)", "0 0 10px rgba(255,255,255,0.8)", "0 0 0px rgba(255,255,255,0)"]
+                  textShadow: [
+                    "0 0 0px rgba(255,255,255,0)",
+                    "0 0 10px rgba(255,255,255,0.8)",
+                    "0 0 0px rgba(255,255,255,0)",
+                  ],
                 }}
-                transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
               >
                 M
               </motion.span>
@@ -268,12 +327,16 @@ const Header = () => {
                 className={`font-display text-lg md:text-xl font-semibold tracking-wide text-white`}
                 initial={{ backgroundPosition: "0% 50%" }}
                 whileHover={{
-                  backgroundImage: "linear-gradient(90deg, #ffffff, #D4AF37, #ffffff)",
+                  backgroundImage:
+                    "linear-gradient(90deg, #ffffff, #D4AF37, #ffffff)",
                   backgroundSize: "200% 100%",
                   backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                  transition: { duration: 1.5, repeat: Infinity }
+                  transition: { duration: 1.5, repeat: Infinity },
                 }}
-                style={{ WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                style={{
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
               >
                 MTM Pałka
               </motion.span>
@@ -293,13 +356,13 @@ const Header = () => {
                     opacity: [0, 0.8, 0],
                     scale: [0, 1, 0.5],
                     x: [0, (i - 1) * 15],
-                    y: [0, -10 - i * 5]
+                    y: [0, -10 - i * 5],
                   }}
                   transition={{
                     duration: 1.5,
                     delay: i * 0.2,
                     repeat: Infinity,
-                    repeatDelay: 2
+                    repeatDelay: 2,
                   }}
                 />
               ))}
@@ -314,12 +377,12 @@ const Header = () => {
           variants={{
             hidden: {},
             visible: {
-              transition: { staggerChildren: 0.05, delayChildren: 0.1 }
-            }
+              transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+            },
           }}
         >
           {navLinks.map((link, index) => {
-            if (link.href === '/account') {
+            if (link.href === "/account") {
               return (
                 <motion.button
                   key={link.label}
@@ -327,7 +390,7 @@ const Header = () => {
                   className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
                   variants={{
                     hidden: { opacity: 0, y: -10 },
-                    visible: { opacity: 1, y: 0 }
+                    visible: { opacity: 1, y: 0 },
                   }}
                   whileHover={{ y: -2 }}
                   whileTap={{ y: 0 }}
@@ -348,7 +411,7 @@ const Header = () => {
                 </motion.button>
               );
             }
-            if (link.href === '/admin') {
+            if (link.href === "/admin") {
               return (
                 <motion.button
                   key={link.label}
@@ -356,7 +419,7 @@ const Header = () => {
                   className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
                   variants={{
                     hidden: { opacity: 0, y: -10 },
-                    visible: { opacity: 1, y: 0 }
+                    visible: { opacity: 1, y: 0 },
                   }}
                   whileHover={{ y: -2 }}
                   whileTap={{ y: 0 }}
@@ -382,16 +445,16 @@ const Header = () => {
                 key={link.label}
                 variants={{
                   hidden: { opacity: 0, y: -10 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
               >
-                {link.href.startsWith('/#') ? (
+                {link.href.startsWith("/#") ? (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      const anchor = link.href.split('#')[1];
+                      const anchor = link.href.split("#")[1];
                       scrollToAnchor(anchor);
                     }}
                     className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}
@@ -399,7 +462,10 @@ const Header = () => {
                     {link.label}
                   </button>
                 ) : (
-                  <RouterLink to={link.href} className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}>
+                  <RouterLink
+                    to={link.href}
+                    className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
+                  >
                     <span className="relative z-10">{link.label}</span>
                     <motion.span
                       className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
@@ -425,7 +491,7 @@ const Header = () => {
               <motion.button
                 variants={{
                   hidden: { opacity: 0, y: -10 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 onClick={() => setShowNotificationModal(true)}
                 className="relative p-2 rounded-full hover:bg-white/10 transition-colors group"
@@ -439,7 +505,7 @@ const Header = () => {
                       animate={{ scale: 1 }}
                       className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black/50"
                     >
-                      {unreadCount > 9 ? '9+' : unreadCount}
+                      {unreadCount > 9 ? "9+" : unreadCount}
                     </motion.span>
                   )}
                 </div>
@@ -448,54 +514,71 @@ const Header = () => {
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: -10 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 className="flex items-center"
               >
-              <button
-                type="button"
-                onClick={() => setShowAccountModal(true)}
-                className="relative group p-2 rounded-full hover:bg-white/5 transition-colors"
-                title={`Status: ${profile.role === 'ADMIN' ? 'Administrator' :
-                  profile.role === 'USER_FULL_VERIFIED' ? 'Konto zweryfikowane' :
-                    profile.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil i zweryfikuj telefon' :
-                      'Zweryfikuj adres email'
+                <button
+                  type="button"
+                  onClick={() => setShowAccountModal(true)}
+                  className="relative group p-2 rounded-full hover:bg-white/5 transition-colors"
+                  title={`Status: ${
+                    profile.role === "ADMIN"
+                      ? "Administrator"
+                      : profile.role === "USER_FULL_VERIFIED"
+                        ? "Konto zweryfikowane"
+                        : profile.role === "USER_EMAIL_VERIFIED"
+                          ? "Uzupełnij profil i zweryfikuj telefon"
+                          : "Zweryfikuj adres email"
                   }`}
-              >
-                <div className="relative flex items-center justify-center">
-                  {/* Diode Background Glow */}
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.5, 1],
-                      opacity: [0.3, 0.6, 0.3],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    className={`absolute w-3 h-3 rounded-full blur-[2px] ${profile.role === 'ADMIN' ? 'bg-purple-500' :
-                      profile.role === 'USER_FULL_VERIFIED' ? 'bg-green-500' :
-                        profile.role === 'USER_EMAIL_VERIFIED' ? 'bg-gold' :
-                          'bg-amber-500'
+                >
+                  <div className="relative flex items-center justify-center">
+                    {/* Diode Background Glow */}
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.5, 1],
+                        opacity: [0.3, 0.6, 0.3],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className={`absolute w-3 h-3 rounded-full blur-[2px] ${
+                        profile.role === "ADMIN"
+                          ? "bg-purple-500"
+                          : profile.role === "USER_FULL_VERIFIED"
+                            ? "bg-green-500"
+                            : profile.role === "USER_EMAIL_VERIFIED"
+                              ? "bg-gold"
+                              : "bg-amber-500"
                       }`}
-                  />
-                  {/* Main Diode */}
-                  <div className={`relative w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${profile.role === 'ADMIN' ? 'bg-purple-400' :
-                    profile.role === 'USER_FULL_VERIFIED' ? 'bg-green-400' :
-                      profile.role === 'USER_EMAIL_VERIFIED' ? 'bg-gold' :
-                        'bg-amber-400'
-                    }`} />
-                </div>
+                    />
+                    {/* Main Diode */}
+                    <div
+                      className={`relative w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${
+                        profile.role === "ADMIN"
+                          ? "bg-purple-400"
+                          : profile.role === "USER_FULL_VERIFIED"
+                            ? "bg-green-400"
+                            : profile.role === "USER_EMAIL_VERIFIED"
+                              ? "bg-gold"
+                              : "bg-amber-400"
+                      }`}
+                    />
+                  </div>
 
-                {/* Tooltip hint on hover */}
-                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-black/80 backdrop-blur-md border border-white/10 rounded text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                  {profile.role === 'ADMIN' ? 'Admin' :
-                    profile.role === 'USER_FULL_VERIFIED' ? 'Zweryfikowany' :
-                      profile.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' :
-                        'Zweryfikuj email'}
-                </span>
-              </button>
+                  {/* Tooltip hint on hover */}
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-black/80 backdrop-blur-md border border-white/10 rounded text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                    {profile.role === "ADMIN"
+                      ? "Admin"
+                      : profile.role === "USER_FULL_VERIFIED"
+                        ? "Zweryfikowany"
+                        : profile.role === "USER_EMAIL_VERIFIED"
+                          ? "Uzupełnij profil"
+                          : "Zweryfikuj email"}
+                  </span>
+                </button>
               </motion.div>
             </div>
           )}
@@ -522,9 +605,7 @@ const Header = () => {
         </AnimatePresence>
 
         {user && (
-          <motion.div
-            className="md:hidden relative mr-2"
-          >
+          <motion.div className="md:hidden relative mr-2">
             <motion.button
               className="p-2 text-white/90 relative"
               onClick={() => setShowNotificationModal(true)}
@@ -533,7 +614,7 @@ const Header = () => {
               <Bell size={24} />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white ring-1 ring-black/50">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </motion.button>
@@ -555,9 +636,10 @@ const Header = () => {
           <motion.div
             className="absolute inset-0 rounded-full bg-gold/20"
             initial={{ scale: 0, opacity: 0 }}
-            animate={isMobileMenuOpen ?
-              { scale: [0, 1.2, 1], opacity: [0, 0.6, 0.2] } :
-              { scale: 0, opacity: 0 }
+            animate={
+              isMobileMenuOpen
+                ? { scale: [0, 1.2, 1], opacity: [0, 0.6, 0.2] }
+                : { scale: 0, opacity: 0 }
             }
             transition={{ duration: 0.4 }}
           />
@@ -592,11 +674,16 @@ const Header = () => {
           <motion.div
             className="md:hidden absolute top-full left-0 right-0 bg-hero-gradient border-t border-primary/20"
             initial={{ opacity: 0, height: 0, y: -20 }}
-            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
             exit={{ opacity: 0, height: 0, y: -20 }}
             transition={{
               duration: 0.4,
-              height: { duration: 0.4, type: "spring", stiffness: 500, damping: 30 }
+              height: {
+                duration: 0.4,
+                type: "spring",
+                stiffness: 500,
+                damping: 30,
+              },
             }}
           >
             <motion.nav
@@ -608,12 +695,12 @@ const Header = () => {
               variants={{
                 hidden: {},
                 visible: {
-                  transition: { staggerChildren: 0.05, delayChildren: 0.1 }
-                }
+                  transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+                },
               }}
             >
               {navLinks.map((link) => {
-                if (link.href === '/account') {
+                if (link.href === "/account") {
                   return (
                     <motion.button
                       key={link.label}
@@ -622,12 +709,16 @@ const Header = () => {
                         setShowAccountModal(true);
                         closeMobileMenu();
                       }}
-                      ref={link.label === navLinks[0]?.label ? (el: HTMLElement | null) => {
-                        firstMobileLinkRef.current = el;
-                      } : undefined}
+                      ref={
+                        link.label === navLinks[0]?.label
+                          ? (el: HTMLElement | null) => {
+                              firstMobileLinkRef.current = el;
+                            }
+                          : undefined
+                      }
                       variants={{
                         hidden: { opacity: 0, x: -20 },
-                        visible: { opacity: 1, x: 0 }
+                        visible: { opacity: 1, x: 0 },
                       }}
                       whileHover={{ x: 4 }}
                       whileTap={{ scale: 0.98 }}
@@ -636,7 +727,7 @@ const Header = () => {
                     </motion.button>
                   );
                 }
-                if (link.href === '/admin') {
+                if (link.href === "/admin") {
                   return (
                     <motion.button
                       key={link.label}
@@ -647,7 +738,7 @@ const Header = () => {
                       }}
                       variants={{
                         hidden: { opacity: 0, x: -20 },
-                        visible: { opacity: 1, x: 0 }
+                        visible: { opacity: 1, x: 0 },
                       }}
                       whileHover={{ x: 4 }}
                       whileTap={{ scale: 0.98 }}
@@ -661,23 +752,27 @@ const Header = () => {
                     key={link.label}
                     variants={{
                       hidden: { opacity: 0, x: -20 },
-                      visible: { opacity: 1, x: 0 }
+                      visible: { opacity: 1, x: 0 },
                     }}
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {link.href.startsWith('/#') ? (
+                    {link.href.startsWith("/#") ? (
                       <a
                         href={link.href}
                         className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary block"
                         onClick={(e) => {
                           e.preventDefault();
-                          const anchor = link.href.split('#')[1];
+                          const anchor = link.href.split("#")[1];
                           scrollToAnchor(anchor);
                         }}
-                        ref={link.label === navLinks[0]?.label ? (el: HTMLElement | null) => {
-                          firstMobileLinkRef.current = el;
-                        } : undefined}
+                        ref={
+                          link.label === navLinks[0]?.label
+                            ? (el: HTMLElement | null) => {
+                                firstMobileLinkRef.current = el;
+                              }
+                            : undefined
+                        }
                       >
                         {link.label}
                       </a>
@@ -686,9 +781,13 @@ const Header = () => {
                         to={link.href}
                         className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary block"
                         onClick={closeMobileMenu}
-                        ref={link.label === navLinks[0]?.label ? (el: HTMLElement | null) => {
-                          firstMobileLinkRef.current = el;
-                        } : undefined}
+                        ref={
+                          link.label === navLinks[0]?.label
+                            ? (el: HTMLElement | null) => {
+                                firstMobileLinkRef.current = el;
+                              }
+                            : undefined
+                        }
                       >
                         {link.label}
                       </RouterLink>
@@ -708,7 +807,7 @@ const Header = () => {
         message="Prosimy o uzupełnienie danych profilowych, aby móc w pełni korzystać z serwisu."
         confirmButton={{
           text: "OK",
-          onClick: handleVerificationModalClose
+          onClick: handleVerificationModalClose,
         }}
         showCloseButton={true}
         closeOnBackdrop={false}

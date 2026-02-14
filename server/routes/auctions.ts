@@ -40,7 +40,13 @@ const router: Router = express.Router();
 
 const auctionIdSchema = z.string().uuid("Invalid auction id");
 
-const ALLOWED_CATEGORIES = new Set(["RACING", "BREEDING", "SHOW"]);
+const ALLOWED_CATEGORIES = new Set([
+  "RACING",
+  "BREEDING",
+  "SHOW",
+  "SUPPLEMENTS",
+  "ACCESSORIES",
+]);
 const normalizeCategory = (input?: string) => {
   const up = (input || "").toUpperCase();
   return ALLOWED_CATEGORIES.has(up) ? up : "SHOW";
@@ -312,15 +318,21 @@ async function performAuctionCreate(req: any, userId: string | null) {
       )
     : false;
 
-  const pigeonPayload = pigeonHasTraits
-    ? {
-        ...rawPigeonPayload!,
-        gender:
-          typeof pigeon?.gender === "string"
-            ? (pigeon.gender || "MALE").toUpperCase()
-            : "MALE",
-      }
-    : null;
+  const auctionCategory = normalizeCategory(category || "RACING");
+  const isPigeonAuction = ["RACING", "BREEDING", "SHOW"].includes(
+    auctionCategory,
+  );
+
+  const pigeonPayload =
+    isPigeonAuction && pigeonHasTraits
+      ? {
+          ...rawPigeonPayload!,
+          gender:
+            typeof pigeon?.gender === "string"
+              ? (pigeon.gender || "MALE").toUpperCase()
+              : "MALE",
+        }
+      : undefined;
 
   // Build description with traits for search/legacy display
   let finalDescription = description;
@@ -366,7 +378,7 @@ async function performAuctionCreate(req: any, userId: string | null) {
       reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
       endTime: new Date(endTime),
       status: "ACTIVE",
-      category: normalizeCategory(category || "RACING") as any,
+      category: auctionCategory as any,
       location: location || "Lubań, Polska",
       sellerId: userId,
       pigeon: pigeonPayload ? { create: pigeonPayload as any } : undefined,
@@ -387,7 +399,7 @@ if (validatedEnv.NODE_ENV === "development") {
           .status(500)
           .json({ error: "Błąd połączenia z bazą danych." });
       const created = await performAuctionCreate(req, null);
-      cache.invalidateResource("auction"); // Invalidate auction lists
+      cache.invalidateResource("auctions"); // Invalidate auction lists
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
       console.error("Error creating auction (dev):", error);
@@ -418,7 +430,7 @@ if (validatedEnv.NODE_ENV === "development") {
             .json({ error: "Błąd połączenia z bazą danych." });
 
         const created = await performAuctionCreate(req, userId);
-        cache.invalidateResource("auction");
+        cache.invalidateResource("auctions");
         res.status(201).json(serializeAuction(created as any));
       } catch (error) {
         console.error("Error creating auction:", {
@@ -582,7 +594,7 @@ router.post(
 
       // Invalidate relevant cache entries
       cache.invalidateAuctionCache(auctionId);
-      cache.invalidateResource("auction"); // Refresh lists as status changed
+      cache.invalidateResource("auctions"); // Refresh lists as status changed
       res.json({ success: true, finalPrice: result.amount, auctionId });
     } catch (error: any) {
       res.status(error.statusCode || 500).json({

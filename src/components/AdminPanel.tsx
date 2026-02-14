@@ -1,28 +1,36 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Shield, LayoutDashboard, Users, Gavel, Settings } from 'lucide-react';
-import { createPortal } from 'react-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect, useCallback, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  Search,
+  Shield,
+  LayoutDashboard,
+  Users,
+  Gavel,
+  Settings,
+} from "lucide-react";
+import { createPortal } from "react-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/services/api';
-import { UnifiedModal } from '@/components/ui/UnifiedModal';
-import { Button } from '@/components/ui/button';
+import { useAuth } from "@/contexts/AuthContext";
+import { apiClient } from "@/services/api";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
+import { Button } from "@/components/ui/button";
 
 // Types
-import { UserData, AuctionData, AdminStats } from '@/types/admin';
+import { UserData, AuctionData, AdminStats } from "@/types/admin";
 
 // Sub-components
-import { AdminDashboard } from './admin/AdminDashboard';
-import { AdminUsersTable } from './admin/AdminUsersTable';
-import { AdminAuctionsTable } from './admin/AdminAuctionsTable';
-import { AdminSettings } from './admin/AdminSettings';
-import { AdminUserEditModal } from './admin/AdminUserEditModal';
-import { AdminAuctionEditModal } from './admin/AdminAuctionEditModal';
-import { AdminCreateUserModal } from './admin/AdminCreateUserModal';
-import { AdminCreateAuctionModal } from './admin/AdminCreateAuctionModal';
+import { AdminDashboard } from "./admin/AdminDashboard";
+import { AdminUsersTable } from "./admin/AdminUsersTable";
+import { AdminAuctionsTable } from "./admin/AdminAuctionsTable";
+import { AdminSettings } from "./admin/AdminSettings";
+import { AdminUserEditModal } from "./admin/AdminUserEditModal";
+import { AdminAuctionEditModal } from "./admin/AdminAuctionEditModal";
+import { AdminCreateUserModal } from "./admin/AdminCreateUserModal";
+import { AdminCreateAuctionModal } from "./admin/AdminCreateAuctionModal";
 
-type TabType = 'dashboard' | 'users' | 'auctions' | 'settings';
+type TabType = "dashboard" | "users" | "auctions" | "settings";
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -33,74 +41,91 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const { profile, session } = useAuth();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [users, setUsers] = useState<UserData[]>([]);
   const [auctions, setAuctions] = useState<AuctionData[]>([]);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     activeAuctions: 0,
     totalAuctions: 0,
-    totalVolume: 0
+    totalVolume: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Modal states
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
-  const [editingAuction, setEditingAuction] = useState<AuctionData | null>(null);
+  const [editingAuction, setEditingAuction] = useState<AuctionData | null>(
+    null,
+  );
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [isCreatingAuction, setIsCreatingAuction] = useState(false);
   const [newUser, setNewUser] = useState<Partial<UserData>>({
-    email: '',
-    password: '',
-    first_name: '',
-    last_name: '',
-    role: 'USER_REGISTERED',
-    username: ''
+    email: "",
+    password: "",
+    first_name: "",
+    last_name: "",
+    role: "USER_REGISTERED",
+    username: "",
   });
 
   const [feedbackModal, setFeedbackModal] = useState<{
     isOpen: boolean;
-    type: 'success' | 'error' | 'info' | 'warning';
+    type: "success" | "error" | "info" | "warning";
     title: string;
     message: string;
     onConfirm?: () => void;
   }>({
     isOpen: false,
-    type: 'info',
-    title: '',
-    message: ''
+    type: "info",
+    title: "",
+    message: "",
   });
 
   const fetchData = useCallback(async () => {
     if (!session?.access_token) {
-      console.error('❌ No access token available');
+      console.error("❌ No access token available");
       return;
     }
     setLoading(true);
     try {
-      console.log('🔑 Fetching admin data with token:', session.access_token.substring(0, 20) + '...');
-      console.log('👤 Profile role:', profile?.role);
-      console.log('📧 User email:', session.user?.email);
-      
-      const statsData = await apiClient.getWithToken<AdminStats>('/admin/stats', undefined, session.access_token);
+      console.log(
+        "🔑 Fetching admin data with token:",
+        session.access_token.substring(0, 20) + "...",
+      );
+      console.log("👤 Profile role:", profile?.role);
+      console.log("📧 User email:", session.user?.email);
+
+      const statsData = await apiClient.getWithToken<AdminStats>(
+        "/admin/stats",
+        undefined,
+        session.access_token,
+      );
       setStats(statsData);
 
-      const usersData = await apiClient.getWithToken<{ users: UserData[] }>('/admin/users', { limit: 100 }, session.access_token);
+      const usersData = await apiClient.getWithToken<{ users: UserData[] }>(
+        "/admin/users",
+        { limit: 100 },
+        session.access_token,
+      );
       setUsers(usersData.users || []);
 
-      const auctionsData = await apiClient.getWithToken<AuctionData[]>('/admin/auctions', undefined, session.access_token);
-      setAuctions(auctionsData);
-
+      const auctionsResponse = await apiClient.getWithToken<{
+        data: AuctionData[];
+      }>("/admin/auctions", undefined, session.access_token);
+      setAuctions(auctionsResponse.data || []);
     } catch (error) {
       console.error("❌ Error fetching admin data:", error);
-      console.error("Error details:", error instanceof Error ? error.message : error);
+      console.error(
+        "Error details:",
+        error instanceof Error ? error.message : error,
+      );
       setFeedbackModal({
         isOpen: true,
-        type: 'error',
-        title: 'Błąd',
-        message: 'Nie udało się pobrać danych administratora.'
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się pobrać danych administratora.",
       });
     } finally {
       setLoading(false);
@@ -108,7 +133,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   }, [session?.access_token, profile?.role, session?.user?.email]);
 
   useEffect(() => {
-    if (isOpen && profile?.role === 'ADMIN' && session?.access_token) {
+    if (isOpen && profile?.role === "ADMIN" && session?.access_token) {
       fetchData();
     }
   }, [isOpen, profile, session, fetchData]);
@@ -116,7 +141,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) return;
     const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = originalOverflow;
     };
@@ -128,54 +153,72 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'delete' | 'verify') => {
+  const handleUserAction = async (
+    userId: string,
+    action: "ban" | "unban" | "delete" | "verify",
+  ) => {
     if (!session?.access_token) return;
-    if (userId === profile?.id && (action === 'ban' || action === 'delete')) {
+    if (userId === profile?.id && (action === "ban" || action === "delete")) {
       setFeedbackModal({
         isOpen: true,
-        type: 'error',
-        title: 'Błąd',
-        message: 'Nie możesz wykonać tej akcji na własnym koncie.'
+        type: "error",
+        title: "Błąd",
+        message: "Nie możesz wykonać tej akcji na własnym koncie.",
       });
       return;
     }
 
     const performAction = async () => {
       try {
-        if (action === 'delete') {
-          await apiClient.delete(`/admin/users/${userId}`, session.access_token!);
-        } else if (action === 'verify') {
-          await apiClient.post(`/admin/users/${userId}/verify`, {}, session.access_token!);
-        } else if (action === 'ban') {
-          await apiClient.post(`/admin/users/${userId}/ban`, {}, session.access_token!);
-        } else if (action === 'unban') {
-          await apiClient.post(`/admin/users/${userId}/unban`, {}, session.access_token!);
+        if (action === "delete") {
+          await apiClient.delete(
+            `/admin/users/${userId}`,
+            session.access_token!,
+          );
+        } else if (action === "verify") {
+          await apiClient.post(
+            `/admin/users/${userId}/verify`,
+            {},
+            session.access_token!,
+          );
+        } else if (action === "ban") {
+          await apiClient.post(
+            `/admin/users/${userId}/ban`,
+            {},
+            session.access_token!,
+          );
+        } else if (action === "unban") {
+          await apiClient.post(
+            `/admin/users/${userId}/unban`,
+            {},
+            session.access_token!,
+          );
         }
 
         setFeedbackModal({
           isOpen: true,
-          type: 'success',
-          title: 'Sukces',
-          message: 'Akcja została wykonana pomyślnie.'
+          type: "success",
+          title: "Sukces",
+          message: "Akcja została wykonana pomyślnie.",
         });
         fetchData();
       } catch (error) {
         setFeedbackModal({
           isOpen: true,
-          type: 'error',
-          title: 'Błąd',
-          message: 'Nie udało się wykonać akcji.'
+          type: "error",
+          title: "Błąd",
+          message: "Nie udało się wykonać akcji.",
         });
       }
     };
 
-    if (action === 'delete') {
+    if (action === "delete") {
       setFeedbackModal({
         isOpen: true,
-        type: 'warning',
-        title: 'Potwierdzenie',
-        message: 'Czy na pewno chcesz trwale usunąć tego użytkownika?',
-        onConfirm: performAction
+        type: "warning",
+        title: "Potwierdzenie",
+        message: "Czy na pewno chcesz trwale usunąć tego użytkownika?",
+        onConfirm: performAction,
       });
     } else {
       performAction();
@@ -186,12 +229,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!editingUser || !session?.access_token) return;
     try {
-      await apiClient.put(`/admin/users/${editingUser.id}`, editingUser, session.access_token);
+      await apiClient.put(
+        `/admin/users/${editingUser.id}`,
+        editingUser,
+        session.access_token,
+      );
       setEditingUser(null);
-      setFeedbackModal({ isOpen: true, type: 'success', title: 'Sukces', message: 'Dane użytkownika zostały zaktualizowane.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: "success",
+        title: "Sukces",
+        message: "Dane użytkownika zostały zaktualizowane.",
+      });
       fetchData();
     } catch (error) {
-      setFeedbackModal({ isOpen: true, type: 'error', title: 'Błąd', message: 'Nie udało się zapisać zmian.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się zapisać zmian.",
+      });
     }
   };
 
@@ -199,39 +256,79 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!session?.access_token) return;
     try {
-      await apiClient.post('/admin/users', newUser, session.access_token);
+      await apiClient.post("/admin/users", newUser, session.access_token);
       setIsCreatingUser(false);
-      setNewUser({ email: '', password: '', first_name: '', last_name: '', role: 'USER_REGISTERED', username: '' });
-      setFeedbackModal({ isOpen: true, type: 'success', title: 'Sukces', message: 'Użytkownik został utworzony.' });
+      setNewUser({
+        email: "",
+        password: "",
+        first_name: "",
+        last_name: "",
+        role: "USER_REGISTERED",
+        username: "",
+      });
+      setFeedbackModal({
+        isOpen: true,
+        type: "success",
+        title: "Sukces",
+        message: "Użytkownik został utworzony.",
+      });
       fetchData();
     } catch (error) {
-      setFeedbackModal({ isOpen: true, type: 'error', title: 'Błąd', message: 'Nie udało się utworzyć użytkownika.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się utworzyć użytkownika.",
+      });
     }
   };
 
-  const handleAuctionAction = async (auctionId: string, action: 'end' | 'delete') => {
+  const handleAuctionAction = async (
+    auctionId: string,
+    action: "end" | "delete",
+  ) => {
     if (!session?.access_token) return;
     const performAction = async () => {
       try {
-        if (action === 'delete') {
-          await apiClient.delete(`/admin/auctions/${auctionId}`, session.access_token!);
-        } else if (action === 'end') {
-          await apiClient.post(`/admin/auctions/${auctionId}/end`, {}, session.access_token!);
+        if (action === "delete") {
+          await apiClient.delete(
+            `/admin/auctions/${auctionId}`,
+            session.access_token!,
+          );
+        } else if (action === "end") {
+          await apiClient.post(
+            `/admin/auctions/${auctionId}/end`,
+            {},
+            session.access_token!,
+          );
         }
-        setFeedbackModal({ isOpen: true, type: 'success', title: 'Sukces', message: 'Akcja wykonana pomyślnie.' });
+        setFeedbackModal({
+          isOpen: true,
+          type: "success",
+          title: "Sukces",
+          message: "Akcja wykonana pomyślnie.",
+        });
         fetchData();
-        queryClient.invalidateQueries({ queryKey: ['auctions'] });
+        queryClient.invalidateQueries({ queryKey: ["auctions"] });
       } catch (error) {
-        setFeedbackModal({ isOpen: true, type: 'error', title: 'Błąd', message: 'Nie udało się wykonać akcji.' });
+        setFeedbackModal({
+          isOpen: true,
+          type: "error",
+          title: "Błąd",
+          message: "Nie udało się wykonać akcji.",
+        });
       }
     };
 
     setFeedbackModal({
       isOpen: true,
-      type: 'warning',
-      title: 'Potwierdzenie',
-      message: action === 'delete' ? 'Czy na pewno chcesz usunąć tę aukcję?' : 'Czy na pewno chcesz zakończyć tę aukcję?',
-      onConfirm: performAction
+      type: "warning",
+      title: "Potwierdzenie",
+      message:
+        action === "delete"
+          ? "Czy na pewno chcesz usunąć tę aukcję?"
+          : "Czy na pewno chcesz zakończyć tę aukcję?",
+      onConfirm: performAction,
     });
   };
 
@@ -239,26 +336,42 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!editingAuction || !session?.access_token) return;
     try {
-      await apiClient.put(`/admin/auctions/${editingAuction.id}`, editingAuction, session.access_token);
+      await apiClient.put(
+        `/admin/auctions/${editingAuction.id}`,
+        editingAuction,
+        session.access_token,
+      );
       setEditingAuction(null);
-      setFeedbackModal({ isOpen: true, type: 'success', title: 'Sukces', message: 'Aukcja została zaktualizowana.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: "success",
+        title: "Sukces",
+        message: "Aukcja została zaktualizowana.",
+      });
       fetchData();
-      queryClient.invalidateQueries({ queryKey: ['auctions'] });
+      queryClient.invalidateQueries({ queryKey: ["auctions"] });
     } catch (error) {
-      setFeedbackModal({ isOpen: true, type: 'error', title: 'Błąd', message: 'Nie udało się zapisać zmian.' });
+      setFeedbackModal({
+        isOpen: true,
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się zapisać zmian.",
+      });
     }
   };
 
-  const filteredUsers = users.filter(u =>
-    u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.username?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (u) =>
+      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.username?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const filteredAuctions = auctions.filter(a =>
-    a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.seller?.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAuctions = auctions.filter(
+    (a) =>
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.seller?.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (!isOpen) return null;
@@ -285,21 +398,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             <div className="p-2 rounded-xl bg-gold/20">
               <Shield className="w-6 h-6 text-gold" />
             </div>
-            <h1 className="text-xl font-bold text-white tracking-tight">AdminPanel</h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">
+              AdminPanel
+            </h1>
           </div>
 
           <nav className="flex flex-col gap-2">
             {[
-              { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-              { id: 'users', label: 'Użytkownicy', icon: Users },
-              { id: 'auctions', label: 'Aukcje', icon: Gavel },
-              { id: 'settings', label: 'Ustawienia', icon: Settings }
+              { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+              { id: "users", label: "Użytkownicy", icon: Users },
+              { id: "auctions", label: "Aukcje", icon: Gavel },
+              { id: "settings", label: "Ustawienia", icon: Settings },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === tab.id ? 'bg-gold text-navy font-bold' : 'text-white/60 hover:bg-white/5 hover:text-white'
-                  }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                  activeTab === tab.id
+                    ? "bg-gold text-navy font-bold"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                }`}
               >
                 <tab.icon className="w-5 h-5" />
                 {tab.label}
@@ -308,7 +426,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           </nav>
 
           <div className="mt-auto">
-            <Button variant="outline" className="w-full justify-start gap-3 border-white/10 text-white/60 hover:text-white hover:bg-white/5" onClick={onClose}>
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-3 border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+              onClick={onClose}
+            >
               <X className="w-5 h-5" /> Zamknij Panel
             </Button>
           </div>
@@ -332,12 +454,24 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
             <AnimatePresence mode="wait">
               {loading ? (
-                <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex items-center justify-center">
+                <motion.div
+                  key="loader"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="h-full flex items-center justify-center"
+                >
                   <div className="w-12 h-12 border-4 border-gold/20 border-t-gold rounded-full animate-spin" />
                 </motion.div>
               ) : (
-                <motion.div key={activeTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
-                  {activeTab === 'dashboard' && (
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {activeTab === "dashboard" && (
                     <AdminDashboard
                       stats={stats}
                       recentUsers={users}
@@ -348,7 +482,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       isRefreshing={isRefreshing}
                     />
                   )}
-                  {activeTab === 'users' && (
+                  {activeTab === "users" && (
                     <AdminUsersTable
                       users={filteredUsers}
                       onEdit={setEditingUser}
@@ -356,7 +490,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       onAdd={() => setIsCreatingUser(true)}
                     />
                   )}
-                  {activeTab === 'auctions' && (
+                  {activeTab === "auctions" && (
                     <AdminAuctionsTable
                       auctions={filteredAuctions}
                       onEdit={setEditingAuction}
@@ -364,7 +498,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       onAdd={() => setIsCreatingAuction(true)}
                     />
                   )}
-                  {activeTab === 'settings' && <AdminSettings />}
+                  {activeTab === "settings" && <AdminSettings />}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -404,25 +538,32 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
         <UnifiedModal
           isOpen={feedbackModal.isOpen}
-          onClose={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))}
+          onClose={() =>
+            setFeedbackModal((prev) => ({ ...prev, isOpen: false }))
+          }
           type={feedbackModal.type}
           title={feedbackModal.title}
           message={feedbackModal.message}
           confirmButton={{
-            text: feedbackModal.onConfirm ? 'Potwierdź' : 'OK',
+            text: feedbackModal.onConfirm ? "Potwierdź" : "OK",
             onClick: () => {
               feedbackModal.onConfirm?.();
-              setFeedbackModal(prev => ({ ...prev, isOpen: false }));
-            }
+              setFeedbackModal((prev) => ({ ...prev, isOpen: false }));
+            },
           }}
-          cancelButton={feedbackModal.onConfirm ? {
-            text: 'Anuluj',
-            onClick: () => setFeedbackModal(prev => ({ ...prev, isOpen: false }))
-          } : undefined}
+          cancelButton={
+            feedbackModal.onConfirm
+              ? {
+                  text: "Anuluj",
+                  onClick: () =>
+                    setFeedbackModal((prev) => ({ ...prev, isOpen: false })),
+                }
+              : undefined
+          }
         />
       </motion.div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

@@ -1,17 +1,26 @@
-
-import { prisma } from '../lib/db.js';
-import { getIO } from '../lib/socket.js';
-import NotificationManager from './NotificationManager.js';
-import { smsService } from '../lib/sms.js';
-import logger from '../lib/logger.js';
-import { AuctionErrorCodes, createAuctionError } from '../utils/auctionErrors.js';
-import { Prisma } from '@prisma/client';
-import type { Bid, Auction, User } from '@prisma/client';
-import { cache } from '../lib/cache.js';
-import { EventThrottler } from '../utils/eventThrottler.js';
+import { prisma } from "../lib/db.js";
+import { getIO } from "../lib/socket.js";
+import NotificationManager from "./NotificationManager.js";
+import { smsService } from "../lib/sms.js";
+import logger from "../lib/logger.js";
+import {
+  AuctionErrorCodes,
+  createAuctionError,
+} from "../utils/auctionErrors.js";
+import { Prisma } from "@prisma/client";
+import type { Bid, Auction, User } from "@prisma/client";
+import { cache } from "../lib/cache.js";
+import { EventThrottler } from "../utils/eventThrottler.js";
 
 export interface BidResult {
-  bid: Bid & { bidder: { id: string; firstName: string | null; lastName: string | null; email: string | null } };
+  bid: Bid & {
+    bidder: {
+      id: string;
+      firstName: string | null;
+      lastName: string | null;
+      email: string | null;
+    };
+  };
   wasExtended: boolean;
   newEndTime: string | null;
   auctionEnded: boolean;
@@ -40,40 +49,41 @@ export class AuctionService {
   async endAuctionWithWinner(auctionId: string, tx: Prisma.TransactionClient) {
     const highestBid = await tx.bid.findFirst({
       where: { auctionId },
-      orderBy: { amount: 'desc' },
-      include: { bidder: true }
+      orderBy: { amount: "desc" },
+      include: { bidder: true },
     });
 
     if (highestBid) {
       const auction = await tx.auction.findUnique({
         where: { id: auctionId },
-        include: { seller: true }
+        include: { seller: true },
       });
 
       await tx.auction.update({
         where: { id: auctionId },
         data: {
-          status: 'ENDED',
-          winnerId: highestBid.bidderId!
-        } as any
+          status: "ENDED",
+          winnerId: highestBid.bidderId!,
+        } as any,
       });
 
       // Powiadomienie SMS dla zwycięzcy
       if (auction && (highestBid.bidder as any)?.phone) {
         try {
           const seller = auction.seller as any;
-          const sellerName = seller.first_name || seller.firstName || 'Sprzedający';
+          const sellerName =
+            seller.first_name || seller.firstName || "Sprzedający";
           await smsService.sendAuctionWonNotification(
             (highestBid.bidder as any).phone,
             auction.title,
             Number(highestBid.amount),
             {
               name: sellerName,
-              phone: seller.phone || ''
-            }
+              phone: seller.phone || "",
+            },
           );
         } catch (error) {
-          logger.error('Failed to send SMS notification:', error);
+          logger.error("Failed to send SMS notification:", error);
         }
       }
 
@@ -81,18 +91,18 @@ export class AuctionService {
       await NotificationManager.notifyAuctionWon(
         highestBid.bidderId!,
         auctionId,
-        auction?.title || 'Aukcja',
-        Number(highestBid.amount)
+        auction?.title || "Aukcja",
+        Number(highestBid.amount),
       );
 
       return {
         winnerId: highestBid.bidderId!,
-        finalPrice: Number(highestBid.amount)
+        finalPrice: Number(highestBid.amount),
       };
     } else {
       await tx.auction.update({
         where: { id: auctionId },
-        data: { status: 'ENDED' }
+        data: { status: "ENDED" },
       });
       return null;
     }
@@ -101,9 +111,15 @@ export class AuctionService {
   /**
    * Składa ofertę na aukcji (Zunifikowana logika z pełną walidacją)
    */
-  async placeBid(auctionId: string, userId: string, amount: number, isProxy = false, maxBid: number | null = null): Promise<BidResult> {
+  async placeBid(
+    auctionId: string,
+    userId: string,
+    amount: number,
+    isProxy = false,
+    maxBid: number | null = null,
+  ): Promise<BidResult> {
     if (!prisma) {
-      throw new Error('Baza danych nie jest dostępna');
+      throw new Error("Baza danych nie jest dostępna");
     }
 
     return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -113,51 +129,70 @@ export class AuctionService {
       // STEP 2: Pobranie aukcji z pełnymi danymi
       const auction = await tx.auction.findUnique({
         where: { id: auctionId },
-        include: { 
-          bids: { orderBy: { amount: 'desc' }, take: 1 },
-          seller: true
-        }
+        include: {
+          bids: { orderBy: { amount: "desc" }, take: 1 },
+          seller: true,
+        },
       });
 
       if (!auction) {
-        throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_FOUND, 'Auction not found');
+        throw createAuctionError(
+          AuctionErrorCodes.AUCTION_NOT_FOUND,
+          "Auction not found",
+        );
       }
 
       // STEP 3: Weryfikacja właściciela
       if (auction.sellerId === userId) {
-        throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Cannot bid on your own auction');
+        throw createAuctionError(
+          AuctionErrorCodes.INVALID_BID_AMOUNT,
+          "Cannot bid on your own auction",
+        );
       }
 
       // STEP 4: Weryfikacja statusu i czasu
       const now = Date.now();
       const endsAt = auction.endTime ? new Date(auction.endTime).getTime() : 0;
       const status = (auction.status as string)?.toUpperCase();
-      
-      if (status !== 'ACTIVE' || endsAt <= now) {
-        if (endsAt <= now && status !== 'ENDED') {
-          await tx.auction.update({ where: { id: auctionId }, data: { status: 'ENDED' } });
+
+      if (status !== "ACTIVE" || endsAt <= now) {
+        if (endsAt <= now && status !== "ENDED") {
+          await tx.auction.update({
+            where: { id: auctionId },
+            data: { status: "ENDED" },
+          });
         }
-        throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_ACTIVE, 'Aukcja nie jest aktywna');
+        throw createAuctionError(
+          AuctionErrorCodes.AUCTION_NOT_ACTIVE,
+          "Aukcja nie jest aktywna",
+        );
       }
 
       // STEP 5: Weryfikacja kwoty
       if (!Number.isFinite(amount) || amount <= 0) {
-        throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Nieprawidłowa kwota oferty');
+        throw createAuctionError(
+          AuctionErrorCodes.INVALID_BID_AMOUNT,
+          "Nieprawidłowa kwota oferty",
+        );
       }
 
       const increment = auction.minBidIncrement || 100;
-      const minimumAllowed = Number(auction.currentPrice || auction.startingPrice || 0) + increment;
-      
+      const minimumAllowed =
+        Number(auction.currentPrice || auction.startingPrice || 0) + increment;
+
       if (amount < minimumAllowed) {
         throw createAuctionError(
           AuctionErrorCodes.BID_TOO_LOW,
-          `Minimalna oferta to ${minimumAllowed}`
+          `Minimalna oferta to ${minimumAllowed}`,
         );
       }
 
       // STEP 6: Weryfikacja proxy bidding
       if (isProxy && (!maxBid || maxBid <= amount)) {
-        throw createAuctionError(AuctionErrorCodes.INVALID_BID_AMOUNT, 'Nieprawidłowa kwota maksymalna dla proxy bid');
+        throw createAuctionError(
+          AuctionErrorCodes.INVALID_BID_AMOUNT,
+          "Nieprawidłowa kwota maksymalna dla proxy bid",
+        );
       }
 
       // STEP 7: Snipe protection
@@ -167,7 +202,7 @@ export class AuctionService {
       let wasExtended = false;
       let newEndTime: string | null = null;
       let targetEndDate = auction.endTime;
-      
+
       if (timeLeft > 0 && timeLeft <= thresholdMs) {
         targetEndDate = new Date(endsAt + extensionMs);
         newEndTime = targetEndDate.toISOString();
@@ -176,7 +211,10 @@ export class AuctionService {
 
       // Reserve price check
       let reserveMet = auction.reserveMet || false;
-      if (auction.reservePrice != null && amount >= Number(auction.reservePrice)) {
+      if (
+        auction.reservePrice != null &&
+        amount >= Number(auction.reservePrice)
+      ) {
         reserveMet = true;
       }
 
@@ -187,7 +225,7 @@ export class AuctionService {
           highestBid.bidderId!,
           auctionId,
           auction.title,
-          amount
+          amount,
         );
       }
 
@@ -198,24 +236,32 @@ export class AuctionService {
           bidderId: userId,
           auctionId,
           isProxy,
-          maxBid: maxBid ? new Prisma.Decimal(maxBid) : null
+          maxBid: maxBid ? new Prisma.Decimal(maxBid) : null,
         } as any,
         include: {
-          bidder: true
-        }
+          bidder: true,
+        },
       });
 
       // PROXY BIDDING LOGIC: Check if previous highest bidder has active proxy bid
       let finalAmount = amount;
       let finalBidderId = userId;
-      
-      if (highestBid && highestBid.isProxy && highestBid.maxBid && highestBid.bidderId !== userId) {
+
+      if (
+        highestBid &&
+        highestBid.isProxy &&
+        highestBid.maxBid &&
+        highestBid.bidderId !== userId
+      ) {
         const previousMaxBid = Number(highestBid.maxBid);
-        
+
         // If previous bidder's max is higher than current bid, auto-counter
         if (previousMaxBid > amount) {
-          const autoCounterAmount = Math.min(amount + increment, previousMaxBid);
-          
+          const autoCounterAmount = Math.min(
+            amount + increment,
+            previousMaxBid,
+          );
+
           // Create automatic counter-bid for previous bidder
           const autoBid = await tx.bid.create({
             data: {
@@ -223,40 +269,43 @@ export class AuctionService {
               bidderId: highestBid.bidderId!,
               auctionId,
               isProxy: true,
-              maxBid: new Prisma.Decimal(previousMaxBid)
+              maxBid: new Prisma.Decimal(previousMaxBid),
             } as any,
             include: {
-              bidder: true
-            }
+              bidder: true,
+            },
           });
-          
+
           finalAmount = autoCounterAmount;
           finalBidderId = highestBid.bidderId!;
-          
+
           // Notify original bidder they were auto-outbid
           await NotificationManager.notifyOutbid(
             userId,
             auctionId,
             auction.title,
-            autoCounterAmount
+            autoCounterAmount,
           );
-          
-          logger.info(`Proxy bid auto-counter: ${autoCounterAmount} by ${highestBid.bidderId} (max: ${previousMaxBid})`);
-          
+
+          logger.info(
+            `Proxy bid auto-counter: ${autoCounterAmount} by ${highestBid.bidderId} (max: ${previousMaxBid})`,
+          );
+
           // Emit auto-bid event
           try {
             const io = getIO();
             const autoBidder = (autoBid as any).bidder;
             const autoBidUsername =
               (autoBidder.username as string | undefined)?.trim() ||
-              ((autoBidder.email as string | undefined)?.split('@')[0] || 'użytkownik');
-            io.to(`auction-${auctionId}`).emit('bid-placed', {
+              (autoBidder.email as string | undefined)?.split("@")[0] ||
+              "użytkownik";
+            io.to(`auction-${auctionId}`).emit("bid-placed", {
               bid: {
                 ...autoBid,
                 bidder: {
                   id: autoBidder.id,
-                  username: autoBidUsername
-                }
+                  username: autoBidUsername,
+                },
               },
               newPrice: autoCounterAmount,
               auctionId,
@@ -265,24 +314,33 @@ export class AuctionService {
                 newEndTime,
                 auctionEnded: false,
                 winnerInfo: null,
-                isProxyBid: true
-              }
+                isProxyBid: true,
+              },
             });
           } catch (err) {
-            logger.error('Failed to emit proxy bid event:', err);
+            logger.error("Failed to emit proxy bid event:", err);
           }
         }
       }
-      
+
       // Handle case where NEW bidder also has proxy and it's higher than previous
-      if (isProxy && maxBid && highestBid && highestBid.isProxy && highestBid.maxBid) {
+      if (
+        isProxy &&
+        maxBid &&
+        highestBid &&
+        highestBid.isProxy &&
+        highestBid.maxBid
+      ) {
         const previousMaxBid = Number(highestBid.maxBid);
         const currentMaxBid = maxBid;
-        
+
         // Two proxy bidders competing - jump to second-highest max + increment
         if (currentMaxBid > previousMaxBid) {
-          const jumpAmount = Math.min(previousMaxBid + increment, currentMaxBid);
-          
+          const jumpAmount = Math.min(
+            previousMaxBid + increment,
+            currentMaxBid,
+          );
+
           if (jumpAmount > finalAmount) {
             const jumpBid = await tx.bid.create({
               data: {
@@ -290,32 +348,35 @@ export class AuctionService {
                 bidderId: userId,
                 auctionId,
                 isProxy: true,
-                maxBid: new Prisma.Decimal(currentMaxBid)
+                maxBid: new Prisma.Decimal(currentMaxBid),
               } as any,
               include: {
-                bidder: true
-              }
+                bidder: true,
+              },
             });
-            
+
             finalAmount = jumpAmount;
             finalBidderId = userId;
-            
-            logger.info(`Proxy vs Proxy: Jumped to ${jumpAmount} (user max: ${currentMaxBid}, prev max: ${previousMaxBid})`);
-            
+
+            logger.info(
+              `Proxy vs Proxy: Jumped to ${jumpAmount} (user max: ${currentMaxBid}, prev max: ${previousMaxBid})`,
+            );
+
             // Emit jump bid event
             try {
               const io = getIO();
               const jumpBidder = (jumpBid as any).bidder;
               const jumpBidUsername =
                 (jumpBidder.username as string | undefined)?.trim() ||
-                ((jumpBidder.email as string | undefined)?.split('@')[0] || 'użytkownik');
-              io.to(`auction-${auctionId}`).emit('bid-placed', {
+                (jumpBidder.email as string | undefined)?.split("@")[0] ||
+                "użytkownik";
+              io.to(`auction-${auctionId}`).emit("bid-placed", {
                 bid: {
                   ...jumpBid,
                   bidder: {
                     id: jumpBidder.id,
-                    username: jumpBidUsername
-                  }
+                    username: jumpBidUsername,
+                  },
                 },
                 newPrice: jumpAmount,
                 auctionId,
@@ -324,11 +385,11 @@ export class AuctionService {
                   newEndTime,
                   auctionEnded: false,
                   winnerInfo: null,
-                  isProxyBid: true
-                }
+                  isProxyBid: true,
+                },
               });
             } catch (err) {
-              logger.error('Failed to emit proxy jump bid event:', err);
+              logger.error("Failed to emit proxy jump bid event:", err);
             }
           }
         }
@@ -338,19 +399,19 @@ export class AuctionService {
       const concurrencyGuard = await tx.auction.updateMany({
         where: {
           id: auctionId,
-          currentPrice: auction.currentPrice
+          currentPrice: auction.currentPrice,
         },
         data: {
           currentPrice: new Prisma.Decimal(finalAmount),
           endTime: targetEndDate,
-          reserveMet
-        }
+          reserveMet,
+        },
       });
 
       if (concurrencyGuard.count === 0) {
         throw createAuctionError(
           AuctionErrorCodes.CONCURRENT_BID_CONFLICT,
-          'Aukcja została już przebita. Spróbuj ponownie.'
+          "Aukcja została już przebita. Spróbuj ponownie.",
         );
       }
 
@@ -358,16 +419,17 @@ export class AuctionService {
       try {
         const io = getIO();
         const bidder = (bid as any).bidder;
-            const displayUsername =
-              (bidder.username as string | undefined)?.trim() ||
-              ((bidder.email as string | undefined)?.split('@')[0] || 'użytkownik');
+        const displayUsername =
+          (bidder.username as string | undefined)?.trim() ||
+          (bidder.email as string | undefined)?.split("@")[0] ||
+          "użytkownik";
         const eventData = {
           bid: {
             ...bid,
             bidder: {
-                  id: bidder.id,
-                  username: displayUsername
-            }
+              id: bidder.id,
+              username: displayUsername,
+            },
           },
           newPrice: amount,
           auctionId,
@@ -375,18 +437,18 @@ export class AuctionService {
             wasExtended,
             newEndTime,
             auctionEnded: false,
-            winnerInfo: null
-          }
+            winnerInfo: null,
+          },
         };
 
         // Throttle: Pierwszy bid natychmiast, kolejne max co 500ms, ostatni zawsze
         this.bidEventThrottler.throttle(
           `auction-${auctionId}`,
           eventData,
-          (data) => io.to(`auction-${auctionId}`).emit('bid-placed', data)
+          (data) => io.to(`auction-${auctionId}`).emit("bid-placed", data),
         );
       } catch (err) {
-        logger.error('Failed to emit bid-placed event:', err);
+        logger.error("Failed to emit bid-placed event:", err);
       }
 
       // STEP 9: Selektywna invalidacja cache (tylko dotknięte klucze)
@@ -397,7 +459,7 @@ export class AuctionService {
         wasExtended,
         newEndTime,
         auctionEnded: false,
-        winnerInfo: null
+        winnerInfo: null,
       };
     });
   }
@@ -408,21 +470,23 @@ export class AuctionService {
    */
   async adminCancelAuction(auctionId: string): Promise<Auction> {
     if (!prisma) {
-      throw new Error('Database connection is not available');
+      throw new Error("Database connection is not available");
     }
 
     const updatedAuction = await prisma.$transaction(async (tx) => {
-      const auction = await tx.auction.findUniqueOrThrow({ where: { id: auctionId } });
-      
+      const auction = await tx.auction.findUniqueOrThrow({
+        where: { id: auctionId },
+      });
+
       // Ensure idempotency for cancellation (e.g. already ended)
-      if (auction.status === 'ENDED' || auction.status === 'CANCELLED') {
+      if (auction.status === "ENDED" || auction.status === "CANCELLED") {
         return auction;
       }
 
       const updated = await tx.auction.update({
         where: { id: auctionId },
         data: {
-          status: 'CANCELLED',
+          status: "CANCELLED",
           endTime: new Date(),
         },
       });
@@ -439,7 +503,7 @@ export class AuctionService {
    */
   async adminEndAuction(auctionId: string): Promise<Auction> {
     if (!prisma) {
-      throw new Error('Database connection is not available');
+      throw new Error("Database connection is not available");
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -449,10 +513,13 @@ export class AuctionService {
       });
 
       if (!auction) {
-        throw createAuctionError(AuctionErrorCodes.AUCTION_NOT_FOUND, 'Auction not found');
+        throw createAuctionError(
+          AuctionErrorCodes.AUCTION_NOT_FOUND,
+          "Auction not found",
+        );
       }
 
-      if (auction.status === 'ENDED' || auction.status === 'CANCELLED') {
+      if (auction.status === "ENDED" || auction.status === "CANCELLED") {
         return auction; // Already done
       }
 
@@ -462,7 +529,7 @@ export class AuctionService {
       // 3. Return updated auction
       return tx.auction.findUniqueOrThrow({ where: { id: auctionId } });
     });
-    
+
     this.invalidateAuctionCache(auctionId);
     return result;
   }
@@ -472,7 +539,7 @@ export class AuctionService {
    */
   async adminDeleteAuction(auctionId: string): Promise<void> {
     if (!prisma) {
-      throw new Error('Database connection is not available');
+      throw new Error("Database connection is not available");
     }
 
     await prisma.$transaction(async (tx) => {
@@ -488,7 +555,7 @@ export class AuctionService {
   private invalidateBidCache(auctionId: string, userId: string): void {
     // Legacy method delegated to new precise invalidation
     this.invalidateAuctionCache(auctionId);
-    if (userId && userId !== 'admin') {
+    if (userId && userId !== "admin") {
       cache.invalidateUserCache(userId);
     }
   }
@@ -499,18 +566,7 @@ export class AuctionService {
   private invalidateAuctionCache(auctionId: string): void {
     cache.invalidateAuctionCache(auctionId);
     // Also invalidate general listings as status might change
-    // Using a more precise pattern if cache allows, or general bust if needed
-    // Assuming simple pattern for now as per user request to avoid "deletePattern('auctions:*')"
-    // But since list keys vary wildly (filters, pagination), meaningful invalidation is hard without clear tagging.
-    // The user suggested namespaced keys. 
-    // Let's assume our current cache implementation supports tag-based invalidation if updated, 
-    // or just invalidate specific list patterns if possible.
-    // For now, we'll try to be less aggressive than 'auctions:*' if possible, 
-    // but without full tag system overhaul, we might still need some pattern matching.
-    // However, `cache.invalidateAuctionCache` from lib/cache.ts handles `auction:${auctionId}:*` and `auctions:*:${auctionId}` etc.
-    // But global lists `auctions:list:*` need to be refreshed.
-    // We'll stick to `cache.invalidateResource('auction', auctionId)` logic if available.
-    // Let's rely on `cache.invalidateAuctionCache` which should cover it.
+    cache.invalidateResource("auctions");
   }
 }
 
