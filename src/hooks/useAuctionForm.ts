@@ -22,7 +22,7 @@ export const useAuctionForm = ({ category, onSuccess }: UseAuctionFormOptions) =
         buyNowPrice: undefined,
         reservePrice: undefined,
         category: category === 'pigeons' ? 'RACING' : category.toUpperCase() as any,
-        sex: 'male',
+        sex: 'MALE',
         location: 'Lubań, Polska',
         images: [],
         videos: [],

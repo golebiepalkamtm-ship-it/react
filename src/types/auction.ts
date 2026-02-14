@@ -41,7 +41,7 @@ export interface Pigeon {
   back: string;
   feathers: string;
   purpose: string;
-  gender: 'male' | 'female' | 'young';
+  gender: 'MALE' | 'FEMALE';
   dnaCertificate?: boolean;
   colorTraits?: string[];
   eyeTraits?: string[];
@@ -77,7 +77,7 @@ export interface Auction {
   reserveMet: boolean;
   category: string;
   pigeon: Pigeon;
-  sex: 'male' | 'female' | 'young';
+  sex: 'MALE' | 'FEMALE';
   location: string;
   seller?: Seller;
   images: string[];
@@ -130,7 +130,7 @@ export interface CreateAuctionRequest {
   endTime: string;
   category: string;
   pigeon: Partial<Pigeon>;
-  sex: 'male' | 'female' | 'young';
+  sex: 'MALE' | 'FEMALE';
   location: string;
   images: string[];
   videos: string[];

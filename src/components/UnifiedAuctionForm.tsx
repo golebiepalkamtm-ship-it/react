@@ -2,7 +2,8 @@ import React, { useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bird, Camera, Video, Sparkles, Check, X, AlertCircle, Loader2,
-    Wrench, Pill, Package, Palette, Eye, Dumbbell, Heart, Feather, Ruler, Zap, Shield, ChevronLeft, ChevronRight, Gavel, Tag
+    Wrench, Pill, Package, Palette, Eye, Dumbbell, Heart, Feather, Ruler, Zap, Shield, ChevronLeft, ChevronRight, Gavel, Tag,
+    Venus, Mars, CircleDot
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -193,7 +194,7 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({ category
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                 >
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-1">
                         <InputField
                             label="Numer obrączki"
                             name="ringNumber"
@@ -202,6 +203,36 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({ category
                             placeholder="np. PL-0123-23-1234"
                             required
                         />
+                    </div>
+
+                    <div className="md:col-span-1 space-y-2">
+                        <label className="block text-sm font-medium text-white/70 mb-2">Płeć</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, sex: 'MALE' })}
+                                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
+                                    formData.sex === 'MALE'
+                                        ? 'bg-blue-500/20 border-blue-500 text-blue-400 font-medium shadow-lg shadow-blue-500/10'
+                                        : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
+                                }`}
+                            >
+                                <Mars className="w-5 h-5" />
+                                <span>Samczyk</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, sex: 'FEMALE' })}
+                                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
+                                    formData.sex === 'FEMALE'
+                                        ? 'bg-pink-500/20 border-pink-500 text-pink-400 font-medium shadow-lg shadow-pink-500/10'
+                                        : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
+                                }`}
+                            >
+                                <Venus className="w-5 h-5" />
+                                <span>Samiczka</span>
+                            </button>
+                        </div>
                     </div>
                     {traitSelects.map((trait, index) => (
                         <TraitDropdown
