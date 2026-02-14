@@ -9,6 +9,7 @@ import app, { allowedOrigins } from "./app.js";
 import { initializeAuth } from "./middleware/auth.js";
 import { validatedEnv } from "./lib/env.js";
 import { execSync } from "child_process";
+import fs from "fs";
 
 // Initialize auth system
 initializeAuth();
@@ -24,9 +25,36 @@ if (
   try {
     console.log("🔄 Running database migrations...");
     const rootDir = path.resolve(__dirname, "..");
-    // More robust path detection for Railway/Production
-    const schemaPath = path.join(rootDir, "prisma", "schema.prisma");
-    console.log(`📂 Using schema at: ${schemaPath}`);
+
+    // Check multiple potential locations
+    const possiblePaths = [
+      path.join(rootDir, "prisma", "schema.prisma"),
+      path.join(rootDir, "server", "prisma", "schema.prisma"),
+      path.join(process.cwd(), "prisma", "schema.prisma"),
+      path.join(process.cwd(), "server", "prisma", "schema.prisma"),
+    ];
+
+    let schemaPath = "";
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        schemaPath = p;
+        break;
+      }
+    }
+
+    if (!schemaPath) {
+      console.error(
+        "❌ Could not find schema.prisma in any of the following locations:",
+      );
+      possiblePaths.forEach((p) => console.error(`  - ${p}`));
+      console.log(
+        "📂 Current directory structure:",
+        execSync('ls -R /app | grep ":$" | head -n 20', { encoding: "utf8" }),
+      );
+      process.exit(1);
+    }
+
+    console.log(`✅ Using schema at: ${schemaPath}`);
     execSync(`npx prisma migrate deploy --schema="${schemaPath}"`, {
       stdio: "inherit",
       cwd: rootDir,
