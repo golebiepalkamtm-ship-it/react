@@ -76,8 +76,13 @@ console.log('📡 Database Connection Check:', {
 
 // Fail-fast in production if DATABASE_URL is missing
 if (process.env.NODE_ENV === 'production' && !validatedEnv.DATABASE_URL) {
-  console.error('❌ CRITICAL: DATABASE_URL is required in production but not provided');
-  process.exit(1);
+  console.error('❌ CRITICAL: DATABASE_URL is required in production but not provided. App will run in degraded mode (DB features unavailable).');
+  // Do NOT exit process here, let the app run so it can serve health checks/static files and return proper API 503 errors
+  // process.exit(1); 
+  if (prisma && !(prisma instanceof Proxy)) {
+      // Force prisma to be undefined/proxy if URL is missing to trigger fallback logic in endpoints
+      (prisma as any) = undefined;
+  }
 }
 
 // Use validated environment variables
