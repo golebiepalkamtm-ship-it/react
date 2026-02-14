@@ -285,11 +285,20 @@ app.post('/api/breeder-meetings', authMiddleware, async (req: Request, res: Resp
       return res.status(400).json({ error: 'Nazwa i lokalizacja są wymagane.' });
     }
 
+    // Validate date to prevent invalid format errors
+    let parsedDate: Date | undefined;
+    if (date) {
+      parsedDate = new Date(date);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ error: 'Nieprawidłowy format daty.' });
+      }
+    }
+
     const newMeeting = await prisma.meeting.create({
       data: {
         name,
         location,
-        date: date ? new Date(date) : undefined,
+        date: parsedDate,
         description,
         images: images || [],
         authorId: userId
@@ -302,13 +311,19 @@ app.post('/api/breeder-meetings', authMiddleware, async (req: Request, res: Resp
     // Check for common Prisma errors
     if (error?.code === 'P2021') {
       // Table does not exist
-      return res.status(503).json({ error: 'Tabela spotkań nie istnieje w bazie danych. Skontaktuj się z administratorem.' });
+      return res.status(503).json({ error: 'Tabela spotkań nie istnieje w bazie danych. Skontaktuj się z administratorem.', code: error.code });
     }
     if (error?.code === 'P2003') {
       // Foreign key constraint failed
-      return res.status(400).json({ error: 'Nie znaleziono użytkownika w bazie danych.' });
+      return res.status(400).json({ error: 'Nie znaleziono powiązanego użytkownika w bazie danych.', code: error.code });
     }
-    res.status(500).json({ error: 'Nie udało się dodać spotkania. Spróbuj ponownie później.' });
+    
+    // Return detailed error info for debugging
+    res.status(500).json({ 
+        error: 'Nie udało się dodać spotkania. Spróbuj ponownie później.',
+        details: error instanceof Error ? error.message : String(error),
+        code: error?.code
+    });
   }
 });
 
