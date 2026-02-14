@@ -602,16 +602,18 @@ router.post(
             trustScore: 0,
             name: `${first_name || ""} ${last_name || ""}`.trim(),
             username,
-            isBlocked: !!validation.data.isBlocked,
-            isBanned: !!validation.data.isBanned,
+            isBlocked: !!isBlocked,
+            isBanned: !!isBanned,
           },
         });
 
         await logAdminAction(req, "CREATE_USER", "USER", newUser.id, {
           email,
+          username,
           role,
         });
-        return res.json(newUser);
+
+        return res.status(201).json(newUser);
       } catch (dbError: any) {
         console.error(
           "Prisma Create User Error. Compensating by deleting Supabase user...",
@@ -621,14 +623,10 @@ router.post(
         // Handle unique constraint violations
         if (dbError.code === "P2002") {
           const field = dbError.meta?.target?.[0] || "pole";
-          // Try to compensate anyway to be clean
           try {
             await supabaseAdmin.auth.admin.deleteUser(authUser.id);
           } catch (e) {
-            console.warn(
-              "Supabase compensation delete failed during duplicate check",
-              e,
-            );
+            console.warn("Supabase cleanup failed", e);
           }
 
           return res.status(409).json({
@@ -637,27 +635,24 @@ router.post(
           });
         }
 
-        // Compensation: Delete the user from Supabase to maintain consistency
+        // Compensation
         try {
           await supabaseAdmin.auth.admin.deleteUser(authUser.id);
-          console.log("Compensation successful: Supabase user deleted.");
         } catch (compError) {
-          console.error(
-            "CRITICAL: Compensation failed. Orphaned Supabase user:",
-            authUser.id,
-            compError,
-          );
+          console.error("CRITICAL: Compensation failed", compError);
         }
 
         return res.status(500).json({
-          error: "Błąd bazy danych podczas tworzenia profilu użytkownika.",
+          error: "Błąd bazy danych podczas tworzenia profilu.",
+          details: dbError.message,
         });
       }
     } catch (error: any) {
       console.error("Create User Error:", error);
-      res
-        .status(500)
-        .json({ error: error.message || "Błąd podczas tworzenia użytkownika" });
+      res.status(500).json({
+        error: error.message || "Błąd podczas tworzenia użytkownika",
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      });
     }
   },
 );
