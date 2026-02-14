@@ -1,27 +1,32 @@
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 const sanitizeEnvValue = (value: string | undefined) => {
   if (!value) return value;
   const trimmed = value.trim();
-  const wrapped = (trimmed.startsWith('`') && trimmed.endsWith('`'))
-    || (trimmed.startsWith('"') && trimmed.endsWith('"'))
-    || (trimmed.startsWith("'") && trimmed.endsWith("'"));
+  const wrapped =
+    (trimmed.startsWith("`") && trimmed.endsWith("`")) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"));
   return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
 };
 
 const normalizeApiBase = (raw?: string) => {
   if (!raw) return raw;
-  const trimmed = raw.replace(/\/+$/, ''); // usuń trailing slash
-  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+  const trimmed = raw.replace(/\/+$/, ""); // usuń trailing slash
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
 };
 
-const DEFAULT_API_BASE = import.meta.env.PROD ? 'https://www.server-production-0e43.up.railway.app/api' : '';
+const DEFAULT_API_BASE = import.meta.env.PROD
+  ? "https://server-production-0e43.up.railway.app/api"
+  : "";
 
 export const API_BASE_URL =
-  normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL))
-  || normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL))
-  || normalizeApiBase(DEFAULT_API_BASE)
-  || (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:8001/api');
+  normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL)) ||
+  normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL)) ||
+  normalizeApiBase(DEFAULT_API_BASE) ||
+  (typeof window !== "undefined"
+    ? `${window.location.origin}/api`
+    : "http://localhost:8001/api");
 
 interface RequestConfig extends RequestInit {
   params?: Record<string, string | number | undefined>;
@@ -38,12 +43,14 @@ class ApiClient {
   private getAlternateBaseUrl(): string | null {
     try {
       const url = new URL(this.baseUrl);
-      if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') return null;
-      const port = url.port || (url.protocol === 'https:' ? '443' : '80');
-      const nextPort = port === '8001' ? '8002' : port === '8002' ? '8001' : null;
+      if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1")
+        return null;
+      const port = url.port || (url.protocol === "https:" ? "443" : "80");
+      const nextPort =
+        port === "8001" ? "8002" : port === "8002" ? "8001" : null;
       if (!nextPort) return null;
       url.port = nextPort;
-      return url.toString().replace(/\/$/, '');
+      return url.toString().replace(/\/$/, "");
     } catch {
       return null;
     }
@@ -69,7 +76,10 @@ class ApiClient {
     }
   }
 
-  private buildUrl(endpoint: string, params?: Record<string, string | number | undefined>): string {
+  private buildUrl(
+    endpoint: string,
+    params?: Record<string, string | number | undefined>,
+  ): string {
     const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -81,7 +91,8 @@ class ApiClient {
 
   private isSameOrigin(): boolean {
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const origin =
+        typeof window !== "undefined" ? window.location.origin : "";
       return !!origin && new URL(this.baseUrl, origin).origin === origin;
     } catch {
       return false;
@@ -89,10 +100,10 @@ class ApiClient {
   }
 
   private readCSRFToken(): string | undefined {
-    const cookies = document.cookie.split(';');
+    const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'csrf-token') {
+      const [name, value] = cookie.trim().split("=");
+      if (name === "csrf-token") {
         return value;
       }
     }
@@ -103,42 +114,53 @@ class ApiClient {
     if (!this.isSameOrigin()) return;
     if (this.readCSRFToken()) return;
     try {
-      await fetch(this.buildUrl('/csrf-token'), { credentials: 'include' });
+      await fetch(this.buildUrl("/csrf-token"), { credentials: "include" });
     } catch (e) {
-      logger.warn('CSRF cookie fetch failed', e);
+      logger.warn("CSRF cookie fetch failed", e);
     }
   }
 
-  private async request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    config: RequestConfig = {},
+  ): Promise<T> {
     const { params, ...fetchConfig } = config;
     return this.withAlternateBase(async () => {
       const url = this.buildUrl(endpoint, params);
       const sameOrigin = this.isSameOrigin();
 
-      logger.debug('API Request:', url);
+      logger.debug("API Request:", url);
 
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        ...(fetchConfig.headers as Record<string, string> | undefined || {}),
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        ...((fetchConfig.headers as Record<string, string> | undefined) || {}),
       };
-      if (fetchConfig.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(fetchConfig.method)) {
+      if (
+        fetchConfig.method &&
+        ["POST", "PUT", "DELETE", "PATCH"].includes(fetchConfig.method)
+      ) {
         await this.ensureCsrfCookie();
         const csrf = this.readCSRFToken();
-        if (csrf) headers['X-CSRF-Token'] = csrf;
+        if (csrf) headers["X-CSRF-Token"] = csrf;
       }
 
       const response = await fetch(url, {
         ...fetchConfig,
         headers,
-        credentials: sameOrigin ? 'include' : 'omit',
+        credentials: sameOrigin ? "include" : "omit",
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: response.statusText }));
         // Backend returns { error: 'message', details: ... } usually
-        const errorMessage = errorData.error || errorData.message || 'Błąd serwera';
-        const errorDetails = errorData.details ? ` (${JSON.stringify(errorData.details)})` : '';
+        const errorMessage =
+          errorData.error || errorData.message || "Błąd serwera";
+        const errorDetails = errorData.details
+          ? ` (${JSON.stringify(errorData.details)})`
+          : "";
         throw new Error(errorMessage + errorDetails);
       }
 
@@ -146,34 +168,43 @@ class ApiClient {
     });
   }
 
-  async postFormData<T>(endpoint: string, formData: FormData, token?: string): Promise<T> {
+  async postFormData<T>(
+    endpoint: string,
+    formData: FormData,
+    token?: string,
+  ): Promise<T> {
     return this.withAlternateBase(async () => {
       const url = this.buildUrl(endpoint);
       const sameOrigin = this.isSameOrigin();
 
       const headers: Record<string, string> = {
-        'X-Requested-With': 'XMLHttpRequest',
+        "X-Requested-With": "XMLHttpRequest",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
 
       await this.ensureCsrfCookie();
       const csrf = this.readCSRFToken();
       if (csrf) {
-        headers['X-CSRF-Token'] = csrf;
+        headers["X-CSRF-Token"] = csrf;
       }
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         body: formData,
         headers,
-        credentials: sameOrigin ? 'include' : 'omit',
+        credentials: sameOrigin ? "include" : "omit",
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: response.statusText }));
         // Backend returns { error: 'message', details: ... } usually
-        const errorMessage = errorData.error || errorData.message || 'Błąd serwera';
-        const errorDetails = errorData.details ? ` (${JSON.stringify(errorData.details)})` : '';
+        const errorMessage =
+          errorData.error || errorData.message || "Błąd serwera";
+        const errorDetails = errorData.details
+          ? ` (${JSON.stringify(errorData.details)})`
+          : "";
         throw new Error(errorMessage + errorDetails);
       }
 
@@ -181,13 +212,20 @@ class ApiClient {
     });
   }
 
-  async get<T>(endpoint: string, params?: Record<string, string | number | undefined>): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET', params });
+  async get<T>(
+    endpoint: string,
+    params?: Record<string, string | number | undefined>,
+  ): Promise<T> {
+    return this.request<T>(endpoint, { method: "GET", params });
   }
 
-  async getWithToken<T>(endpoint: string, params?: Record<string, string | number | undefined>, token?: string): Promise<T> {
+  async getWithToken<T>(
+    endpoint: string,
+    params?: Record<string, string | number | undefined>,
+    token?: string,
+  ): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'GET',
+      method: "GET",
       params,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -195,7 +233,7 @@ class ApiClient {
 
   async post<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -203,7 +241,7 @@ class ApiClient {
 
   async put<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -211,14 +249,14 @@ class ApiClient {
 
   async delete<T>(endpoint: string, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   }
 
   async patch<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PATCH',
+      method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -227,10 +265,10 @@ class ApiClient {
   // Metoda do pobierania CSRF token
   async getCSRFToken(): Promise<{ csrfToken: string }> {
     if (!this.isSameOrigin()) {
-      logger.debug('Skipping CSRF fetch for cross-origin API');
-      return { csrfToken: '' as const };
+      logger.debug("Skipping CSRF fetch for cross-origin API");
+      return { csrfToken: "" as const };
     }
-    return this.get<{ csrfToken: string }>('/csrf-token');
+    return this.get<{ csrfToken: string }>("/csrf-token");
   }
 }
 
