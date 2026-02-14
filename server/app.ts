@@ -188,11 +188,11 @@ app.use('/api/time', timeRoutes); // Public time sync endpoint
 
 
 // Apply CSRF protection for state-changing routes (prod only)
+app.use('/api/upload', uploadLimiter, authMiddleware, uploadRoutes);
 app.use(maybeCsrf);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/auctions', auctionRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
-app.use('/api/upload', uploadLimiter, authMiddleware, uploadRoutes);
 app.use('/api/messages', authMiddleware, messageRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
 app.use('/api/notifications', authMiddleware, notificationRoutes);
