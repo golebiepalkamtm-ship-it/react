@@ -142,6 +142,7 @@ model PigeonProfile {
   updatedAt     DateTime @updatedAt @map("updated_at")
   ringNumber    String   @map("ring_number")
   gender        Sex      @default(MALE)
+  traits        Json?    @map("traits")
   auction       Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
   @@map("pigeon_profiles")
