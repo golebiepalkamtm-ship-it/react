@@ -93,7 +93,7 @@ export const UnifiedAuctionCard = ({
   category,
   bidsCount = 0,
   featured = false,
-  imageFit = "cover",
+  imageFit = "contain",
   highlight = false,
   nowMs,
 }: UnifiedAuctionCardProps) => {
@@ -184,8 +184,7 @@ export const UnifiedAuctionCard = ({
       },
     );
 
-    return () => {
-    };
+    return () => {};
   }, []);
 
   // Removed internal timer effect to prevent re-renders.
@@ -366,9 +365,7 @@ export const UnifiedAuctionCard = ({
             alt={title}
             className={`w-full h-full ${imageObjectClass} transition-all duration-700`}
             style={{
-              transform: isHovered
-                ? "scale(1.05) translateZ(20px)"
-                : "scale(1) translateZ(0px)",
+              transform: "scale(1) translateZ(0px)",
             }}
             onError={(e) => {
               const t = e.currentTarget as HTMLImageElement;
@@ -446,9 +443,7 @@ export const UnifiedAuctionCard = ({
             </div>
             <div className="text-right">
               <p className="text-xs text-white/50">
-                <span className="font-semibold text-white/70">
-                  {bidsCount}
-                </span>{" "}
+                <span className="font-semibold text-white/70">{bidsCount}</span>{" "}
                 {bidsCount === 1 ? "oferta" : "ofert"}
               </p>
             </div>
