@@ -32,6 +32,8 @@ if (
       path.join(rootDir, "server", "prisma", "schema.prisma"),
       path.join(process.cwd(), "prisma", "schema.prisma"),
       path.join(process.cwd(), "server", "prisma", "schema.prisma"),
+      "/app/prisma/schema.prisma",
+      "/app/server/prisma/schema.prisma",
     ];
 
     let schemaPath = "";
@@ -44,25 +46,29 @@ if (
 
     if (!schemaPath) {
       console.error(
-        "❌ Could not find schema.prisma in any of the following locations:",
+        "❌ Could not find schema.prisma in any expected location.",
       );
       possiblePaths.forEach((p) => console.error(`  - ${p}`));
-      console.log(
-        "📂 Current directory structure:",
-        execSync('ls -R /app | grep ":$" | head -n 20', { encoding: "utf8" }),
-      );
+      try {
+        console.log("📂 Current directory structure:");
+        const structure = execSync('find . -maxdepth 3 -not -path "*/.*"', {
+          encoding: "utf8",
+        });
+        console.log(structure);
+      } catch (e) {
+        console.log("Could not list directory structure");
+      }
       process.exit(1);
     }
 
     console.log(`✅ Using schema at: ${schemaPath}`);
     execSync(`npx prisma migrate deploy --schema="${schemaPath}"`, {
       stdio: "inherit",
-      cwd: rootDir,
     });
-    console.log("✅ Database migrations completed");
-  } catch (error) {
-    console.error("❌ Database migration failed:", error);
-    process.exit(1);
+    console.log("✅ Database migrations completed successfully.");
+  } catch (error: any) {
+    console.error("❌ Database migration failed:", error.message || error);
+    // Don't process.exit(1) here to allow the server to start and show DB error details via API
   }
 }
 
