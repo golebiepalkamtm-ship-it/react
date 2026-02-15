@@ -552,12 +552,35 @@ router.post(
         isBanned,
       } = validation.data;
 
-      console.log(`👤 [Admin API] Creating user: ${email} (Role: ${role})`);
+      const version = "2.0.1-robust-auth"; // Version marker for debugging
+      console.log(
+        `👤 [Admin API v${version}] Creating user: ${email} (Role: ${role})`,
+      );
 
-      if (!supabaseAdmin) {
+      if (!supabase) {
         return res
           .status(503)
-          .json({ error: "Usługa Supabase Admin nie jest skonfigurowana." });
+          .json({
+            error: "Usługa Supabase nie jest zainicjalizowana.",
+            version,
+          });
+      }
+
+      // 0. Preliminary Check: Does username or email exist in DB?
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email: email }, { username: username }],
+        },
+      });
+
+      if (existingUser) {
+        const field = existingUser.email === email ? "Email" : "Username";
+        console.warn(`  ⚠️ User with this ${field} already exists in DB.`);
+        return res.status(409).json({
+          error: `Użytkownik z tym ${field === "Email" ? "adresem e-mail" : "identyfikatorem (username)"} już istnieje w bazie.`,
+          field: field.toLowerCase(),
+          version,
+        });
       }
 
       // Saga / Compensation Logic
@@ -566,34 +589,50 @@ router.post(
       // 1. Create in Supabase Auth
       try {
         console.log("  Step 1: Creating Supabase Auth user...");
-        const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        const { data, error } = await supabase.auth.admin.createUser({
           email,
           password,
           email_confirm: true,
-          user_metadata: { first_name, last_name },
+          user_metadata: {
+            first_name: first_name || "",
+            last_name: last_name || "",
+          },
         });
+
         if (error) {
           console.error("  ❌ Supabase Auth Error:", error);
-          throw error;
+          const isConflict =
+            error.message?.toLowerCase().includes("already") ||
+            error.status === 409 ||
+            error.status === 422;
+          return res.status(isConflict ? 409 : error.status || 500).json({
+            error: isConflict
+              ? "Ten adres e-mail jest już zajęty w systemie Auth."
+              : "Błąd serwera Auth.",
+            details: error.message,
+            code: error.code || "AUTH_ERROR",
+            version,
+          });
         }
+
         authUser = data.user;
         console.log(`  ✅ Auth user created with ID: ${authUser.id}`);
-      } catch (authError: any) {
-        const alreadyExists = authError?.message
-          ?.toLowerCase()
-          .includes("already been registered");
-        const statusCode = alreadyExists ? 409 : (authError?.status ?? 500);
-        return res.status(statusCode).json({
-          error: "Błąd podczas tworzenia konta w systemie Auth.",
-          details: authError.message,
-          code: authError.code || "AUTH_ERROR",
+      } catch (authCatch: any) {
+        console.error("  ❌ Unexpected Auth Exception:", authCatch);
+        return res.status(500).json({
+          error: "Nieoczekiwany błąd usługi Auth.",
+          details: authCatch.message,
+          version,
         });
       }
 
       if (!authUser) {
-        return res.status(500).json({
-          error: "Nie udało się uzyskać danych nowo utworzonego użytkownika.",
-        });
+        return res
+          .status(500)
+          .json({
+            error: "Nie udało się utworzyć użytkownika w systemie Auth.",
+            version,
+          });
       }
 
       // 2. Create/Update in Public Schema with Compensation
@@ -603,11 +642,13 @@ router.post(
           where: { id: authUser.id },
           update: {
             email,
-            first_name,
-            last_name,
+            first_name: first_name || "",
+            last_name: last_name || "",
             role: (role as any) || "USER_REGISTERED",
-            phone,
-            name: `${first_name || ""} ${last_name || ""}`.trim(),
+            phone: phone || null,
+            name:
+              `${first_name || ""} ${last_name || ""}`.trim() ||
+              email.split("@")[0],
             username,
             isBlocked: !!isBlocked,
             isBanned: !!isBanned,
@@ -615,12 +656,14 @@ router.post(
           create: {
             id: authUser.id,
             email,
-            first_name,
-            last_name,
+            first_name: first_name || "",
+            last_name: last_name || "",
             role: (role as any) || "USER_REGISTERED",
-            phone,
+            phone: phone || null,
             trustScore: 0,
-            name: `${first_name || ""} ${last_name || ""}`.trim(),
+            name:
+              `${first_name || ""} ${last_name || ""}`.trim() ||
+              email.split("@")[0],
             username,
             isBlocked: !!isBlocked,
             isBanned: !!isBanned,
@@ -642,7 +685,7 @@ router.post(
         console.log("  🔄 Compensating: Deleting Supabase user...");
 
         try {
-          await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+          await supabase.auth.admin.deleteUser(authUser.id);
           console.log("  ✅ Compensation successful: Auth user deleted.");
         } catch (cleanupError) {
           console.error(
@@ -652,24 +695,28 @@ router.post(
         }
 
         // Return detailed DB error
-        let message =
-          "Wystąpił błąd podczas zapisywania danych użytkownika w bazie.";
+        let message = "Błąd bazy danych podczas tworzenia profilu.";
+        let status = 500;
+
         if (dbError.code === "P2002") {
-          const field = dbError.meta?.target?.[0] || "username/email";
-          message = `Użytkownik z takim ${field} już istnieje.`;
+          const field = dbError.meta?.target?.[0] || "użytkownik";
+          message = `Użytkownik z takim ${field} już istnieje w bazie (konflikt danych).`;
+          status = 409;
         }
 
-        return res.status(500).json({
+        return res.status(status).json({
           error: message,
           details: dbError.message,
           code: dbError.code,
+          version,
         });
       }
     } catch (error: any) {
-      console.error("Create User Error:", error);
+      console.error("CRITICAL Create User Exception:", error);
       res.status(500).json({
-        error: error.message || "Błąd podczas tworzenia użytkownika",
-        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+        error: "Krytyczny błąd serwera podczas tworzenia użytkownika.",
+        details: error.message,
+        version: "2.0.1-robust-auth",
       });
     }
   },
