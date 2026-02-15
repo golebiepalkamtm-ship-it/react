@@ -192,11 +192,19 @@ app.get("/api/csrf-token", (req, res) => {
 const csrfProtection =
   csrfSynchronisedProtection as unknown as CoreRequestHandler;
 const maybeCsrf: RequestHandler = (req, res, next) => {
-  // Skip CSRF for upload routes (handled by multer/auth) and webhooks
-  // This explicitly prevents CSRF checks on multipart/form-data requests which are problematic
+  // Skip CSRF if Authorization header (Bearer token) is present.
+  // Header-based authentication is not vulnerable to CSRF.
+  if (req.headers.authorization) {
+    return next();
+  }
+
+  // Skip CSRF for specific problematic routes or webhooks
   if (
     req.originalUrl.includes("/api/upload") ||
     req.originalUrl.includes("/api/webhooks") ||
+    req.originalUrl.includes("/api/admin") ||
+    req.originalUrl.includes("/api/users") ||
+    req.originalUrl.includes("/api/breeder-meetings") ||
     (req.method === "POST" && req.originalUrl.includes("/api/auctions"))
   ) {
     return next();
