@@ -112,6 +112,7 @@ export const meetingsService = {
   },
 
   addMeeting: async (meetingData: CreateMeetingRequest, token?: string) => {
+    console.log("[Debug] addMeeting called. Token present:", !!token);
     try {
       return await apiClient.post<Meeting>(
         "/breeder-meetings",
