@@ -4,8 +4,7 @@ import express, {
   type Response,
   type NextFunction,
 } from "express";
-import { prisma } from "../lib/db.js";
-import { createClient } from "@supabase/supabase-js";
+import { prisma, supabase } from "../lib/db.js";
 import { cache } from "../lib/cache.js";
 import { validatedEnv } from "../lib/env.js";
 import { rateLimit } from "express-rate-limit";
@@ -23,14 +22,7 @@ import { z } from "zod";
 
 const router: Router = express.Router();
 
-// Initialize Supabase Admin Client if credentials exist
-const supabaseAdmin =
-  validatedEnv.SUPABASE_URL && validatedEnv.SUPABASE_SERVICE_ROLE_KEY
-    ? createClient(
-        validatedEnv.SUPABASE_URL,
-        validatedEnv.SUPABASE_SERVICE_ROLE_KEY,
-      )
-    : null;
+// Supabase client is imported from ../lib/db.js
 
 // Standard limiter for read operations
 const readLimiter = rateLimit({
@@ -360,14 +352,14 @@ router.patch(
 
       // 1. If password provided, update in Supabase Auth
       if (password && password.length >= 6) {
-        if (!supabaseAdmin) {
+        if (!supabase) {
           console.warn(
-            "Supabase Admin client not initialized, skipping password update",
+            "Supabase client not initialized, skipping password update",
           );
         } else {
           try {
             const { error: authError } =
-              await supabaseAdmin.auth.admin.updateUserById(id, {
+              await supabase.auth.admin.updateUserById(id, {
                 password: password,
               });
             if (authError) throw authError;
@@ -526,10 +518,10 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!prisma) throw new Error("Database not initialized");
-      if (!supabaseAdmin) {
+      if (!supabase) {
         return res
           .status(500)
-          .json({ error: "Supabase Admin not configured on server" });
+          .json({ error: "Supabase not configured on server" });
       }
 
       const validation = UserCreateSchema.safeParse(req.body);
@@ -558,12 +550,10 @@ router.post(
       );
 
       if (!supabase) {
-        return res
-          .status(503)
-          .json({
-            error: "Usługa Supabase nie jest zainicjalizowana.",
-            version,
-          });
+        return res.status(503).json({
+          error: "Usługa Supabase nie jest zainicjalizowana.",
+          version,
+        });
       }
 
       // 0. Preliminary Check: Does username or email exist in DB?
@@ -627,12 +617,10 @@ router.post(
       }
 
       if (!authUser) {
-        return res
-          .status(500)
-          .json({
-            error: "Nie udało się utworzyć użytkownika w systemie Auth.",
-            version,
-          });
+        return res.status(500).json({
+          error: "Nie udało się utworzyć użytkownika w systemie Auth.",
+          version,
+        });
       }
 
       // 2. Create/Update in Public Schema with Compensation
