@@ -21,7 +21,7 @@ export default function AddBreederMeetingForm({
   onCancel,
   embedded = false,
 }: AddBreederMeetingFormProps) {
-  const { user, loading } = useAuth();
+  const { user, session, loading } = useAuth();
   const { canBid, missingFields } = useProfileVerification();
   const verificationLoading = false;
   const canAddPhotos = !!canBid;
@@ -87,7 +87,9 @@ export default function AddBreederMeetingForm({
 
     try {
       const { uploadService } = await import("@/services/uploadService");
-      const token = localStorage.getItem("sb-access-token") || null;
+      const token = session?.access_token || null;
+      if (!token)
+        throw new Error("Musisz być zalogowany, aby dodać spotkanie.");
 
       // 1. Upload images
       const imageUrls: string[] = [];
@@ -97,13 +99,16 @@ export default function AddBreederMeetingForm({
       }
 
       // 2. Add meeting
-      await meetingsService.addMeeting({
-        name: formData.title,
-        description: formData.description,
-        location: formData.location,
-        date: formData.date,
-        images: imageUrls,
-      });
+      await meetingsService.addMeeting(
+        {
+          name: formData.title,
+          description: formData.description,
+          location: formData.location,
+          date: formData.date,
+          images: imageUrls,
+        },
+        token,
+      );
 
       setSubmitStatus("success");
       setFormData({
