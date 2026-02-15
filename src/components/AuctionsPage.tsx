@@ -138,6 +138,8 @@ const AuctionsPage = () => {
       bidsCount: auction._count?.bids ?? auction.bids?.length ?? 0,
       endTime: auction.endTime,
       category: auction.category,
+      views: auction.views ?? 0,
+      watchListCount: auction._count?.watchlist ?? 0,
     }));
   }, [filteredAuctions]);
 
@@ -336,7 +338,7 @@ const AuctionsPage = () => {
             {statTiles.map(({ label, value, meta, Icon }) => (
               <div
                 key={label}
-                className="group glass-vault bg-white/[0.05] px-5 py-6 text-left hover:border-gold/40"
+                className="group glass-vault bg-white/[0.05] px-5 py-6 text-left border-gold"
               >
                 <Icon className="h-5 w-5 text-gold mb-2" />
                 <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">
@@ -352,7 +354,7 @@ const AuctionsPage = () => {
 
       <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
         <div className="container mx-auto px-4">
-          <div className="group glass-vault bg-white/[0.05] pt-4 px-4 pb-6 space-y-8 sm:px-6 hover:border-gold/40">
+          <div className="group glass-vault bg-white/[0.05] pt-4 px-4 pb-6 space-y-8 sm:px-6 border-gold">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
@@ -457,7 +459,7 @@ const AuctionsPage = () => {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-[620px] rounded-[24px] bg-white/5 animate-pulse shadow-[0_18px_48px_rgba(0,0,0,0.32)]"
+                  className="h-[580px] rounded-2xl bg-white/5 animate-pulse shadow-[0_18px_48px_rgba(0,0,0,0.32)]"
                 />
               ))}
             </div>
@@ -478,6 +480,8 @@ const AuctionsPage = () => {
                   color={auction.color}
                   category={auction.category}
                   bidsCount={auction.bidsCount}
+                  watchCount={auction.watchListCount}
+                  viewsCount={auction.views}
                   nowMs={now}
                 />
               ))}

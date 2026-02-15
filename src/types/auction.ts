@@ -41,7 +41,7 @@ export interface Pigeon {
   back: string;
   feathers: string;
   purpose: string;
-  gender: 'MALE' | 'FEMALE';
+  gender: "MALE" | "FEMALE";
   dnaCertificate?: boolean;
   colorTraits?: string[];
   eyeTraits?: string[];
@@ -73,11 +73,11 @@ export interface Auction {
   snipeThresholdMinutes?: number;
   snipeExtensionMinutes?: number;
   minBidIncrement?: number;
-  status: 'active' | 'ended' | 'cancelled';
+  status: "active" | "ended" | "cancelled";
   reserveMet: boolean;
   category: string;
   pigeon: Pigeon;
-  sex: 'MALE' | 'FEMALE';
+  sex: "MALE" | "FEMALE";
   location: string;
   seller?: Seller;
   images: string[];
@@ -85,6 +85,7 @@ export interface Auction {
   documents: string[];
   bids: Bid[];
   _count: AuctionCount;
+  views: number;
 }
 
 export interface AuctionListItem {
@@ -130,7 +131,7 @@ export interface CreateAuctionRequest {
   endTime: string;
   category: string;
   pigeon: Partial<Pigeon>;
-  sex: 'MALE' | 'FEMALE';
+  sex: "MALE" | "FEMALE";
   location: string;
   images: string[];
   videos: string[];
@@ -138,8 +139,12 @@ export interface CreateAuctionRequest {
   pedigreeUrl?: string;
 }
 
-export type AuctionSortBy = 'newest' | 'ending-soon' | 'price-high' | 'price-low';
-export type AuctionStatus = 'active' | 'ended' | 'cancelled';
+export type AuctionSortBy =
+  | "newest"
+  | "ending-soon"
+  | "price-high"
+  | "price-low";
+export type AuctionStatus = "active" | "ended" | "cancelled";
 
 export interface AuctionFilters {
   status?: AuctionStatus;
@@ -150,4 +155,5 @@ export interface AuctionFilters {
   priceMin?: number;
   priceMax?: number;
   search?: string;
+  sellerId?: string;
 }

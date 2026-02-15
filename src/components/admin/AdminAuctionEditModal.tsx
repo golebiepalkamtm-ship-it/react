@@ -148,6 +148,59 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   }}
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Minimalne postąpienie
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    value={auction.minBidIncrement || 0}
+                    onChange={(e) =>
+                      onChange({
+                        ...auction,
+                        minBidIncrement: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Kategoria
+                  </label>
+                  <select
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    value={auction.category || "RACING"}
+                    onChange={(e) =>
+                      onChange({ ...auction, category: e.target.value })
+                    }
+                  >
+                    <option value="RACING">RACING</option>
+                    <option value="BREEDING">BREEDING</option>
+                    <option value="SHOW">SHOW</option>
+                    <option value="SUPPLEMENTS">SUPPLEMENTS</option>
+                    <option value="ACCESSORIES">ACCESSORIES</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
+                  Płeć
+                </label>
+                <select
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  value={auction.sex || "MALE"}
+                  onChange={(e) =>
+                    onChange({ ...auction, sex: e.target.value })
+                  }
+                >
+                  <option value="MALE">SAMIEC</option>
+                  <option value="FEMALE">SAMICA</option>
+                </select>
+              </div>
               <div className="flex justify-end gap-3 mt-6">
                 <Button
                   type="button"

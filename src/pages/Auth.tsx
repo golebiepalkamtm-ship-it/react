@@ -4,14 +4,22 @@ import { useFeedback } from "@/components/ui/feedback/FeedbackProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import Header from "@/components/Header";
-import { motion, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { FloatingElement } from '@/components/animations';
-import AuthMessageModal, { type MessageType } from "@/components/auth/AuthSuccessModal";
+import {
+  motion,
+  useReducedMotion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+import { FloatingElement } from "@/components/animations";
+import AuthMessageModal, {
+  type MessageType,
+} from "@/components/auth/AuthSuccessModal";
 import { isSupabaseConfigured, missingSupabaseEnv } from "@/lib/supabase";
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { VideoBackground } from '@/components/animations';
+import { VideoBackground } from "@/components/animations";
 
 function useQueryParams() {
   const location = useLocation();
@@ -24,9 +32,65 @@ function sanitizeCallbackUrl(callbackUrl: string | null): string {
 
 type Mode = "login" | "register" | "forgot" | "reset";
 
+const translateAuthError = (error: any): string => {
+  if (!error) return "Wystąpił nieznany błąd.";
+  const message = error.message || "";
+  const code = error.code || "";
+
+  // Common Supabase Auth error messages and codes
+  if (
+    message.includes("Invalid login credentials") ||
+    code === "invalid_credentials"
+  ) {
+    return "Nieprawidłowy adres e-mail lub hasło. Upewnij się, że wpisane dane są poprawne.";
+  }
+  if (
+    message.includes("Email not confirmed") ||
+    code === "email_not_confirmed"
+  ) {
+    return "Twój adres e-mail nie został jeszcze potwierdzony. Proszę sprawdzić skrzynkę odbiorczą (również folder SPAM) i kliknąć w link aktywacyjny.";
+  }
+  if (message.includes("User not found") || code === "user_not_found") {
+    return "Nie znaleziono użytkownika z takim adresem e-mail.";
+  }
+  if (message.includes("Password should be at least 6 characters")) {
+    return "Hasło jest zbyt krótkie. Musi składać się z co najmniej 6 znaków.";
+  }
+  if (
+    message.includes("Too many requests") ||
+    code === "over_request_rate_limit"
+  ) {
+    return "Zbyt wiele prób w krótkim czasie. Proszę odczekać chwilę przed kolejną próbą.";
+  }
+  if (
+    message.includes("User already registered") ||
+    code === "user_already_exists"
+  ) {
+    return "Użytkownik o takim adresie e-mail już istnieje w naszym systemie.";
+  }
+  if (message.includes("Database error saving new user")) {
+    return "Wystąpił problem z zapisem Twojego profilu w bazie danych. Spróbuj ponownie lub skontaktuj się z administratorem.";
+  }
+  if (message.includes("Invalid email")) {
+    return "Podany adres e-mail ma nieprawidłowy format.";
+  }
+
+  return message;
+};
+
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, profile, loading, signUp, signIn, signInWithGoogle, signInWithFacebook, requestPasswordReset, updatePassword } = useAuth();
+  const {
+    user,
+    profile,
+    loading,
+    signUp,
+    signIn,
+    signInWithGoogle,
+    signInWithFacebook,
+    requestPasswordReset,
+    updatePassword,
+  } = useAuth();
   const { pushToast } = useFeedback();
   const reduceMotion = useReducedMotion();
 
@@ -65,7 +129,8 @@ export default function Auth() {
 
   const lightBackground = useTransform(
     [lightX, lightY],
-    ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
+    ([x, y]) =>
+      `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`,
   );
 
   // Parallax 3D state (Press-style) - logo Pałka MTM
@@ -73,32 +138,44 @@ export default function Auth() {
   const logoMouseX = useMotionValue(0);
   const logoMouseY = useMotionValue(0);
 
-  const logoRotateX = useSpring(useTransform(logoMouseY, [-0.5, 0.5], [15, -15]), {
-    stiffness: 150,
-    damping: 20,
-  });
-  const logoRotateY = useSpring(useTransform(logoMouseX, [-0.5, 0.5], [-15, 15]), {
-    stiffness: 150,
-    damping: 20,
-  });
+  const logoRotateX = useSpring(
+    useTransform(logoMouseY, [-0.5, 0.5], [15, -15]),
+    {
+      stiffness: 150,
+      damping: 20,
+    },
+  );
+  const logoRotateY = useSpring(
+    useTransform(logoMouseX, [-0.5, 0.5], [-15, 15]),
+    {
+      stiffness: 150,
+      damping: 20,
+    },
+  );
 
   const logoLightX = useTransform(logoMouseX, [-0.5, 0.5], [0, 100]);
   const logoLightY = useTransform(logoMouseY, [-0.5, 0.5], [0, 100]);
 
   const logoLightBackground = useTransform(
     [logoLightX, logoLightY],
-    ([x, y]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
+    ([x, y]) =>
+      `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`,
   );
 
   // Unified modal state
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<MessageType>('success');
-  const [modalTitle, setModalTitle] = useState('');
-  const [modalMessage, setModalMessage] = useState('');
-  const [modalAction, setModalAction] = useState<'redirect' | 'close'>('close');
+  const [modalType, setModalType] = useState<MessageType>("success");
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalAction, setModalAction] = useState<"redirect" | "close">("close");
   const hasShownOAuthSuccess = useRef(false);
 
-  const showModal = (type: MessageType, title: string, message: string, action: 'redirect' | 'close' = 'close') => {
+  const showModal = (
+    type: MessageType,
+    title: string,
+    message: string,
+    action: "redirect" | "close" = "close",
+  ) => {
     setModalType(type);
     setModalTitle(title);
     setModalMessage(message);
@@ -143,18 +220,32 @@ export default function Auth() {
   const handleModalConfirm = () => {
     setModalOpen(false);
 
-    if (modalAction === 'redirect' && profile?.role !== 'ADMIN') {
-      // Przekieruj na podstawie roli
+    if (modalAction === "redirect" && profile?.role !== "ADMIN") {
+      // Zawsze preferujemy stronę główną + modal zamiast dedykowanej strony /account
+      const targetPath =
+        callbackUrl && callbackUrl !== "/" && callbackUrl !== "/account"
+          ? callbackUrl
+          : "/";
+
       if (profile?.role === "USER_REGISTERED") {
         navigate("/verify-email", { replace: true });
       } else {
-        navigate("/", { replace: true, state: { openAccount: true } });
+        // Jeśli celem był /account (lub domyślnie strona główna), upewnij się że otwieramy modal
+        const isTargetingAccount =
+          callbackUrl === "/account" || targetPath === "/";
+
+        navigate(targetPath, {
+          replace: true,
+          state: {
+            openAccount: isTargetingAccount,
+            fromAuth: true,
+          },
+        });
       }
     }
   };
 
   useEffect(() => {
-
     // Po OAuth callback - jeśli user jest zalogowany i nie pokazaliśmy jeszcze modalu sukcesu
     if (!loading && user && !modalOpen && !hasShownOAuthSuccess.current) {
       // Sprawdź czy to powrót z OAuth (brak błędu w URL i user właśnie się zalogował)
@@ -163,8 +254,12 @@ export default function Auth() {
       if (isOAuthReturn) {
         hasShownOAuthSuccess.current = true;
         const role = profile?.role ?? "USER_REGISTERED";
-        const provider = (user as any)?.app_metadata?.provider ?? (user as any)?.user_metadata?.provider;
-        const emailVerified = Boolean((user as any)?.email_confirmed_at || (user as any)?.confirmed_at);
+        const provider =
+          (user as any)?.app_metadata?.provider ??
+          (user as any)?.user_metadata?.provider;
+        const emailVerified = Boolean(
+          (user as any)?.email_confirmed_at || (user as any)?.confirmed_at,
+        );
 
         const successMessage =
           provider === "google" && emailVerified
@@ -174,8 +269,8 @@ export default function Auth() {
               : role === "USER_EMAIL_VERIFIED"
                 ? "Zalogowano pomyślnie! Uzupełnij swój profil, aby w pełni korzystać z serwisu."
                 : "Zalogowano pomyślnie! Witamy w serwisie.";
-        const action = role === "ADMIN" ? 'close' : 'redirect';
-        showModal('success', 'Logowanie zakończone!', successMessage, action);
+        const action = role === "ADMIN" ? "close" : "redirect";
+        showModal("success", "Logowanie zakończone!", successMessage, action);
       }
     }
   }, [loading, user, profile, modalOpen, query]);
@@ -190,29 +285,42 @@ export default function Auth() {
       let errorMessage = "Błąd autoryzacji";
       let errorTitle = "Błąd logowania";
 
-      if (errorParam === "server_error" || errorParam === "unexpected_failure" || errorCode === "unexpected_failure") {
+      if (
+        errorParam === "server_error" ||
+        errorParam === "unexpected_failure" ||
+        errorCode === "unexpected_failure"
+      ) {
         errorTitle = "Błąd konfiguracji OAuth";
-        errorMessage = "Nie udało się zakończyć logowania przez Google.\n\nNajczęstsze przyczyny:\n1. Brak Client Secret w Supabase Dashboard\n2. Nieprawidłowy Client Secret\n3. Brak JavaScript Origin w Google Cloud Console";
+        errorMessage =
+          "Nie udało się zakończyć logowania przez Google.\n\nNajczęstsze przyczyny:\n1. Brak Client Secret w Supabase Dashboard\n2. Nieprawidłowy Client Secret\n3. Brak JavaScript Origin w Google Cloud Console";
       } else if (errorParam === "oauth_exchange_failed") {
         errorTitle = "Błąd przepływu OAuth";
-        errorMessage = "Nie udało się zakończyć autoryzacji. Spróbuj ponownie lub użyj logowania przez email.";
-      } else if (errorDescription && errorDescription.includes("issued in the future")) {
+        errorMessage =
+          "Nie udało się zakończyć autoryzacji. Spróbuj ponownie lub użyj logowania przez email.";
+      } else if (
+        errorDescription &&
+        errorDescription.includes("issued in the future")
+      ) {
         errorTitle = "Błąd synchronizacji czasu";
-        errorMessage = "Problem z synchronizacją czasu. Odśwież stronę i spróbuj ponownie.";
+        errorMessage =
+          "Problem z synchronizacją czasu. Odśwież stronę i spróbuj ponownie.";
       } else if (errorDescription) {
         try {
-          errorMessage = decodeURIComponent(errorDescription.replace(/\+/g, " "));
+          errorMessage = decodeURIComponent(
+            errorDescription.replace(/\+/g, " "),
+          );
         } catch {
           errorMessage = errorDescription.replace(/\+/g, " ");
         }
       }
 
-      showModal('error', errorTitle, errorMessage, 'close');
+      showModal("error", errorTitle, errorMessage, "close");
 
       // Clean up URL by removing error params
       const cleanParams = new URLSearchParams();
       if (mode) cleanParams.set("mode", mode);
-      if (callbackUrl && callbackUrl !== "/") cleanParams.set("callbackUrl", callbackUrl);
+      if (callbackUrl && callbackUrl !== "/")
+        cleanParams.set("callbackUrl", callbackUrl);
       // strip sensitive params from URL without noisy console output
       window.history.replaceState({}, "", `/auth?${cleanParams.toString()}`);
     }
@@ -223,36 +331,42 @@ export default function Auth() {
 
     const nextParams = new URLSearchParams();
     nextParams.set("mode", nextMode);
-    if (callbackUrl && callbackUrl !== "/") nextParams.set("callbackUrl", callbackUrl);
+    if (callbackUrl && callbackUrl !== "/")
+      nextParams.set("callbackUrl", callbackUrl);
     navigate(`/auth?${nextParams.toString()}`, { replace: true });
   };
 
-  const handleOAuthSignIn = async (provider: 'google' | 'facebook') => {
+  const handleOAuthSignIn = async (provider: "google" | "facebook") => {
     setIsOAuthSubmitting(true);
 
     pushToast({
-      tone: 'info',
-      title: `Inicjacja logowania przez ${provider === 'google' ? 'Google' : 'Facebook'}...`,
+      tone: "info",
+      title: `Inicjacja logowania przez ${provider === "google" ? "Google" : "Facebook"}...`,
       message: "Przekierowujemy do strony logowania...",
     });
 
     try {
       const { error } =
-        provider === 'google'
+        provider === "google"
           ? await signInWithGoogle()
           : await signInWithFacebook();
 
       if (error) {
-        const errorMessage = error.message || `Błąd logowania przez ${provider === 'google' ? 'Google' : 'Facebook'}`;
-        showModal('error', 'Błąd logowania', errorMessage, 'close');
+        const errorMessage =
+          error.message ||
+          `Błąd logowania przez ${provider === "google" ? "Google" : "Facebook"}`;
+        showModal("error", "Błąd logowania", errorMessage, "close");
         setIsOAuthSubmitting(false);
         return;
       }
 
       // OAuth will redirect
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Błąd logowania przez ${provider === 'google' ? 'Google' : 'Facebook'}`;
-      showModal('error', 'Błąd logowania', message, 'close');
+      const message =
+        err instanceof Error
+          ? err.message
+          : `Błąd logowania przez ${provider === "google" ? "Google" : "Facebook"}`;
+      showModal("error", "Błąd logowania", message, "close");
       setIsOAuthSubmitting(false);
     }
   };
@@ -262,7 +376,7 @@ export default function Auth() {
     setIsSubmitting(true);
 
     pushToast({
-      tone: 'info',
+      tone: "info",
       title:
         mode === "register"
           ? "Rejestrowanie..."
@@ -279,91 +393,136 @@ export default function Auth() {
 
       if (mode === "register") {
         if (password.length < 6) {
-          showModal('error', 'Błąd walidacji', 'Hasło musi mieć co najmniej 6 znaków', 'close');
+          showModal(
+            "error",
+            "Błąd walidacji",
+            "Hasło musi mieć co najmniej 6 znaków",
+            "close",
+          );
           setIsSubmitting(false);
           return;
         }
         if (password !== confirmPassword) {
-          showModal('error', 'Błąd walidacji', 'Hasła nie są takie same', 'close');
+          showModal(
+            "error",
+            "Błąd walidacji",
+            "Hasła nie są takie same",
+            "close",
+          );
           setIsSubmitting(false);
           return;
         }
 
         const { error } = await signUp(cleanEmail, password);
         if (error) {
-          showModal('error', 'Błąd rejestracji', error.message || 'Nie udało się zarejestrować', 'close');
+          showModal(
+            "error",
+            "Błąd rejestracji",
+            translateAuthError(error),
+            "close",
+          );
           setIsSubmitting(false);
           return;
         }
 
         showModal(
-          'success',
-          'Rejestracja zakończona!',
+          "success",
+          "Rejestracja zakończona!",
           `Twoje konto zostało utworzone pomyślnie!\n\nWysłaliśmy email weryfikacyjny na adres:\n${cleanEmail}\n\nSprawdź swoją skrzynkę odbiorczą oraz folder SPAM.\nKliknij link w wiadomości, aby aktywować konto.`,
-          'close'
+          "close",
         );
       } else if (mode === "login") {
         const { error } = await signIn(cleanEmail, password);
 
         if (error) {
           const missingEnvMsg = !isSupabaseConfigured
-            ? `Konfiguracja Supabase nie jest ustawiona.\nBrakujące zmienne: ${missingSupabaseEnv.join(', ') || 'nieznane'}.\nUzupełnij .env.web i uruchom ponownie.`
+            ? `Konfiguracja Supabase nie jest ustawiona.\nBrakujące zmienne: ${missingSupabaseEnv.join(", ") || "nieznane"}.\nUzupełnij .env.web i uruchom ponownie.`
             : null;
           showModal(
-            'error',
-            'Błąd logowania',
-            missingEnvMsg ?? error.message ?? 'Nie udało się zalogować',
-            'close'
+            "error",
+            "Błąd logowania",
+            missingEnvMsg ?? translateAuthError(error),
+            "close",
           );
           setIsSubmitting(false);
           return;
         }
 
-        const action = profile?.role === 'ADMIN' ? 'close' : 'redirect';
-        showModal('success', 'Zalogowano pomyślnie!', 'Witamy w serwisie. Kliknij OK, aby przejść dalej.', action);
+        const action = profile?.role === "ADMIN" ? "close" : "redirect";
+        showModal(
+          "success",
+          "Zalogowano pomyślnie!",
+          "Witamy w serwisie. Kliknij OK, aby przejść dalej.",
+          action,
+        );
       } else if (mode === "forgot") {
         const { error } = await requestPasswordReset(cleanEmail);
         if (error) {
-          showModal('error', 'Błąd resetu hasła', error.message || 'Nie udało się wysłać maila resetującego', 'close');
+          showModal(
+            "error",
+            "Błąd resetu hasła",
+            translateAuthError(error),
+            "close",
+          );
           setIsSubmitting(false);
           return;
         }
 
         showModal(
-          'success',
-          'Sprawdź skrzynkę',
+          "success",
+          "Sprawdź skrzynkę",
           `Wysłaliśmy link do resetu hasła na adres:\n${cleanEmail}\n\nLink jest ważny tylko raz. Po kliknięciu zostaniesz przekierowany na stronę zmiany hasła.`,
-          'close'
+          "close",
         );
       } else if (mode === "reset") {
         if (password.length < 6) {
-          showModal('error', 'Błąd walidacji', 'Hasło musi mieć co najmniej 6 znaków', 'close');
+          showModal(
+            "error",
+            "Błąd walidacji",
+            "Hasło musi mieć co najmniej 6 znaków",
+            "close",
+          );
           setIsSubmitting(false);
           return;
         }
         if (password !== confirmPassword) {
-          showModal('error', 'Błąd walidacji', 'Hasła nie są takie same', 'close');
+          showModal(
+            "error",
+            "Błąd walidacji",
+            "Hasła nie są takie same",
+            "close",
+          );
           setIsSubmitting(false);
           return;
         }
 
         const { error } = await updatePassword(password);
         if (error) {
-          showModal('error', 'Błąd zmiany hasła', error.message || 'Nie udało się ustawić nowego hasła', 'close');
+          showModal(
+            "error",
+            "Błąd zmiany hasła",
+            translateAuthError(error),
+            "close",
+          );
           setIsSubmitting(false);
           return;
         }
 
         showModal(
-          'success',
-          'Hasło zaktualizowane',
-          'Twoje hasło zostało zmienione. Zaloguj się nowym hasłem.',
-          'redirect'
+          "success",
+          "Hasło zaktualizowane",
+          "Twoje hasło zostało zmienione. Zaloguj się nowym hasłem.",
+          "redirect",
         );
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : mode === "register" ? "Nie udało się zarejestrować" : "Nie udało się zalogować";
-      showModal('error', 'Błąd', message, 'close');
+      const message =
+        err instanceof Error
+          ? err.message
+          : mode === "register"
+            ? "Nie udało się zarejestrować"
+            : "Nie udało się zalogować";
+      showModal("error", "Błąd", message, "close");
     } finally {
       setIsSubmitting(false);
     }
@@ -379,7 +538,9 @@ export default function Auth() {
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="w-12 h-12 border-4 border-gold/30 border-t-gold rounded-full animate-spin mb-4"></div>
                 <p className="text-foreground font-medium">Ładowanie...</p>
-                <p className="text-sm text-muted-foreground mt-2">Sprawdzanie sesji użytkownika</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Sprawdzanie sesji użytkownika
+                </p>
               </div>
             </div>
           </div>
@@ -389,9 +550,7 @@ export default function Auth() {
   }
 
   return (
-    <div
-      className="min-h-screen text-foreground relative isolate overflow-hidden"
-    >
+    <div className="min-h-screen text-foreground relative isolate overflow-hidden">
       <Header />
 
       <main className="relative flex flex-col lg:flex-row min-h-screen overflow-hidden z-10">
@@ -413,7 +572,10 @@ export default function Auth() {
             onMouseLeave={handleLogoMouseLeave}
           >
             <motion.div
-              initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 }}
+              initial={{
+                opacity: reduceMotion ? 1 : 0,
+                y: reduceMotion ? 0 : 20,
+              }}
               animate={{ opacity: 1, y: 0, scale: isLogoHovered ? 1.02 : 1 }}
               transition={{ duration: reduceMotion ? 0 : 0.6 }}
               className="rounded-3xl border-2 border-gold/40 bg-white/10 backdrop-blur-2xl px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center text-center overflow-hidden"
@@ -421,7 +583,8 @@ export default function Auth() {
                 rotateX: logoRotateX,
                 rotateY: logoRotateY,
                 transformStyle: "preserve-3d",
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
               }}
             >
               {/* Dynamic light reflection */}
@@ -431,7 +594,7 @@ export default function Auth() {
                   background: logoLightBackground,
                   opacity: isLogoHovered ? 1 : 0,
                 }}
- />
+              />
               <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-tight text-center whitespace-nowrap">
                 Pałka <span className="text-gold">MTM</span>
               </h1>
@@ -443,8 +606,7 @@ export default function Auth() {
         </div>
 
         <div className="w-full lg:w-[38%] xl:w-[40%] flex items-center justify-center relative">
-
-          <div 
+          <div
             ref={cardRef}
             className="w-full max-w-sm relative"
             style={{ perspective: "2000px" }}
@@ -452,19 +614,26 @@ export default function Auth() {
             onMouseLeave={handleMouseLeave}
           >
             <motion.div
-              initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 24 }}
-              animate={{ 
-                opacity: 1, 
-                y: 0,
-                scale: isHovered ? 1.02 : 1
+              initial={{
+                opacity: reduceMotion ? 1 : 0,
+                y: reduceMotion ? 0 : 24,
               }}
-              transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: isHovered ? 1.02 : 1,
+              }}
+              transition={{
+                duration: reduceMotion ? 0 : 0.6,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="relative z-50 rounded-3xl backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] p-5 sm:p-6 border-2 border-gold/40 overflow-hidden"
-              style={{ 
+              style={{
                 rotateX,
                 rotateY,
                 transformStyle: "preserve-3d",
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)'
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
               }}
             >
               {/* Dynamic light reflection */}
@@ -475,279 +644,355 @@ export default function Auth() {
                   opacity: isHovered ? 1 : 0,
                 }}
               />
-            <div className="text-center mb-4">
-              <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight mb-1">
-                {mode === "register" ? "Dołącz do nas" : "Witaj ponownie"}
-              </h2>
-              <p className="text-white/70 text-sm">
-                {mode === "register" ? "Stwórz konto i odkryj świat hodowli" : "Zaloguj się do swojego konta"}
-              </p>
-            </div>
-
-            {/* Przełącznik - ukryj dla trybów reset/forgot */}
-            {['login', 'register'].includes(mode) && (
-              <div className="relative bg-white/5 rounded-xl p-1 mb-4 backdrop-blur-sm border border-white/10">
-                <motion.div
-                  className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/15 rounded-lg shadow-lg border border-white/10"
-                  animate={{ x: mode === "register" ? "calc(100% + 4px)" : 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-                <div className="relative flex">
-                  <button
-                    onClick={() => switchMode("login")}
-                    className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-white" : "text-white/60 hover:text-white/80"}`}
-                    type="button"
-                  >
-                    Logowanie
-                  </button>
-                  <button
-                    onClick={() => switchMode("register")}
-                    className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-white" : "text-white/60 hover:text-white/80"}`}
-                    type="button"
-                  >
-                    Rejestracja
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Social */}
-            <div className="space-y-2 mb-4">
-              <motion.button
-                whileHover={reduceMotion ? undefined : { scale: 1.02, backgroundColor: "rgba(255,255,255,0.06)" }}
-                whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
-                type="button"
-                onClick={() => handleOAuthSignIn("google")}
-                disabled={isOAuthSubmitting}
-              >
-                <span className="w-5 h-5 rounded-full bg-white/80 inline-block" aria-hidden="true" />
-                {isOAuthSubmitting
-                  ? mode === "login" ? "Logowanie…" : "Rejestracja…"
-                  : mode === "login" ? "Kontynuuj z Google" : "Zarejestruj / zaloguj przez Google"}
-              </motion.button>
-
-              <motion.button
-                whileHover={reduceMotion ? undefined : { scale: 1.02, backgroundColor: "rgba(255,255,255,0.06)" }}
-                whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
-                type="button"
-                onClick={() => handleOAuthSignIn("facebook")}
-                disabled={isOAuthSubmitting}
-              >
-                <span className="w-5 h-5 rounded-full bg-white/80 inline-block" aria-hidden="true" />
-                {isOAuthSubmitting
-                  ? mode === "login" ? "Logowanie…" : "Rejestracja…"
-                  : mode === "login" ? "Kontynuuj z Facebook" : "Zarejestruj / zaloguj przez Facebook"}
-              </motion.button>
-
-              {mode === "register" && (
-                <p className="text-xs text-white/60">
-                  Jeśli nie masz konta, zostanie utworzone po pierwszym logowaniu przez Google/Facebook. Pamiętaj o weryfikacji email.
+              <div className="text-center mb-4">
+                <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight mb-1">
+                  {mode === "register" ? "Dołącz do nas" : "Witaj ponownie"}
+                </h2>
+                <p className="text-white/70 text-sm">
+                  {mode === "register"
+                    ? "Stwórz konto i odkryj świat hodowli"
+                    : "Zaloguj się do swojego konta"}
                 </p>
-              )}
-            </div>
-
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10" />
               </div>
-              <div className="relative flex justify-center">
-                <span className="bg-background px-4 text-xs text-white/60 uppercase tracking-wider">
-                  {mode === "login" ? "lub email" : "albo email"}
-                </span>
-              </div>
-            </div>
 
-            <form className="space-y-3" onSubmit={onSubmit}>
-              {mode === "register" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white" htmlFor="username">
-                    Nick (wyświetlana nazwa)
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-                    <Input
-                      id="username"
-                      name="username"
-                      data-testid="auth-username"
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="np. champion-123"
-                      className="pl-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-white" htmlFor="email">
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-                  <Input
-                    id="email"
-                    name="email"
-                    data-testid="auth-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="twoj@email.com"
-                    autoComplete="email"
-                    required
-                    className="pl-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              {/* Przełącznik - ukryj dla trybów reset/forgot */}
+              {["login", "register"].includes(mode) && (
+                <div className="relative bg-white/5 rounded-xl p-1 mb-4 backdrop-blur-sm border border-white/10">
+                  <motion.div
+                    className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/15 rounded-lg shadow-lg border border-white/10"
+                    animate={{
+                      x: mode === "register" ? "calc(100% + 4px)" : 0,
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
-                </div>
-              </div>
-
-              {(mode === "login" || mode === "register" || mode === "reset") && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white" htmlFor="password">
-                    Hasło
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-                    <Input
-                      id="password"
-                      name="password"
-                      data-testid="auth-password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete={mode === "login" ? "current-password" : "new-password"}
-                      required
-                      className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                    />
+                  <div className="relative flex">
                     <button
+                      onClick={() => switchMode("login")}
+                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-white" : "text-white/60 hover:text-white/80"}`}
                       type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      Logowanie
+                    </button>
+                    <button
+                      onClick={() => switchMode("register")}
+                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-white" : "text-white/60 hover:text-white/80"}`}
+                      type="button"
+                    >
+                      Rejestracja
                     </button>
                   </div>
                 </div>
               )}
 
-              {(mode === "register" || mode === "reset") && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white" htmlFor="confirmPassword">
-                    Potwierdź hasło
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      data-testid="auth-confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="new-password"
-                      required
-                      className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword((prev) => !prev)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Social */}
+              <div className="space-y-2 mb-4">
+                <motion.button
+                  whileHover={
+                    reduceMotion
+                      ? undefined
+                      : {
+                          scale: 1.02,
+                          backgroundColor: "rgba(255,255,255,0.06)",
+                        }
+                  }
+                  whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
+                  type="button"
+                  onClick={() => handleOAuthSignIn("google")}
+                  disabled={isOAuthSubmitting}
+                >
+                  <span
+                    className="w-5 h-5 rounded-full bg-white/80 inline-block"
+                    aria-hidden="true"
+                  />
+                  {isOAuthSubmitting
+                    ? mode === "login"
+                      ? "Logowanie…"
+                      : "Rejestracja…"
+                    : mode === "login"
+                      ? "Kontynuuj z Google"
+                      : "Zarejestruj / zaloguj przez Google"}
+                </motion.button>
 
-              {mode === "login" && (
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => switchMode("forgot")}
-                    className="text-sm text-gold hover:text-gold/80 transition-colors"
-                  >
-                    Zapomniałeś hasła?
-                  </button>
-                </div>
-              )}
-              {mode === "forgot" && (
-                <p className="text-xs text-white/70">
-                  Podaj email powiązany z kontem. Wyślemy jednorazowy link do zmiany hasła.
-                </p>
-              )}
-              {mode === "reset" && (
-                <p className="text-xs text-white/70">
-                  Ustal nowe hasło dla swojego konta. Po zapisaniu zostaniesz zalogowany.
-                </p>
-              )}
+                <motion.button
+                  whileHover={
+                    reduceMotion
+                      ? undefined
+                      : {
+                          scale: 1.02,
+                          backgroundColor: "rgba(255,255,255,0.06)",
+                        }
+                  }
+                  whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
+                  type="button"
+                  onClick={() => handleOAuthSignIn("facebook")}
+                  disabled={isOAuthSubmitting}
+                >
+                  <span
+                    className="w-5 h-5 rounded-full bg-white/80 inline-block"
+                    aria-hidden="true"
+                  />
+                  {isOAuthSubmitting
+                    ? mode === "login"
+                      ? "Logowanie…"
+                      : "Rejestracja…"
+                    : mode === "login"
+                      ? "Kontynuuj z Facebook"
+                      : "Zarejestruj / zaloguj przez Facebook"}
+                </motion.button>
 
-              <Button
-                type="submit"
-                variant="heroGold"
-                className="w-full rounded-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                data-testid="auth-submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting
-                  ? mode === "login"
-                    ? "Logowanie…"
-                    : mode === "register"
-                      ? "Rejestrowanie…"
-                      : mode === "forgot"
-                        ? "Wysyłanie…"
-                        : "Zapisywanie…"
-                  : mode === "login"
-                    ? "Zaloguj się"
-                    : mode === "register"
-                      ? "Utwórz konto"
-                      : mode === "forgot"
-                        ? "Wyślij link resetujący"
-                        : "Ustaw nowe hasło"}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-
-              <div className="text-center text-sm text-white/70">
-                {mode === "login" ? (
-                  <>
-                    Nie masz konta?{" "}
-                    <button className="text-gold hover:underline" type="button" onClick={() => switchMode("register")}>
-                      Zarejestruj się
-                    </button>
-                  </>
-                ) : mode === "register" ? (
-                  <>
-                    Masz już konto?{" "}
-                    <button className="text-gold hover:underline" type="button" onClick={() => switchMode("login")}>
-                      Zaloguj się
-                    </button>
-                  </>
-                ) : mode === "forgot" ? (
-                  <>
-                    Pamiętasz hasło?{" "}
-                    <button className="text-gold hover:underline" type="button" onClick={() => switchMode("login")}>
-                      Wróć do logowania
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    Masz problem?{" "}
-                    <button className="text-gold hover:underline" type="button" onClick={() => switchMode("forgot")}>
-                      Wyślij nowy link resetu
-                    </button>
-                  </>
+                {mode === "register" && (
+                  <p className="text-xs text-white/60">
+                    Jeśli nie masz konta, zostanie utworzone po pierwszym
+                    logowaniu przez Google/Facebook. Pamiętaj o weryfikacji
+                    email.
+                  </p>
                 )}
               </div>
 
-              <div className="text-center text-xs text-white/60">
-                <Link className="hover:underline" to={callbackUrl}>
-                  Wróć
-                </Link>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/10" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-background px-4 text-xs text-white/60 uppercase tracking-wider">
+                    {mode === "login" ? "lub email" : "albo email"}
+                  </span>
+                </div>
               </div>
-            </form>
+
+              <form className="space-y-3" onSubmit={onSubmit}>
+                {mode === "register" && (
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-medium text-white"
+                      htmlFor="username"
+                    >
+                      Nick (wyświetlana nazwa)
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                      <Input
+                        id="username"
+                        name="username"
+                        data-testid="auth-username"
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="np. champion-123"
+                        className="pl-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label
+                    className="text-sm font-medium text-white"
+                    htmlFor="email"
+                  >
+                    Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                    <Input
+                      id="email"
+                      name="email"
+                      data-testid="auth-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="twoj@email.com"
+                      autoComplete="email"
+                      required
+                      className="pl-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    />
+                  </div>
+                </div>
+
+                {(mode === "login" ||
+                  mode === "register" ||
+                  mode === "reset") && (
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-medium text-white"
+                      htmlFor="password"
+                    >
+                      Hasło
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                      <Input
+                        id="password"
+                        name="password"
+                        data-testid="auth-password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        autoComplete={
+                          mode === "login" ? "current-password" : "new-password"
+                        }
+                        required
+                        className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {(mode === "register" || mode === "reset") && (
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-medium text-white"
+                      htmlFor="confirmPassword"
+                    >
+                      Potwierdź hasło
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        data-testid="auth-confirm-password"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        autoComplete="new-password"
+                        required
+                        className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {mode === "login" && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => switchMode("forgot")}
+                      className="text-sm text-gold hover:text-gold/80 transition-colors"
+                    >
+                      Zapomniałeś hasła?
+                    </button>
+                  </div>
+                )}
+                {mode === "forgot" && (
+                  <p className="text-xs text-white/70">
+                    Podaj email powiązany z kontem. Wyślemy jednorazowy link do
+                    zmiany hasła.
+                  </p>
+                )}
+                {mode === "reset" && (
+                  <p className="text-xs text-white/70">
+                    Ustal nowe hasło dla swojego konta. Po zapisaniu zostaniesz
+                    zalogowany.
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="heroGold"
+                  className="w-full rounded-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  data-testid="auth-submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? mode === "login"
+                      ? "Logowanie…"
+                      : mode === "register"
+                        ? "Rejestrowanie…"
+                        : mode === "forgot"
+                          ? "Wysyłanie…"
+                          : "Zapisywanie…"
+                    : mode === "login"
+                      ? "Zaloguj się"
+                      : mode === "register"
+                        ? "Utwórz konto"
+                        : mode === "forgot"
+                          ? "Wyślij link resetujący"
+                          : "Ustaw nowe hasło"}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+
+                <div className="text-center text-sm text-white/70">
+                  {mode === "login" ? (
+                    <>
+                      Nie masz konta?{" "}
+                      <button
+                        className="text-gold hover:underline"
+                        type="button"
+                        onClick={() => switchMode("register")}
+                      >
+                        Zarejestruj się
+                      </button>
+                    </>
+                  ) : mode === "register" ? (
+                    <>
+                      Masz już konto?{" "}
+                      <button
+                        className="text-gold hover:underline"
+                        type="button"
+                        onClick={() => switchMode("login")}
+                      >
+                        Zaloguj się
+                      </button>
+                    </>
+                  ) : mode === "forgot" ? (
+                    <>
+                      Pamiętasz hasło?{" "}
+                      <button
+                        className="text-gold hover:underline"
+                        type="button"
+                        onClick={() => switchMode("login")}
+                      >
+                        Wróć do logowania
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      Masz problem?{" "}
+                      <button
+                        className="text-gold hover:underline"
+                        type="button"
+                        onClick={() => switchMode("forgot")}
+                      >
+                        Wyślij nowy link resetu
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <div className="text-center text-xs text-white/60">
+                  <Link className="hover:underline" to={callbackUrl}>
+                    Wróć
+                  </Link>
+                </div>
+              </form>
             </motion.div>
           </div>
         </div>

@@ -336,7 +336,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!editingAuction || !session?.access_token) return;
     try {
-      await apiClient.put(
+      const auctionIdToInvalidate = editingAuction.id;
+      await apiClient.patch(
         `/admin/auctions/${editingAuction.id}`,
         editingAuction,
         session.access_token,
@@ -350,6 +351,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       });
       fetchData();
       queryClient.invalidateQueries({ queryKey: ["auctions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["auction", auctionIdToInvalidate],
+      });
     } catch (error) {
       setFeedbackModal({
         isOpen: true,

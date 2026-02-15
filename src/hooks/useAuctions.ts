@@ -1,13 +1,31 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { auctionService } from '@/services/auctionService';
-import { useSocket } from '@/hooks/useSocket';
-import { useOptimizedToast } from '@/hooks/use-optimized-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { type Auction, type Bid, type AuctionFilters as ApiAuctionFilters } from '@/types/auction';
+import { useEffect, useMemo, useState } from "react";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
+import { auctionService } from "@/services/auctionService";
+import { useSocket } from "@/hooks/useSocket";
+import { useOptimizedToast } from "@/hooks/use-optimized-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  type Auction,
+  type Bid,
+  type AuctionFilters as ApiAuctionFilters,
+} from "@/types/auction";
 
-type AuctionFilters = Pick<ApiAuctionFilters,
-  'status' | 'sortBy' | 'category' | 'gender' | 'priceMin' | 'priceMax' | 'sellerId'
+type AuctionFilters = Partial<
+  Pick<
+    ApiAuctionFilters,
+    | "status"
+    | "sortBy"
+    | "category"
+    | "gender"
+    | "priceMin"
+    | "priceMax"
+    | "sellerId"
+  >
 > & {
   searchTerm?: string;
 };
@@ -20,8 +38,9 @@ interface UseAuctionsResult {
 }
 
 export function useAuctions(filters: AuctionFilters = {}): UseAuctionsResult {
+  const queryClient = useQueryClient();
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['auctions', filters],
+    queryKey: ["auctions", filters],
     queryFn: async () => {
       const apiData = await auctionService.getAuctions(filters);
       return Array.isArray(apiData) ? apiData : [];
@@ -31,6 +50,12 @@ export function useAuctions(filters: AuctionFilters = {}): UseAuctionsResult {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     placeholderData: keepPreviousData,
+  });
+
+  useSocket({
+    onAuctionUpdate: () => {
+      queryClient.invalidateQueries({ queryKey: ["auctions"] });
+    },
   });
 
   const auctionsWithFallback = useMemo(() => {
@@ -54,8 +79,13 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
   const queryClient = useQueryClient();
   const { success: showSuccess, info: showInfo } = useOptimizedToast();
 
-  const { data: auction, isLoading, error, refetch } = useQuery({
-    queryKey: ['auction', auctionId],
+  const {
+    data: auction,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["auction", auctionId],
     queryFn: () => auctionService.getAuctionById(auctionId),
     staleTime: 30000,
     enabled: !!auctionId,
@@ -63,22 +93,60 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
 
   useSocket({
     auctionId,
-    onBidPlaced: (data: { auctionId: string; bid: Bid; currentPrice: number; newEndTime?: string; meta?: any }) => {
+    onBidPlaced: (data: {
+      auctionId: string;
+      bid: Bid;
+      currentPrice: number;
+      newEndTime?: string;
+      meta?: any;
+    }) => {
       if (data.auctionId === auctionId) {
-        queryClient.setQueryData(['auction', auctionId], (old: Auction | undefined) => {
-          if (!old) return old;
-          return {
-            ...old,
-            currentPrice: data.currentPrice,
-            endTime: data.newEndTime || data.meta?.newEndTime || old.endTime,
-            bids: [data.bid, ...old.bids],
-            _count: {
-              ...old._count,
-              bids: (old._count?.bids || 0) + 1,
-            },
-          };
+        queryClient.setQueryData(
+          ["auction", auctionId],
+          (old: Auction | undefined) => {
+            if (!old) return old;
+            return {
+              ...old,
+              currentPrice: data.currentPrice,
+              endTime: data.newEndTime || data.meta?.newEndTime || old.endTime,
+              bids: [data.bid, ...old.bids],
+              _count: {
+                ...old._count,
+                bids: (old._count?.bids || 0) + 1,
+              },
+            };
+          },
+        );
+        showSuccess({
+          message: `Nowa oferta: ${data.currentPrice.toLocaleString("pl-PL")} zł`,
         });
-        showSuccess({ message: `Nowa oferta: ${data.currentPrice.toLocaleString('pl-PL')} zł` });
+      }
+    },
+    onAuctionUpdate: (data: {
+      auctionId: string;
+      status: string;
+      endTime: string;
+      auction?: any;
+    }) => {
+      if (data.auctionId === auctionId) {
+        queryClient.setQueryData(
+          ["auction", auctionId],
+          (old: Auction | undefined) => {
+            if (!old) return old;
+            // Use full object if provided, otherwise update specific fields
+            if (data.auction) {
+              return { ...old, ...data.auction };
+            }
+            return {
+              ...old,
+              status: data.status || old.status,
+              endTime: data.endTime || old.endTime,
+            };
+          },
+        );
+        showInfo({
+          message: "Aukcja została zaktualizowana przez administratora.",
+        });
       }
     },
   });
@@ -86,20 +154,43 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
   return { auction, isLoading, error: error as Error | null, refetch };
 };
 
-export function useBid(auctionId: string) {
+export function useBid(auctionId: string, currentEndTime?: string) {
   const { session } = useAuth();
   const queryClient = useQueryClient();
-  const { success: showSuccess, error: showError, info: showInfo } = useOptimizedToast();
+  const {
+    success: showSuccess,
+    error: showError,
+    info: showInfo,
+  } = useOptimizedToast();
 
   const placeBidMutation = useMutation({
     mutationFn: (amount: number) =>
-      auctionService.placeBid(auctionId, { amount }, session?.access_token || null),
+      auctionService.placeBid(
+        auctionId,
+        { amount },
+        session?.access_token || null,
+      ),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['auction', auctionId] });
+      queryClient.invalidateQueries({ queryKey: ["auction", auctionId] });
+
+      const updatedEndTime = data.meta?.newEndTime || currentEndTime;
+      const timeLeft = updatedEndTime
+        ? auctionService.calculateTimeLeft(updatedEndTime)
+        : "aktualizowanie...";
+
       if (data.meta?.wasExtended) {
-        showInfo({ message: 'Czas aukcji został przedłużony!' });
+        showInfo({
+          message: `Czas aukcji został przedłużony! Nowy koniec: ${new Date(
+            updatedEndTime!,
+          ).toLocaleString("pl-PL")}`,
+        });
       }
-      showSuccess({ message: 'Oferta została złożona pomyślnie' });
+
+      showSuccess({
+        message: `Oferta została złożona pomyślnie! Aktualna cena: ${data.bid.amount.toLocaleString(
+          "pl-PL",
+        )} zł. Pozostały czas: ${timeLeft}`,
+      });
     },
     onError: (error: Error) => {
       showError({ message: error.message });
@@ -115,7 +206,7 @@ export function useBid(auctionId: string) {
 }
 
 export function useAuctionTimer(endTime: string | undefined) {
-  const [timeLeft, setTimeLeft] = useState('');
+  const [timeLeft, setTimeLeft] = useState("");
   const [isEnded, setIsEnded] = useState(false);
 
   useEffect(() => {
@@ -124,7 +215,7 @@ export function useAuctionTimer(endTime: string | undefined) {
     const updateTimer = () => {
       const left = auctionService.calculateTimeLeft(endTime);
       setTimeLeft(left);
-      setIsEnded(left === 'Zakończona');
+      setIsEnded(left === "Zakończona");
     };
 
     updateTimer();
@@ -137,12 +228,12 @@ export function useAuctionTimer(endTime: string | undefined) {
 
 export function usePreciseAuctionTimer(endTime: string | undefined) {
   const [timeComponents, setTimeComponents] = useState({
-    days: '00',
-    hours: '00',
-    minutes: '00',
-    seconds: '00',
-    centiseconds: '00',
-    isEnded: false
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00",
+    centiseconds: "00",
+    isEnded: false,
   });
 
   useEffect(() => {
@@ -156,12 +247,12 @@ export function usePreciseAuctionTimer(endTime: string | undefined) {
 
       if (diff <= 0) {
         setTimeComponents({
-          days: '00',
-          hours: '00',
-          minutes: '00',
-          seconds: '00',
-          centiseconds: '00',
-          isEnded: true
+          days: "00",
+          hours: "00",
+          minutes: "00",
+          seconds: "00",
+          centiseconds: "00",
+          isEnded: true,
         });
         return;
       }
@@ -173,12 +264,12 @@ export function usePreciseAuctionTimer(endTime: string | undefined) {
       const cs = Math.floor((diff % 1000) / 10);
 
       setTimeComponents({
-        days: d.toString().padStart(2, '0'),
-        hours: h.toString().padStart(2, '0'),
-        minutes: m.toString().padStart(2, '0'),
-        seconds: s.toString().padStart(2, '0'),
-        centiseconds: cs.toString().padStart(2, '0'),
-        isEnded: false
+        days: d.toString().padStart(2, "0"),
+        hours: h.toString().padStart(2, "0"),
+        minutes: m.toString().padStart(2, "0"),
+        seconds: s.toString().padStart(2, "0"),
+        centiseconds: cs.toString().padStart(2, "0"),
+        isEnded: false,
       });
     };
 

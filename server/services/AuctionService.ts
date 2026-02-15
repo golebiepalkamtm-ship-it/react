@@ -168,6 +168,14 @@ export class AuctionService {
         );
       }
 
+      // STEP 4b: Weryfikacja czy licytacja jest dozwolona
+      if (auction.startingPrice === null) {
+        throw createAuctionError(
+          AuctionErrorCodes.INVALID_BID_AMOUNT,
+          "Ta aukcja nie oferuje licytacji (tylko Kup Teraz)",
+        );
+      }
+
       // STEP 5: Weryfikacja kwoty
       if (!Number.isFinite(amount) || amount <= 0) {
         throw createAuctionError(
@@ -299,7 +307,7 @@ export class AuctionService {
               (autoBidder.username as string | undefined)?.trim() ||
               (autoBidder.email as string | undefined)?.split("@")[0] ||
               "użytkownik";
-            io.to(`auction-${auctionId}`).emit("bid-placed", {
+            io.to(`auction-${auctionId}`).emit("auction:bid:placed", {
               bid: {
                 ...autoBid,
                 bidder: {
@@ -370,7 +378,7 @@ export class AuctionService {
                 (jumpBidder.username as string | undefined)?.trim() ||
                 (jumpBidder.email as string | undefined)?.split("@")[0] ||
                 "użytkownik";
-              io.to(`auction-${auctionId}`).emit("bid-placed", {
+              io.to(`auction-${auctionId}`).emit("auction:bid:placed", {
                 bid: {
                   ...jumpBid,
                   bidder: {
@@ -445,7 +453,8 @@ export class AuctionService {
         this.bidEventThrottler.throttle(
           `auction-${auctionId}`,
           eventData,
-          (data) => io.to(`auction-${auctionId}`).emit("bid-placed", data),
+          (data) =>
+            io.to(`auction-${auctionId}`).emit("auction:bid:placed", data),
         );
       } catch (err) {
         logger.error("Failed to emit bid-placed event:", err);

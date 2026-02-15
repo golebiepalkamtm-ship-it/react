@@ -30,9 +30,9 @@ export const SexSchema = z.enum(["MALE", "FEMALE"]);
 export const AuctionCreateSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
-  startingPrice: z.number().nonnegative().optional(),
-  buyNowPrice: z.number().nonnegative().optional(),
-  reservePrice: z.number().nonnegative().optional(),
+  startingPrice: z.coerce.number().nonnegative().optional(),
+  buyNowPrice: z.coerce.number().nonnegative().optional(),
+  reservePrice: z.coerce.number().nonnegative().optional(),
   status: AuctionStatusSchema.optional(),
   endTime: z
     .string()
@@ -43,22 +43,26 @@ export const AuctionCreateSchema = z.object({
   sellerId: z.string().uuid().optional(),
   category: AuctionCategorySchema.optional(),
   sex: SexSchema.optional(),
-  minBidIncrement: z.number().positive().optional(),
+  minBidIncrement: z.coerce.number().positive().optional(),
 });
 
 export const AuctionUpdateSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
-  startingPrice: z.number().nonnegative().optional(),
-  buyNowPrice: z.number().nonnegative().optional(),
-  reservePrice: z.number().nonnegative().optional(),
+  startingPrice: z.coerce.number().nonnegative().nullable().optional(),
+  buyNowPrice: z.coerce.number().nonnegative().nullable().optional(),
+  reservePrice: z.coerce.number().nonnegative().nullable().optional(),
   status: AuctionStatusSchema.optional(),
   endTime: z
     .string()
-    .refine((val) => !isNaN(Date.parse(val)), {
+    .refine((val) => !val || !isNaN(Date.parse(val)), {
       message: "Invalid date format",
     })
+    .nullable()
     .optional(),
+  category: AuctionCategorySchema.optional(),
+  sex: SexSchema.optional(),
+  minBidIncrement: z.coerce.number().positive().optional(),
 });
 
 export const UserCreateSchema = z.object({

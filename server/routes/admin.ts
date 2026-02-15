@@ -19,6 +19,11 @@ import {
   UserCreateSchema,
 } from "../validations/adminSchemas.js";
 import { z } from "zod";
+import { getIO } from "../lib/socket.js";
+import {
+  serializeAuction,
+  detailAuctionInclude,
+} from "../utils/auctionSerializer.js";
 
 const router: Router = express.Router();
 
@@ -434,60 +439,96 @@ router.patch(
   "/auctions/:id",
   mutationLimiter,
   ensureAdmin,
-  async (req: AuthenticatedRequest, res: Response) => {
+  updateAuctionHandler,
+);
+router.put("/auctions/:id", mutationLimiter, ensureAdmin, updateAuctionHandler);
+
+async function updateAuctionHandler(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { id } = req.params;
+
+    const validation = AuctionUpdateSchema.safeParse(req.body);
+    if (!validation.success) {
+      console.error(
+        "❌ Admin Auction Update Validation Error:",
+        JSON.stringify(validation.error.errors, null, 2),
+      );
+      return res.status(400).json({
+        error: "Nieprawidłowe dane aukcji",
+        details: validation.error.errors,
+      });
+    }
+
+    const {
+      title,
+      description,
+      startingPrice,
+      buyNowPrice,
+      reservePrice,
+      status,
+      endTime,
+      category,
+      sex,
+      minBidIncrement,
+    } = validation.data;
+
+    // Build update object only with provided values
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (startingPrice !== undefined) updateData.startingPrice = startingPrice;
+    if (buyNowPrice !== undefined) updateData.buyNowPrice = buyNowPrice;
+    if (reservePrice !== undefined) updateData.reservePrice = reservePrice;
+    if (status !== undefined) updateData.status = status;
+    if (category !== undefined) updateData.category = category;
+    if (sex !== undefined) updateData.gender = sex; // Map sex to gender in Prisma
+    if (minBidIncrement !== undefined)
+      updateData.minBidIncrement = minBidIncrement;
+    if (endTime !== undefined) {
+      updateData.endTime = endTime ? new Date(endTime) : null;
+    }
+
+    // Direct update via Prisma with manual cache invalidation
+    if (!prisma) throw new Error("Database not initialized");
+
+    const result = await prisma.auction.update({
+      where: { id },
+      data: updateData,
+    });
+
+    cache.invalidateAuctionCache(id);
+
+    // Broadcast update via WebSocket to all connected clients
     try {
-      const { id } = req.params;
-
-      const validation = AuctionUpdateSchema.safeParse(req.body);
-      if (!validation.success) {
-        return res.status(400).json({
-          error: "Invalid auction data",
-          details: validation.error.errors,
-        });
-      }
-
-      const {
-        title,
-        description,
-        startingPrice,
-        buyNowPrice,
-        reservePrice,
-        status,
-        endTime,
-      } = validation.data;
-
-      // Direct update via Prisma with manual cache invalidation
-      if (!prisma) throw new Error("Database not initialized");
-
-      const result = await prisma.auction.update({
+      const fullAuction = await prisma.auction.findUnique({
         where: { id },
-        data: {
-          title,
-          description,
-          startingPrice,
-          buyNowPrice: buyNowPrice || null,
-          reservePrice,
-          status,
-          endTime: endTime ? new Date(endTime) : undefined,
-        },
+        include: detailAuctionInclude,
       });
 
-      cache.invalidateAuctionCache(id);
-
-      await logAdminAction(
-        req,
-        "UPDATE_AUCTION",
-        "AUCTION",
-        id,
-        validation.data,
-      );
-
-      res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      if (fullAuction) {
+        const io = getIO();
+        const serialized = serializeAuction(fullAuction);
+        const updatePayload = {
+          auctionId: id,
+          status: serialized.status,
+          endTime: serialized.endTime,
+          auction: serialized,
+        };
+        io.to(`auction-${id}`).emit("auction:status:changed", updatePayload);
+        io.emit("auction:status:changed", updatePayload);
+      }
+    } catch (wsError) {
+      console.error("❌ Failed to broadcast auction update:", wsError);
     }
-  },
-);
+
+    await logAdminAction(req, "UPDATE_AUCTION", "AUCTION", id, updateData);
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("❌ Admin Auction Update Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+}
 
 /**
  * Delete auction

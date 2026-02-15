@@ -1,33 +1,41 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import Header from '@/components/Header';
-import { useAuth } from '@/contexts/AuthContext';
-import { Mail, CheckCircle, XCircle } from 'lucide-react';
-import { UnifiedModal } from '@/components/ui/UnifiedModal';
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import Header from "@/components/Header";
+import { useAuth } from "@/contexts/AuthContext";
+import { Mail, CheckCircle, XCircle } from "lucide-react";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile, loading } = useAuth();
 
-  const error = searchParams.get('error');
-  const errorDescription = searchParams.get('error_description');
-  const verifiedParam = searchParams.get('verified');
+  const error = searchParams.get("error");
+  const errorDescription = searchParams.get("error_description");
+  const verifiedParam = searchParams.get("verified");
 
   // Check if verified based on user state OR url param
-  const isVerified = Boolean(user && (user.email_confirmed_at || user.confirmed_at || profile?.role !== 'USER_REGISTERED')) || verifiedParam === 'true';
+  const isVerified =
+    Boolean(
+      user &&
+      (user.email_confirmed_at ||
+        user.confirmed_at ||
+        profile?.role !== "USER_REGISTERED"),
+    ) || verifiedParam === "true";
 
   const showSuccessModal = isVerified;
   const showErrorModal = Boolean(error);
 
   const handleSuccessClose = () => {
-    navigate('/account');
+    navigate("/", {
+      state: { openAccount: true, showVerificationSuccess: true },
+    });
   };
 
   const handleErrorClose = () => {
-    navigate('/auth');
+    navigate("/auth");
   };
 
   if (loading) {
@@ -65,13 +73,14 @@ const VerifyEmail = () => {
           </h1>
 
           <p className="text-white/70 mb-8 leading-relaxed">
-            Wysłaliśmy link weryfikacyjny na Twój adres email. Kliknij go, aby aktywować pełny dostęp do konta.
+            Wysłaliśmy link weryfikacyjny na Twój adres email. Kliknij go, aby
+            aktywować pełny dostęp do konta.
           </p>
 
           <Button
             variant="outline"
             className="w-full h-12 text-base border-white/10 hover:bg-white/5"
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate("/auth")}
           >
             Powrót do logowania
           </Button>
@@ -99,7 +108,10 @@ const VerifyEmail = () => {
         onClose={handleErrorClose}
         type="error"
         title="Weryfikacja nieudana"
-        message={errorDescription || 'Wystąpił błąd podczas weryfikacji adresu email. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.'}
+        message={
+          errorDescription ||
+          "Wystąpił błąd podczas weryfikacji adresu email. Spróbuj ponownie lub skontaktuj się z pomocą techniczną."
+        }
         confirmButton={{ text: "OK", onClick: handleErrorClose }}
         showCloseButton={true}
         closeOnBackdrop={false}

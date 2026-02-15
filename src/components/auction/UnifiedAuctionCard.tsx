@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState, useRef, memo } from "react";
 import type { CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Gavel, Heart, Clock, TrendingUp, Eye } from "lucide-react";
+import {
+  Gavel,
+  Heart,
+  Clock,
+  TrendingUp,
+  Eye,
+  Tag,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   motion,
@@ -96,7 +104,7 @@ export const UnifiedAuctionCard = ({
   category,
   bidsCount = 0,
   featured = false,
-  imageFit = "cover",
+  imageFit = "contain",
   highlight = false,
   nowMs,
   viewsCount = 0,
@@ -176,7 +184,7 @@ export const UnifiedAuctionCard = ({
       {
         opacity: 0,
         y: 100,
-        rotateX: 10,
+        // rotateX: 10,
         scale: 0.9,
       },
       {
@@ -241,7 +249,9 @@ export const UnifiedAuctionCard = ({
   }, [image]);
 
   const imageObjectClass = useMemo(() => {
-    return imageFit === "contain" ? "object-contain bg-black" : "object-cover";
+    return imageFit === "contain"
+      ? "object-contain w-full h-full"
+      : "object-cover w-full h-full";
   }, [imageFit]);
 
   // Dynamic card styling based on status
@@ -299,18 +309,15 @@ export const UnifiedAuctionCard = ({
       onMouseLeave={handleMouseLeave}
       className="auction-card-shell group relative mx-auto flex h-auto min-h-[580px] w-full flex-col overflow-hidden rounded-2xl border cursor-pointer"
       style={{
-        transformStyle: "preserve-3d",
-        z,
-        opacity,
-        y,
+        // transformStyle: "preserve-3d", // Disabled to prevent blur
         scale,
-        rotateX,
-        rotateY,
+        // rotateX, // Disabled 3D tilt
+        // rotateY, // Disabled 3D tilt
+        // z,       // Disabled 3D lift
         backgroundImage: cardStyles.gradient,
         backgroundColor: cardStyles.base,
         borderColor: cardStyles.border,
-        borderWidth: "7px",
-        boxShadow: cardStyles.glow,
+        // borderWidth: "7px", // Removed to eliminate dark frame effect
       }}
       whileHover={{}}
       onMouseEnter={() => setIsHovered(true)}
@@ -318,18 +325,16 @@ export const UnifiedAuctionCard = ({
       {/* Inner container for 3D parallax effect */}
       <div
         className="auction-card-inner relative h-full w-full flex flex-col"
-        style={{
-          transformStyle: "preserve-3d",
-        }}
+        // style={{ transformStyle: "preserve-3d" }} // Disabled to prevent blur
       >
         {/* Decorative gold lines */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
-        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
-        <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
+        <div className="absolute top-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
+        <div className="absolute bottom-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
+        <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
+        <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
 
-        {/* Status badge */}
-        {(timeMeta.endingSoon || featured || timeMeta.ended) && (
+        {/* Status badge - Priority statuses */}
+        {timeMeta.endingSoon || featured || timeMeta.ended ? (
           <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border transition-all">
             {timeMeta.ended ? (
               <div className="flex mt-2">
@@ -344,14 +349,34 @@ export const UnifiedAuctionCard = ({
                   Kończy się!
                 </span>
               </>
-            ) : featured ? (
+            ) : (
               <>
                 <TrendingUp className="h-3 w-3 text-gold" />
                 <span className="text-gold bg-gold/10 border-gold/40 px-2 py-0.5 rounded-full">
                   Wyróżniona
                 </span>
               </>
-            ) : null}
+            )}
+          </div>
+        ) : (
+          /* Type identification badge when no main statuses are active */
+          <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border border-white/10 transition-all">
+            {!hasBidding && hasBuyNow ? (
+              <>
+                <Tag className="h-3 w-3 text-gold" />
+                <span className="text-gold">Tylko Kup Teraz</span>
+              </>
+            ) : hasBidding && !hasBuyNow ? (
+              <>
+                <Gavel className="h-3 w-3 text-gold" />
+                <span className="text-gold">Tylko Licytacja</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3 w-3 text-gold" />
+                <span className="text-gold">Pełna Aukcja</span>
+              </>
+            )}
           </div>
         )}
 
@@ -371,17 +396,13 @@ export const UnifiedAuctionCard = ({
         {/* Image section */}
         <div
           className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-black"
-          style={{ transformStyle: "preserve-3d" }}
+          // style={{ transformStyle: "preserve-3d" }} // Disabled to prevent blur
         >
           <AuctionImage
             src={imgSrc}
             alt={title}
-            className={`w-full h-full ${imageObjectClass} transition-all duration-700`}
-            style={{
-              transform: isHovered
-                ? "scale(1.05) translateZ(20px)"
-                : "scale(1) translateZ(0px)",
-            }}
+            className={`w-full h-full ${imageObjectClass} transition-transform duration-700 ease-in-out hover:scale-110 origin-center will-change-transform`}
+            // style={{ transform: "scale(1) translateZ(0px)" }} // Removed inline style to allow CSS hover effect
             onError={(e) => {
               const t = e.currentTarget as HTMLImageElement;
               if (t.src !== AUCTION_PLACEHOLDER_SRC)
@@ -401,7 +422,7 @@ export const UnifiedAuctionCard = ({
           }}
         >
           {/* Views Counter - Top Right */}
-          <div className="absolute right-4 top-4 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm z-10 transition-all hover:bg-white/10 group/views">
+          <div className="absolute right-4 top-4 flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm z-10 transition-all hover:bg-white/10 group/views">
             <Eye className="w-3.5 h-3.5 text-white/50 group-hover/views:text-gold transition-colors" />
             <span className="text-[11px] font-medium text-white/60 tracking-tight">
               {viewsCount.toLocaleString()}
@@ -411,19 +432,23 @@ export const UnifiedAuctionCard = ({
           {/* Gold guide line under photo */}
           <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
 
-          {/* Ring number badge above title */}
-          {ringBadge && (
-            <div className="flex mt-2">
+          {/* Ring number badge above title - always render container for height consistency */}
+          <div className="flex mt-2">
+            {ringBadge ? (
               <span className="font-mono text-[11px] tracking-wider text-gold rounded-xl border border-gold/30 bg-gold/10 px-3 py-1 uppercase font-semibold">
                 {ringBadge}
               </span>
-            </div>
-          )}
+            ) : (
+              <span className="font-mono text-[11px] tracking-wider text-transparent rounded-xl border border-transparent px-3 py-1 uppercase font-semibold invisible">
+                PLACEHOLDER
+              </span>
+            )}
+          </div>
 
           {/* Title */}
           <h3
             className="font-display text-xl font-bold text-white leading-tight tracking-tight line-clamp-2"
-            style={{ transform: "translateZ(30px)" }}
+            // style={{ transform: "translateZ(30px)" }} // Disabled to prevent blur
           >
             {displayTitle}
           </h3>
@@ -463,19 +488,33 @@ export const UnifiedAuctionCard = ({
           {/* Price and bids */}
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 mb-1.5 font-medium">
-                Aktualna cena
+              <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 mb-1.5 font-medium flex items-center gap-1.5">
+                {hasBidding ? (
+                  <>
+                    <Gavel className="w-3 h-3 text-gold/60" />
+                    <span>Aktualna cena</span>
+                  </>
+                ) : (
+                  <>
+                    <Tag className="w-3 h-3 text-gold/60" />
+                    <span>Cena Kup Teraz</span>
+                  </>
+                )}
               </p>
               <p className="font-display text-2xl font-bold text-gold drop-shadow-lg">
                 {formatNumber(currentBid)}
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-white/50">
-                <span className="font-semibold text-white/70">{bidsCount}</span>{" "}
-                {bidsCount === 1 ? "oferta" : "ofert"}
-              </p>
-            </div>
+            {hasBidding && (
+              <div className="text-right">
+                <p className="text-xs text-white/50">
+                  <span className="font-semibold text-white/70">
+                    {bidsCount}
+                  </span>{" "}
+                  {bidsCount === 1 ? "oferta" : "ofert"}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action buttons */}
