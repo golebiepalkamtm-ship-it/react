@@ -17,10 +17,6 @@ const staticBreederMeetings: Meeting[] = [
   {
     id: "geert-munnik",
     name: "Geert Munnik",
-    location: "Holandia",
-    date: "2024",
-    description:
-      "Spotkanie z jednym z najlepszych hodowców gołębi pocztowych w Europie",
     images: [
       "/meetings-with-breeders/Geert Munnik/DSC_0031.jpg",
       "/meetings-with-breeders/Geert Munnik/DSC_0038.jpg",
@@ -33,9 +29,6 @@ const staticBreederMeetings: Meeting[] = [
   {
     id: "jan-oost",
     name: "Jan Oost",
-    location: "Belgia",
-    date: "2024",
-    description: "Wizyta u mistrza hodowli gołębi belgijskich",
     images: [
       "/meetings-with-breeders/Jan Oost/DSC_0002.jpg",
       "/meetings-with-breeders/Jan Oost/DSC_0004.jpg",
@@ -51,9 +44,6 @@ const staticBreederMeetings: Meeting[] = [
   {
     id: "marginus-oostenbrink",
     name: "Marginus Oostenbrink",
-    location: "Holandia",
-    date: "2024",
-    description: "Spotkanie z holenderskim specjalistą od gołębi pocztowych",
     images: [
       "/meetings-with-breeders/Marginus Oostenbrink/DSC_0431.jpg",
       "/meetings-with-breeders/Marginus Oostenbrink/DSC_0433.jpg",
@@ -63,9 +53,6 @@ const staticBreederMeetings: Meeting[] = [
   {
     id: "theo-lehnen",
     name: "Theo Lehnen",
-    location: "Niemcy",
-    date: "2024",
-    description: "Wizyta u niemieckiego hodowcy championów",
     images: [
       "/meetings-with-breeders/Theo Lehnen/Theo-1.jpg",
       "/meetings-with-breeders/Theo Lehnen/Theo-2.jpg",
@@ -76,9 +63,6 @@ const staticBreederMeetings: Meeting[] = [
   {
     id: "toni-van-ravenstein",
     name: "Toni van Ravenstein",
-    location: "Holandia",
-    date: "2024",
-    description: "Spotkanie z holenderską legendą hodowli gołębi",
     images: [
       "/meetings-with-breeders/Toni van Ravenstein/DSC_0001.jpg",
       "/meetings-with-breeders/Toni van Ravenstein/DSC_0003.jpg",
