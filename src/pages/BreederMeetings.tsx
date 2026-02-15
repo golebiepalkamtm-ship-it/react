@@ -1,18 +1,18 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { FullscreenImageModal } from '@/components/ui/FullscreenImageModal';
-import { SmartImage } from '@/components/ui/SmartImage';
-import AddBreederMeetingForm from '@/components/breeder-meetings/AddBreederMeetingForm';
-import { useAuth } from '@/contexts/AuthContext';
-import { Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { meetingsService } from '@/services/meetingsService';
-import { useOptimizedToast } from '@/hooks/use-optimized-toast';
-import { UnifiedModal } from '@/components/ui/UnifiedModal';
-import AccountModal from '@/components/AccountModal';
-import { useNavigate } from 'react-router-dom';
-import { gsap } from '@/lib/gsapConfig';
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { FullscreenImageModal } from "@/components/ui/FullscreenImageModal";
+import { SmartImage } from "@/components/ui/SmartImage";
+import AddBreederMeetingForm from "@/components/breeder-meetings/AddBreederMeetingForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { MapPin, Calendar, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { meetingsService } from "@/services/meetingsService";
+import { useOptimizedToast } from "@/hooks/use-optimized-toast";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
+import AccountModal from "@/components/AccountModal";
+import { useNavigate } from "react-router-dom";
+import { gsap } from "@/lib/gsapConfig";
 
 interface BreederMeeting {
   id: string;
@@ -25,12 +25,18 @@ interface BreederMeeting {
 
 const getContainerAnim = (index: number) => {
   switch (index) {
-    case 0: return 'slideUpReturn';
-    case 1: return 'swashIn';
-    case 2: return 'swashIn';
-    case 3: return 'slideDownReturn';
-    case 4: return 'slideDownReturn';
-    default: return 'slideDownReturn';
+    case 0:
+      return "slideUpReturn";
+    case 1:
+      return "swashIn";
+    case 2:
+      return "swashIn";
+    case 3:
+      return "slideDownReturn";
+    case 4:
+      return "slideDownReturn";
+    default:
+      return "slideDownReturn";
   }
 };
 
@@ -40,47 +46,58 @@ export default function BreederMeetings() {
   const { info: showInfo } = useOptimizedToast();
   const [breederMeetings, setBreederMeetings] = useState<BreederMeeting[]>([]);
   const [imagesLoaded, setImagesLoaded] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{ meetingId: string; imageIndex: number } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{
+    meetingId: string;
+    imageIndex: number;
+  } | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   // Verification handling
   const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [verificationMessage, setVerificationMessage] = useState({ title: '', message: '' });
+  const [verificationMessage, setVerificationMessage] = useState({
+    title: "",
+    message: "",
+  });
   const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const heroRef = useRef<HTMLElement>(null);
   const heroContentRef = useRef<HTMLDivElement>(null);
 
-  const roleActions = useMemo(() => ({
-    'USER_REGISTERED': () => {
-      setVerificationMessage({
-        title: 'Wymagana weryfikacja emaila',
-        message: 'Aby dodać spotkanie, musisz najpierw zweryfikować swój adres email.\n\nSprawdź swoją skrzynkę odbiorczą i kliknij link weryfikacyjny.'
-      });
-      setShowVerificationModal(true);
-    },
-    'USER_EMAIL_VERIFIED': () => {
-      setVerificationMessage({
-        title: 'Wymagana pełna weryfikacja',
-        message: 'Aby dodać spotkanie, musisz uzupełnić swój profil i zweryfikować numer telefonu.\n\nKliknij "Uzupełnij profil" aby kontynuować.'
-      });
-      setShowVerificationModal(true);
-    },
-    'USER_FULL_VERIFIED': () => {
-      setIsFormOpen(true);
-    },
-    'ADMIN': () => {
-      setIsFormOpen(true);
-    },
-  }), []);
+  const roleActions = useMemo(
+    () => ({
+      USER_REGISTERED: () => {
+        setVerificationMessage({
+          title: "Wymagana weryfikacja emaila",
+          message:
+            "Aby dodać spotkanie, musisz najpierw zweryfikować swój adres email.\n\nSprawdź swoją skrzynkę odbiorczą i kliknij link weryfikacyjny.",
+        });
+        setShowVerificationModal(true);
+      },
+      USER_EMAIL_VERIFIED: () => {
+        setVerificationMessage({
+          title: "Wymagana pełna weryfikacja",
+          message:
+            'Aby dodać spotkanie, musisz uzupełnić swój profil i zweryfikować numer telefonu.\n\nKliknij "Uzupełnij profil" aby kontynuować.',
+        });
+        setShowVerificationModal(true);
+      },
+      USER_FULL_VERIFIED: () => {
+        setIsFormOpen(true);
+      },
+      ADMIN: () => {
+        setIsFormOpen(true);
+      },
+    }),
+    [],
+  );
 
   // Inicjalizacja animacji GSAP
   useEffect(() => {
     const timer = setTimeout(() => {
-      import('@/lib/gsapAnimations').then(({ initHeroTextSplit }) => {
+      import("@/lib/gsapAnimations").then(({ initHeroTextSplit }) => {
         initHeroTextSplit();
       });
     }, 100);
@@ -104,7 +121,7 @@ export default function BreederMeetings() {
           y: 0,
           stagger: 0.25,
           duration: 1.8,
-          ease: 'power3.out',
+          ease: "power3.out",
           delay: 0.5,
         });
       }
@@ -117,15 +134,15 @@ export default function BreederMeetings() {
           scale: 0.95,
           scrollTrigger: {
             trigger: heroRef.current,
-            start: 'top top',
-            end: 'bottom top',
+            start: "top top",
+            end: "bottom top",
             scrub: 0.5,
           },
         });
       }
 
       // Animacja wejścia kart spotkań
-      const meetingCards = document.querySelectorAll('.animate-meeting-card');
+      const meetingCards = document.querySelectorAll(".animate-meeting-card");
       meetingCards.forEach((card, index) => {
         gsap.fromTo(
           card,
@@ -134,14 +151,14 @@ export default function BreederMeetings() {
             opacity: 1,
             y: 0,
             duration: 1.2,
-            ease: 'power3.out',
+            ease: "power3.out",
             scrollTrigger: {
               trigger: card,
-              start: 'top bottom-=100',
-              end: 'top center',
-              toggleActions: 'play none none reverse',
+              start: "top bottom-=100",
+              end: "top center",
+              toggleActions: "play none none reverse",
             },
-          }
+          },
         );
       });
     }, heroRef);
@@ -156,7 +173,7 @@ export default function BreederMeetings() {
         setBreederMeetings(Array.isArray(data) ? data : []);
         setImagesLoaded(true);
       } catch (error) {
-        console.error('Błąd podczas ładowania spotkań z hodowcami:', error);
+        console.error("Błąd podczas ładowania spotkań z hodowcami:", error);
         setBreederMeetings([]);
         setImagesLoaded(true);
       }
@@ -166,13 +183,13 @@ export default function BreederMeetings() {
 
   const handleAddMeeting = () => {
     if (!user) {
-      setPendingRedirect('/meetings');
+      setPendingRedirect("/meetings");
       setShowLoginPrompt(true);
       return;
     }
 
     if (!profile) {
-      showInfo({ message: 'Ładowanie profilu...' });
+      showInfo({ message: "Ładowanie profilu..." });
       return;
     }
 
@@ -180,11 +197,12 @@ export default function BreederMeetings() {
     if (action) {
       action();
     } else {
-      showInfo({ message: 'Brak uprawnień do dodawania spotkań.' });
+      showInfo({ message: "Brak uprawnień do dodawania spotkań." });
     }
   };
 
-  const handleImageClick = (meetingId: string, imageIndex: number) => setSelectedImage({ meetingId, imageIndex });
+  const handleImageClick = (meetingId: string, imageIndex: number) =>
+    setSelectedImage({ meetingId, imageIndex });
   const handleCloseModal = () => setSelectedImage(null);
 
   if (!imagesLoaded) {
@@ -210,7 +228,10 @@ export default function BreederMeetings() {
       </div>
       <Header />
       <main className="relative z-10">
-        <section ref={heroRef} className="relative overflow-hidden text-center min-h-[70vh] flex items-center">
+        <section
+          ref={heroRef}
+          className="relative overflow-hidden text-center min-h-[70vh] flex items-center"
+        >
           <div className="relative z-10 container mx-auto px-4 py-20 md:py-32">
             <div ref={heroContentRef} className="mx-auto max-w-4xl">
               <div className="flex items-center justify-center gap-2 mb-8">
@@ -242,50 +263,130 @@ export default function BreederMeetings() {
         <div className="container mx-auto px-4 pb-20">
           <section className="section-surface-alt pt-12">
             <div className="space-y-12">
-              {breederMeetings && Array.isArray(breederMeetings) && breederMeetings.map((meeting, index) => (
-                <div key={meeting.id}>
-                  <article
-                    className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
-                  >
-                    <div className="mb-6">
-                      <h3 className="text-2xl md:text-3xl font-bold text-gold text-center">
-                        {meeting.name}
-                      </h3>
-                    </div>
+              {breederMeetings &&
+                Array.isArray(breederMeetings) &&
+                breederMeetings.map((meeting, index) => (
+                  <div key={meeting.id}>
+                    <article
+                      className={`rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6 magictime ${getContainerAnim(index)} animate-meeting-card stagger-${index % 11}`}
+                    >
+                      <div className="mb-6">
+                        <h3 className="text-2xl md:text-3xl font-bold text-gold text-center">
+                          {meeting.name}
+                        </h3>
 
-                    <div className="grid gap-5 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {Array.isArray(meeting.images) && meeting.images.map((image, imageIndex) => (
-                          <div key={imageIndex} className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]" onClick={() => handleImageClick(meeting.id, imageIndex)}>
-                            <SmartImage src={image} alt={`${meeting.name} - zdjęcie ${imageIndex + 1}`} width={300} height={192} fitMode="cover" aspectRatio="16/9" className="w-full h-full transition-transform duration-500 group-hover:scale-110" />
-                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                              <div className="w-8 h-8 bg-gold/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-gold/35"><span className="text-gold text-xs font-bold">{imageIndex + 1}</span></div>
-                            </div>
+                        {(meeting.location || meeting.date) && (
+                          <div className="flex items-center justify-center gap-4 text-muted-foreground mt-2 mb-4">
+                            {meeting.location && (
+                              <div className="flex items-center gap-1.5">
+                                <MapPin className="w-4 h-4 text-gold/70" />
+                                <span className="text-sm">
+                                  {meeting.location}
+                                </span>
+                              </div>
+                            )}
+                            {meeting.date && (
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="w-4 h-4 text-gold/70" />
+                                <span className="text-sm">
+                                  {/* Helper to safely display date */}
+                                  {(() => {
+                                    const d = meeting.date;
+                                    if (!d) return "";
+                                    // Checks basic cases
+                                    if (
+                                      typeof d === "string" &&
+                                      !d.includes("-") &&
+                                      !d.includes("/") &&
+                                      d.length === 4
+                                    ) {
+                                      return d; // Years like "2024"
+                                    }
+                                    const parsed = new Date(d);
+                                    return !isNaN(parsed.getTime())
+                                      ? parsed.toLocaleDateString("pl-PL")
+                                      : String(d);
+                                  })()}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        ))}
+                        )}
+
+                        {meeting.description && (
+                          <p className="text-center text-white/80 max-w-2xl mx-auto leading-relaxed">
+                            {meeting.description}
+                          </p>
+                        )}
                       </div>
-                    </div>
-                  </article>
-                </div>
-              ))}
+
+                      <div className="grid gap-5 rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {Array.isArray(meeting.images) &&
+                            meeting.images.map((image, imageIndex) => (
+                              <div
+                                key={imageIndex}
+                                className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+                                onClick={() =>
+                                  handleImageClick(meeting.id, imageIndex)
+                                }
+                              >
+                                <SmartImage
+                                  src={image}
+                                  alt={`${meeting.name} - zdjęcie ${imageIndex + 1}`}
+                                  width={300}
+                                  height={192}
+                                  fitMode="cover"
+                                  aspectRatio="16/9"
+                                  className="w-full h-full transition-transform duration-500 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                  <div className="w-8 h-8 bg-gold/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-gold/35">
+                                    <span className="text-gold text-xs font-bold">
+                                      {imageIndex + 1}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                ))}
             </div>
 
             {breederMeetings.length === 0 && (
               <div className="p-12 text-center rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-                <h2 className="text-2xl font-bold mb-4 text-foreground">Brak spotkań</h2>
-                <p className="mb-6 text-muted-foreground">Jeszcze nie ma zdjęć ze spotkań z hodowcami.</p>
+                <h2 className="text-2xl font-bold mb-4 text-foreground">
+                  Brak spotkań
+                </h2>
+                <p className="mb-6 text-muted-foreground">
+                  Jeszcze nie ma zdjęć ze spotkań z hodowcami.
+                </p>
               </div>
             )}
           </section>
         </div>
 
-        {selectedImage && (() => {
-          const meeting = breederMeetings.find(m => m.id === selectedImage.meetingId);
-          if (!meeting || !Array.isArray(meeting.images)) return null;
-          const currentImage = meeting.images[selectedImage.imageIndex];
-          if (!currentImage) return null;
-          return <FullscreenImageModal isOpen={selectedImage !== null} onClose={handleCloseModal} images={meeting.images} currentIndex={selectedImage.imageIndex} title={meeting.name} />;
-        })()}
+        {selectedImage &&
+          (() => {
+            const meeting = breederMeetings.find(
+              (m) => m.id === selectedImage.meetingId,
+            );
+            if (!meeting || !Array.isArray(meeting.images)) return null;
+            const currentImage = meeting.images[selectedImage.imageIndex];
+            if (!currentImage) return null;
+            return (
+              <FullscreenImageModal
+                isOpen={selectedImage !== null}
+                onClose={handleCloseModal}
+                images={meeting.images}
+                currentIndex={selectedImage.imageIndex}
+                title={meeting.name}
+              />
+            );
+          })()}
 
         <UnifiedModal
           isOpen={isFormOpen}
@@ -309,7 +410,10 @@ export default function BreederMeetings() {
                   const data = await meetingsService.getMeetings();
                   setBreederMeetings(Array.isArray(data) ? data : []);
                 } catch (error) {
-                  console.error('Błąd podczas ładowania spotkań z hodowcami:', error);
+                  console.error(
+                    "Błąd podczas ładowania spotkań z hodowcami:",
+                    error,
+                  );
                   setBreederMeetings([]);
                 }
               };
@@ -332,19 +436,22 @@ export default function BreederMeetings() {
         message={verificationMessage.message}
         backdropClassName="bg-black/60 backdrop-blur-sm"
         confirmButton={{
-          text: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : 'Uzupełnij profil',
+          text:
+            profile?.role === "USER_REGISTERED"
+              ? "Zweryfikuj email"
+              : "Uzupełnij profil",
           onClick: () => {
             setShowVerificationModal(false);
-            if (profile?.role === 'USER_REGISTERED') {
-              navigate('/verify-email');
+            if (profile?.role === "USER_REGISTERED") {
+              navigate("/verify-email");
             } else {
               setIsAccountOpen(true);
             }
-          }
+          },
         }}
         cancelButton={{
-          text: 'Anuluj',
-          onClick: () => setShowVerificationModal(false)
+          text: "Anuluj",
+          onClick: () => setShowVerificationModal(false),
         }}
       />
 
@@ -356,15 +463,17 @@ export default function BreederMeetings() {
         message="Aby dodać spotkanie z hodowcą, musisz się zalogować. Po zamknięciu tego komunikatu przeniosę Cię do strony logowania."
         backdropClassName="bg-black/60 backdrop-blur-sm"
         confirmButton={{
-          text: 'Przejdź do logowania',
+          text: "Przejdź do logowania",
           onClick: () => {
-            const target = pendingRedirect || '/meetings';
+            const target = pendingRedirect || "/meetings";
             setShowLoginPrompt(false);
-            navigate(`/auth?mode=login&callbackUrl=${encodeURIComponent(target)}`);
-          }
+            navigate(
+              `/auth?mode=login&callbackUrl=${encodeURIComponent(target)}`,
+            );
+          },
         }}
         cancelButton={{
-          text: 'Anuluj',
+          text: "Anuluj",
           onClick: () => setShowLoginPrompt(false),
         }}
       />

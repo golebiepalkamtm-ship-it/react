@@ -98,8 +98,13 @@ export const meetingsService = {
       const data = await apiClient.get<Meeting[]>("/breeder-meetings");
 
       if (data && Array.isArray(data) && data.length > 0) {
-        // Użyj wyłącznie danych z API (zakładamy, że backend ma aktualny zestaw)
-        return data;
+        // Merge API data with static data, prioritizing API data (newest first)
+        // Filter out any static meetings that might be duplicated by ID in the API data
+        const apiIds = new Set(data.map((m) => m.id));
+        const uniqueStatic = staticBreederMeetings.filter(
+          (m) => !apiIds.has(m.id),
+        );
+        return [...data, ...uniqueStatic];
       }
 
       // Fallback na statyczne jeśli API zwróciło pustą/niepoprawną odpowiedź
@@ -112,7 +117,6 @@ export const meetingsService = {
   },
 
   addMeeting: async (meetingData: CreateMeetingRequest, token?: string) => {
-    console.log("[Debug] addMeeting called. Token present:", !!token);
     try {
       return await apiClient.post<Meeting>(
         "/breeder-meetings",
