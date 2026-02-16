@@ -8,6 +8,7 @@ import {
   Users,
   Gavel,
   Settings,
+  BarChart3,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,10 +19,16 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { Button } from "@/components/ui/button";
 
 // Types
-import { UserData, AuctionData, AdminStats } from "@/types/admin";
+import {
+  UserData,
+  AuctionData,
+  AdminStats,
+  HistoricalStats,
+} from "@/types/admin";
 
 // Sub-components
 import { AdminDashboard } from "./admin/AdminDashboard";
+import { AdminAnalytics } from "./admin/AdminAnalytics";
 import { AdminUsersTable } from "./admin/AdminUsersTable";
 import { AdminAuctionsTable } from "./admin/AdminAuctionsTable";
 import { AdminSettings } from "./admin/AdminSettings";
@@ -30,7 +37,7 @@ import { AdminAuctionEditModal } from "./admin/AdminAuctionEditModal";
 import { AdminCreateUserModal } from "./admin/AdminCreateUserModal";
 import { AdminCreateAuctionModal } from "./admin/AdminCreateAuctionModal";
 
-type TabType = "dashboard" | "users" | "auctions" | "settings";
+type TabType = "dashboard" | "analytics" | "users" | "auctions" | "settings";
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -50,6 +57,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     totalAuctions: 0,
     totalVolume: 0,
   });
+  const [historicalStats, setHistoricalStats] =
+    useState<HistoricalStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -68,6 +77,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     last_name: "",
     role: "USER_REGISTERED",
     username: "",
+    phone: "",
   });
 
   const [feedbackModal, setFeedbackModal] = useState<{
@@ -115,6 +125,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         data: AuctionData[];
       }>("/admin/auctions", undefined, session.access_token);
       setAuctions(auctionsResponse.data || []);
+
+      const historicalData = await apiClient.getWithToken<HistoricalStats>(
+        "/admin/stats/historical",
+        undefined,
+        session.access_token,
+      );
+      setHistoricalStats(historicalData);
     } catch (error) {
       console.error("❌ Error fetching admin data:", error);
       console.error(
@@ -265,6 +282,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         last_name: "",
         role: "USER_REGISTERED",
         username: "",
+        phone: "",
       });
       setFeedbackModal({
         isOpen: true,
@@ -410,6 +428,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           <nav className="flex flex-col gap-2">
             {[
               { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+              { id: "analytics", label: "Statystyki", icon: BarChart3 },
               { id: "users", label: "Użytkownicy", icon: Users },
               { id: "auctions", label: "Aukcje", icon: Gavel },
               { id: "settings", label: "Ustawienia", icon: Settings },
@@ -478,12 +497,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   {activeTab === "dashboard" && (
                     <AdminDashboard
                       stats={stats}
+                      historicalStats={historicalStats}
                       recentUsers={users}
                       recentAuctions={auctions}
                       onRefresh={handleRefresh}
                       onNewUser={() => setIsCreatingUser(true)}
                       onNewAuction={() => setIsCreatingAuction(true)}
                       isRefreshing={isRefreshing}
+                    />
+                  )}
+                  {activeTab === "analytics" && (
+                    <AdminAnalytics
+                      stats={stats}
+                      historicalStats={historicalStats}
                     />
                   )}
                   {activeTab === "users" && (

@@ -37,4 +37,21 @@ export interface AdminStats {
   activeAuctions: number;
   totalAuctions: number;
   totalVolume: number;
+  averagePrice?: number;
+  usersByRole?: Record<string, number>;
+  auctionsByStatus?: Record<string, number>;
+  auctionsByCategory?: Record<string, number>;
+  topSellers?: any[];
+  topBidders?: any[];
+  payments?: {
+    total: number;
+    count: number;
+  };
+}
+
+export interface HistoricalStats {
+  usersByDay: Record<string, number>;
+  auctionsByDay: Record<string, number>;
+  bidsByDay: Record<string, number>;
+  bidVolumeByDay: Record<string, number>;
 }

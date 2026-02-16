@@ -4,21 +4,39 @@
  * - Awwwards-level animations
  * - Premium text reveals and hover effects
  */
-import { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
-import { X, Trophy, Calendar, Award, Sparkles, Star } from 'lucide-react';
-import { ChampionCard } from '@/components/gallery/ChampionCard';
-import { PedigreeModal } from '@/components/gallery/PedigreeModal';
-import { ChampionModal } from '@/components/gallery/ChampionModal';
-import { useChampions, type Champion } from '@/hooks/useChampions';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { ScrollReveal, CountUp, StaggerContainer, staggerItemVariants } from '@/components/premium';
-import { trackMetric } from '@/services/metricsService';
-
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+} from "react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useReducedMotion,
+} from "framer-motion";
+import { X, Trophy, Calendar, Award, Sparkles, Star } from "lucide-react";
+import { ChampionCard } from "@/components/gallery/ChampionCard";
+import { PedigreeModal } from "@/components/gallery/PedigreeModal";
+import { ChampionModal } from "@/components/gallery/ChampionModal";
+import { useChampions, type Champion } from "@/hooks/useChampions";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import {
+  ScrollReveal,
+  CountUp,
+  StaggerContainer,
+  staggerItemVariants,
+} from "@/components/premium";
+import { trackMetric } from "@/services/metricsService";
 
 export const ChampionsGallery = () => {
-  const [selectedChampion, setSelectedChampion] = useState<Champion | null>(null);
+  const [selectedChampion, setSelectedChampion] = useState<Champion | null>(
+    null,
+  );
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [pedigreeUrl, setPedigreeUrl] = useState<string | null>(null);
   const [isPedigreeOpen, setIsPedigreeOpen] = useState(false);
@@ -41,7 +59,7 @@ export const ChampionsGallery = () => {
       setSelectedChampion(champion);
       setSelectedIndex(idx >= 0 ? idx : null);
     },
-    [champions]
+    [champions],
   );
 
   const handleClose = useCallback(() => {
@@ -64,13 +82,13 @@ export const ChampionsGallery = () => {
   }, [champions, selectedIndex]);
 
   useEffect(() => {
-    trackMetric('GALLERY_IMAGE', 'PAGE').catch(() => { });
+    trackMetric("GALLERY_IMAGE", "PAGE").catch(() => {});
   }, []);
 
   // Inicjalizacja animacji tekstu hero
   useEffect(() => {
     const timer = setTimeout(() => {
-      import('@/lib/gsapAnimations').then(({ initHeroTextSplit }) => {
+      import("@/lib/gsapAnimations").then(({ initHeroTextSplit }) => {
         initHeroTextSplit();
       });
     }, 100);
@@ -90,39 +108,38 @@ export const ChampionsGallery = () => {
   const hasPrevChampion = selectedIndex !== null && champions.length > 1;
   const hasNextChampion = selectedIndex !== null && champions.length > 1;
 
-  const totalAchievements = champions.reduce((acc, c) => acc + c.achievements.length, 0);
+  const totalAchievements = champions.reduce(
+    (acc, c) => acc + c.achievements.length,
+    0,
+  );
 
   return (
     <div className="flex flex-col min-h-screen relative bg-transparent overflow-hidden">
-
       <Header />
 
       <main className="relative z-10 flex-grow">
-
         <motion.section
           ref={heroRef}
           className="relative pt-20 md:pt-32 pb-24 md:pb-32 px-4 overflow-hidden min-h-[70vh] flex items-center"
-          style={
-            prefersReducedMotion
-              ? undefined
-              : { opacity: heroOpacity, scale: heroScale, y: heroY }
-          }
         >
           <div className="container mx-auto text-center relative z-10">
             <ScrollReveal delay={0}>
               <motion.span
                 className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-gold/20 to-gold-dark/20 border border-gold/30 text-gold text-sm font-medium tracking-widest uppercase mb-8"
-                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(212,175,55,0.3)" }}
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 0 30px rgba(212,175,55,0.3)",
+                }}
               >
                 <motion.div
                   animate={{
                     scale: [1, 1.15, 1],
-                    opacity: [0.8, 1, 0.8]
+                    opacity: [0.8, 1, 0.8],
                   }}
                   transition={{
                     duration: 2.5,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: "easeInOut",
                   }}
                 >
                   <Star className="w-4 h-4" />
@@ -131,13 +148,13 @@ export const ChampionsGallery = () => {
                 <motion.div
                   animate={{
                     scale: [1, 1.15, 1],
-                    opacity: [0.8, 1, 0.8]
+                    opacity: [0.8, 1, 0.8],
                   }}
                   transition={{
                     duration: 2.5,
                     repeat: Infinity,
                     ease: "easeInOut",
-                    delay: 1.25
+                    delay: 1.25,
                   }}
                 >
                   <Star className="w-4 h-4" />
@@ -165,7 +182,11 @@ export const ChampionsGallery = () => {
             <ScrollReveal delay={0.3}>
               <div className="flex flex-wrap justify-center gap-8 md:gap-16">
                 {[
-                  { label: "Championów", value: champions.length, icon: Trophy },
+                  {
+                    label: "Championów",
+                    value: champions.length,
+                    icon: Trophy,
+                  },
                   { label: "Osiągnięć", value: totalAchievements, icon: Award },
                   { label: "Lat Doświadczenia", value: 23, icon: Calendar },
                 ].map((stat) => (
@@ -201,7 +222,9 @@ export const ChampionsGallery = () => {
                   <div className="w-16 h-16 border-4 border-gold/20 rounded-full" />
                   <div className="absolute inset-0 w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin" />
                 </div>
-                <span className="mt-6 text-white/60">Ładowanie championów...</span>
+                <span className="mt-6 text-white/60">
+                  Ładowanie championów...
+                </span>
               </div>
             )}
 

@@ -19,9 +19,7 @@ export const UserUpdateSchema = z.object({
 
 export const AuctionStatusSchema = z.enum(["ACTIVE", "ENDED", "CANCELLED"]);
 export const AuctionCategorySchema = z.enum([
-  "RACING",
-  "BREEDING",
-  "SHOW",
+  "PIGEONS",
   "SUPPLEMENTS",
   "ACCESSORIES",
 ]);

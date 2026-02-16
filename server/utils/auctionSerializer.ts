@@ -282,6 +282,7 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(
       | "young"
       | undefined,
     location: auction.location ?? "",
+    views: (auction as any).views || 0,
     seller: serializePublicUser(sellerAny, showContact),
     images: Array.isArray((auction as any).images)
       ? (auction as any).images.map((i: any) => i.url)

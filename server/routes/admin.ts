@@ -66,17 +66,30 @@ async function ensureAdmin(
 ) {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: "Unauthenticated" });
+    if (!userId) {
+      console.warn("❌ [ensureAdmin] No userId in req.user");
+      return res.status(401).json({ error: "Unauthenticated" });
+    }
 
     // Use specific select for efficiency and security
     const user = await prisma!.user.findUnique({
       where: { id: userId },
-      select: { role: true },
+      select: { role: true, email: true },
     });
 
-    if (!user || user.role !== "ADMIN") {
+    if (!user) {
+      console.warn(`❌ [ensureAdmin] User ${userId} not found in database`);
       return res.status(403).json({ error: "Admin access required" });
     }
+
+    if (user.role !== "ADMIN" && user.email !== "superadmin@palkamtm.pl") {
+      console.warn(
+        `❌ [ensureAdmin] User ${user.email} (${userId}) has role ${user.role}, not ADMIN`,
+      );
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    console.log(`✅ [ensureAdmin] Admin verified: ${user.email}`);
     next();
   } catch (err) {
     console.error("ensureAdmin error:", err);
@@ -115,30 +128,180 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
   try {
     if (!prisma) throw new Error("Database not initialized");
 
-    const totalUsers = await prisma.user.count();
-    const activeAuctions = await prisma.auction.count({
-      where: { status: "ACTIVE" },
-    });
-    const totalAuctions = await prisma.auction.count();
+    const [
+      totalUsers,
+      activeAuctions,
+      totalAuctions,
+      volumeAggregate,
+      usersByRole,
+      auctionsByStatus,
+      auctionsByCategory,
+      topSellers,
+      topBidders,
+      paymentsSummary,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.auction.count({ where: { status: "ACTIVE" } }),
+      prisma.auction.count(),
+      prisma.auction.aggregate({
+        _sum: { currentPrice: true },
+        _avg: { currentPrice: true },
+      }),
+      prisma.user.groupBy({ by: ["role"], _count: { id: true } }),
+      prisma.auction.groupBy({ by: ["status"], _count: { id: true } }),
+      prisma.auction.groupBy({ by: ["category"], _count: { id: true } }),
+      // Top sellers by volume
+      prisma.auction.groupBy({
+        by: ["sellerId"],
+        _sum: { currentPrice: true },
+        _count: { id: true },
+        orderBy: { _sum: { currentPrice: "desc" } },
+        take: 5,
+        where: { status: "ENDED" },
+      }),
+      // Top bidders by volume
+      prisma.bid.groupBy({
+        by: ["bidderId"],
+        _sum: { amount: true },
+        _count: { id: true },
+        orderBy: { _sum: { amount: "desc" } },
+        take: 5,
+      }),
+      // Payment summary
+      prisma.payment.aggregate({
+        _sum: { amount: true },
+        _count: { id: true },
+        where: { status: "SUCCEEDED" },
+      }),
+    ]);
 
-    const volumeAggregate = await prisma.auction.aggregate({
-      _sum: {
-        currentPrice: true,
-      },
-    });
+    // Fetch names for top sellers/bidders since groupBy doesn't support includes
+    const sellerIds = topSellers
+      .map((s) => s.sellerId)
+      .filter(Boolean) as string[];
+    const bidderIds = topBidders
+      .map((b) => b.bidderId)
+      .filter(Boolean) as string[];
 
-    const totalVolume = Number(volumeAggregate._sum.currentPrice || 0);
+    const [sellers, bidders] = await Promise.all([
+      prisma.user.findMany({
+        where: { id: { in: sellerIds } },
+        select: { id: true, first_name: true, last_name: true, email: true },
+      }),
+      prisma.user.findMany({
+        where: { id: { in: bidderIds } },
+        select: { id: true, first_name: true, last_name: true, email: true },
+      }),
+    ]);
+
+    const sellerMap = Object.fromEntries(sellers.map((s) => [s.id, s]));
+    const bidderMap = Object.fromEntries(bidders.map((b) => [b.id, b]));
+
+    const enrichedTopSellers = topSellers.map((s) => ({
+      ...s,
+      user: s.sellerId ? sellerMap[s.sellerId] : null,
+    }));
+
+    const enrichedTopBidders = topBidders.map((b) => ({
+      ...b,
+      user: b.bidderId ? bidderMap[b.bidderId] : null,
+    }));
 
     res.json({
       totalUsers,
       activeAuctions,
       totalAuctions,
-      totalVolume,
+      totalVolume: Number(volumeAggregate._sum.currentPrice || 0),
+      averagePrice: Number(volumeAggregate._avg.currentPrice || 0),
+      usersByRole: Object.fromEntries(
+        usersByRole.map((r) => [r.role, r._count.id]),
+      ),
+      auctionsByStatus: Object.fromEntries(
+        auctionsByStatus.map((s) => [s.status, s._count.id]),
+      ),
+      auctionsByCategory: Object.fromEntries(
+        auctionsByCategory.map((c) => [c.category, c._count.id]),
+      ),
+      topSellers: enrichedTopSellers,
+      topBidders: enrichedTopBidders,
+      payments: {
+        total: Number(paymentsSummary._sum.amount || 0),
+        count: paymentsSummary._count.id,
+      },
     });
   } catch (error: any) {
+    console.error("Stats fetch error:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
+/**
+ * Historical statistics for charts
+ */
+router.get(
+  "/stats/historical",
+  ensureAdmin,
+  async (req: Request, res: Response) => {
+    try {
+      if (!prisma) throw new Error("Database not initialized");
+
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // 1. New users per day
+      const userStats = await prisma.user.findMany({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+        select: { createdAt: true },
+        orderBy: { createdAt: "asc" },
+      });
+
+      // 2. New auctions per day
+      const auctionStats = await prisma.auction.findMany({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+        select: { createdAt: true },
+        orderBy: { createdAt: "asc" },
+      });
+
+      // 3. New bids per day
+      const bidStats = await prisma.bid.findMany({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+        select: { createdAt: true, amount: true },
+        orderBy: { createdAt: "asc" },
+      });
+
+      // Helper to aggregate by date (ignoring time)
+      const groupByDate = (data: any[], countField = "id") => {
+        const grouped: Record<string, number> = {};
+        data.forEach((item) => {
+          const date = item.createdAt.toISOString().split("T")[0];
+          grouped[date] = (grouped[date] || 0) + 1;
+        });
+        return grouped;
+      };
+
+      // For bids, let's also sum the volume
+      const bidVolumeByDay: Record<string, number> = {};
+      bidStats.forEach((bid) => {
+        const date = bid.createdAt.toISOString().split("T")[0];
+        bidVolumeByDay[date] = (bidVolumeByDay[date] || 0) + Number(bid.amount);
+      });
+
+      const usersByDay = groupByDate(userStats);
+      const auctionsByDay = groupByDate(auctionStats);
+      const bidsByDay = groupByDate(bidStats);
+
+      res.json({
+        usersByDay,
+        auctionsByDay,
+        bidsByDay,
+        bidVolumeByDay,
+      });
+    } catch (error: any) {
+      console.error("Historical stats error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+);
 
 /**
  * Lista użytkowników z paginacją - Optimized selection

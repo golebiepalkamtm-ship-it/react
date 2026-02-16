@@ -172,16 +172,14 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   </label>
                   <select
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                    value={auction.category || "RACING"}
+                    value={auction.category || "PIGEONS"}
                     onChange={(e) =>
                       onChange({ ...auction, category: e.target.value })
                     }
                   >
-                    <option value="RACING">RACING</option>
-                    <option value="BREEDING">BREEDING</option>
-                    <option value="SHOW">SHOW</option>
-                    <option value="SUPPLEMENTS">SUPPLEMENTS</option>
-                    <option value="ACCESSORIES">ACCESSORIES</option>
+                    <option value="PIGEONS">Gołębie</option>
+                    <option value="ACCESSORIES">Akcesoria</option>
+                    <option value="SUPPLEMENTS">Suplementy</option>
                   </select>
                 </div>
               </div>

@@ -427,9 +427,9 @@ const AuctionsPage = () => {
                     className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-white"
                   >
                     <option value="all">Wszystkie</option>
-                    <option value="pigeon">Gołębie</option>
-                    <option value="supplements">Suplementy</option>
-                    <option value="accessories">Akcesoria</option>
+                    <option value="PIGEONS">Gołębie</option>
+                    <option value="SUPPLEMENTS">Suplementy</option>
+                    <option value="ACCESSORIES">Akcesoria</option>
                   </select>
                 </div>
                 <div>

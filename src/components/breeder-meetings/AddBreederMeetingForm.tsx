@@ -181,7 +181,9 @@ export default function AddBreederMeetingForm({
                   <div className="mt-3">
                     <button
                       type="button"
-                      onClick={() => navigate("/account")}
+                      onClick={() =>
+                        navigate("/", { state: { openAccount: true } })
+                      }
                       className="font-medium underline text-gold hover:text-gold-light"
                     >
                       Uzupełnij profil

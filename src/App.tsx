@@ -16,7 +16,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { GSAPPageTransition } from "@/components/motion";
-import { SmoothScrollProvider } from "@/components/animations";
 import { UIProviders } from "@/components/ui/UIProviders";
 
 import { trackMetric } from "@/services/metricsService";
@@ -49,7 +48,6 @@ import {
   // LazyGsapAnimationsDemo
 } from "@/utils/lazyImports";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import GlobalParallaxBackground from "@/components/GlobalParallaxBackground";
 
 // GSAP Demo - direct import (not lazy)
 const GSAPDemo = React.lazy(() => import("@/pages/GSAPDemo"));
@@ -97,7 +95,7 @@ const BackgroundWrapper = () => {
           pointerEvents: "none",
         }}
       />
-      <GlobalParallaxBackground />
+      {/* Parallax background removed */}
     </>
   );
 };
@@ -114,144 +112,113 @@ const App = () => {
           <LocaleProvider>
             <AuthProvider>
               <UIProviders>
-                <SmoothScrollProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter
-                      future={{
-                        v7_startTransition: true,
-                        v7_relativeSplatPath: true,
-                      }}
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter
+                    future={{
+                      v7_startTransition: true,
+                      v7_relativeSplatPath: true,
+                    }}
+                  >
+                    <BackgroundWrapper />
+                    <ScrollToTopOnRouteChange />
+                    <GSAPPageTransition
+                      defaultStyle="reveal"
+                      duration={0.9}
+                      primaryColor="#A68E4E"
+                      accentColor="#A68E4E"
+                      useRouteStyles={false}
                     >
-                      <BackgroundWrapper />
-                      <ScrollToTopOnRouteChange />
-                      <GSAPPageTransition
-                        defaultStyle="reveal"
-                        duration={0.9}
-                        primaryColor="#A68E4E"
-                        accentColor="#A68E4E"
-                        useRouteStyles={false}
-                      >
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <Routes>
-                            <Route path="/" element={<LazyIndex />} />
-                            <Route
-                              path="/wyniki-lotowe"
-                              element={<LazyFlightResults />}
-                            />
-                            <Route
-                              path="/flight-results"
-                              element={<Navigate to="/wyniki-lotowe" replace />}
-                            />
-                            <Route
-                              path="/auctions"
-                              element={<LazyAuctions />}
-                            />
-                            <Route
-                              path="/auctions/:id"
-                              element={<LazyAuctionDetail />}
-                            />
-                            <Route
-                              path="/auctions/success"
-                              element={<LazyAuctionSuccess />}
-                            />
-                            <Route path="/forum" element={<LazyForumMain />} />
-                            <Route
-                              path="/forum/category/:categoryId"
-                              element={<LazyForumTopicList />}
-                            />
-                            <Route
-                              path="/forum/topic/:topicId"
-                              element={<LazyForumTopicDetail />}
-                            />
-                            <Route
-                              path="/breeder-meetings"
-                              element={<LazyBreederMeetings />}
-                            />
-                            <Route path="/contact" element={<LazyContact />} />
-                            <Route
-                              path="/references"
-                              element={<LazyReferences />}
-                            />
-                            <Route path="/press" element={<LazyPress />} />
-                            <Route
-                              path="/press/:id"
-                              element={<LazyPressArticle />}
-                            />
-                            <Route
-                              path="/agent"
-                              element={<LazyAgentDesktop />}
-                            />
-                            <Route
-                              path="/verify-email"
-                              element={
-                                <ProtectedRoute allowUnverified>
-                                  <LazyVerifyEmail />
-                                </ProtectedRoute>
-                              }
-                            />
-                            <Route path="/auth" element={<LazyAuth />} />
-                            <Route
-                              path="/account"
-                              element={
-                                <Navigate
-                                  to="/"
-                                  replace
-                                  state={{ openAccount: true }}
-                                />
-                              }
-                            />
-                            <Route
-                              path="/admin"
-                              element={
-                                <ProtectedRoute requiredRole="ADMIN">
-                                  <LazyAdmin />
-                                </ProtectedRoute>
-                              }
-                            />
-                            {/* Showcase / demo routes */}
-                            <Route
-                              path="/homepage"
-                              element={<LazyHomePage />}
-                            />
-                            <Route
-                              path="/homepage-premium"
-                              element={<LazyHomePagePremium />}
-                            />
-                            <Route path="/gsap-demo" element={<GSAPDemo />} />
-                            <Route
-                              path="/awwwards-prototype"
-                              element={<AwwwardsPrototype />}
-                            />
-                            {/* Living Web / GSAP demo wyłączone */}
-                            {/* <Route path="/homepage-livingweb" element={<LazyHomePageLivingWeb />} /> */}
-                            {/* <Route path="/livingweb-showcase" element={<LazyLivingWebShowcase />} /> */}
-                            {/* <Route path="/gsap-animations-demo" element={<LazyGsapAnimationsDemo />} /> */}
-                            <Route
-                              path="/login"
-                              element={
-                                <Navigate to="/auth?mode=login" replace />
-                              }
-                            />
-                            <Route
-                              path="/register"
-                              element={
-                                <Navigate to="/auth?mode=register" replace />
-                              }
-                            />
-                            <Route
-                              path="/champions"
-                              element={<LazyChampionsGallery />}
-                            />
-                            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                            <Route path="*" element={<LazyNotFound />} />
-                          </Routes>
-                        </Suspense>
-                      </GSAPPageTransition>
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </SmoothScrollProvider>
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <Routes>
+                          <Route path="/" element={<LazyIndex />} />
+                          <Route
+                            path="/wyniki-lotowe"
+                            element={<LazyFlightResults />}
+                          />
+                          <Route
+                            path="/flight-results"
+                            element={<Navigate to="/wyniki-lotowe" replace />}
+                          />
+                          <Route path="/auctions" element={<LazyAuctions />} />
+                          <Route
+                            path="/auctions/:id"
+                            element={<LazyAuctionDetail />}
+                          />
+                          <Route
+                            path="/auctions/success"
+                            element={<LazyAuctionSuccess />}
+                          />
+                          <Route path="/forum" element={<LazyForumMain />} />
+                          <Route
+                            path="/forum/category/:categoryId"
+                            element={<LazyForumTopicList />}
+                          />
+                          <Route
+                            path="/forum/topic/:topicId"
+                            element={<LazyForumTopicDetail />}
+                          />
+                          <Route
+                            path="/breeder-meetings"
+                            element={<LazyBreederMeetings />}
+                          />
+                          <Route path="/contact" element={<LazyContact />} />
+                          <Route path="/references" element={<LazyReferences />} />
+                          <Route path="/press" element={<LazyPress />} />
+                          <Route path="/press/:id" element={<LazyPressArticle />} />
+                          <Route path="/agent" element={<LazyAgentDesktop />} />
+                          <Route
+                            path="/verify-email"
+                            element={
+                              <ProtectedRoute allowUnverified>
+                                <LazyVerifyEmail />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route path="/auth" element={<LazyAuth />} />
+                          <Route
+                            path="/admin"
+                            element={
+                              <ProtectedRoute requiredRole="ADMIN">
+                                <LazyAdmin />
+                              </ProtectedRoute>
+                            }
+                          />
+                          {/* Showcase / demo routes */}
+                          <Route path="/homepage" element={<LazyHomePage />} />
+                          <Route
+                            path="/homepage-premium"
+                            element={<LazyHomePagePremium />}
+                          />
+                          <Route path="/gsap-demo" element={<GSAPDemo />} />
+                          <Route
+                            path="/awwwards-prototype"
+                            element={<AwwwardsPrototype />}
+                          />
+                          {/* Living Web / GSAP demo wyłączone */}
+                          {/* <Route path="/homepage-livingweb" element={<LazyHomePageLivingWeb />} /> */}
+                          {/* <Route path="/livingweb-showcase" element={<LazyLivingWebShowcase />} /> */}
+                          {/* <Route path="/gsap-animations-demo" element={<LazyGsapAnimationsDemo />} /> */}
+                          <Route
+                            path="/login"
+                            element={<Navigate to="/auth?mode=login" replace />}
+                          />
+                          <Route
+                            path="/register"
+                            element={<Navigate to="/auth?mode=register" replace />}
+                          />
+                          <Route
+                            path="/champions"
+                            element={<LazyChampionsGallery />}
+                          />
+                          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                          <Route path="*" element={<LazyNotFound />} />
+                        </Routes>
+                      </Suspense>
+                    </GSAPPageTransition>
+                  </BrowserRouter>
+                </TooltipProvider>
               </UIProviders>
             </AuthProvider>
           </LocaleProvider>

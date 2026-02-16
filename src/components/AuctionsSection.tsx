@@ -106,11 +106,7 @@ const AuctionsSection = () => {
                 category={auction.category}
                 location={auction.location}
                 watchCount={auction._count?.watchlist ?? 0}
-                viewsCount={
-                  (auction as any)?.viewsCount ??
-                  (auction._count as any)?.views ??
-                  0
-                }
+                viewsCount={auction.views ?? 0}
                 bidsCount={auction._count?.bids ?? auction.bids?.length ?? 0}
                 featured={index === 1}
                 nowMs={now}

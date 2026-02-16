@@ -5,6 +5,7 @@
 @import "./styles/smooth-scroll.css";
 @import "./styles/dynamic-lights.css";
 @import "./styles/footer-fix.css";
+@import "./styles/performance-tunings.css";
 
 /* CSS Force refresh - 16:26 */
 @tailwind base;
@@ -357,7 +358,6 @@
     background: transparent;
     position: relative;
     overflow-x: hidden;
-    overflow-y: auto;
     margin: 0;
     padding: 0;
   }
@@ -750,11 +750,13 @@
 }
 
 .glass-card {
-  @apply relative overflow-hidden backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl transition-all duration-500;
-  background-image:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  background-blend-mode: overlay;
+  @apply relative overflow-hidden backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl shadow-2xl transition-all duration-500;
+  background-image: radial-gradient(
+    circle at top left,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  background-blend-mode: normal;
 }
 
 .glass-card::before {

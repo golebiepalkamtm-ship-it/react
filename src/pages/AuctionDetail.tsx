@@ -4,7 +4,7 @@ import {
   Link,
   useSearchParams,
 } from "react-router-dom";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -13,6 +13,7 @@ import {
   Tag,
   Gavel,
   Sparkles,
+  Eye,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -32,6 +33,20 @@ import AccountModal from "@/components/AccountModal";
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
 import { trackMetric } from "@/services/metricsService";
 import type { Auction } from "@/types/auction";
+import { formatCategory } from "@/utils/auction";
+
+const AuctionImage = memo(
+  ({
+    src,
+    alt,
+    className,
+  }: {
+    src: string;
+    alt: string;
+    className: string;
+  }) => <img src={src} alt={alt} className={className} loading="eager" />,
+);
+AuctionImage.displayName = "AuctionImage";
 
 const AuctionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -96,7 +111,7 @@ const AuctionDetail: React.FC = () => {
     minBidIncrement: 200,
     status: "active",
     reserveMet: false,
-    category: "RACING",
+    category: "PIGEONS",
     pigeon: {
       ringNumber: "PL-2024-CHAMP-999999",
       eyeColor: "Bursztynowe",
@@ -461,14 +476,14 @@ const AuctionDetail: React.FC = () => {
                   }}
                 >
                   {/* Blurry background for premium scaling (no empty bars) */}
-                  <img
+                  <AuctionImage
                     src={displayAuction.images?.[0] || "/placeholder.svg"}
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-40 scale-110 select-none pointer-events-none"
                   />
 
                   {/* Main Image - Full visibility without cropping */}
-                  <img
+                  <AuctionImage
                     src={displayAuction.images?.[0] || "/placeholder.svg"}
                     alt={displayAuction.title}
                     className="relative z-10 w-full h-full object-contain object-center transition-all duration-700 group-hover:scale-[1.03] filter brightness-[1.02] contrast-[1.02]"
@@ -508,7 +523,7 @@ const AuctionDetail: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-3 mb-6">
                     <span className="px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest border border-primary/30">
-                      {displayAuction.category || "Aukcja"}
+                      {formatCategory(displayAuction.category)}
                     </span>
                     {isEnded ? (
                       <span className="px-4 py-1.5 rounded-full bg-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest border border-red-500/30">
@@ -572,6 +587,12 @@ const AuctionDetail: React.FC = () => {
                       </span>
                     </span>
                   )}
+                  <span className="glass-vault border-gold inline-flex items-center gap-2 px-4 py-2 rounded-full text-white/80 text-sm">
+                    <Eye className="w-4 h-4 text-gold/80" />
+                    <span>
+                      {(displayAuction.views || 0).toLocaleString()} wyświetleń
+                    </span>
+                  </span>
                   <Link
                     to="/contact"
                     className="glass-vault border-gold inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-semibold hover:shadow-lg transition-shadow"
@@ -584,18 +605,10 @@ const AuctionDetail: React.FC = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className="glass-vault border-gold px-4 py-3 rounded-xl">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
-                      Lot / ID
-                    </p>
-                    <p className="text-white font-semibold">
-                      {displayAuction.id}
-                    </p>
-                  </div>
-                  <div className="glass-vault border-gold px-4 py-3 rounded-xl">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
                       Kategoria
                     </p>
                     <p className="text-white font-semibold">
-                      {displayAuction.category || "—"}
+                      {formatCategory(displayAuction.category)}
                     </p>
                   </div>
                   {displayAuction.reservePrice ? (

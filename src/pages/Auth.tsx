@@ -221,18 +221,18 @@ export default function Auth() {
     setModalOpen(false);
 
     if (modalAction === "redirect" && profile?.role !== "ADMIN") {
-      // Zawsze preferujemy stronę główną + modal zamiast dedykowanej strony /account
       const targetPath =
-        callbackUrl && callbackUrl !== "/" && callbackUrl !== "/account"
+        callbackUrl &&
+        callbackUrl !== "/" &&
+        callbackUrl !== "ACCOUNT_MODAL_TRIGGER"
           ? callbackUrl
           : "/";
 
       if (profile?.role === "USER_REGISTERED") {
         navigate("/verify-email", { replace: true });
       } else {
-        // Jeśli celem był /account (lub domyślnie strona główna), upewnij się że otwieramy modal
-        const isTargetingAccount =
-          callbackUrl === "/account" || targetPath === "/";
+        // Otwieramy modal TYLKO jeśli user o to prosił (ACCOUNT_MODAL_TRIGGER)
+        const isTargetingAccount = callbackUrl === "ACCOUNT_MODAL_TRIGGER";
 
         navigate(targetPath, {
           replace: true,
@@ -346,10 +346,13 @@ export default function Auth() {
     });
 
     try {
+      const baseUrl = window.location.origin;
+      const redirectTo = `${baseUrl}/auth?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+
       const { error } =
         provider === "google"
-          ? await signInWithGoogle()
-          : await signInWithFacebook();
+          ? await signInWithGoogle(redirectTo)
+          : await signInWithFacebook(redirectTo);
 
       if (error) {
         const errorMessage =

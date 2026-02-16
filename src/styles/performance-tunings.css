@@ -1,0 +1,56 @@
+/* Performance Tunings - Reduced Layout Thrashing & GPU Redraws */
+
+@layer base {
+  /* .fixed, .absolute { ... } // Disabled potential flickering cause */
+}
+
+@layer components {
+  /* Optimize glass elements - AGGRESSIVE DISABLE BLUR FOR WINDOWS STABILITY */
+  .glass-card,
+  .glass-vault,
+  .glass-header,
+  .glass-panel,
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm {
+    will-change: opacity;
+    contain: layout style;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(20, 25, 35, 0.95) !important;
+  }
+
+  /* Force layer promotion for images */
+  img {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Disable expensive patterns */
+  .gallery-scanline-pattern,
+  .auction-card-pattern {
+    display: none !important;
+  }
+
+  /* Avoid complex filters on elements that move */
+  .motion-safe\:filter {
+    filter: none !important;
+  }
+}
+
+/* Fallback for low-perf devices or if flickering persists */
+@media screen and (max-width: 1024px), (prefers-reduced-motion: reduce) {
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm {
+    backdrop-filter: none !important;
+    background-color: rgba(10, 15, 25, 0.95) !important;
+  }
+
+  .glass-card,
+  .glass-vault {
+    background-image: none !important;
+  }
+}

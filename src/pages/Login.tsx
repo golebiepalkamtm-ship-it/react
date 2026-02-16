@@ -31,13 +31,13 @@ export default function Login() {
   useEffect(() => {
     if (!loading && user && profile) {
       // Nie przekierowuj automatycznie admina po zalogowaniu
-      if (profile.role === 'ADMIN') return;
+      if (profile.role === "ADMIN") return;
 
       // Check verification level
-      if (profile.role === 'USER_REGISTERED') {
+      if (profile.role === "USER_REGISTERED") {
         // Redirect to email confirmation or profile completion
-        navigate('/verify-email');
-      } else if (callbackUrl && callbackUrl !== '/') {
+        navigate("/verify-email");
+      } else if (callbackUrl && callbackUrl !== "/") {
         // Tylko gdy mamy celny callback
         navigate(callbackUrl);
       }
@@ -53,18 +53,22 @@ export default function Login() {
       if (error) throw error;
       // Navigation will happen in useEffect
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Nie udało się zalogować";
+      const message =
+        err instanceof Error ? err.message : "Nie udało się zalogować";
       showError({ message });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleOAuth = async (provider: 'google' | 'facebook') => {
+  const handleOAuth = async (provider: "google" | "facebook") => {
     setIsOAuthSubmitting(true);
     try {
-      const redirectTo = window.location.origin;
-      if (!supabase) throw new Error('Supabase not available');
+      if (!supabase) throw new Error("Supabase not available");
+
+      const baseUrl = window.location.origin;
+      const redirectTo = `${baseUrl}/auth?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -74,7 +78,8 @@ export default function Login() {
       if (error) throw error;
       // OAuth will redirect; no navigation here
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Błąd logowania przez ${provider}`;
+      const message =
+        err instanceof Error ? err.message : `Błąd logowania przez ${provider}`;
       showError({ message });
       setIsOAuthSubmitting(false);
     }
@@ -91,8 +96,12 @@ export default function Login() {
       <main className="pt-28 md:pt-32">
         <div className="container mx-auto px-4">
           <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground">Logowanie</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Zaloguj się, aby korzystać z funkcji użytkownika.</p>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground">
+              Logowanie
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Zaloguj się, aby korzystać z funkcji użytkownika.
+            </p>
 
             <div className="mt-6 space-y-3">
               <Button
@@ -100,7 +109,7 @@ export default function Login() {
                 variant="outline"
                 className="w-full"
                 disabled={isOAuthSubmitting}
-                onClick={() => handleOAuth('google')}
+                onClick={() => handleOAuth("google")}
               >
                 {isOAuthSubmitting ? "Logowanie…" : "Kontynuuj z Google"}
               </Button>
@@ -109,7 +118,7 @@ export default function Login() {
                 variant="outline"
                 className="w-full"
                 disabled={isOAuthSubmitting}
-                onClick={() => handleOAuth('facebook')}
+                onClick={() => handleOAuth("facebook")}
               >
                 {isOAuthSubmitting ? "Logowanie…" : "Kontynuuj z Facebook"}
               </Button>
@@ -123,7 +132,10 @@ export default function Login() {
 
             <form className="space-y-4" onSubmit={onSubmit}>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground" htmlFor="email">
+                <label
+                  className="text-sm font-medium text-foreground"
+                  htmlFor="email"
+                >
                   Email
                 </label>
                 <Input
@@ -138,7 +150,10 @@ export default function Login() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground" htmlFor="password">
+                <label
+                  className="text-sm font-medium text-foreground"
+                  htmlFor="password"
+                >
                   Hasło
                 </label>
                 <Input
@@ -152,7 +167,12 @@ export default function Login() {
                 />
               </div>
 
-              <Button type="submit" variant="heroGold" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                variant="heroGold"
+                className="w-full"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Logowanie…" : "Zaloguj"}
               </Button>
 

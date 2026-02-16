@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model SavedSearch {
@@ -88,14 +89,16 @@ model Auction {
   startsAt              DateTime?         @map("starts_at")
   snipeThresholdMinutes Int               @default(5) @map("snipe_threshold_minutes")
   snipeExtensionMinutes Int               @default(5) @map("snipe_extension_minutes")
-  minBidIncrement       Int               @default(100) @map("min_bid_increment")
+  minBidIncrement       Int               @default(5) @map("min_bid_increment")
+  isExtended            Boolean           @default(false) @map("is_extended")
   status                AuctionStatus     @default(ACTIVE)
   reserveMet            Boolean           @default(false) @map("reserve_met")
   version               Int               @default(1)
-  category              AuctionCategory   @default(RACING)
+  category              AuctionCategory   @default(PIGEONS)
   gender                Sex               @default(MALE) @map("sex")
   location              String?
   age                   Int?
+  views                 Int               @default(0)
   createdAt             DateTime          @default(now()) @map("created_at")
   updatedAt             DateTime          @updatedAt @map("updated_at")
   winnerId              String?           @map("winner_id") @db.Uuid
@@ -328,11 +331,9 @@ enum AuctionStatus {
 }
 
 enum AuctionCategory {
-  RACING
-  BREEDING
-  SHOW
-  SUPPLEMENTS
+  PIGEONS
   ACCESSORIES
+  SUPPLEMENTS
 }
 
 enum Sex {

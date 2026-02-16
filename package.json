@@ -145,6 +145,7 @@
     "react-router-dom": "^6.30.1",
     "react-router-hash-link": "^2.4.3",
     "react-scan": "^0.4.3",
+    "recharts": "^3.7.0",
     "semver-regex": "^4.0.5",
     "serve": "^14.2.4",
     "sharp": "^0.34.5",

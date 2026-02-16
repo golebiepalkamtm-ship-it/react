@@ -1,29 +1,41 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { logger } from '@/lib/logger';
-import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
-import { toast } from '@/components/ui/sonner';
-import { apiClient } from '@/services/api';
-import { calculateRole, UserWithVerifications } from '../types/roles.js';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { logger } from "@/lib/logger";
+import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
+import { toast } from "@/components/ui/sonner";
+import { apiClient } from "@/services/api";
+import { calculateRole, UserWithVerifications } from "../types/roles.js";
 
-export type UserRole = 'USER_REGISTERED' | 'USER_EMAIL_VERIFIED' | 'USER_FULL_VERIFIED' | 'ADMIN';
+export type UserRole =
+  | "USER_REGISTERED"
+  | "USER_EMAIL_VERIFIED"
+  | "USER_FULL_VERIFIED"
+  | "ADMIN";
 
 const USERNAME_MAX_LENGTH = 32;
 
 const sanitizeUsername = (input: string) => {
-  if (!input) return '';
+  if (!input) return "";
   const normalized = input
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-{2,}/g, '-');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
   return normalized.slice(0, USERNAME_MAX_LENGTH);
 };
 
 const generateUsername = (authUser: User) => {
-  const emailBase = authUser.email?.split('@')[0] ?? '';
-  const sanitizedBase = sanitizeUsername(emailBase) || `user-${authUser.id.slice(0, 6)}`;
-  const suffix = authUser.id.replace(/-/g, '').slice(0, 4);
+  const emailBase = authUser.email?.split("@")[0] ?? "";
+  const sanitizedBase =
+    sanitizeUsername(emailBase) || `user-${authUser.id.slice(0, 6)}`;
+  const suffix = authUser.id.replace(/-/g, "").slice(0, 4);
   const combined = `${sanitizedBase}-${suffix}`;
   return sanitizeUsername(combined) || `user-${suffix}`;
 };
@@ -52,10 +64,20 @@ interface AuthContextType {
   profile: Profile | null;
   pendingEmailVerification: string | null;
   clearPendingEmailVerification: () => void;
-  signUp: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
-  signIn: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
-  signInWithGoogle: () => Promise<{ user: User | null; error: any }>;
-  signInWithFacebook: () => Promise<{ user: User | null; error: any }>;
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<{ user: User | null; error: any }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ user: User | null; error: any }>;
+  signInWithGoogle: (
+    redirectTo?: string,
+  ) => Promise<{ user: User | null; error: any }>;
+  signInWithFacebook: (
+    redirectTo?: string,
+  ) => Promise<{ user: User | null; error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<{ error: any }>;
@@ -67,14 +89,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pendingEmailVerification, setPendingEmailVerification] = useState<string | null>(() => {
+  const [pendingEmailVerification, setPendingEmailVerification] = useState<
+    string | null
+  >(() => {
     try {
-      return localStorage.getItem('pendingEmailVerification');
+      return localStorage.getItem("pendingEmailVerification");
     } catch {
       return null;
     }
@@ -91,87 +117,110 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return Boolean(u?.phone_confirmed_at);
   }, []);
 
-  const computeRole = useCallback((authUser: User, existingProfile?: Profile | null) => {
-    const supabaseRole = (authUser as any).app_metadata?.role || (authUser as any).user_metadata?.role;
-    const inferredRole = supabaseRole === 'ADMIN' ? 'ADMIN' : existingProfile?.role;
+  const computeRole = useCallback(
+    (authUser: User, existingProfile?: Profile | null) => {
+      const supabaseRole =
+        (authUser as any).app_metadata?.role ||
+        (authUser as any).user_metadata?.role;
+      const inferredRole =
+        supabaseRole === "ADMIN" ? "ADMIN" : existingProfile?.role;
 
-    const userWithVerifications: UserWithVerifications = {
-      id: authUser.id,
-      email: authUser.email,
-      email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
-      phone: authUser.phone,
-      phone_confirmed_at: (authUser as any).phone_confirmed_at,
-      role: inferredRole
-    };
-    
-    return calculateRole(userWithVerifications);
-  }, []);
+      const userWithVerifications: UserWithVerifications = {
+        id: authUser.id,
+        email: authUser.email,
+        email_confirmed_at:
+          (authUser as any).email_confirmed_at ||
+          (authUser as any).confirmed_at,
+        phone: authUser.phone,
+        phone_confirmed_at: (authUser as any).phone_confirmed_at,
+        role: inferredRole,
+      };
 
-  const ensureProfile = useCallback(async (authUser: User, existingProfile: Profile | null) => {
-    // Rely on DB triggers for profile creation.
-    // Check if existing profile needs synchronization with Auth state
-    if (existingProfile) {
-      const appMeta = (authUser as any).app_metadata;
-      const isEmailVerified = Boolean((authUser as any).email_confirmed_at || (authUser as any).confirmed_at);
-      const isPhoneVerified = Boolean((authUser as any).phone_confirmed_at);
-      
-      let newRole: UserRole | null = null;
+      return calculateRole(userWithVerifications);
+    },
+    [],
+  );
 
-      // 1. Sync ADMIN role from Auth metadata
-      if (appMeta?.role === 'ADMIN' || existingProfile.role === 'ADMIN') {
-        newRole = 'ADMIN';
-      }
-      // 2. Fix users stuck in USER_REGISTERED despite verification OR upgrade to FULL_VERIFIED
-      else if (isEmailVerified) {
-        if (isPhoneVerified && existingProfile.role !== 'USER_FULL_VERIFIED') {
-          newRole = 'USER_FULL_VERIFIED';
-        } else if (existingProfile.role === 'USER_REGISTERED') {
-          newRole = 'USER_EMAIL_VERIFIED';
+  const ensureProfile = useCallback(
+    async (authUser: User, existingProfile: Profile | null) => {
+      // Rely on DB triggers for profile creation.
+      // Check if existing profile needs synchronization with Auth state
+      if (existingProfile) {
+        const appMeta = (authUser as any).app_metadata;
+        const isEmailVerified = Boolean(
+          (authUser as any).email_confirmed_at ||
+          (authUser as any).confirmed_at,
+        );
+        const isPhoneVerified = Boolean((authUser as any).phone_confirmed_at);
+
+        let newRole: UserRole | null = null;
+
+        // 1. Sync ADMIN role from Auth metadata
+        if (appMeta?.role === "ADMIN" || existingProfile.role === "ADMIN") {
+          newRole = "ADMIN";
         }
+        // 2. Fix users stuck in USER_REGISTERED despite verification OR upgrade to FULL_VERIFIED
+        else if (isEmailVerified) {
+          if (
+            isPhoneVerified &&
+            existingProfile.role !== "USER_FULL_VERIFIED"
+          ) {
+            newRole = "USER_FULL_VERIFIED";
+          } else if (existingProfile.role === "USER_REGISTERED") {
+            newRole = "USER_EMAIL_VERIFIED";
+          }
+        }
+
+        if (newRole && newRole !== existingProfile.role) {
+          logger.info(
+            `Auto-upgrading user role from ${existingProfile.role} to ${newRole}`,
+          );
+
+          // Return upgraded profile immediately for UI responsiveness
+          return { ...existingProfile, role: newRole };
+        }
+
+        return existingProfile;
       }
 
-      if (newRole && newRole !== existingProfile.role) {
-        logger.info(`Auto-upgrading user role from ${existingProfile.role} to ${newRole}`);
-        
-        // Return upgraded profile immediately for UI responsiveness
-        return { ...existingProfile, role: newRole };
-      }
+      const supabaseRole =
+        (authUser as any).app_metadata?.role ||
+        (authUser as any).user_metadata?.role;
+      const roleOverride = supabaseRole === "ADMIN" ? "ADMIN" : undefined;
 
-      return existingProfile;
-    }
+      // If missing (race condition), return temp read-only object
+      const userWithVerifications: UserWithVerifications = {
+        id: authUser.id,
+        email: authUser.email,
+        email_confirmed_at:
+          (authUser as any).email_confirmed_at ||
+          (authUser as any).confirmed_at,
+        phone: authUser.phone,
+        phone_confirmed_at: (authUser as any).phone_confirmed_at,
+        role: roleOverride ?? "USER_REGISTERED",
+      };
 
-    const supabaseRole = (authUser as any).app_metadata?.role || (authUser as any).user_metadata?.role;
-    const roleOverride = supabaseRole === 'ADMIN' ? 'ADMIN' : undefined;
+      const role = calculateRole(userWithVerifications);
 
-    // If missing (race condition), return temp read-only object
-    const userWithVerifications: UserWithVerifications = {
-      id: authUser.id,
-      email: authUser.email,
-      email_confirmed_at: (authUser as any).email_confirmed_at || (authUser as any).confirmed_at,
-      phone: authUser.phone,
-      phone_confirmed_at: (authUser as any).phone_confirmed_at,
-      role: roleOverride ?? 'USER_REGISTERED'
-    };
-    
-    const role = calculateRole(userWithVerifications);
-
-    return {
-      id: authUser.id,
-      email: authUser.email,
-      phone: authUser.phone,
-      username: generateUsername(authUser),
-      role: role,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      name: authUser.user_metadata?.full_name,
-      avatar_url: authUser.user_metadata?.avatar_url
-    } as Profile;
-  }, []);
+      return {
+        id: authUser.id,
+        email: authUser.email,
+        phone: authUser.phone,
+        username: generateUsername(authUser),
+        role: role,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        name: authUser.user_metadata?.full_name,
+        avatar_url: authUser.user_metadata?.avatar_url,
+      } as Profile;
+    },
+    [],
+  );
 
   const clearPendingEmailVerification = useCallback(() => {
     setPendingEmailVerification(null);
     try {
-      localStorage.removeItem('pendingEmailVerification');
+      localStorage.removeItem("pendingEmailVerification");
     } catch {
       // ignore
     }
@@ -180,71 +229,89 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getBaseUrl = useCallback(() => {
     const rawSiteUrl = import.meta.env.VITE_SITE_URL as string | undefined;
     const configuredSiteUrl = rawSiteUrl
-      ? rawSiteUrl.trim().replace(/^`|`$/g, '').replace(/^"|"$/g, '').replace(/^'|'$/g, '')
+      ? rawSiteUrl
+          .trim()
+          .replace(/^`|`$/g, "")
+          .replace(/^"|"$/g, "")
+          .replace(/^'|'$/g, "")
       : undefined;
     const origin = window.location.origin;
-    const normalizedOrigin = origin.replace(/\/$/, '');
-    const normalizedConfigured = configuredSiteUrl?.replace(/\/$/, '');
+    const normalizedOrigin = origin.replace(/\/$/, "");
+    const normalizedConfigured = configuredSiteUrl?.replace(/\/$/, "");
     return normalizedConfigured && normalizedConfigured === normalizedOrigin
       ? normalizedConfigured
       : normalizedOrigin;
   }, []);
 
-  const sendEmailVerification = useCallback(async (email: string) => {
-    const client = supabase;
-    if (!client) return { error: 'Supabase not configured' };
-    const baseUrl = getBaseUrl();
-    const emailRedirectTo =
-      (import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined) ||
-      `${baseUrl}/verify-email`;
+  const sendEmailVerification = useCallback(
+    async (email: string) => {
+      const client = supabase;
+      if (!client) return { error: "Supabase not configured" };
+      const baseUrl = getBaseUrl();
+      const emailRedirectTo =
+        (import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined) ||
+        `${baseUrl}/verify-email`;
 
-    const { error } = await client.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo,
-      },
-    });
+      const { error } = await client.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo,
+        },
+      });
 
-    return { error };
-  }, [getBaseUrl]);
+      return { error };
+    },
+    [getBaseUrl],
+  );
 
-  const fetchProfile = useCallback(async (authUser: User) => {
-    const client = supabase;
-    if (!client) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const { data, error } = await client
-        .from('users')
-        .select('*')
-        .eq('id', authUser.id)
-        .maybeSingle();
+  const fetchProfile = useCallback(
+    async (authUser: User) => {
+      const client = supabase;
+      if (!client) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await client
+          .from("users")
+          .select("*")
+          .eq("id", authUser.id)
+          .maybeSingle();
 
-      if (error) {
-        logger.error('Error fetching profile:', { message: error.message, details: error.details, hint: error.hint, code: error.code });
+        if (error) {
+          logger.error("Error fetching profile:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          });
+          const ensured = await ensureProfile(authUser, null);
+          setProfile(ensured);
+        } else {
+          const ensured = await ensureProfile(
+            authUser,
+            (data as Profile | null) ?? null,
+          );
+          setProfile(ensured);
+        }
+      } catch (error) {
+        logger.error("Error fetching profile:", error);
         const ensured = await ensureProfile(authUser, null);
         setProfile(ensured);
-      } else {
-        const ensured = await ensureProfile(authUser, (data as Profile | null) ?? null);
-        setProfile(ensured);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      logger.error('Error fetching profile:', error);
-      const ensured = await ensureProfile(authUser, null);
-      setProfile(ensured);
-    } finally {
-      setLoading(false);
-    }
-  }, [ensureProfile]);
+    },
+    [ensureProfile],
+  );
 
   const initCSRFToken = useCallback(async () => {
     try {
       await apiClient.getCSRFToken();
-      logger.debug('CSRF token initialized');
+      logger.debug("CSRF token initialized");
     } catch (error) {
-      logger.error('Failed to initialize CSRF token:', error);
+      logger.error("Failed to initialize CSRF token:", error);
     }
   }, []);
 
@@ -254,112 +321,142 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       return;
     }
-    
+
     let isInitialized = false;
-    
+
     const init = async () => {
       try {
         // Inicjalizuj CSRF token na starcie
         await initCSRFToken();
-        
+
         // Helper to parse params from Search OR Hash
         const getParams = () => {
           const url = new URL(window.location.href);
           const searchParams = url.searchParams;
-          const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
-          
+          const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+
           return {
-            tokenHash: searchParams.get('token_hash') || hashParams.get('token_hash'),
-            type: searchParams.get('type') || hashParams.get('type'),
-            code: searchParams.get('code') || hashParams.get('code'),
-            errorParam: searchParams.get('error') || hashParams.get('error'),
-            errorDescription: searchParams.get('error_description') || hashParams.get('error_description'),
-            errorCode: searchParams.get('error_code') || hashParams.get('error_code'),
+            tokenHash:
+              searchParams.get("token_hash") || hashParams.get("token_hash"),
+            type: searchParams.get("type") || hashParams.get("type"),
+            code: searchParams.get("code") || hashParams.get("code"),
+            errorParam: searchParams.get("error") || hashParams.get("error"),
+            errorDescription:
+              searchParams.get("error_description") ||
+              hashParams.get("error_description"),
+            errorCode:
+              searchParams.get("error_code") || hashParams.get("error_code"),
           };
         };
 
-        const { tokenHash, type, code, errorParam, errorDescription, errorCode } = getParams();
+        const {
+          tokenHash,
+          type,
+          code,
+          errorParam,
+          errorDescription,
+          errorCode,
+        } = getParams();
         const currentUrl = new URL(window.location.href);
 
         // Handle email verification callback (token_hash + type=email)
-        if (tokenHash && type === 'email') {
-          logger.info('Email verification callback detected');
+        if (tokenHash && type === "email") {
+          logger.info("Email verification callback detected");
           const { error } = await client.auth.verifyOtp({
             token_hash: tokenHash,
-            type: 'email',
+            type: "email",
           });
-          
+
           if (error) {
-            logger.error('Email verification failed:', error);
+            logger.error("Email verification failed:", error);
             // Redirect to verify-email with error
-            const verifyUrl = new URL('/verify-email', window.location.origin);
-            verifyUrl.searchParams.set('error', 'verification_failed');
-            verifyUrl.searchParams.set('error_description', error.message || 'Weryfikacja emaila nie powiodła się');
+            const verifyUrl = new URL("/verify-email", window.location.origin);
+            verifyUrl.searchParams.set("error", "verification_failed");
+            verifyUrl.searchParams.set(
+              "error_description",
+              error.message || "Weryfikacja emaila nie powiodła się",
+            );
             window.location.href = verifyUrl.toString();
             return;
           } else {
-            logger.info('Email verification successful');
+            logger.info("Email verification successful");
             // Force refresh session to ensure user data is up to date
             await client.auth.refreshSession();
-            
+
             // Redirect to verify-email with success flag
-            const verifyUrl = new URL('/verify-email', window.location.origin);
-            verifyUrl.searchParams.set('verified', 'true');
+            const verifyUrl = new URL("/verify-email", window.location.origin);
+            verifyUrl.searchParams.set("verified", "true");
             window.location.href = verifyUrl.toString();
             return;
           }
         }
-        
+
         // Handle OAuth errors
         if (errorParam) {
-          logger.error('OAuth error detected:', { 
-            error: errorParam, 
+          logger.error("OAuth error detected:", {
+            error: errorParam,
             errorCode,
             description: errorDescription,
-            url: currentUrl.toString()
+            url: currentUrl.toString(),
           });
-          
-          if (errorCode === 'unexpected_failure' || errorParam === 'server_error') {
-            logger.error('OAuth exchange failed - likely configuration issue', {
+
+          if (
+            errorCode === "unexpected_failure" ||
+            errorParam === "server_error"
+          ) {
+            logger.error("OAuth exchange failed - likely configuration issue", {
               error: errorParam,
               description: errorDescription,
-              hint: 'Check Google OAuth configuration in Supabase Dashboard and Google Cloud Console'
+              hint: "Check Google OAuth configuration in Supabase Dashboard and Google Cloud Console",
             });
           }
-          
+
           // Clean up error params
-          currentUrl.searchParams.delete('error');
-          currentUrl.searchParams.delete('error_description');
-          currentUrl.searchParams.delete('error_code');
-          window.history.replaceState({}, document.title, currentUrl.toString());
+          currentUrl.searchParams.delete("error");
+          currentUrl.searchParams.delete("error_description");
+          currentUrl.searchParams.delete("error_code");
+          window.history.replaceState(
+            {},
+            document.title,
+            currentUrl.toString(),
+          );
         }
-        
+
         // If OAuth code is present, Supabase will automatically exchange it for a session
         // due to detectSessionInUrl: true in supabase config
         // Clean up OAuth params after Supabase processes them
         if (code) {
-          logger.info('OAuth code detected, Supabase will handle exchange automatically');
-          
+          logger.info(
+            "OAuth code detected, Supabase will handle exchange automatically",
+          );
+
           // Give Supabase a moment to process the code
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
           // Clean up OAuth params
-          currentUrl.searchParams.delete('code');
-          currentUrl.searchParams.delete('state');
-          window.history.replaceState({}, document.title, currentUrl.toString());
+          currentUrl.searchParams.delete("code");
+          currentUrl.searchParams.delete("state");
+          window.history.replaceState(
+            {},
+            document.title,
+            currentUrl.toString(),
+          );
         }
 
-        const { data: { session }, error: sessionError } = await client.auth.getSession();
-        
+        const {
+          data: { session },
+          error: sessionError,
+        } = await client.auth.getSession();
+
         if (sessionError) {
-          if (sessionError.message.includes('Refresh Token Not Found')) {
-             logger.warn('Refresh token missing, clearing session');
-             await client.auth.signOut();
-             setSession(null);
-             setUser(null);
-             setProfile(null);
-             setLoading(false);
-             return;
+          if (sessionError.message.includes("Refresh Token Not Found")) {
+            logger.warn("Refresh token missing, clearing session");
+            await client.auth.signOut();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            return;
           }
           throw sessionError;
         }
@@ -373,7 +470,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
         }
       } catch (err: unknown) {
-        logger.error('Error getting initial session:', err);
+        logger.error("Error getting initial session:", err);
         setSession(null);
         setUser(null);
         setProfile(null);
@@ -382,22 +479,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Listen for auth changes - set up BEFORE init to catch OAuth callback
-    const { data: { subscription } } = client.auth.onAuthStateChange(
+    const {
+      data: { subscription },
+    } = client.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         if (logger.debug) {
-          logger.debug('Auth state change', { event, hasSession: !!session, isInitialized });
+          logger.debug("Auth state change", {
+            event,
+            hasSession: !!session,
+            isInitialized,
+          });
         }
-        
+
         // Skip duplicate processing during initial OAuth exchange
-        if (!isInitialized && event === 'INITIAL_SESSION') {
+        if (!isInitialized && event === "INITIAL_SESSION") {
           return;
         }
-        if (event === 'PASSWORD_RECOVERY') {
+        if (event === "PASSWORD_RECOVERY") {
           // Supabase recovery flow: enforce reset screen
-          const resetUrl = new URL('/auth?mode=reset', window.location.origin);
+          const resetUrl = new URL("/auth?mode=reset", window.location.origin);
           window.history.replaceState({}, document.title, resetUrl.toString());
         }
-        
+
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
@@ -409,19 +512,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(null);
           setLoading(false);
         }
-      }
+      },
     );
 
     init();
 
     return () => subscription.unsubscribe();
-  }, [clearPendingEmailVerification, fetchProfile, initCSRFToken, sendEmailVerification]);
+  }, [
+    clearPendingEmailVerification,
+    fetchProfile,
+    initCSRFToken,
+    sendEmailVerification,
+  ]);
 
   const signUp = async (email: string, password: string) => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: "Supabase not configured" };
 
-    const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
+    const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as
+      | string
+      | undefined;
     const baseUrl = getBaseUrl();
     const emailRedirectTo = configuredRedirect || `${baseUrl}/verify-email`;
 
@@ -436,7 +546,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!error) {
       setPendingEmailVerification(email);
       try {
-        localStorage.setItem('pendingEmailVerification', email);
+        localStorage.setItem("pendingEmailVerification", email);
       } catch {
         // ignore
       }
@@ -446,7 +556,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: "Supabase not configured" };
     const { data, error } = await client.auth.signInWithPassword({
       email,
       password,
@@ -454,80 +564,94 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { user: data.user, error };
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (customRedirect?: string) => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: "Supabase not configured" };
 
-    const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
+    const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as
+      | string
+      | undefined;
     const baseUrl = getBaseUrl();
-    const redirectTo = configuredRedirect || `${baseUrl}/auth`;
+    const redirectTo =
+      customRedirect || configuredRedirect || `${baseUrl}/auth`;
 
     try {
-      logger.info('Initiating Google OAuth', { 
-        redirectTo, 
-        baseUrl, 
+      logger.info("Initiating Google OAuth", {
+        redirectTo,
+        baseUrl,
         configuredRedirect,
-        flowType: 'pkce',
-        detectSessionInUrl: true 
+        flowType: "pkce",
+        detectSessionInUrl: true,
       });
-      
+
       const { data, error } = await client.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo,
           skipBrowserRedirect: false,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+            access_type: "offline",
+            prompt: "consent",
           },
         },
       });
-      
+
       if (error) {
-        logger.error('Google OAuth error:', error);
+        logger.error("Google OAuth error:", error);
         return { user: null, error };
       }
-      
-      logger.info('Google OAuth URL generated, redirecting...', { url: data.url });
+
+      logger.info("Google OAuth URL generated, redirecting...", {
+        url: data.url,
+      });
       // OAuth redirect will happen, so we don't return user here
       return { user: null, error: null };
     } catch (err) {
-      logger.error('Google OAuth exception:', err);
-      return { 
-        user: null, 
-        error: err instanceof Error ? err : new Error('Failed to initiate Google OAuth') 
+      logger.error("Google OAuth exception:", err);
+      return {
+        user: null,
+        error:
+          err instanceof Error
+            ? err
+            : new Error("Failed to initiate Google OAuth"),
       };
     }
   };
 
-  const signInWithFacebook = async () => {
+  const signInWithFacebook = async (customRedirect?: string) => {
     const client = supabase;
-    if (!client) return { user: null, error: 'Supabase not configured' };
+    if (!client) return { user: null, error: "Supabase not configured" };
 
-    const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined;
+    const configuredRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL as
+      | string
+      | undefined;
     const baseUrl = getBaseUrl();
-    const redirectTo = configuredRedirect || `${baseUrl}/auth`;
+    const redirectTo =
+      customRedirect || configuredRedirect || `${baseUrl}/auth`;
 
     try {
       const { data, error } = await client.auth.signInWithOAuth({
-        provider: 'facebook',
+        provider: "facebook",
         options: {
           redirectTo,
         },
       });
-      
+
       if (error) {
-        logger.error('Facebook OAuth error:', error);
+        logger.error("Facebook OAuth error:", error);
         return { user: null, error };
       }
-      
+
       // OAuth redirect will happen, so we don't return user here
       return { user: null, error: null };
     } catch (err) {
-      logger.error('Facebook OAuth exception:', err);
-      return { 
-        user: null, 
-        error: err instanceof Error ? err : new Error('Failed to initiate Facebook OAuth') 
+      logger.error("Facebook OAuth exception:", err);
+      return {
+        user: null,
+        error:
+          err instanceof Error
+            ? err
+            : new Error("Failed to initiate Facebook OAuth"),
       };
     }
   };
@@ -541,7 +665,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const requestPasswordReset = async (email: string) => {
     const client = supabase;
-    if (!client) return { error: 'Supabase not configured' };
+    if (!client) return { error: "Supabase not configured" };
     const baseUrl = getBaseUrl();
     const redirectTo =
       (import.meta.env.VITE_AUTH_REDIRECT_URL as string | undefined) ||
@@ -556,7 +680,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updatePassword = async (password: string) => {
     const client = supabase;
-    if (!client) return { error: 'Supabase not configured' };
+    if (!client) return { error: "Supabase not configured" };
     const { error } = await client.auth.updateUser({ password });
     if (!error) {
       await refreshSession();
@@ -567,23 +691,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshSession = async () => {
     const client = supabase;
     if (!client) return;
-    
+
     // Fetch latest user data from server
-    const { data: { user: updatedUser }, error } = await client.auth.getUser();
-    
+    const {
+      data: { user: updatedUser },
+      error,
+    } = await client.auth.getUser();
+
     if (error) {
-      logger.error('Error refreshing user:', error);
+      logger.error("Error refreshing user:", error);
       return;
     }
-    
+
     if (updatedUser) {
       setUser(updatedUser);
       // Also refresh the session to get a new token if needed, though getUser doesn't always rotate token
-      const { data: { session: updatedSession } } = await client.auth.getSession();
+      const {
+        data: { session: updatedSession },
+      } = await client.auth.getSession();
       if (updatedSession) {
         setSession(updatedSession);
       }
-      
+
       // Now fetch profile with the updated user
       await fetchProfile(updatedUser);
     }
@@ -591,11 +720,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) {
-      throw new Error('Brak aktywnej sesji użytkownika');
+      throw new Error("Brak aktywnej sesji użytkownika");
     }
     const client = supabase;
     if (!client) {
-      throw new Error('Brak połączenia z bazą danych');
+      throw new Error("Brak połączenia z bazą danych");
     }
 
     // Strip protected fields
@@ -605,31 +734,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     delete (safeUpdates as any).email;
 
     // Validate username if present in updates
-    if ('username' in safeUpdates && safeUpdates.username) {
+    if ("username" in safeUpdates && safeUpdates.username) {
       safeUpdates.username = sanitizeUsername(safeUpdates.username);
       if (safeUpdates.username.length < 3) {
-        throw new Error('Nazwa użytkownika jest nieprawidłowa (min. 3 znaki).');
+        throw new Error("Nazwa użytkownika jest nieprawidłowa (min. 3 znaki).");
       }
     }
 
     try {
-      const response = await apiClient.patch<Profile>('/users/profile', safeUpdates);
-      
+      const response = await apiClient.patch<Profile>(
+        "/users/profile",
+        safeUpdates,
+      );
+
       if (!response) {
-        throw new Error('Nie udało się zapisać profilu');
+        throw new Error("Nie udało się zapisać profilu");
       }
 
       // Refetch everything to ensure synchronization
       await refreshSession();
     } catch (error: any) {
-      logger.error('Error updating profile through API:', error);
+      logger.error("Error updating profile through API:", error);
       throw error;
     }
   };
 
   const showUserPanel = () => {
     // This will be handled by the Header component through a custom event
-    window.dispatchEvent(new CustomEvent('showUserPanel'));
+    window.dispatchEvent(new CustomEvent("showUserPanel"));
   };
 
   const value: AuthContextType = {
@@ -651,15 +783,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     showUserPanel,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };

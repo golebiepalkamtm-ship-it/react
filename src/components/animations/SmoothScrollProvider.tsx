@@ -1,7 +1,7 @@
 /**
  * SMOOTH SCROLL PROVIDER - LENIS + GSAP SCROLLTRIGGER (v2)
  * Awwwards-level smooth scrolling z pełną integracją GSAP
- * 
+ *
  * OPTIMIZATIONS:
  * - Single animation loop: Lenis.raf is driven by gsap.ticker (no rAF duplication)
  * - Lenis.stop()/start() API exposed for modal integration
@@ -10,9 +10,16 @@
  * - lagSmoothing(0) for tightest Lenis↔ScrollTrigger sync
  */
 
-import { ReactNode, useEffect, createContext, useContext, useRef, useCallback } from 'react';
-import Lenis from 'lenis';
-import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
+import {
+  ReactNode,
+  useEffect,
+  createContext,
+  useContext,
+  useRef,
+  useCallback,
+} from "react";
+import Lenis from "lenis";
+import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
 
 interface LenisContextValue {
   getLenis: () => Lenis | null;
@@ -38,36 +45,38 @@ interface SmoothScrollProviderProps {
   children: ReactNode;
 }
 
-export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) => {
+export const SmoothScrollProvider = ({
+  children,
+}: SmoothScrollProviderProps) => {
   const lenisRef = useRef<Lenis | null>(null);
-  
+
   // Check reduced motion preference
-  const isReduced = typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
-    : false;
+  const isReduced =
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
 
   useEffect(() => {
     if (isReduced) {
-      document.documentElement.classList.add('reduced-motion');
+      document.documentElement.classList.add("reduced-motion");
       return;
     }
 
     // ── Initialize Lenis ──────────────────────────────────────────────
     const lenis = new Lenis({
-      duration: 2.4,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // expo.out
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
+      lerp: 0.05, // Slower, more buttery smooth feel
+      orientation: "vertical",
+      gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 0.8,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 1.0, // Natural scroll speed
+      touchMultiplier: 1.5, // Better balance for mobile
       infinite: false,
     });
 
     lenisRef.current = lenis;
 
     // Expose for debugging
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       (window as any).lenis = lenis;
     }
 
@@ -77,7 +86,7 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
     const scrollUpdate = () => {
       ScrollTrigger.update();
     };
-    lenis.on('scroll', scrollUpdate);
+    lenis.on("scroll", scrollUpdate);
 
     // ── Drive Lenis from GSAP ticker (single loop) ──────────────────
     // gsap.ticker runs at display refresh rate (60/120/144 Hz).
@@ -97,7 +106,7 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
 
     return () => {
       // 1. Remove Lenis scroll listener
-      lenis.off('scroll', scrollUpdate);
+      lenis.off("scroll", scrollUpdate);
       // 2. Remove from GSAP ticker
       gsap.ticker.remove(rafHandler);
       // 3. Clear timeout
@@ -106,7 +115,7 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
       lenis.destroy();
       lenisRef.current = null;
       // 5. Clean window reference
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         (window as any).lenis = null;
       }
     };
@@ -126,18 +135,18 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
         }
       }, 150);
     };
-    
-    window.addEventListener('resize', handleResize);
-    
+
+    window.addEventListener("resize", handleResize);
+
     return () => {
       clearTimeout(resizeTimer);
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, [isReduced]);
 
   // ── Public API ────────────────────────────────────────────────────
   const getLenis = useCallback(() => lenisRef.current, []);
-  
+
   const stopScroll = useCallback(() => {
     lenisRef.current?.stop();
   }, []);
@@ -147,7 +156,9 @@ export const SmoothScrollProvider = ({ children }: SmoothScrollProviderProps) =>
   }, []);
 
   return (
-    <LenisContext.Provider value={{ getLenis, isReduced, stopScroll, startScroll }}>
+    <LenisContext.Provider
+      value={{ getLenis, isReduced, stopScroll, startScroll }}
+    >
       {children}
     </LenisContext.Provider>
   );

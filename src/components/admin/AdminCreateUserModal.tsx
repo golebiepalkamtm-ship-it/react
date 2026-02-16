@@ -93,9 +93,10 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
-                    Imię
+                    Imię *
                   </label>
                   <input
+                    required
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
                     value={user.first_name || ""}
                     onChange={(e) =>
@@ -105,9 +106,10 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
-                    Nazwisko
+                    Nazwisko *
                   </label>
                   <input
+                    required
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
                     value={user.last_name || ""}
                     onChange={(e) =>
@@ -115,6 +117,19 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                     }
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
+                  Numer telefonu *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="+48 000 000 000"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  value={user.phone || ""}
+                  onChange={(e) => onChange({ ...user, phone: e.target.value })}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4 py-2">
                 <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">

@@ -120,7 +120,9 @@ const Header = () => {
       isReferencesPage,
     ],
   );
-  const accountHref = user ? "/account" : "/auth";
+  const accountHref = user
+    ? "ACCOUNT_MODAL_TRIGGER"
+    : "/auth?mode=login&callbackUrl=ACCOUNT_MODAL_TRIGGER";
 
   const navLinks = useMemo(() => {
     const baseLinks = [
@@ -382,7 +384,7 @@ const Header = () => {
           }}
         >
           {navLinks.map((link, index) => {
-            if (link.href === "/account") {
+            if (link.href === "ACCOUNT_MODAL_TRIGGER") {
               return (
                 <motion.button
                   key={link.label}
@@ -700,7 +702,7 @@ const Header = () => {
               }}
             >
               {navLinks.map((link) => {
-                if (link.href === "/account") {
+                if (link.href === "ACCOUNT_MODAL_TRIGGER") {
                   return (
                     <motion.button
                       key={link.label}

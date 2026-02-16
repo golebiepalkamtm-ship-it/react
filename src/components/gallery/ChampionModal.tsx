@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { X, Trophy, Sparkles } from "lucide-react";
+import {
+  X,
+  Trophy,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+} from "lucide-react";
 import { Champion } from "@/hooks/useChampions";
 import { trackMetric } from "@/services/metricsService";
+import { FullscreenImageModal } from "@/components/ui/FullscreenImageModal";
 
 interface ChampionModalProps {
   champion: Champion | null;
@@ -31,6 +40,7 @@ export const ChampionModal = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [displaySrc, setDisplaySrc] = useState("");
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const hasMultiplePhotos = !!(champion && champion.images.length > 1);
 
   useEffect(() => {
@@ -105,6 +115,58 @@ export const ChampionModal = ({
     return () => cancelAnimationFrame(frame);
   }, [champion, currentPhotoIndex]);
 
+  const nextPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!champion || champion.images.length <= 1) return;
+    setCurrentPhotoIndex((prev) => (prev + 1) % champion.images.length);
+  };
+
+  const prevPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!champion || champion.images.length <= 1) return;
+    setCurrentPhotoIndex(
+      (prev) => (prev - 1 + champion.images.length) % champion.images.length,
+    );
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isFullscreenOpen || !champion) return;
+
+      if (e.key === "ArrowRight") {
+        if (hasMultiplePhotos && champion.images) {
+          setCurrentPhotoIndex((prev) => (prev + 1) % champion.images.length);
+        } else if (hasNextChampion) {
+          onNextChampion();
+        }
+      } else if (e.key === "ArrowLeft") {
+        if (hasMultiplePhotos && champion.images) {
+          setCurrentPhotoIndex(
+            (prev) =>
+              (prev - 1 + champion.images.length) % champion.images.length,
+          );
+        } else if (hasPrevChampion) {
+          onPrevChampion();
+        }
+      } else if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    champion,
+    hasMultiplePhotos,
+    hasNextChampion,
+    hasPrevChampion,
+    onNextChampion,
+    onPrevChampion,
+    onClose,
+    isFullscreenOpen,
+  ]);
+
   // Body scroll lock
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -114,32 +176,39 @@ export const ChampionModal = ({
   }, []);
 
   if (!champion) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 md:p-8 overflow-y-auto"
+      className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto overflow-x-hidden bg-black/95 backdrop-blur-3xl p-0 md:p-4"
       onClick={onClose}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+      {/* Global Close Button - Always at top right of viewport */}
+      <button
+        onClick={onClose}
+        className="fixed top-6 right-6 p-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all hover:scale-110 z-[10000] group shadow-2xl"
+        aria-label="Zamknij"
+      >
+        <X className="w-6 h-6 text-white group-hover:rotate-90 transition-transform duration-300" />
+      </button>
 
       {/* Modal Container */}
       <motion.div
-        initial={{ scale: 0.98, opacity: 0, y: -40 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.98, opacity: 0, y: -40 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="relative w-full h-auto min-h-[500px] max-w-5xl isolate pointer-events-auto overflow-hidden bg-[#0A0A0A] rounded-[2rem] border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] mt-2 md:mt-6"
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 60, opacity: 0 }}
+        transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+        className="relative w-full max-w-7xl h-auto min-h-screen md:min-h-[85vh] isolate pointer-events-auto overflow-hidden bg-[#050505] flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] md:rounded-[2.5rem] mt-0 md:mt-10 mb-10 border border-white/5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Full Screen Image - Positioned Left & Shifted UP */}
-        <div className="absolute inset-y-0 left-0 w-full md:w-[60%] lg:w-[65%] z-0 flex items-start justify-center bg-black/20 overflow-hidden">
+        {/* Full Screen Image - Flexible Area */}
+        <div className="relative flex-1 md:basis-[65%] flex items-center justify-center bg-black/40 overflow-hidden py-12 px-6">
           {imageLoading && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
           {imageError ? (
@@ -152,50 +221,83 @@ export const ChampionModal = ({
               key={displaySrc}
               src={displaySrc}
               alt={champion.name}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="w-full h-full object-contain object-top pt-4 md:pt-6 px-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="max-h-[70vh] md:max-h-[80vh] w-auto h-auto object-contain cursor-zoom-in rounded-xl shadow-2xl"
+              onClick={() => setIsFullscreenOpen(true)}
             />
           )}
-          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none z-10" />
-        </div>
 
-        {/* Right Sidebar - Fixed Width */}
-        <div className="absolute inset-y-0 right-0 w-full md:w-[40%] lg:w-[35%] bg-[#0A0A0A]/80 backdrop-blur-2xl border-l border-white/10 z-20 flex flex-col p-6 md:p-8">
-          {/* Close button - Top right of the sidebar section */}
           <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all hover:scale-110 z-50 group shadow-lg"
-            aria-label="Zamknij"
+            onClick={() => setIsFullscreenOpen(true)}
+            className="absolute top-4 left-4 p-2 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white/70 hover:text-white transition-all z-30 group"
+            title="Pełny ekran"
           >
-            <X className="w-5 h-5 text-white/70 group-hover:text-white" />
+            <Maximize2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
           </button>
 
-          <div className="mt-6 flex-1 flex flex-col justify-start">
+          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none z-10" />
+
+          {/* Photo Navigation - Inner */}
+          {hasMultiplePhotos && (
+            <>
+              <button
+                onClick={prevPhoto}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white transition-all z-30"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={nextPhoto}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white transition-all z-30 mr-[40%] md:mr-0"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+
+          {/* Thumbnails at the bottom of the image area */}
+          {hasMultiplePhotos && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
+              {champion.images.map((img, idx) => (
+                <button
+                  key={`thumb-${idx}`}
+                  onClick={() => setCurrentPhotoIndex(idx)}
+                  className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
+                    currentPhotoIndex === idx
+                      ? "border-gold scale-110"
+                      : "border-white/20 hover:border-white/50"
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar - Adjusted to be part of flex flow */}
+        <div className="relative w-full md:w-[320px] lg:w-[380px] bg-white/[0.02] backdrop-blur-3xl border-l border-white/10 z-20 flex flex-col p-6 md:p-8 shrink-0">
+          <div className="mt-8 md:mt-12 flex-1 flex flex-col justify-start">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-2 leading-tight uppercase tracking-tight">
-                {champion.name}
-              </h2>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-gold/10 rounded-lg border border-gold/20 mb-4 font-mono">
-                <span className="text-[9px] font-bold text-gold uppercase tracking-[0.2em]">
-                  Numer
-                </span>
-                <span className="text-xs font-bold text-white/90">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/5 rounded-xl border border-gold/20 mb-8 w-full justify-center md:justify-start">
+                <span className="text-2xl md:text-3xl font-display font-black text-gold tracking-tight">
                   {champion.ringNumber || "Brak numeru"}
                 </span>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-black">
-                    Osiągnięcia
-                  </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {champion.achievements.map((achievement, i) => (
                       <div
                         key={`achievement-${i}`}
@@ -227,11 +329,8 @@ export const ChampionModal = ({
             </motion.div>
           </div>
 
-          {/* Footer Info */}
-          <div className="pt-6 mt-auto border-t border-white/5 flex justify-between items-center text-white/20 text-[9px] font-mono uppercase tracking-[0.25em]">
-            <span>
-              LOT {championIndex + 1} / {totalChampions}
-            </span>
+          {/* Footer Info - Cleaned up */}
+          <div className="pt-6 mt-auto border-t border-white/5 flex justify-end items-center text-white/20 text-[9px] font-mono uppercase tracking-[0.25em]">
             {hasMultiplePhotos && (
               <span>
                 IMG {currentPhotoIndex + 1}/{champion.images.length}
@@ -270,7 +369,7 @@ export const ChampionModal = ({
               e.stopPropagation();
               onNextChampion();
             }}
-            className="absolute right-[33%] top-1/2 -translate-y-1/2 z-30 p-4 rounded-2xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white/50 hover:text-white transition-all hover:scale-105 hidden md:flex"
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-30 p-4 rounded-2xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white/50 hover:text-white transition-all hover:scale-105 hidden lg:flex"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -306,6 +405,18 @@ export const ChampionModal = ({
           />
         </div>
       </motion.div>
-    </motion.div>
+
+      {/* Fullscreen Lightbox */}
+      {isFullscreenOpen && champion && (
+        <FullscreenImageModal
+          isOpen={isFullscreenOpen}
+          onClose={() => setIsFullscreenOpen(false)}
+          images={champion.images}
+          currentIndex={currentPhotoIndex}
+          title={champion.name}
+        />
+      )}
+    </motion.div>,
+    document.body,
   );
 };

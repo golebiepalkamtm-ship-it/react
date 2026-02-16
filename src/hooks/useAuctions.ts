@@ -274,7 +274,7 @@ export function usePreciseAuctionTimer(endTime: string | undefined) {
     };
 
     update();
-    const intervalId = setInterval(update, 10); // Update every 10ms for centiseconds
+    const intervalId = setInterval(update, 500); // Updated to 500ms to reduce stress on UI and prevent flickering
     return () => clearInterval(intervalId);
   }, [endTime]);
 

@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import type { Auction } from '@/types/auction';
+import { useMemo } from "react";
+import type { Auction } from "@/types/auction";
 
 interface AuctionFilters {
   searchTerm?: string;
@@ -9,11 +9,15 @@ interface AuctionFilters {
   gender?: string;
 }
 
-export function useAuctionFilters(auctions: Auction[], filters: AuctionFilters) {
+export function useAuctionFilters(
+  auctions: Auction[],
+  filters: AuctionFilters,
+) {
   return useMemo(() => {
-    return auctions.filter(auction => {
-      const term = (filters.searchTerm || '').toLowerCase();
-      const matchesSearch = !term || 
+    return auctions.filter((auction) => {
+      const term = (filters.searchTerm || "").toLowerCase();
+      const matchesSearch =
+        !term ||
         auction.title?.toLowerCase().includes(term) ||
         auction.pigeon?.ringNumber?.toLowerCase().includes(term);
 
@@ -22,10 +26,14 @@ export function useAuctionFilters(auctions: Auction[], filters: AuctionFilters) 
         (!filters.priceMax || auction.currentPrice <= filters.priceMax);
 
       const matchesCategory =
-        !filters.category || filters.category === "all" || auction.category === filters.category;
+        !filters.category ||
+        filters.category === "all" ||
+        auction.category?.toUpperCase() === filters.category.toUpperCase();
 
       const matchesGender =
-        !filters.gender || filters.gender === "all" || auction.pigeon?.gender === filters.gender;
+        !filters.gender ||
+        filters.gender === "all" ||
+        auction.pigeon?.gender === filters.gender;
 
       return matchesSearch && matchesPrice && matchesCategory && matchesGender;
     });
