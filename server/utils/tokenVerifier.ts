@@ -56,7 +56,8 @@ export class TokenVerifier {
       : null;
 
     // Cleanup expired entries
-    setInterval(() => this.cleanup(), 60000);
+    const interval = setInterval(() => this.cleanup(), 60000);
+    interval.unref?.();
   }
 
   private cleanup(): void {
@@ -100,8 +101,10 @@ export class TokenVerifier {
     try {
       const parts = token.split('.');
       if (parts.length !== 3) return null;
-      
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+
+      // base64url decode with padding normalization
+      const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(parts[1].length + ((4 - (parts[1].length % 4)) % 4), '=');
+      const payload = JSON.parse(Buffer.from(normalized, 'base64').toString('utf8'));
       return {
         aud: payload.aud,
         iss: payload.iss,
@@ -113,6 +116,10 @@ export class TokenVerifier {
   }
 
   async verifyToken(token: string, rateLimitKey?: string): Promise<TokenVerificationResult> {
+    if (!token || typeof token !== 'string' || !token.includes('.')) {
+      throw new Error('Invalid token format');
+    }
+
     // Check rate limiting
     if (rateLimitKey && !this.checkRateLimit(rateLimitKey)) {
       throw new Error('Rate limit exceeded');
@@ -136,15 +143,15 @@ export class TokenVerifier {
       throw new Error('Token expired');
     }
 
-    // Validate audience and issuer
+    // Validate audience and issuer (must be present)
     const expectedAud = 'authenticated';
     const expectedIss = `${this.supabaseUrl}/auth/v1`;
-    
-    if (tokenInfo.aud && tokenInfo.aud !== expectedAud) {
+
+    if (tokenInfo.aud !== expectedAud) {
       throw new Error('Invalid token audience');
     }
-    
-    if (tokenInfo.iss && tokenInfo.iss !== expectedIss) {
+
+    if (tokenInfo.iss !== expectedIss) {
       throw new Error('Invalid token issuer');
     }
 
@@ -199,6 +206,12 @@ export class TokenVerifier {
 
       if (!error && roleData) {
         result.role = roleData.role;
+        // FIX: Persist role in cache so subsequent calls don't lose authorization context
+        const cacheKey = `token:${token}`;
+        this.cache.set(cacheKey, {
+          data: result,
+          expiresAt: Date.now() + this.cacheTTL
+        });
       }
     } catch (error) {
       // Role fetch error shouldn't block authentication

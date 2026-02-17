@@ -138,7 +138,7 @@ export class AuctionService {
       if (!auction) {
         throw createAuctionError(
           AuctionErrorCodes.AUCTION_NOT_FOUND,
-          "Auction not found",
+          "Nie znaleziono aukcji",
         );
       }
 
@@ -146,7 +146,7 @@ export class AuctionService {
       if (auction.sellerId === userId) {
         throw createAuctionError(
           AuctionErrorCodes.INVALID_BID_AMOUNT,
-          "Cannot bid on your own auction",
+          "Nie możesz licytować we własnej aukcji",
         );
       }
 
@@ -184,9 +184,11 @@ export class AuctionService {
         );
       }
 
-      const increment = auction.minBidIncrement || 100;
-      const minimumAllowed =
-        Number(auction.currentPrice || auction.startingPrice || 0) + increment;
+      const increment = auction.minBidIncrement || 5;
+      const hasBids = auction.bids.length > 0;
+      const minimumAllowed = hasBids
+        ? Number(auction.currentPrice) + increment
+        : Number(auction.startingPrice || 0);
 
       if (amount < minimumAllowed) {
         throw createAuctionError(
@@ -215,6 +217,14 @@ export class AuctionService {
         targetEndDate = new Date(endsAt + extensionMs);
         newEndTime = targetEndDate.toISOString();
         wasExtended = true;
+      }
+
+      // Dynamic increment adjustment: 5 PLN default, 50 PLN if extended
+      let nextIncrement = auction.minBidIncrement;
+      const finalIsExtended = (auction as any).isExtended || wasExtended;
+
+      if (finalIsExtended) {
+        nextIncrement = 50;
       }
 
       // Reserve price check
@@ -413,6 +423,8 @@ export class AuctionService {
           currentPrice: new Prisma.Decimal(finalAmount),
           endTime: targetEndDate,
           reserveMet,
+          minBidIncrement: nextIncrement,
+          isExtended: finalIsExtended,
         },
       });
 
@@ -479,7 +491,7 @@ export class AuctionService {
    */
   async adminCancelAuction(auctionId: string): Promise<Auction> {
     if (!prisma) {
-      throw new Error("Database connection is not available");
+      throw new Error("Połączenie z bazą danych jest niedostępne");
     }
 
     const updatedAuction = await prisma.$transaction(async (tx) => {
@@ -512,7 +524,7 @@ export class AuctionService {
    */
   async adminEndAuction(auctionId: string): Promise<Auction> {
     if (!prisma) {
-      throw new Error("Database connection is not available");
+      throw new Error("Połączenie z bazą danych jest niedostępne");
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -524,7 +536,7 @@ export class AuctionService {
       if (!auction) {
         throw createAuctionError(
           AuctionErrorCodes.AUCTION_NOT_FOUND,
-          "Auction not found",
+          "Nie znaleziono aukcji",
         );
       }
 
@@ -548,7 +560,7 @@ export class AuctionService {
    */
   async adminDeleteAuction(auctionId: string): Promise<void> {
     if (!prisma) {
-      throw new Error("Database connection is not available");
+      throw new Error("Połączenie z bazą danych jest niedostępne");
     }
 
     await prisma.$transaction(async (tx) => {

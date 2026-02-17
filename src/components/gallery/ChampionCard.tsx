@@ -115,14 +115,12 @@ export const ChampionCard = ({
       onClick={() => onSelect?.(champion)}
     >
       <motion.div
-        className="champion-card-inner relative rounded-2xl overflow-hidden glass-card gold-border border-[2px] border-white transition-all duration-300 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black/96 shadow-[0_14px_32px_rgba(0,0,0,0.6),0_0_32px_rgba(255,255,255,0.28),inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-2px_8px_rgba(0,0,0,0.45)]"
-        // whileHover={{ scale: 1.02 }} // Disabled to prevent flickering
-        style={
-          {
-            // transformStyle: 'preserve-3d', // Disabled for performance
-            // transition: 'transform 0.1s ease-out',
-          }
-        }
+        className="champion-card-inner relative rounded-2xl overflow-hidden shadow-[0_14px_32px_rgba(0,0,0,0.6)] border border-white/10 transition-all duration-300"
+        style={{
+          background:
+            "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+          // transformStyle: 'preserve-3d', // Disabled for performance
+        }}
       >
         {/* Jedna widoczna ramka wokół całej karty */}
 
@@ -150,7 +148,7 @@ export const ChampionCard = ({
          /> */}
 
         {/* Obraz z efektami hover */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-950">
+        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-950/20">
           {/* Obrazek championa */}
           {champion.images?.[0] ? (
             <motion.img
@@ -170,13 +168,13 @@ export const ChampionCard = ({
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-950">
+            <div className="w-full h-full flex items-center justify-center bg-zinc-900/20">
               {/* Placeholder */}
             </div>
           )}
 
           {/* Fallback gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-gold/20 -z-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-gold/10 -z-10" />
 
           {/* Bezpośrednio eksponujemy obraz bez dodatkowej winiety, żeby był jaśniejszy */}
 
@@ -191,7 +189,7 @@ export const ChampionCard = ({
         </div>
 
         {/* Content - numer gołębia i przycisk rodowodu */}
-        <div className="relative p-3 bg-card gallery-card-content">
+        <div className="relative p-3 gallery-card-content">
           {/* Numer obrączki */}
           <motion.h3 className="text-base font-bold font-display text-foreground text-center group-hover:text-gold transition-all duration-300 mb-2 gallery-card-title">
             {champion.ringNumber || champion.records[0] || champion.name}

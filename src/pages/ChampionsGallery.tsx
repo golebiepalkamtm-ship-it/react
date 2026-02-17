@@ -25,8 +25,8 @@ import { ChampionModal } from "@/components/gallery/ChampionModal";
 import { useChampions, type Champion } from "@/hooks/useChampions";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { RevealOnScroll } from "@/components/motion/RevealOnScroll";
 import {
-  ScrollReveal,
   CountUp,
   StaggerContainer,
   staggerItemVariants,
@@ -49,9 +49,9 @@ export const ChampionsGallery = () => {
     offset: ["start start", "end start"],
   });
 
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
-  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.99]);
+  const heroY = useTransform(scrollYProgress, [0, 0.2], [0, -20]);
 
   const handleSelect = useCallback(
     (champion: Champion) => {
@@ -123,7 +123,7 @@ export const ChampionsGallery = () => {
           className="relative pt-20 md:pt-32 pb-24 md:pb-32 px-4 overflow-hidden min-h-[70vh] flex items-center"
         >
           <div className="container mx-auto text-center relative z-10">
-            <ScrollReveal delay={0}>
+            <RevealOnScroll direction="up" delay={0}>
               <motion.span
                 className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-gold/20 to-gold-dark/20 border border-gold/30 text-gold text-sm font-medium tracking-widest uppercase mb-8"
                 whileHover={{
@@ -160,7 +160,7 @@ export const ChampionsGallery = () => {
                   <Star className="w-4 h-4" />
                 </motion.div>
               </motion.span>
-            </ScrollReveal>
+            </RevealOnScroll>
 
             <div className="mb-6">
               <h1
@@ -171,15 +171,15 @@ export const ChampionsGallery = () => {
               </h1>
             </div>
 
-            <ScrollReveal delay={0.2}>
+            <RevealOnScroll delay={0.2}>
               <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12">
                 MTM Pałka – Ponad 20 lat dominacji w hodowli gołębi pocztowych.
                 <br />
                 <span className="text-gold/80">Zwycięstwo mamy w genach.</span>
               </p>
-            </ScrollReveal>
+            </RevealOnScroll>
 
-            <ScrollReveal delay={0.3}>
+            <RevealOnScroll direction="up" delay={0.3}>
               <div className="flex flex-wrap justify-center gap-8 md:gap-16">
                 {[
                   {
@@ -208,7 +208,7 @@ export const ChampionsGallery = () => {
                   </motion.div>
                 ))}
               </div>
-            </ScrollReveal>
+            </RevealOnScroll>
           </div>
         </motion.section>
 

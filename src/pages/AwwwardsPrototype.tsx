@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useSpringPhysics, customExpoEase, customBezier, splitTextToChars, splitTextToWords } from '@/hooks/useCustomPhysics';
-import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { useGSAPAnimations } from '@/hooks/useGSAPAnimations';
 import './AwwwardsPrototype.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -78,9 +78,9 @@ const AwwwardsPrototype = () => {
     const cursorSpring = useSpringPhysics({ stiffness: 0.15, damping: 0.25 });
     const followerSpring = useSpringPhysics({ stiffness: 0.08, damping: 0.3 });
 
-    // Initialize smooth scroll with custom configuration
-    useSmoothScroll({
-        enableAnimations: false // We'll handle animations manually
+    // Initialize GSAP animations (disabled - we handle animations manually)
+    useGSAPAnimations({
+        enableAnimations: false
     });
 
     // Register custom GSAP ease

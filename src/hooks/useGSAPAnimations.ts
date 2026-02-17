@@ -1,16 +1,19 @@
 /**
- * React Hook for Animation Initialization
+ * React Hook for GSAP Animation Initialization
  * Handles the logic for starting premium GSAP animations.
+ * 
+ * Note: This hook initializes GSAP animations, NOT smooth scrolling.
+ * For smooth scrolling, use SmoothScrollProvider from @/components/animations/SmoothScrollProvider
  */
 
 import { useEffect } from 'react';
 import { initAllAnimations, killScrollTrigger, refreshScrollTrigger } from '@/lib/gsapAnimations';
 
-interface UseSmoothScrollOptions {
+interface UseGSAPAnimationsOptions {
   enableAnimations?: boolean;
 }
 
-export const useSmoothScroll = (options: UseSmoothScrollOptions = {}) => {
+export const useGSAPAnimations = (options: UseGSAPAnimationsOptions = {}) => {
   const { enableAnimations = true } = options;
 
   useEffect(() => {

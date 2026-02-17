@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient from "./api";
 import type {
   Auction,
   AuctionsResponse,
@@ -6,16 +6,23 @@ import type {
   BidRequest,
   BidResponse,
   CreateAuctionRequest,
-} from '@/types/auction';
+} from "@/types/auction";
 
 export const auctionService = {
-  async adminUpdateAuction(auctionId: string, data: { currentPrice?: number; buyNowPrice?: number; endTime?: string }, token: string | null): Promise<Auction> {
-    if (!token) throw new Error('Authentication required');
+  async adminUpdateAuction(
+    auctionId: string,
+    data: { currentPrice?: number; buyNowPrice?: number; endTime?: string },
+    token: string | null,
+  ): Promise<Auction> {
+    if (!token) throw new Error("Wymagane logowanie");
     return apiClient.put<Auction>(`/auctions/${auctionId}/admin`, data, token);
   },
 
-  async adminCancelAuction(auctionId: string, token: string | null): Promise<Auction> {
-    if (!token) throw new Error('Authentication required');
+  async adminCancelAuction(
+    auctionId: string,
+    token: string | null,
+  ): Promise<Auction> {
+    if (!token) throw new Error("Wymagane logowanie");
     return apiClient.delete<Auction>(`/auctions/${auctionId}/admin`, token);
   },
   /**
@@ -34,7 +41,7 @@ export const auctionService = {
     if (filters.priceMax) params.priceMax = filters.priceMax;
     if (filters.sellerId) params.sellerId = filters.sellerId;
 
-    const response = await apiClient.get<AuctionsResponse>('/auctions', params);
+    const response = await apiClient.get<AuctionsResponse>("/auctions", params);
     return response.auctions;
   },
 
@@ -48,77 +55,97 @@ export const auctionService = {
   /**
    * Złóż ofertę na aukcji
    */
-  async placeBid(auctionId: string, bidData: BidRequest, token: string | null): Promise<BidResponse> {
-    if (!token) throw new Error('Authentication required');
-    return apiClient.post<BidResponse>(`/auctions/${auctionId}/bids`, bidData, token);
+  async placeBid(
+    auctionId: string,
+    bidData: BidRequest,
+    token: string | null,
+  ): Promise<BidResponse> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.post<BidResponse>(
+      `/auctions/${auctionId}/bids`,
+      bidData,
+      token,
+    );
   },
 
-  async buyNow(auctionId: string, token: string | null): Promise<{ success: boolean; finalPrice: number; auctionId: string }> {
-    if (!token) throw new Error('Authentication required');
-    return apiClient.post<{ success: boolean; finalPrice: number; auctionId: string }>(`/auctions/${auctionId}/buy-now`, undefined, token);
+  async buyNow(
+    auctionId: string,
+    token: string | null,
+  ): Promise<{ success: boolean; finalPrice: number; auctionId: string }> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.post<{
+      success: boolean;
+      finalPrice: number;
+      auctionId: string;
+    }>(`/auctions/${auctionId}/buy-now`, undefined, token);
   },
 
   /**
    * Utwórz nową aukcję
    */
-  async createAuction(data: CreateAuctionRequest, token: string | null): Promise<Auction> {
-    if (!token) throw new Error('Authentication required');
-    return apiClient.post<Auction>('/auctions', data, token);
+  async createAuction(
+    data: CreateAuctionRequest,
+    token: string | null,
+  ): Promise<Auction> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.post<Auction>("/auctions", data, token);
   },
 
   /**
    * Pobierz aukcje użytkownika
    */
   async getUserAuctions(token: string | null): Promise<Auction[]> {
-    if (!token) throw new Error('Authentication required');
-    return apiClient.getWithToken<Auction[]>('/auctions/my', undefined, token);
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.getWithToken<Auction[]>("/auctions/my", undefined, token);
   },
 
   /**
    * Usuń aukcję
    */
   async deleteAuction(id: string, token: string | null): Promise<void> {
-    if (!token) throw new Error('Authentication required');
+    if (!token) throw new Error("Wymagane logowanie");
     await apiClient.delete(`/auctions/${id}`, token);
   },
 
-  async isWatched(auctionId: string, token: string | null): Promise<{ watched: boolean }> {
-    if (!token) throw new Error('Authentication required');
-    return apiClient.getWithToken<{ watched: boolean }>(`/auctions/${auctionId}/watchlist`, undefined, token);
+  async isWatched(
+    auctionId: string,
+    token: string | null,
+  ): Promise<{ watched: boolean }> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.getWithToken<{ watched: boolean }>(
+      `/auctions/${auctionId}/watchlist`,
+      undefined,
+      token,
+    );
   },
-  async addToWatchlist(auctionId: string, token: string | null): Promise<{ watched: boolean }> {
-    if (!token) throw new Error('Authentication required');
-    return apiClient.post<{ watched: boolean }>(`/auctions/${auctionId}/watchlist`, undefined, token);
+  async addToWatchlist(
+    auctionId: string,
+    token: string | null,
+  ): Promise<{ watched: boolean }> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.post<{ watched: boolean }>(
+      `/auctions/${auctionId}/watchlist`,
+      undefined,
+      token,
+    );
   },
-  async removeFromWatchlist(auctionId: string, token: string | null): Promise<{ watched: boolean }> {
-    if (!token) throw new Error('Authentication required');
-    return apiClient.delete<{ watched: boolean }>(`/auctions/${auctionId}/watchlist`, token);
+  async removeFromWatchlist(
+    auctionId: string,
+    token: string | null,
+  ): Promise<{ watched: boolean }> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.delete<{ watched: boolean }>(
+      `/auctions/${auctionId}/watchlist`,
+      token,
+    );
   },
 
-  /**
-   * Oblicz pozostały czas aukcji
-   */
-  calculateTimeLeft(endTime: string): string {
-    const end = new Date(endTime).getTime();
-    const now = Date.now();
-    const diff = end - now;
-
-    if (diff <= 0) return 'Zakończona';
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  },
 
   /**
    * Sprawdź czy aukcja jest aktywna
    */
   isAuctionActive(auction: Auction): boolean {
-    if (auction.status !== 'active') return false;
+    if (auction.status !== "active") return false;
     return new Date(auction.endTime).getTime() > Date.now();
   },
 

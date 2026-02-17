@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bird, Camera, Video, Sparkles, Check, X, AlertCircle, Loader2,
@@ -22,7 +22,7 @@ interface UnifiedAuctionFormProps {
 }
 
 const traitSelects = [
-    { label: 'Ubarwienie', icon: Palette, field: 'colorTraits', options: ['Niebieska', 'Niebiesko-nakrapiana', 'Ciemno-nakrapiana', 'Ciemna', 'Czarna', 'Czerwona', 'Czerwono-nakrapiana', 'Płowa', 'Biała', 'Szpakowata', 'Pstra'] },
+    { label: 'Ubarwienie', icon: Palette, field: 'colorTraits', options: ['Niebieska', 'Niebieska nakrapiana', 'Ciemna nakrapiana', 'Ciemna', 'Czarna', 'Czerwona nakrapiana', 'Czerwona', 'Płowa', 'Biała', 'Szpakowata', 'Niebieska pstra', 'Niebieska nakrapiana pstra', 'Ciemna nakrapiana pstra', 'Ciemna pstra', 'Czarna pstra', 'Czerwona nakrapiana pstra', 'Czerwona pstra', 'Płowa pstra', 'Szpakowata pstra', 'Czerwona szpakowata'] },
     { label: 'Oko', icon: Eye, field: 'eyeTraits', options: ['Perłowe', 'Pomarańczowe', 'Żółte', 'Bycze', 'Pierścień Vermeyena pełny', 'Pierścień Vermeyena niepełny'] },
     { label: 'Budowa', icon: Dumbbell, field: 'bodyStructureTraits', options: ['Budowa zwarta', 'Budowa średnia', 'Budowa długa', 'Mostek: Wysoki', 'Mostek: Płaski', 'Widełki: Zwarte', 'Widełki: Otwarte'] },
     { label: 'Muskulatura', icon: Heart, field: 'musculatureTraits', options: ['Elastyczna', 'Pełna', 'Sucha', 'Grzbiet: Bardzo mocny', 'Grzbiet: Mocny', 'Grzbiet: Standardowy'] },
@@ -37,6 +37,8 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({ category
         imageFiles, setImageFiles, videoFiles, setVideoFiles, currentStep, setCurrentStep,
         loading, error, setError, feedback, setFeedback, submit
     } = useAuctionForm({ category, onSuccess });
+
+    const [documentFiles, setDocumentFiles] = useState<File[]>([]);
 
     const totalSteps = category === 'pigeons' ? 3 : 2;
 
@@ -270,14 +272,25 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({ category
                 <h3 className="text-xl font-bold text-white">Media</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 text-white/80"><Camera className="w-4 h-4 text-blue-400" /> Zdjęcia</div>
-                    <FileUpload files={imageFiles} onFilesChange={setImageFiles} maxFiles={10} accept="image/*" />
+                    <FileUpload files={imageFiles} onFilesChange={setImageFiles} maxFiles={2} accept="image/*" />
                 </div>
                 <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-white/80"><Video className="w-4 h-4 text-green-400" /> Filmy</div>
-                    <FileUpload files={videoFiles} onFilesChange={setVideoFiles} maxFiles={2} accept="video/*" />
+                    <div className="flex items-center gap-2 text-white/80">
+                        <Package className="w-4 h-4 text-purple-400" /> Rodowód
+                    </div>
+                    <FileUpload 
+                        files={documentFiles} 
+                        onFilesChange={setDocumentFiles} 
+                        maxFiles={2} 
+                        accept="image/*,.pdf" 
+                    />
+                </div>
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-white/80"><Video className="w-4 h-4 text-green-400" /> Wideo</div>
+                    <FileUpload files={videoFiles} onFilesChange={setVideoFiles} maxFiles={1} accept="video/*" />
                 </div>
             </div>
         </motion.div>
@@ -301,40 +314,24 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({ category
             </AnimatePresence>
 
             {totalSteps > 1 && (
-                <div className="flex items-center gap-4 px-2 -mt-10 mb-4">
-                    {currentStep > 1 ? (
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => setCurrentStep(prev => prev - 1)}
-                            className="text-white/60 hover:text-white hover:bg-white/5 gap-2 px-3 h-9"
-                        >
-                            <ChevronLeft className="w-4 h-4" /> Wstecz
-                        </Button>
-                    ) : (
-                        <div className="w-[84px]" />
-                    )}
-
-                    <div className="flex-1 flex items-center justify-center gap-4">
-                        {Array.from({ length: totalSteps }, (_, i) => i + 1).map(step => (
-                            <React.Fragment key={step}>
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                        currentStep >= step ? 'bg-gold border-gold text-navy font-bold shadow-lg shadow-gold/20' : 'border-white/10 text-white/40'
-                                    }`}>
-                                        {currentStep > step ? <Check className="w-4 h-4" /> : step}
-                                    </div>
-                                    <span className={`text-[10px] uppercase font-bold tracking-widest hidden md:block ${currentStep >= step ? 'text-gold' : 'text-white/20'}`}>
-                                        {category === 'pigeons' 
-                                            ? (step === 1 ? 'Podstawowe' : step === 2 ? 'Cechy' : 'Media')
-                                            : (step === 1 ? 'Podstawowe' : 'Media')}
-                                    </span>
+                <div className="flex items-center justify-center gap-4 px-2 -mt-10 mb-4">
+                    {Array.from({ length: totalSteps }, (_, i) => i + 1).map(step => (
+                        <React.Fragment key={step}>
+                            <div className="flex items-center gap-2">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                    currentStep >= step ? 'bg-gold border-gold text-navy font-bold shadow-lg shadow-gold/20' : 'border-white/10 text-white/40'
+                                }`}>
+                                    {currentStep > step ? <Check className="w-4 h-4" /> : step}
                                 </div>
-                                {step < totalSteps && <div className={`w-8 h-px ${currentStep > step ? 'bg-gold/40' : 'bg-white/10'}`} />}
-                            </React.Fragment>
-                        ))}
-                    </div>
-                    <div className="w-[84px] hidden sm:block" />
+                                <span className={`text-[10px] uppercase font-bold tracking-widest hidden md:block ${currentStep >= step ? 'text-gold' : 'text-white/20'}`}>
+                                    {category === 'pigeons' 
+                                        ? (step === 1 ? 'Podstawowe' : step === 2 ? 'Cechy' : 'Media')
+                                        : (step === 1 ? 'Podstawowe' : 'Media')}
+                                </span>
+                            </div>
+                            {step < totalSteps && <div className={`w-8 h-px ${currentStep > step ? 'bg-gold/40' : 'bg-white/10'}`} />}
+                        </React.Fragment>
+                    ))}
                 </div>
             )}
 

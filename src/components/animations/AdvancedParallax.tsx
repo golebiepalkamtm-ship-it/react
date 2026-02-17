@@ -1,10 +1,13 @@
 /**
  * ============================================================================
- * ADVANCED PARALLAX SYSTEM - Multi-Layer Depth
+ * ADVANCED PARALLAX SYSTEM - Multi-Layer Depth (Fixed for Lenis)
  * ============================================================================
  * 
  * System parallax z niestandardowymi krzywymi Beziera
  * i wielowarstwowym efektem głębi.
+ * 
+ * FIX: Dodano gsap.context() dla prawidłowego cleanup
+ * i synchronizacji ze ScrollTrigger/Lenis
  */
 
 import { useRef, useEffect, ReactNode, CSSProperties } from 'react';
@@ -83,24 +86,28 @@ export const AdvancedParallax = ({
 
     const customEase = (progress: number) => easingFunctions[ease](progress);
     
-    const animation = gsap.fromTo(element, fromVars, {
-      ...toVars,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: element,
-        start,
-        end,
-        scrub,
-        onUpdate: (self) => {
-          const easedProgress = customEase(self.progress);
-          self.animation?.progress(easedProgress);
+    // Używamy gsap.context() dla prawidłowego cleanup
+    const ctx = gsap.context(() => {
+      const animation = gsap.fromTo(element, fromVars, {
+        ...toVars,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: element,
+          start,
+          end,
+          scrub,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const easedProgress = customEase(self.progress);
+            self.animation?.progress(easedProgress);
+          },
         },
-      },
-    });
+      });
+    }, element);
 
     return () => {
       element.style.willChange = '';
-      animation.kill();
+      ctx.revert();
     };
   }, [speed, direction, scrub, ease, scale, rotation, opacity, start, end]);
 
@@ -138,24 +145,27 @@ export const DepthLayer = ({
     
     element.style.willChange = 'transform';
 
-    const animation = gsap.to(element, {
-      y: () => {
-        const scrollDistance = window.innerHeight + element.offsetTop;
-        return -(scrollDistance * (speed - 1) * 0.3);
-      },
-      ease: 'none',
-      scrollTrigger: {
-        trigger: element,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 0.5 + depth * 0.2,
-        invalidateOnRefresh: true,
-      },
-    });
+    // Używamy gsap.context() dla prawidłowego cleanup
+    const ctx = gsap.context(() => {
+      const animation = gsap.to(element, {
+        y: () => {
+          const scrollDistance = window.innerHeight + element.offsetTop;
+          return -(scrollDistance * (speed - 1) * 0.3);
+        },
+        ease: 'none',
+        scrollTrigger: {
+          trigger: element,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.5 + depth * 0.2,
+          invalidateOnRefresh: true,
+        },
+      });
+    }, element);
 
     return () => {
       element.style.willChange = '';
-      animation.kill();
+      ctx.revert();
     };
   }, [depth]);
 
@@ -210,21 +220,25 @@ export const ParallaxImage = ({
       y: '-10%',
     });
 
-    const animation = gsap.to(image, {
-      scale: scaleRange[1],
-      y: '10%',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 1.5,
-      },
-    });
+    // Używamy gsap.context() dla prawidłowego cleanup
+    const ctx = gsap.context(() => {
+      const animation = gsap.to(image, {
+        scale: scaleRange[1],
+        y: '10%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1.5,
+          invalidateOnRefresh: true,
+        },
+      });
+    }, containerRef);
 
     return () => {
       image.style.willChange = '';
-      animation.kill();
+      ctx.revert();
     };
   }, [speed, scaleRange]);
 
@@ -270,18 +284,21 @@ export const FloatingElement = ({
     
     element.style.willChange = 'transform';
 
-    const animation = gsap.to(element, {
-      y: `+=${amplitude}`,
-      duration: 1 / frequency,
-      ease: 'sine.inOut',
-      repeat: -1,
-      yoyo: true,
-      delay: phase,
-    });
+    // Używamy gsap.context() dla prawidłowego cleanup
+    const ctx = gsap.context(() => {
+      const animation = gsap.to(element, {
+        y: `+=${amplitude}`,
+        duration: 1 / frequency,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+        delay: phase,
+      });
+    }, element);
 
     return () => {
       element.style.willChange = '';
-      animation.kill();
+      ctx.revert();
     };
   }, [amplitude, frequency, phase]);
 

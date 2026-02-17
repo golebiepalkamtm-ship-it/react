@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useServerTime } from '@/providers/TimeProvider';
+import { calculateTimeLeft, type TimeLeftDetails } from '@/utils/auction';
 
 interface CardTimerProps {
   endTime?: string;
@@ -8,17 +9,15 @@ interface CardTimerProps {
 }
 
 export const CardTimer: React.FC<CardTimerProps> = ({ endTime, className, endingSoon }) => {
-  const { offset, isSynced } = useServerTime();
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const { offset } = useServerTime();
+  const [timeLeft, setTimeLeft] = useState<TimeLeftDetails | null>(null);
 
   useEffect(() => {
     if (!endTime) return;
 
     const update = () => {
-      const end = new Date(endTime).getTime();
-      // Use local time + offset to approximate server time
-      const now = Date.now() + offset;
-      setTimeLeft(Math.max(0, end - now));
+      const result = calculateTimeLeft(endTime, offset);
+      setTimeLeft(result);
     };
 
     update();
@@ -27,13 +26,23 @@ export const CardTimer: React.FC<CardTimerProps> = ({ endTime, className, ending
   }, [endTime, offset]);
 
   const timeMeta = useMemo(() => {
-    const days = Math.floor(timeLeft / 86400000).toString().padStart(2, "0");
-    const hours = Math.floor((timeLeft % 86400000) / 3600000).toString().padStart(2, "0");
-    const minutes = Math.floor((timeLeft % 3600000) / 60000).toString().padStart(2, "0");
-    const seconds = Math.floor((timeLeft % 60000) / 1000).toString().padStart(2, "0");
-    const isEnded = timeLeft <= 0;
-    
-    return { days, hours, minutes, seconds, isEnded };
+    if (!timeLeft || timeLeft.isExpired) {
+      return {
+        days: "00",
+        hours: "00",
+        minutes: "00",
+        seconds: "00",
+        isEnded: true,
+      };
+    }
+
+    return {
+      days: timeLeft.days.toString().padStart(2, "0"),
+      hours: timeLeft.hours.toString().padStart(2, "0"),
+      minutes: timeLeft.minutes.toString().padStart(2, "0"),
+      seconds: timeLeft.seconds.toString().padStart(2, "0"),
+      isEnded: false,
+    };
   }, [timeLeft]);
 
   return (

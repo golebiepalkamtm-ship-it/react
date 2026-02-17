@@ -14,6 +14,8 @@ import {
   Gavel,
   Sparkles,
   Eye,
+  Clock,
+  TrendingUp,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -78,6 +80,9 @@ const AuctionDetail: React.FC = () => {
     message: "",
   });
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [activeDetailTab, setActiveDetailTab] = useState<
+    "details" | "history" | "documents"
+  >("details");
 
   const token = session?.access_token ?? null;
   const {
@@ -108,7 +113,7 @@ const AuctionDetail: React.FC = () => {
     endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     snipeThresholdMinutes: 5,
     snipeExtensionMinutes: 5,
-    minBidIncrement: 200,
+    minBidIncrement: 5,
     status: "active",
     reserveMet: false,
     category: "PIGEONS",
@@ -187,9 +192,12 @@ const AuctionDetail: React.FC = () => {
 
   const minimumBidValue = useMemo(() => {
     if (!displayAuction) return 0;
+    const hasBids = (displayAuction._count?.bids || 0) > 0;
+    if (!hasBids && displayAuction.startingPrice != null) {
+      return displayAuction.startingPrice;
+    }
     return (
-      (displayAuction.currentPrice || displayAuction.startingPrice || 0) +
-      (displayAuction.minBidIncrement || 50)
+      (displayAuction.currentPrice || 0) + (displayAuction.minBidIncrement || 5)
     );
   }, [displayAuction]);
 
@@ -445,28 +453,46 @@ const AuctionDetail: React.FC = () => {
     setShowReviewForm(false);
   };
 
+  const dAuction = displayAuction;
+
   return (
     <div className="min-h-screen">
       <Header />
       <main className="pt-24 pb-12">
-        {displayAuction && !error && (
+        {dAuction ? (
           <div className="container mx-auto px-4">
-            {/* Breadcrumb */}
-            <div className="mb-6 flex items-center gap-2 text-sm text-white/50">
-              <Link
-                to="/auctions"
-                className="hover:text-white transition-colors"
-              >
-                Aukcje
-              </Link>
-              <span className="opacity-40">/</span>
-              <span className="text-white/70 line-clamp-1">
-                {displayAuction.title}
-              </span>
+            {/* Navigation & Breadcrumb */}
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <Link
+                  to="/auctions"
+                  className="group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-all duration-300"
+                >
+                  <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                  <span className="text-[11px] font-black uppercase tracking-widest">
+                    Powrót
+                  </span>
+                </Link>
+
+                <div className="h-4 w-px bg-white/10 hidden sm:block" />
+
+                <div className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/30">
+                  <Link
+                    to="/auctions"
+                    className="hover:text-primary transition-colors"
+                  >
+                    Aukcje
+                  </Link>
+                  <span className="opacity-40">/</span>
+                  <span className="text-white/70 line-clamp-1 max-w-[200px]">
+                    {dAuction.title}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-12 items-start">
-              {/* Image Gallery */}
+              {/* Column 1: Gallery */}
               <div className="space-y-4">
                 <div
                   className="aspect-square rounded-[2rem] overflow-hidden glass-vault border-gold shadow-2xl relative group backdrop-blur-md bg-zinc-950/20 cursor-pointer"
@@ -475,609 +501,461 @@ const AuctionDetail: React.FC = () => {
                     setIsImageModalOpen(true);
                   }}
                 >
-                  {/* Blurry background for premium scaling (no empty bars) */}
                   <AuctionImage
-                    src={displayAuction.images?.[0] || "/placeholder.svg"}
+                    src={dAuction.images?.[0] || "/placeholder.svg"}
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-40 scale-110 select-none pointer-events-none"
                   />
-
-                  {/* Main Image - Full visibility without cropping */}
                   <AuctionImage
-                    src={displayAuction.images?.[0] || "/placeholder.svg"}
-                    alt={displayAuction.title}
+                    src={dAuction.images?.[0] || "/placeholder.svg"}
+                    alt={dAuction.title}
                     className="relative z-10 w-full h-full object-contain object-center transition-all duration-700 group-hover:scale-[1.03] filter brightness-[1.02] contrast-[1.02]"
                   />
-
-                  {/* Glass highlight overlay */}
                   <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-white/5 to-transparent transition-opacity group-hover:opacity-0" />
                   <div className="absolute inset-0 z-20 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.4)]" />
                 </div>
-                {displayAuction.images && displayAuction.images.length > 1 && (
+                {dAuction.images && dAuction.images.length > 1 ? (
                   <div className="grid grid-cols-4 gap-4">
-                    {displayAuction.images
-                      .slice(1, 5)
-                      .map((img: string, idx: number) => (
+                    {dAuction.images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setImageModalIndex(idx);
+                          setIsImageModalOpen(true);
+                        }}
+                        className={`aspect-square rounded-2xl overflow-hidden glass-vault border-white/5 hover:border-gold/50 transition-all duration-500 hover:-translate-y-1 ${imageModalIndex === idx ? "border-gold/50 ring-2 ring-gold/20" : ""}`}
+                      >
+                        <AuctionImage
+                          src={img}
+                          alt=""
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
+                {/* Pedigree Images Section */}
+                {isPigeon && pedigreeImages && pedigreeImages.length > 0 && (
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-white/70 text-sm font-bold uppercase tracking-wider">
+                        Zdjęcia Rodowodu
+                      </h3>
+                      <button
+                        onClick={() => setIsPedigreeOpen(true)}
+                        className="text-gold/60 hover:text-gold text-xs font-black uppercase tracking-wider transition-colors"
+                      >
+                        Zobacz wszystkie
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {pedigreeImages.slice(0, 3).map((img, idx) => (
                         <button
                           key={idx}
-                          type="button"
-                          className="aspect-square rounded-xl overflow-hidden glass-vault border-gold"
-                          onClick={() => {
-                            setImageModalIndex(idx + 1);
-                            setIsImageModalOpen(true);
-                          }}
+                          onClick={() => setIsPedigreeOpen(true)}
+                          className="aspect-square rounded-xl overflow-hidden glass-vault border-white/5 hover:border-gold/50 transition-all duration-500 hover:-translate-y-1"
                         >
-                          <img
+                          <AuctionImage
                             src={img}
                             alt=""
-                            className="w-full h-full object-contain p-1 transition-transform duration-300 group-hover:scale-110"
+                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                           />
                         </button>
                       ))}
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Auction Info */}
-              <div className="space-y-8">
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <span className="px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest border border-primary/30">
-                      {formatCategory(displayAuction.category)}
-                    </span>
-                    {isEnded ? (
-                      <span className="px-4 py-1.5 rounded-full bg-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest border border-red-500/30">
-                        Zakończona
-                      </span>
-                    ) : (
-                      <span className="px-4 py-1.5 rounded-full bg-green-500/20 text-green-500 text-xs font-bold uppercase tracking-widest border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-                        Aktywna
-                      </span>
-                    )}
-                    <span className="px-4 py-1.5 rounded-full bg-gold/20 text-gold text-xs font-bold uppercase tracking-widest border border-gold/30 flex items-center gap-1.5">
-                      {displayAuction.startingPrice != null &&
-                      displayAuction.buyNowPrice ? (
-                        <>
-                          <Sparkles className="w-3 h-3" />
-                          <span>Pełna Aukcja</span>
-                        </>
-                      ) : displayAuction.startingPrice != null ? (
-                        <>
-                          <Gavel className="w-3 h-3" />
-                          <span>Licytacja</span>
-                        </>
-                      ) : (
-                        <>
-                          <Tag className="w-3 h-3" />
-                          <span>Kup Teraz</span>
-                        </>
-                      )}
-                    </span>
-                  </div>
-
-                  <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
-                    {displayAuction.title}
-                  </h1>
-
-                  {isPigeon && (
-                    <div className="inline-flex items-center bg-primary/90 text-white px-6 py-3 rounded-xl shadow-lg border-l-4 border-gold mb-2 backdrop-blur-sm">
-                      <span className="font-mono text-xl md:text-2xl font-bold tracking-wider">
-                        {displayAuction.pigeon?.ringNumber || "BRAK NUMERU"}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-                {/* Meta chips */}
-                <div className="flex flex-wrap gap-3">
-                  {displayAuction.location && (
-                    <span className="glass-vault border-gold inline-flex items-center gap-2 px-4 py-2 rounded-full text-white/80 text-sm">
-                      <span className="w-2 h-2 rounded-full bg-primary/70" />
-                      {displayAuction.location}
-                    </span>
-                  )}
-                  {displayAuction.seller && (
-                    <span className="glass-vault border-gold inline-flex items-center gap-2 px-4 py-2 rounded-full text-white/80 text-sm">
-                      Sprzedający:{" "}
-                      <span className="font-semibold text-white">
-                        {displayAuction.seller.username ||
-                          displayAuction.seller.firstName}
-                      </span>
-                    </span>
-                  )}
-                  <span className="glass-vault border-gold inline-flex items-center gap-2 px-4 py-2 rounded-full text-white/80 text-sm">
-                    <Eye className="w-4 h-4 text-gold/80" />
-                    <span>
-                      {(displayAuction.views || 0).toLocaleString()} wyświetleń
-                    </span>
-                  </span>
-                  <Link
-                    to="/contact"
-                    className="glass-vault border-gold inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-semibold hover:shadow-lg transition-shadow"
-                  >
-                    Kontakt / transport
-                  </Link>
-                </div>
-
-                {/* Quick facts */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div className="glass-vault border-gold px-4 py-3 rounded-xl">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
-                      Kategoria
-                    </p>
-                    <p className="text-white font-semibold">
-                      {formatCategory(displayAuction.category)}
-                    </p>
-                  </div>
-                  {displayAuction.reservePrice ? (
-                    <div className="glass-vault border-gold px-4 py-3 rounded-xl">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
-                        Cena rezerwowa
-                      </p>
-                      <p className="text-white font-semibold">
-                        {displayAuction.reserveMet
-                          ? "Spełniona"
-                          : `${displayAuction.reservePrice.toLocaleString("pl-PL")} zł`}
-                      </p>
-                    </div>
-                  ) : displayAuction.startingPrice != null ? (
-                    <div className="glass-vault border-gold px-4 py-3 rounded-xl">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
-                        Cena wywoławcza
-                      </p>
-                      <p className="text-white font-semibold">
-                        {displayAuction.startingPrice?.toLocaleString("pl-PL")}{" "}
-                        zł
-                      </p>
-                    </div>
-                  ) : null}
-                  {displayAuction.seller?.rating !== undefined && (
-                    <div className="glass-vault border-gold px-4 py-3 rounded-xl">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
-                        Ocena sprzedającego
-                      </p>
-                      <p className="text-white font-semibold">
-                        {displayAuction.seller.rating.toFixed(1)} / 5
-                      </p>
-                    </div>
-                  )}
-                  <div className="glass-vault border-gold px-4 py-3 rounded-xl">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
-                      Ofert
-                    </p>
-                    <p className="text-white font-semibold">
-                      {displayAuction._count?.bids || 0}
-                    </p>
-                  </div>
-                  <div className="glass-vault border-gold px-4 py-3 rounded-xl">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">
-                      Zakończenie
-                    </p>
-                    <p className="text-white font-semibold">
-                      {new Date(displayAuction.endTime).toLocaleString(
-                        "pl-PL",
-                        { dateStyle: "short", timeStyle: "short" },
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8 items-end">
-                  <div>
-                    <p className="text-gold/80 uppercase tracking-widest text-[11px] font-bold mb-2 flex items-center gap-2">
-                      {displayAuction.startingPrice != null ? (
-                        <>
-                          <Gavel className="w-3.5 h-3.5" />
-                          <span>Aktualna oferta</span>
-                        </>
-                      ) : (
-                        <>
-                          <Tag className="w-3.5 h-3.5" />
-                          <span>Cena Kup Teraz</span>
-                        </>
-                      )}
-                    </p>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-5xl font-bold text-white tracking-tight drop-shadow-md">
-                        {displayAuction.currentPrice.toLocaleString("pl-PL")}
-                      </p>
-                      <span className="text-xl text-white/60 font-medium">
-                        PLN
-                      </span>
-                    </div>
-                    {displayAuction.startingPrice &&
-                      displayAuction.startingPrice <
-                        displayAuction.currentPrice && (
-                        <p className="text-white/40 text-xs mt-2 font-mono">
-                          Start:{" "}
-                          {displayAuction.startingPrice.toLocaleString("pl-PL")}{" "}
-                          PLN
-                        </p>
-                      )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white/40 uppercase tracking-widest text-[10px] mb-2 font-semibold">
-                      Pozostały czas
-                    </p>
-                    <AuctionCountDown endTime={displayAuction?.endTime} />
-                  </div>
-                </div>
-
+              {/* Column 2: Info Dashboard */}
+              <div className="flex flex-col h-full">
+                {/* Single Unified Auction Dashboard Container */}
                 <div
-                  className="glass-vault border-gold p-8 rounded-3xl space-y-8 relative overflow-hidden"
+                  className="glass-vault border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative group h-full"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
                   }}
                 >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent opacity-50" />
-                  {!isEnded && (
-                    <div className="space-y-6">
-                      {displayAuction.startingPrice !== undefined &&
-                        displayAuction.startingPrice !== null && (
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                              <label className="text-white/60 text-xs uppercase tracking-[0.2em] font-semibold">
-                                Twoja oferta
-                              </label>
-                              <span className="text-[10px] text-primary/80 uppercase tracking-wider">
-                                Min. {minimumBidValue.toLocaleString("pl-PL")}{" "}
-                                zł
-                              </span>
-                            </div>
-                            <div className="flex gap-4">
-                              <div className="relative flex-1 group">
-                                <input
-                                  type="number"
-                                  value={bidAmount}
-                                  onChange={(e) => setBidAmount(e.target.value)}
-                                  className="w-full bg-white/10 backdrop-blur-xl border border-gold/30 rounded-2xl px-6 py-4 text-white text-xl font-bold focus:outline-none focus:border-primary/50 transition-all focus:bg-white/[0.08]"
-                                  placeholder="0.00"
-                                />
-                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 font-bold">
-                                  PLN
-                                </span>
-                              </div>
-                              <Button
-                                onClick={handleBid}
-                                disabled={bidLoading}
-                                className="px-10 h-auto font-bold uppercase tracking-[0.15em] rounded-2xl shadow-glow-sm hover:shadow-glow-md transition-all active:scale-95"
-                                variant="premium"
-                              >
-                                Licytuj
-                              </Button>
-                            </div>
+                  {/* Decorative glow */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full -mr-32 -mt-32 transition-all duration-1000 group-hover:bg-primary/10" />
+
+                  {/* Section 0: Enhanced Header (Category, Status, Bids, Views, Watch) */}
+                  <div className="p-8 border-b border-white/5 relative bg-white/[0.02]">
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="px-4 py-1.5 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] border border-primary/30">
+                          {formatCategory(dAuction.category)}
+                        </span>
+                        {isEnded ? (
+                          <span className="px-4 py-1.5 rounded-full bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.2em] border border-red-500/30">
+                            Zakończona
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/20 text-green-500 text-[10px] font-black uppercase tracking-[0.2em] border border-green-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            Aktywna
                           </div>
                         )}
 
-                      {displayAuction.buyNowPrice && (
-                        <div className="pt-2">
-                          <div className="relative group">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-gold/50 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                            <Button
-                              onClick={handleBuyNow}
-                              disabled={isCheckoutLoading}
-                              variant="outline"
-                              className="relative w-full h-14 border-white/10 bg-white/5 hover:bg-white/[0.08] text-white font-bold uppercase tracking-[0.2em] rounded-2xl transition-all"
-                            >
-                              Kup teraz:{" "}
-                              {displayAuction.buyNowPrice.toLocaleString(
-                                "pl-PL",
-                              )}{" "}
-                              zł
-                            </Button>
+                        <div className="h-4 w-px bg-white/10 mx-1 hidden sm:block" />
+
+                        <div className="flex items-center gap-4">
+                          {dAuction.startingPrice != null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">
+                                Ofert:
+                              </span>
+                              <span className="text-[11px] font-bold text-white">
+                                {dAuction._count?.bids || 0}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">
+                              Obserwują:
+                            </span>
+                            <span className="text-[11px] font-bold text-white">
+                              {dAuction._count?.watchlist || 0}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={toggleWatch}
+                        className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all ${isWatched ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-white/5 border-white/10 text-white/40 hover:text-white"}`}
+                      >
+                        <Heart
+                          className={`w-3 h-3 ${isWatched ? "fill-current" : ""}`}
+                        />
+                        <span className="text-[9px] font-black uppercase tracking-wider">
+                          {isWatched ? "Obserwujesz" : "Obserwuj"}
+                        </span>
+                      </button>
+                    </div>
+                    <h1 className="font-display text-3xl md:text-4xl text-white font-black leading-tight tracking-tight">
+                      {dAuction.title}
+                    </h1>
+                  </div>
+
+                  {/* Section 1: Bidding & Price (The "Hot" Zone) */}
+                  <div className="p-8 border-b border-white/5 relative bg-gradient-to-b from-white/[0.02] to-transparent">
+                    <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
+                      <div className="min-w-fit">
+                        <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-1">
+                          Aktualna cena
+                        </p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-4xl md:text-5xl font-black text-primary tracking-tighter">
+                            {dAuction.currentPrice ? dAuction.currentPrice.toLocaleString("pl-PL") : "0"}
+                          </span>
+                          <span className="text-sm font-bold text-primary/60 uppercase tracking-widest mb-1">
+                            PLN
+                          </span>
+                        </div>
+                      </div>
+                      {!isEnded && (
+                        <div className="min-w-fit">
+                          <div className="bg-white/[0.05] border border-white/10 px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-sm">
+                            <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-black leading-none">
+                              Koniec za
+                            </p>
+                            <div className="text-2xl font-black text-white tabular-nums tracking-tight leading-none">
+                              <AuctionCountDown endTime={dAuction.endTime} />
+                            </div>
                           </div>
                         </div>
                       )}
                     </div>
-                  )}
 
-                  <div className="flex items-center justify-between pt-4">
-                    <div className="flex items-center gap-6">
-                      {displayAuction.startingPrice != null && (
-                        <>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] text-white/40 uppercase tracking-widest">
-                              Ofert
-                            </span>
-                            <span className="text-lg font-bold text-white">
-                              {displayAuction._count?.bids || 0}
-                            </span>
-                          </div>
-                          <div className="w-px h-8 bg-white/10" />
-                        </>
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-white/40 uppercase tracking-widest">
-                          Obserwujących
-                        </span>
-                        <span className="text-lg font-bold text-white">
-                          {displayAuction._count?.watchlist || 0}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={toggleWatch}
-                      className={`flex items-center gap-3 px-5 py-2.5 rounded-xl border transition-all ${
-                        isWatched
-                          ? "bg-red-500/10 border-red-500/30 text-red-500"
-                          : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:border-white/20"
-                      }`}
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${isWatched ? "fill-current" : ""}`}
-                      />
-                      <span className="text-xs font-bold uppercase tracking-wider">
-                        {isWatched ? "Obserwujesz" : "Obserwuj"}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-4 pt-4">
-                  <h4 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    {isPigeon ? "Szczegóły gołębia" : "Informacje o produkcie"}
-                  </h4>
-
-                  {/* Przyciski ze szczegółami */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {isPigeon ? (
-                      [
-                        {
-                          label: "Płeć",
-                          value:
-                            displayAuction.pigeon?.gender === "MALE"
-                              ? "Samiec"
-                              : "Samica",
-                        },
-                        {
-                          label: "Kolor",
-                          value: displayAuction.pigeon?.pigeonColor,
-                        },
-                        {
-                          label: "Oko",
-                          value: displayAuction.pigeon?.eyeColor,
-                        },
-                        {
-                          label: "Budowa",
-                          value: displayAuction.pigeon?.construction,
-                        },
-                        {
-                          label: "Witalność",
-                          value: displayAuction.pigeon?.vitality,
-                        },
-                        { label: "Cel", value: displayAuction.pigeon?.purpose },
-                      ].map(
-                        (spec, i) =>
-                          spec.value && (
-                            <button
-                              key={i}
-                              className="glass-vault border-gold px-4 py-3 rounded-xl text-left"
+                    {!isEnded && (
+                      <div className="flex flex-wrap lg:flex-nowrap items-stretch gap-2">
+                        <div className="relative flex-[1.2] min-w-[110px] group/input">
+                          <input
+                            type="number"
+                            value={bidAmount}
+                            onChange={(e) => setBidAmount(e.target.value)}
+                            placeholder={`${minimumBidValue ? minimumBidValue.toLocaleString("pl-PL") : "0"}+`}
+                            className="w-full h-full bg-white/[0.05] border border-white/10 rounded-2xl px-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all font-bold group-hover/input:border-white/20 text-sm"
+                          />
+                        </div>
+                        <Button
+                          onClick={handleBid}
+                          disabled={bidLoading}
+                          className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-tighter shadow-glow hover:shadow-glow-lg transition-all text-[12px] whitespace-nowrap"
+                        >
+                          <Gavel className="w-3.5 h-3.5 mr-1.5" />
+                          Licytuj
+                        </Button>
+                        {dAuction.buyNowPrice && (
+                          <div className="relative group/buynow flex-1">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/50 to-primary/50 rounded-2xl blur opacity-0 group-hover/buynow:opacity-30 transition duration-500" />
+                            <Button
+                              onClick={handleBuyNow}
+                              className="relative w-full h-full px-4 py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-tighter transition-all text-[12px] whitespace-nowrap"
                             >
-                              <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">
-                                {spec.label}
-                              </p>
-                              <p className="text-sm font-semibold text-white">
-                                {spec.value}
-                              </p>
-                            </button>
-                          ),
-                      )
-                    ) : (
-                      <button className="glass-vault border-gold px-4 py-3 rounded-xl col-span-full text-left">
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">
-                          Kategoria
-                        </p>
-                        <p className="text-sm font-semibold text-white">
-                          {displayAuction.category}
-                        </p>
-                      </button>
+                              Kup teraz
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {/* Opis hodowcy */}
-                  <div className="pt-4">
-                    <h4 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-3">
-                      <span className="w-2 h-2 rounded-full bg-primary" />
-                      Opis hodowcy
-                    </h4>
-                    <div className="glass-vault border-gold p-6 rounded-2xl text-white/80 leading-relaxed whitespace-pre-wrap font-sans">
-                      {displayAuction.description}
-                    </div>
-                  </div>
-                  {pedigreeUrl && (
-                    <div className="pt-2">
-                      <Button
-                        onClick={() => setIsPedigreeOpen(true)}
-                        variant="outline"
-                        className="w-full h-12 border-white/10 bg-white/5 hover:bg-white/[0.08] text-white font-bold uppercase tracking-[0.2em] rounded-2xl transition-all"
+                  {/* Section 3: Deep Details (Tabbed View) */}
+                  <div className="p-8">
+                    {/* Navigation Buttons (The "Separate Buttons") */}
+                    <div className="flex flex-wrap gap-2 mb-8 p-1 bg-white/5 rounded-2xl border border-white/5">
+                      <button
+                        onClick={() => setActiveDetailTab("details")}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "details" ? "bg-primary text-black shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                       >
-                        Zobacz rodowód
-                      </Button>
-                    </div>
-                  )}
-                  {(displayAuction.seller ||
-                    (displayAuction.documents &&
-                      displayAuction.documents.length > 0)) && (
-                    <div className="grid md:grid-cols-2 gap-6 pt-2">
-                      {displayAuction.seller && (
-                        <div className="glass-vault border-gold p-5 rounded-2xl space-y-3">
-                          <h5 className="text-sm font-semibold text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-gold" />
-                            Kontakt sprzedającego
-                          </h5>
-                          <div className="space-y-2 text-white/80 text-sm">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-white/60">Nick</span>
-                              <span className="font-semibold text-white">
-                                {displayAuction.seller.username ||
-                                  displayAuction.seller.firstName}
-                              </span>
-                            </div>
-                            {displayAuction.seller.phoneNumber && (
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-white/60">Telefon</span>
-                                <a
-                                  href={`tel:${displayAuction.seller.phoneNumber}`}
-                                  className="font-semibold text-primary hover:underline"
-                                >
-                                  {displayAuction.seller.phoneNumber}
-                                </a>
-                              </div>
-                            )}
-                            {displayAuction.seller.email && (
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-white/60">Email</span>
-                                <a
-                                  href={`mailto:${displayAuction.seller.email}`}
-                                  className="font-semibold text-primary hover:underline break-all"
-                                >
-                                  {displayAuction.seller.email}
-                                </a>
-                              </div>
-                            )}
-                            {displayAuction.location && (
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-white/60">
-                                  Lokalizacja
-                                </span>
-                                <span className="font-semibold text-white text-right">
-                                  {displayAuction.location}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <Link
-                            to="/contact"
-                            className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-primary/40 to-gold/30 border border-white/10 text-white text-sm font-semibold hover:shadow-lg transition-shadow"
-                          >
-                            Zapytaj o transport / odbiór
-                          </Link>
-                        </div>
+                        Informacje
+                      </button>
+                      <button
+                        onClick={() => setActiveDetailTab("history")}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "history" ? "bg-primary text-black shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                      >
+                        Historia ({dAuction.bids?.length || 0})
+                      </button>
+                      {dAuction.documents && dAuction.documents.length > 0 && (
+                        <button
+                          onClick={() => setActiveDetailTab("documents")}
+                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "documents" ? "bg-primary text-black shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        >
+                          Dokumenty ({dAuction.documents.length})
+                        </button>
                       )}
-                      {displayAuction.documents &&
-                        displayAuction.documents.length > 0 && (
-                          <div className="glass-vault border-gold p-5 rounded-2xl space-y-3">
-                            <h5 className="text-sm font-semibold text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-primary" />
-                              Załączniki
-                            </h5>
-                            <ul className="space-y-2 text-white/80 text-sm">
-                              {displayAuction.documents
-                                .slice(0, 5)
-                                .map((doc, idx) => (
-                                  <li
-                                    key={idx}
-                                    className="flex items-center justify-between gap-3"
-                                  >
-                                    <span className="truncate">{doc}</span>
-                                    <a
-                                      href={doc}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="text-primary hover:underline font-semibold"
-                                    >
-                                      Pobierz
-                                    </a>
-                                  </li>
-                                ))}
-                            </ul>
-                          </div>
-                        )}
                     </div>
-                  )}
-                </div>
 
-                {/* Historia licytacji */}
-                {displayAuction.startingPrice != null && (
-                  <div className="pt-8">
-                    <h4 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-4">
-                      <Gavel className="w-4 h-4 text-primary" />
-                      Historia licytacji
-                    </h4>
-                    <div className="glass-vault border-gold rounded-2xl overflow-hidden">
-                      <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                        {displayAuction.bids &&
-                        displayAuction.bids.length > 0 ? (
-                          <div className="divide-y divide-white/5">
-                            {displayAuction.bids.map((bid, idx) => (
+                    {/* Content Section */}
+                    <div className="relative min-h-[400px]">
+                      {activeDetailTab === "details" && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="space-y-6"
+                        >
+                          <div
+                            className="border border-white/5 rounded-[2.5rem] overflow-hidden"
+                            style={{
+                              background:
+                                "radial-gradient(circle at top, rgba(66, 192, 206, 0.1), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.5) 0%, rgba(6, 35, 46, 0.4) 45%, rgba(9, 61, 77, 0.3) 100%)",
+                            }}
+                          >
+                            <div className="grid grid-cols-2 md:grid-cols-3">
+                              {isPigeon ? (
+                                [
+                                  {
+                                    label: "Płeć",
+                                    value:
+                                      dAuction.pigeon?.gender === "MALE"
+                                        ? "Samiec"
+                                        : "Samica",
+                                  },
+                                  {
+                                    label: "Ubarwienie",
+                                    value: dAuction.pigeon?.pigeonColor,
+                                  },
+                                  {
+                                    label: "Oko",
+                                    value: dAuction.pigeon?.eyeColor,
+                                  },
+                                  {
+                                    label: "Budowa",
+                                    value: dAuction.pigeon?.construction,
+                                  },
+                                  {
+                                    label: "Witalność",
+                                    value: dAuction.pigeon?.vitality,
+                                  },
+                                  {
+                                    label: "Przeznaczenie",
+                                    value: dAuction.pigeon?.purpose,
+                                  },
+                                ].map((spec, i) =>
+                                  spec.value ? (
+                                    <div key={i} className="p-6">
+                                      <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black mb-1.5">
+                                        {spec.label}
+                                      </p>
+                                      <p className="text-sm text-white font-bold tracking-wide">
+                                        {spec.value}
+                                      </p>
+                                    </div>
+                                  ) : null,
+                                )
+                              ) : (
+                                <div className="p-6 col-span-full">
+                                  <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black mb-1.5">
+                                    Kategoria
+                                  </p>
+                                  <p className="text-base text-white font-bold">
+                                    {dAuction.category}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            {dAuction.description && (
+                              <div className="p-10 border-t border-white/5">
+                                <div className="text-white/70 leading-relaxed whitespace-pre-wrap font-sans text-base">
+                                  {dAuction.description}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {activeDetailTab === "history" && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="space-y-3"
+                        >
+                          {dAuction.bids && dAuction.bids.length > 0 ? (
+                            dAuction.bids.map((bid, bidx) => (
                               <div
                                 key={bid.id}
-                                className={`flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors ${
-                                  idx === 0 ? "bg-primary/10" : ""
-                                }`}
+                                className={`flex items-center justify-between p-5 rounded-2xl transition-all duration-500 border ${bidx === 0 ? "bg-primary/10 border-primary/30 shadow-glow-sm" : "bg-white/[0.03] border-white/5 hover:border-white/10"}`}
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold/20 to-primary/20 flex items-center justify-center border border-gold/30">
-                                    <span className="text-[10px] font-bold text-white/70">
-                                      #{displayAuction.bids.length - idx}
-                                    </span>
+                                <div className="flex items-center gap-5">
+                                  <div
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center border ${bidx === 0 ? "border-primary/50 bg-primary/20" : "border-white/10 bg-white/10"}`}
+                                  >
+                                    {bidx === 0 ? (
+                                      <TrendingUp className="w-5 h-5 text-primary" />
+                                    ) : (
+                                      <span className="text-xs font-black text-white/20">
+                                        #{dAuction.bids.length - bidx}
+                                      </span>
+                                    )}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-semibold text-white">
+                                    <p
+                                      className={`text-base font-black ${bidx === 0 ? "text-white" : "text-white/70"}`}
+                                    >
                                       {bid.bidder.username}
-                                      {idx === 0 && (
-                                        <span className="ml-2 text-[10px] uppercase tracking-tighter text-primary bg-primary/20 px-1.5 py-0.5 rounded border border-primary/30">
-                                          Prowadzi
-                                        </span>
-                                      )}
                                     </p>
-                                    <p className="text-[10px] text-white/40">
-                                      {new Date(bid.createdAt).toLocaleString(
-                                        "pl-PL",
-                                        {
-                                          dateStyle: "short",
-                                          timeStyle: "short",
-                                        },
-                                      )}
+                                    <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">
+                                      {new Date(
+                                        bid.createdAt,
+                                      ).toLocaleDateString("pl-PL")}{" "}
+                                      •{" "}
+                                      {new Date(
+                                        bid.createdAt,
+                                      ).toLocaleTimeString("pl-PL", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
                                     </p>
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-sm font-bold text-gold">
-                                    {bid.amount.toLocaleString("pl-PL")} zł
+                                  <p
+                                    className={`text-xl font-black ${bidx === 0 ? "text-primary" : "text-white"}`}
+                                  >
+                                    {bid.amount ? bid.amount.toLocaleString("pl-PL") : "0"}
+                                    <span className="text-[10px] ml-1.5 opacity-40 font-bold tracking-tighter">
+                                      PLN
+                                    </span>
                                   </p>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="p-8 text-center">
-                            <p className="text-white/40 text-sm italic">
-                              Brak ofert. Bądź pierwszy!
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                            ))
+                          ) : (
+                            <div className="py-24 text-center bg-white/[0.02] rounded-[3rem] border border-dashed border-white/10">
+                              <Gavel className="w-16 h-16 text-white/5 mx-auto mb-6" />
+                              <p className="text-white/30 text-base font-bold">
+                                Brak ofert. Rozpocznij licytację!
+                              </p>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+
+                      {activeDetailTab === "documents" && (
+                        <motion.div
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="grid grid-cols-1 gap-3"
+                        >
+                          {dAuction.documents?.map((doc, idx) => (
+                            <a
+                              key={idx}
+                              href={doc}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group flex items-center justify-between p-6 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] hover:border-primary/30 transition-all duration-500"
+                            >
+                              <div className="flex items-center gap-5">
+                                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/5 group-hover:bg-primary/20 group-hover:border-primary/50 transition-all duration-500">
+                                  <Sparkles className="w-6 h-6 text-white/20 group-hover:text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-white font-black uppercase tracking-widest mb-1">
+                                    Dokument #{idx + 1}
+                                  </p>
+                                  <p className="text-[10px] text-white/30 truncate max-w-[200px]">
+                                    {doc.split("/").pop()}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[9px] font-black text-primary uppercase tracking-widest px-5 py-2.5 bg-primary/10 rounded-lg group-hover:bg-primary group-hover:text-black transition-all duration-500">
+                                  Pobierz
+                                </span>
+                              </div>
+                            </a>
+                          ))}
+                        </motion.div>
+                      )}
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
             {/* Reviews Section */}
-            {isEnded && displayAuction.seller?.id && (
+            {isEnded && dAuction.seller?.id ? (
               <div className="mt-24 pt-12 border-t border-white/10">
                 <div className="grid lg:grid-cols-2 gap-12">
-                  {showReviewForm && !reviewSubmitted && (
+                  {showReviewForm && !reviewSubmitted ? (
                     <ReviewForm
-                      auctionId={displayAuction.id}
-                      sellerId={displayAuction.seller.id}
-                      auctionTitle={displayAuction.title}
+                      auctionId={dAuction.id}
+                      sellerId={dAuction.seller.id}
+                      auctionTitle={dAuction.title}
                       onReviewSubmitted={handleReviewSubmitted}
                     />
-                  )}
+                  ) : null}
                   <SellerReviews
-                    sellerId={displayAuction.seller.id}
-                    sellerName={displayAuction.seller.firstName}
+                    sellerId={dAuction.seller.id}
+                    sellerName={dAuction.seller?.firstName || "Sprzedawca"}
                   />
                 </div>
               </div>
-            )}
+            ) : null}
+          </div>
+        ) : (
+          <div className="container mx-auto px-4 py-20 text-center">
+            <AlertCircle className="w-16 h-16 text-primary/40 mx-auto mb-6" />
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Aukcja niedostępna
+            </h2>
+            <p className="text-white/40 mb-8">
+              Przepraszamy, nie udało się załadować danych aukcji.
+            </p>
+            <Link to="/auctions">
+              <Button
+                variant="outline"
+                className="rounded-xl border-white/10 text-white/60 hover:text-white"
+              >
+                Powrót do listy aukcji
+              </Button>
+            </Link>
           </div>
         )}
       </main>
@@ -1128,11 +1006,11 @@ const AuctionDetail: React.FC = () => {
         title={displayAuction?.title}
       />
 
-      {displayAuction && (
+      {dAuction && (
         <EditAuctionModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          auction={displayAuction}
+          auction={dAuction}
           onSave={handleAdminUpdate}
           onCancel={handleAdminCancel}
         />

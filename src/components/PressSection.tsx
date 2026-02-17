@@ -1,27 +1,30 @@
-import React, { useRef, useEffect, useMemo, useState } from 'react';
-import { Newspaper, Calendar, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { motion, useTransform, useMotionValue, useSpring, useScroll } from 'framer-motion';
-import { gsap, ScrollTrigger } from '@/lib/gsapConfig';
-import { PressService, PressArticle } from '@/services/pressService';
-import { logger } from '@/lib/logger';
-import { useScrollTriggerSync } from '@/hooks/useScrollTriggerSync';
+import React, { useRef, useEffect, useMemo, useState } from "react";
+import { Newspaper, Calendar, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import {
+  motion,
+  useTransform,
+  useMotionValue,
+  useSpring,
+  useScroll,
+} from "framer-motion";
+import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
+import { PressService, PressArticle } from "@/services/pressService";
+import { logger } from "@/lib/logger";
+import { useScrollTriggerSync } from "@/hooks/useScrollTriggerSync";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PressArticleCard = ({ article, index }: { article: PressArticle; index: number }) => {
+const PressArticleCard = ({
+  article,
+  index,
+}: {
+  article: PressArticle;
+  index: number;
+}) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-
-  const { scrollYProgress } = useScroll({
-    target: cardRef,
-    offset: ["start end", "end start"],
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, -80]);
-  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.9, 1, 1, 0.9]);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -52,10 +55,10 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
   };
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
       className="relative group h-full"
-      style={{ perspective: '1000px', opacity, y, scale }}
+      style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
@@ -65,7 +68,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
         style={{
           rotateX,
           rotateY,
-          transformStyle: 'preserve-3d',
+          transformStyle: "preserve-3d",
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
@@ -75,7 +78,8 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
         <motion.div
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)',
+            background:
+              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
           }}
           animate={{
             opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3,
@@ -94,7 +98,8 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
             className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop';
+              target.src =
+                "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop";
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
@@ -108,7 +113,7 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
             </span>
             <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10">
               <Calendar className="w-3 h-3" />
-              {new Date(article.date).toLocaleDateString('pl-PL')}
+              {new Date(article.date).toLocaleDateString("pl-PL")}
             </span>
           </div>
 
@@ -143,11 +148,11 @@ const PressArticleCard = ({ article, index }: { article: PressArticle; index: nu
           viewport={{ once: true }}
         />
       </motion.article>
-    </motion.div>
+    </div>
   );
 };
 
-const PressSection = () => {
+const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -158,8 +163,10 @@ const PressSection = () => {
   const [loading, setLoading] = useState(true);
 
   const prefersReducedMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    []
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
   );
 
   useEffect(() => {
@@ -167,10 +174,16 @@ const PressSection = () => {
       try {
         setLoading(true);
         const allArticles = await PressService.loadArticles();
-        const featuredArticles = allArticles.filter(a => a.featured).slice(0, 3);
-        setArticles(featuredArticles.length > 0 ? featuredArticles : allArticles.slice(0, 3));
+        const featuredArticles = allArticles
+          .filter((a) => a.featured)
+          .slice(0, 3);
+        setArticles(
+          featuredArticles.length > 0
+            ? featuredArticles
+            : allArticles.slice(0, 3),
+        );
       } catch (error) {
-        logger.error('Failed to load press articles for section:', error);
+        logger.error("Failed to load press articles for section:", error);
       } finally {
         setLoading(false);
       }
@@ -181,7 +194,7 @@ const PressSection = () => {
   // Używamy hooka do synchronizacji ScrollTrigger z Lenis
   const { refresh } = useScrollTriggerSync({
     refreshOnMount: true,
-    refreshDelay: 200
+    refreshDelay: 200,
   });
 
   useEffect(() => {
@@ -190,11 +203,17 @@ const PressSection = () => {
       gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
       gsap.set(titleRef.current, { opacity: 0, y: 60 });
       gsap.set(descRef.current, { opacity: 0, y: 40 });
-      
+
       cardsRef.current.forEach((card, i) => {
         if (!card) return;
         const angle = (i % 2 === 0 ? -1 : 1) * 5;
-        gsap.set(card, { opacity: 0, y: 100, rotateX: 10, rotateY: angle, scale: 0.9 });
+        gsap.set(card, {
+          opacity: 0,
+          y: 100,
+          rotateX: 10,
+          rotateY: angle,
+          scale: 0.9,
+        });
       });
 
       const headerTl = gsap.timeline({
@@ -212,19 +231,25 @@ const PressSection = () => {
           badgeRef.current,
           { opacity: 0, y: 40, scale: 0.9 },
           { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" },
-          0
+          0,
         )
         .fromTo(
           titleRef.current,
           { opacity: 0, y: 60, clipPath: "inset(0% 0% 100% 0%)" },
-          { opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: "expo.out" },
-          0.2
+          {
+            opacity: 1,
+            y: 0,
+            clipPath: "inset(0% 0% 0% 0%)",
+            duration: 1,
+            ease: "expo.out",
+          },
+          0.2,
         )
         .fromTo(
           descRef.current,
           { opacity: 0, y: 40 },
           { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" },
-          0.4
+          0.4,
         );
 
       cardsRef.current.forEach((card, i) => {
@@ -256,7 +281,7 @@ const PressSection = () => {
               toggleActions: "play none none reverse",
               once: true,
             },
-          }
+          },
         );
       });
 
@@ -277,14 +302,14 @@ const PressSection = () => {
               toggleActions: "play none none reverse",
               once: true,
             },
-          }
+          },
         );
       }
     }, sectionRef);
 
     // Odświeżamy ScrollTriggery po zakończeniu animacji
     refresh(true);
-    
+
     return () => ctx.revert();
   }, [loading, articles, prefersReducedMotion, refresh]);
 
@@ -294,20 +319,23 @@ const PressSection = () => {
       id="press-section"
       className="py-20 relative overflow-hidden"
       style={{
-        perspective: '2000px',
-        transformStyle: 'preserve-3d',
+        perspective: "2000px",
+        transformStyle: "preserve-3d",
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/[0.015] to-transparent pointer-events-none" />
-      
+
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16" style={{ transformStyle: 'preserve-3d' }}>
+        <div
+          className="text-center mb-16"
+          style={{ transformStyle: "preserve-3d" }}
+        >
           <span
             ref={badgeRef}
             className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
             style={{
-              transformStyle: 'preserve-3d',
-              backfaceVisibility: 'hidden',
+              transformStyle: "preserve-3d",
+              backfaceVisibility: "hidden",
             }}
           >
             Media o nas
@@ -316,8 +344,8 @@ const PressSection = () => {
             ref={titleRef}
             className="font-display text-3xl md:text-4xl text-white font-bold leading-tight mb-4"
             style={{
-              transformStyle: 'preserve-3d',
-              backfaceVisibility: 'hidden',
+              transformStyle: "preserve-3d",
+              backfaceVisibility: "hidden",
             }}
           >
             W centrum <span className="text-gold">uwagi</span>
@@ -326,13 +354,38 @@ const PressSection = () => {
             ref={descRef}
             className="text-white/70 max-w-2xl mx-auto"
             style={{
-              transformStyle: 'preserve-3d',
-              backfaceVisibility: 'hidden',
+              transformStyle: "preserve-3d",
+              backfaceVisibility: "hidden",
             }}
           >
             Zobacz, jak media opisują nasze sukcesy w hodowli gołębi pocztowych.
           </p>
         </div>
+
+        {/* YouTube Video Section - only show when showVideo is true */}
+        {showVideo && (
+          <motion.div
+            className="max-w-4xl mx-auto mb-16"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
+              <div className="relative pb-[56.25%] h-0">
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src="https://www.youtube.com/embed/s5R-tUv5d2o"
+                  title="Tadeusz Pałka - Lubań"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {!loading && articles.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
@@ -353,11 +406,16 @@ const PressSection = () => {
           ref={ctaRef}
           className="text-center"
           style={{
-            transformStyle: 'preserve-3d',
-            backfaceVisibility: 'hidden',
+            transformStyle: "preserve-3d",
+            backfaceVisibility: "hidden",
           }}
         >
-          <Button variant="outline" size="lg" className="border-gold/50 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300" asChild>
+          <Button
+            variant="outline"
+            size="lg"
+            className="border-gold/50 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300"
+            asChild
+          >
             <Link to="/press">
               Zobacz wszystkie artykuły
               <Newspaper className="w-4 h-4 ml-2" />

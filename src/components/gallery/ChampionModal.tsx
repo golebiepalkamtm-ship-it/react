@@ -201,7 +201,11 @@ export const ChampionModal = ({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 60, opacity: 0 }}
         transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
-        className="relative w-full max-w-7xl h-auto min-h-screen md:min-h-[85vh] isolate pointer-events-auto overflow-hidden bg-[#050505] flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] md:rounded-[2.5rem] mt-0 md:mt-10 mb-10 border border-white/5"
+        className="relative w-full max-w-7xl h-auto min-h-screen md:min-h-[85vh] isolate pointer-events-auto overflow-hidden flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] md:rounded-[2.5rem] mt-0 md:mt-10 mb-10 border border-white/5"
+        style={{
+          background:
+            "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Full Screen Image - Flexible Area */}

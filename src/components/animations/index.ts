@@ -1,6 +1,5 @@
-// Framer Motion animations
-export { SectionReveal, StaggerContainer, StaggerItem, FadeIn, SlideIn } from './ScrollAnimations';
-export { ScrollReveal } from './ScrollReveal';
+// Scroll reveal - unified implementation (moved to motion/)
+export { RevealOnScroll, Reveal } from '../motion/RevealOnScroll';
 export { default as AnimatedSections } from './AnimatedSections';
 
 // GSAP scroll animations
@@ -9,7 +8,6 @@ export {
   GsapSlideInLeft,
   GsapSlideInRight,
   GsapScaleIn,
-  GsapParallax,
   GsapStaggeredList,
   GsapPinElement,
   GsapTextReveal,
@@ -25,9 +23,9 @@ export { useGsapScroll, useGsapTimeline, gsapUtils } from '../../hooks/useGsapSc
 export { SmoothScrollProvider, useLenis, useLenisContext } from './SmoothScrollProvider';
 export { SplitText } from './SplitText';
 export { LottieScroll } from './LottieScroll';
-export { ParallaxSection, ParallaxLayer } from './ParallaxSection';
+// ParallaxSection removed - use AdvancedParallax instead
 export { PinnedSection } from './PinnedSection';
-export { RevealOnScroll } from './RevealOnScroll';
+// RevealOnScroll moved to motion/RevealOnScroll - use unified version
 export { HorizontalScroll } from './HorizontalScroll';
 
 // Premium Animation System - Awwwards Level

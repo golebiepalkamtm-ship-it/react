@@ -14,7 +14,7 @@ import TimelineCard from "./TimelineCard";
 import ProgressBar from "./ProgressBar";
 import ParticlesBackground from "./ParticlesBackground";
 import StatsHeader from "./StatsHeader";
-import useLenis from "@/hooks/useLenis";
+import { useLenisContext } from "@/components/animations/SmoothScrollProvider";
 import useParallax from "@/hooks/useParallax";
 
 // --- DATA (unchanged) ---
@@ -373,7 +373,7 @@ const TimeTunnel = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useLenis();
+  // Lenis jest już zainicjalizowany przez SmoothScrollProvider w App.tsx
   useParallax();
 
   useEffect(() => {

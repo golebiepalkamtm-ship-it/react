@@ -335,7 +335,7 @@ export function ReferencesPage() {
   };
 
   const getReferenceTitle = (ref: Reference) => {
-    return ref.pigeonName?.trim() || 'Gołębie z hodowli MTM Pałka';
+    return ref.pigeon_name?.trim() || 'Gołębie z hodowli MTM Pałka';
   };
 
   const formatDatePl = (iso: string | undefined) => {
@@ -545,14 +545,14 @@ export function ReferencesPage() {
                     transition={{ delay: 0.3 }}
                   >
                     <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-light to-gold">
-                      {currentRef.breederName}
+                      {currentRef.breeder_name}
                     </h3>
                     <div className="flex items-center gap-2 text-white/60">
                       <MapPin className="w-4 h-4 text-gold/60" />
                       <span>{currentRef.location}</span>
                     </div>
                     <div className="text-sm text-white/40">
-                      {formatDatePl(currentRef.createdAt)}
+                      {formatDatePl(currentRef.created_at)}
                     </div>
                   </motion.div>
 

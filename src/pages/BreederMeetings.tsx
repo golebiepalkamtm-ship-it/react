@@ -13,6 +13,8 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import AccountModal from "@/components/AccountModal";
 import { useNavigate } from "react-router-dom";
 import { gsap } from "@/lib/gsapConfig";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useLenisContext } from "@/components/animations/SmoothScrollProvider";
 
 interface BreederMeeting {
   id: string;
@@ -104,67 +106,58 @@ export default function BreederMeetings() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Animacje GSAP dla hero i scroll
-  useEffect(() => {
-    if (!heroRef.current || !heroContentRef.current) return;
-
-    const ctx = gsap.context(() => {
-      const heroContent = heroContentRef.current;
-      const children = heroContent?.children;
-
-      if (children) {
-        // Animacja wejścia elementów
-        gsap.set(children, { opacity: 0, y: 60 });
-
-        gsap.to(children, {
+  // useScrollAnimation: Hero and Scroll reveal
+  useScrollAnimation(
+    heroRef,
+    [
+      // Hero content stagger reveal
+      {
+        targets: () => heroContentRef.current?.children,
+        fromVars: { opacity: 0, y: 60 },
+        toVars: {
           opacity: 1,
           y: 0,
           stagger: 0.25,
-          duration: 1.8,
-          ease: "power3.out",
-          delay: 0.5,
-        });
-      }
-
-      // Parallax scroll dla hero
-      if (heroContent) {
-        gsap.to(heroContent, {
-          y: 150,
-          opacity: 0.3,
-          scale: 0.95,
+          duration: 1.5,
+          ease: "expo.out",
+        },
+        delay: 0.3,
+      },
+      // Hero Parallax Scrub
+      {
+        targets: () => heroContentRef.current,
+        toVars: {
+          y: 100,
+          opacity: 0.4,
+          scale: 0.98,
+          ease: "none",
+        },
+        scrollTrigger: {
+          trigger: () => heroRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.5,
+        },
+      },
+      // Meeting Cards Reveal
+      {
+        targets: ".animate-meeting-card",
+        fromVars: { opacity: 0, y: 50 },
+        toVars: {
+          opacity: 1,
+          y: 0,
+          duration: 1.2,
+          stagger: 0.15,
+          ease: "expo.out",
           scrollTrigger: {
-            trigger: heroRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: 0.5,
+            trigger: ".container",
+            start: "top 80%",
           },
-        });
-      }
-
-      // Animacja wejścia kart spotkań
-      const meetingCards = document.querySelectorAll(".animate-meeting-card");
-      meetingCards.forEach((card, index) => {
-        gsap.fromTo(
-          card,
-          { opacity: 0, y: 50 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1.2,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top bottom-=100",
-              end: "top center",
-              toggleActions: "play none none reverse",
-            },
-          },
-        );
-      });
-    }, heroRef);
-
-    return () => ctx.revert();
-  }, [breederMeetings]);
+        },
+      },
+    ],
+    [breederMeetings],
+  );
 
   useEffect(() => {
     const fetchBreederMeetings = async () => {

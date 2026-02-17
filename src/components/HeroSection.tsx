@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { Reveal, fadeInUp, scaleIn, buttonMicro } from '@/components/motion';
 import { MagneticButton } from '@/components/effects/MagneticButton';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
-import { SplitText, ParallaxSection, ParallaxLayer } from '@/components/animations';
+import { SplitText } from '@/components/animations';
 import { gsap } from '@/lib/gsapConfig';
 import { initAllAnimations } from '@/lib/gsapAnimations';
 

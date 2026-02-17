@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { API_URL } from '../config/api';
+import { API_BASE_URL } from '../services/api';
 
 interface TimeContextType {
   serverTime: number; // Estimated server time in ms
@@ -32,7 +32,7 @@ export const TimeProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const syncTime = async () => {
       try {
         const start = Date.now();
-        const response = await fetch(`${API_URL}/time/server-time`);
+        const response = await fetch(`${API_BASE_URL}/time/server-time`);
         if (!response.ok) throw new Error('Time sync failed');
         
         const data = await response.json();

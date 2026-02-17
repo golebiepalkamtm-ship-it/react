@@ -27,8 +27,10 @@ const ContactSection = lazy(() => import("@/components/ContactSection"));
 const Footer = lazy(() => import("@/components/Footer"));
 import { PressService } from "@/services/pressService";
 import type { PressArticle } from "@/services/pressService";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useLenisContext } from "@/components/animations/SmoothScrollProvider";
 
-gsap.registerPlugin(ScrollTrigger);
+// Plugins registered in lib/gsapConfig.ts
 
 // ============================================================================
 // HERO SECTION
@@ -38,53 +40,57 @@ const HeroSection = () => {
   const heroRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // GSAP: Parallax blur spots on scroll
-  useEffect(() => {
-    if (!heroRef.current) return;
-
-    const ctx = gsap.context(() => {
-      // GSAP: Parallax disabled for stability
-      /*
-      gsap.to('.hero-blur', {
-        yPercent: 30,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 0.5,
+  // useScrollAnimation: Parallax and Reveal
+  useScrollAnimation(
+    heroRef,
+    [
+      // Hero Blur Orbs - subtle parallax scrub
+      {
+        targets: () => heroRef.current?.querySelectorAll(".hero-blur"),
+        toVars: {
+          y: (index: number) => [30, 50, 40][index % 3],
+          ease: "none",
         },
-      });
-      */
-
-      // Fade out scroll indicator
-      gsap.to(".scroll-indicator", {
-        opacity: 0,
-        y: -20,
         scrollTrigger: {
-          trigger: heroRef.current,
+          trigger: () => heroRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      },
+      // Scroll indicator fade
+      {
+        targets: ".scroll-indicator",
+        toVars: {
+          opacity: 0,
+          y: -20,
+          ease: "power2.inOut",
+        },
+        scrollTrigger: {
+          trigger: () => heroRef.current,
           start: "top top",
           end: "30% top",
           scrub: true,
         },
-      });
-
-      // Content parallax (subtle)
-      gsap.to(contentRef.current, {
-        yPercent: 15,
-        opacity: 0.3,
-        ease: "none",
+      },
+      // Main content parallax reveal
+      {
+        targets: contentRef,
+        toVars: {
+          yPercent: 15,
+          opacity: 0.3,
+          ease: "none",
+        },
         scrollTrigger: {
-          trigger: heroRef.current,
+          trigger: () => heroRef.current,
           start: "top top",
           end: "bottom top",
           scrub: 0.5,
         },
-      });
-    }, heroRef);
-
-    return () => ctx.revert();
-  }, []);
+      },
+    ],
+    [],
+  );
 
   const stats = [
     { icon: Trophy, value: "150+", label: "Mistrzostw" },
@@ -231,27 +237,7 @@ const FeatureCard = memo(
   ({ feature, index }: { feature: FeatureData; index: number }) => {
     const cardRef = useRef<HTMLDivElement>(null);
 
-    // GSAP: Reveal on scroll
-    useEffect(() => {
-      if (!cardRef.current) return;
-
-      gsap.fromTo(
-        cardRef.current,
-        { opacity: 0, y: 60 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          delay: index * 0.1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: cardRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        },
-      );
-    }, [index]);
+    // Reveal handled by staggered parent section Animation Hook
 
     return (
       <div
@@ -273,28 +259,41 @@ const FeatureCard = memo(
 FeatureCard.displayName = "FeatureCard";
 
 const FeaturesSection = () => {
-  const titleRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  // GSAP: Title reveal
-  useEffect(() => {
-    if (!titleRef.current) return;
-
-    gsap.fromTo(
-      titleRef.current,
-      { opacity: 0, y: 40 },
+  // useScrollAnimation for Title and Cards stagger
+  useScrollAnimation(
+    sectionRef,
+    [
+      // Header Reveal
       {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
+        targets: ".features-header",
+        fromVars: { opacity: 0, y: 40 },
+        toVars: { opacity: 1, y: 0, duration: 1, ease: "expo.out" },
         scrollTrigger: {
-          trigger: titleRef.current,
-          start: "top 80%",
-          toggleActions: "play none none none",
+          trigger: ".features-header",
+          start: "top 85%",
         },
       },
-    );
-  }, []);
+      // Cards Stagger Reveal
+      {
+        targets: ".feature-card-item",
+        fromVars: { opacity: 0, y: 60 },
+        toVars: {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          stagger: 0.15,
+          ease: "expo.out",
+        },
+        scrollTrigger: {
+          trigger: ".grid",
+          start: "top 85%",
+        },
+      },
+    ],
+    [],
+  );
 
   const features: FeatureData[] = [
     {
@@ -318,9 +317,9 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="py-24 px-4 bg-zinc-900">
+    <section ref={sectionRef} className="py-24 px-4 bg-zinc-900">
       <div className="max-w-6xl mx-auto">
-        <div ref={titleRef} className="text-center mb-16">
+        <div className="features-header text-center mb-16">
           <span className="inline-block px-4 py-1 border border-gold/30 rounded-full text-xs tracking-widest text-gold/70 uppercase mb-4">
             Dlaczego my
           </span>
@@ -334,7 +333,9 @@ const FeaturesSection = () => {
 
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <FeatureCard key={feature.title} feature={feature} index={index} />
+            <div key={feature.title} className="feature-card-item">
+              <FeatureCard feature={feature} index={index} />
+            </div>
           ))}
         </div>
       </div>
@@ -349,26 +350,22 @@ const FeaturesSection = () => {
 const CTASection = () => {
   const sectionRef = useRef<HTMLElement>(null);
 
-  // GSAP: Reveal
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    gsap.fromTo(
-      sectionRef.current.querySelector(".cta-content"),
-      { opacity: 0, y: 50 },
+  // useScrollAnimation for CTA
+  useScrollAnimation(
+    sectionRef,
+    [
       {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
+        targets: ".cta-content",
+        fromVars: { opacity: 0, y: 50 },
+        toVars: { opacity: 1, y: 0, duration: 1, ease: "expo.out" },
         scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 75%",
-          toggleActions: "play none none none",
+          trigger: () => sectionRef.current,
+          start: "top 80%",
         },
       },
-    );
-  }, []);
+    ],
+    [],
+  );
 
   return (
     <section ref={sectionRef} className="py-24 px-4 bg-zinc-800">

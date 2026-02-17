@@ -4,7 +4,7 @@
 @import "./styles/advanced-animations.css";
 @import "./styles/smooth-scroll.css";
 @import "./styles/dynamic-lights.css";
-@import "./styles/footer-fix.css";
+/* footer-fix.css removed - styles are already in emergency-fix.css */
 @import "./styles/performance-tunings.css";
 
 /* CSS Force refresh - 16:26 */

@@ -2,27 +2,27 @@ import { supabase } from '@/lib/supabase';
 
 export type Reference = {
   id: string;
-  breederName: string;
+  breeder_name: string;
   location: string;
   rating: number;
   opinion: string;
   experience?: string;
   achievements?: string;
-  pigeonName?: string;
+  pigeon_name?: string;
   images?: string[];
-  isApproved?: boolean;
-  createdAt?: string;
+  is_approved?: boolean;
+  created_at?: string;
 };
 
 export type CreateReferenceRequest = {
-  breederName: string;
+  breeder_name: string;
   location: string;
   rating: number;
   experience?: string;
   testimonial?: string;
   opinion?: string;
   achievements?: unknown;
-  pigeonName?: string;
+  pigeon_name?: string;
   images?: string[];
 };
 
@@ -46,28 +46,28 @@ function normalizeReference(input: any): Reference {
     : [];
 
   // Handle both camelCase and snake_case from DB responses
-  const createdAt =
+  const created_at =
     typeof input?.createdAt === 'string'
       ? input.createdAt
       : typeof input?.created_at === 'string'
         ? input.created_at
         : new Date().toISOString();
 
-  const breederName =
+  const breeder_name =
     typeof input?.breederName === 'string'
       ? input.breederName
       : typeof input?.breeder_name === 'string'
         ? input.breeder_name
         : '';
 
-  const pigeonName =
+  const pigeon_name =
     typeof input?.pigeonName === 'string'
       ? input.pigeonName
       : typeof input?.pigeon_name === 'string'
         ? input.pigeon_name
         : undefined;
 
-  const isApproved =
+  const is_approved =
     typeof input?.isApproved === 'boolean'
       ? input.isApproved
       : typeof input?.is_approved === 'boolean'
@@ -76,7 +76,7 @@ function normalizeReference(input: any): Reference {
 
   return {
     id: typeof input?.id === 'string' && input.id.length > 0 ? input.id : makeId(),
-    breederName,
+    breeder_name,
     location: typeof input?.location === 'string' ? input.location : '',
     rating: typeof input?.rating === 'number' ? input.rating : Number(input?.rating ?? 5) || 5,
     opinion,
@@ -87,10 +87,10 @@ function normalizeReference(input: any): Reference {
         : input?.achievements
           ? JSON.stringify(input.achievements)
           : undefined,
-    pigeonName,
+    pigeon_name,
     images,
-    isApproved,
-    createdAt,
+    is_approved,
+    created_at,
   };
 }
 
@@ -167,7 +167,7 @@ export const referenceService = {
     const merged = [...local, ...remote];
     const seen = new Set<string>();
     const deduped = merged.filter(ref => (seen.has(ref.id) ? false : (seen.add(ref.id), true)));
-    deduped.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
+    deduped.sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
     return deduped;
   },
 
@@ -212,15 +212,15 @@ export const referenceService = {
           .insert([
             {
               id: created.id,
-              breeder_name: created.breederName,
+              breeder_name: created.breeder_name,
               location: created.location,
               experience: created.experience,
               opinion: created.opinion,
               rating: created.rating,
               achievements: created.achievements,
-              pigeon_name: created.pigeonName,
+              pigeon_name: created.pigeon_name,
               images: created.images ?? [],
-              is_approved: created.isApproved ?? true,
+              is_approved: created.is_approved ?? true,
             },
           ])
           .select()

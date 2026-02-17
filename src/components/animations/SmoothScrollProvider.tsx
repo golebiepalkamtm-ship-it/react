@@ -1,32 +1,15 @@
 /**
- * SMOOTH SCROLL PROVIDER - LENIS + GSAP SCROLLTRIGGER (v2)
- * Awwwards-level smooth scrolling z pełną integracją GSAP
- *
- * OPTIMIZATIONS:
- * - Single animation loop: Lenis.raf is driven by gsap.ticker (no rAF duplication)
- * - Lenis.stop()/start() API exposed for modal integration
- * - Debounced resize handler to prevent ScrollTrigger spam
- * - Proper cleanup order: listeners → ticker → Lenis.destroy()
- * - lagSmoothing(0) for tightest Lenis↔ScrollTrigger sync
+ * SMOOTH SCROLL PROVIDER - Prosta wersja Lenis
+ * Tylko płynne przewijanie bez skomplikowanych efektów GSAP
  */
 
-import {
-  ReactNode,
-  useEffect,
-  createContext,
-  useContext,
-  useRef,
-  useCallback,
-} from "react";
+import { ReactNode, useEffect, useRef, createContext, useContext, useCallback } from "react";
 import Lenis from "lenis";
-import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
 
 interface LenisContextValue {
   getLenis: () => Lenis | null;
   isReduced: boolean;
-  /** Block Lenis scrolling (e.g. when a modal is open) */
   stopScroll: () => void;
-  /** Resume Lenis scrolling */
   startScroll: () => void;
 }
 
@@ -38,7 +21,6 @@ const LenisContext = createContext<LenisContextValue>({
 });
 
 export const useLenisContext = () => useContext(LenisContext);
-// Keep backward-compatible alias
 export const useLenis = () => useContext(LenisContext);
 
 interface SmoothScrollProviderProps {
@@ -50,7 +32,6 @@ export const SmoothScrollProvider = ({
 }: SmoothScrollProviderProps) => {
   const lenisRef = useRef<Lenis | null>(null);
 
-  // Check reduced motion preference
   const isReduced =
     typeof window !== "undefined"
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -62,89 +43,40 @@ export const SmoothScrollProvider = ({
       return;
     }
 
-    // ── Initialize Lenis ──────────────────────────────────────────────
+    // Prosta inicjalizacja Lenis
     const lenis = new Lenis({
-      lerp: 0.05, // Slower, more buttery smooth feel
-      orientation: "vertical",
-      gestureOrientation: "vertical",
+      lerp: 0.1,
       smoothWheel: true,
-      wheelMultiplier: 1.0, // Natural scroll speed
-      touchMultiplier: 1.5, // Better balance for mobile
-      infinite: false,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+      smooth: true,
     });
 
     lenisRef.current = lenis;
 
     // Expose for debugging
     if (typeof window !== "undefined") {
-      (window as any).lenis = lenis;
+      (window as unknown as { lenis: Lenis }).lenis = lenis;
     }
 
-    // ── Sync Lenis → ScrollTrigger ───────────────────────────────────
-    // On every Lenis scroll event, update ScrollTrigger positions.
-    // This is the ONLY scroll sync — no duplicate rAF loops.
-    const scrollUpdate = () => {
-      ScrollTrigger.update();
-    };
-    lenis.on("scroll", scrollUpdate);
+    // Raf loop - proste przewijanie
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
 
-    // ── Drive Lenis from GSAP ticker (single loop) ──────────────────
-    // gsap.ticker runs at display refresh rate (60/120/144 Hz).
-    // Driving Lenis from it avoids a separate requestAnimationFrame loop.
-    const rafHandler = (time: number) => {
-      lenis.raf(time * 1000);
-    };
-    gsap.ticker.add(rafHandler);
-
-    // Disable GSAP's lag smoothing so ticker and Lenis stay in lock-step
-    gsap.ticker.lagSmoothing(0);
-
-    // ── Delayed initial refresh ─────────────────────────────────────
-    const refreshTimer = setTimeout(() => {
-      ScrollTrigger.refresh(true);
-    }, 300);
+    const rafId = requestAnimationFrame(raf);
 
     return () => {
-      // 1. Remove Lenis scroll listener
-      lenis.off("scroll", scrollUpdate);
-      // 2. Remove from GSAP ticker
-      gsap.ticker.remove(rafHandler);
-      // 3. Clear timeout
-      clearTimeout(refreshTimer);
-      // 4. Destroy Lenis
+      cancelAnimationFrame(rafId);
       lenis.destroy();
       lenisRef.current = null;
-      // 5. Clean window reference
       if (typeof window !== "undefined") {
-        (window as any).lenis = null;
+        (window as unknown as { lenis: null }).lenis = null;
       }
     };
   }, [isReduced]);
 
-  // ── Debounced resize handler ──────────────────────────────────────
-  useEffect(() => {
-    if (isReduced) return;
-
-    let resizeTimer: ReturnType<typeof setTimeout>;
-
-    const handleResize = () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        if (lenisRef.current) {
-          ScrollTrigger.refresh(true);
-        }
-      }, 150);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      clearTimeout(resizeTimer);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [isReduced]);
-
-  // ── Public API ────────────────────────────────────────────────────
   const getLenis = useCallback(() => lenisRef.current, []);
 
   const stopScroll = useCallback(() => {

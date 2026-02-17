@@ -73,6 +73,7 @@ export interface Auction {
   snipeThresholdMinutes?: number;
   snipeExtensionMinutes?: number;
   minBidIncrement?: number;
+  isExtended?: boolean;
   status: "active" | "ended" | "cancelled";
   reserveMet: boolean;
   category: string;

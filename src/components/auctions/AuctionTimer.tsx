@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
+import { calculateTimeLeft, type TimeLeftDetails } from "@/utils/auction";
 
 export interface AuctionTimerProps {
   endTime: Date;
@@ -7,33 +8,17 @@ export interface AuctionTimerProps {
 }
 
 export const AuctionTimer = ({ endTime, compact = false }: AuctionTimerProps) => {
-  const calculateTimeLeft = useCallback(() => {
-    const difference = endTime.getTime() - new Date().getTime();
-    
-    if (difference <= 0) {
-      return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true, isUrgent: false };
-    }
-
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-    const isUrgent = days === 0 && hours < 1;
-
-    return { days, hours, minutes, seconds, isExpired: false, isUrgent };
-  }, [endTime]);
-
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState<TimeLeftDetails | null>(() => calculateTimeLeft(endTime));
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
+      setTimeLeft(calculateTimeLeft(endTime));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [calculateTimeLeft]);
+  }, [endTime]);
 
-  if (timeLeft.isExpired) {
+  if (!timeLeft || timeLeft.isExpired) {
     return (
       <div className={`flex items-center gap-1.5 text-destructive ${compact ? "text-xs" : "text-sm"}`}>
         <Clock className={compact ? "w-3 h-3" : "w-4 h-4"} />

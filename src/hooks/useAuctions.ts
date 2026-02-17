@@ -9,6 +9,7 @@ import { auctionService } from "@/services/auctionService";
 import { useSocket } from "@/hooks/useSocket";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { calculateTimeLeft, formatTimeLeft } from "@/utils/auction";
 import {
   type Auction,
   type Bid,
@@ -175,7 +176,7 @@ export function useBid(auctionId: string, currentEndTime?: string) {
 
       const updatedEndTime = data.meta?.newEndTime || currentEndTime;
       const timeLeft = updatedEndTime
-        ? auctionService.calculateTimeLeft(updatedEndTime)
+        ? formatTimeLeft(calculateTimeLeft(updatedEndTime))
         : "aktualizowanie...";
 
       if (data.meta?.wasExtended) {
@@ -213,9 +214,10 @@ export function useAuctionTimer(endTime: string | undefined) {
     if (!endTime) return;
 
     const updateTimer = () => {
-      const left = auctionService.calculateTimeLeft(endTime);
-      setTimeLeft(left);
-      setIsEnded(left === "Zakończona");
+      const details = calculateTimeLeft(endTime);
+      const formatted = formatTimeLeft(details);
+      setTimeLeft(formatted);
+      setIsEnded(details?.isExpired || false);
     };
 
     updateTimer();

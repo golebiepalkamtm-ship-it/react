@@ -7,6 +7,8 @@ interface RevealOnScrollProps {
   children: ReactNode;
   /** Animation variants (defaults to fadeInUp) */
   variants?: Variants;
+  /** Direction for simple animations (overrides variants if provided) */
+  direction?: 'up' | 'down' | 'left' | 'right' | 'scale' | 'fade';
   /** Viewport threshold (0-1) */
   threshold?: number;
   /** Amount of margin from viewport edge */
@@ -17,6 +19,16 @@ interface RevealOnScrollProps {
   className?: string;
   /** Custom delay in seconds */
   delay?: number;
+  /** Duration in seconds */
+  duration?: number;
+  /** Y offset for custom animations */
+  y?: number;
+  /** Scale for custom animations */
+  scale?: number;
+  /** Opacity range [start, end] */
+  opacity?: [number, number];
+  /** Enable blur effect */
+  blur?: boolean;
 }
 
 /**
@@ -38,12 +50,18 @@ interface RevealOnScrollProps {
  */
 export const RevealOnScroll = ({
   children,
-  variants = fadeInUp,
+  variants,
+  direction,
   threshold = 0.1,
   margin = "0px",
   once = true,
   className = "",
   delay = 0,
+  duration = 0.6,
+  y,
+  scale,
+  opacity,
+  blur = false,
 }: RevealOnScrollProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, {
@@ -52,16 +70,69 @@ export const RevealOnScroll = ({
     once,
   });
 
-  const safeVariants = getVariants(variants);
+  // If direction is provided, use simple direction-based variants
+  let finalVariants: Variants;
+  
+  if (direction) {
+    const directionVariants: Record<string, Variants> = {
+      up: {
+        hidden: { opacity: 0, y: y ?? 60 },
+        visible: { opacity: 1, y: 0 }
+      },
+      down: {
+        hidden: { opacity: 0, y: y ? -y : -60 },
+        visible: { opacity: 1, y: 0 }
+      },
+      left: {
+        hidden: { opacity: 0, x: 60 },
+        visible: { opacity: 1, x: 0 }
+      },
+      right: {
+        hidden: { opacity: 0, x: -60 },
+        visible: { opacity: 1, x: 0 }
+      },
+      scale: {
+        hidden: { opacity: 0, scale: scale ?? 0.8 },
+        visible: { opacity: 1, scale: 1 }
+      },
+      fade: {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1 }
+      }
+    };
+    finalVariants = directionVariants[direction];
+  } else if (y !== undefined || scale !== undefined || opacity || blur) {
+    // Custom animation props
+    finalVariants = {
+      hidden: {
+        opacity: opacity?.[0] ?? 0,
+        y: y ?? 0,
+        scale: scale ?? 1,
+        filter: blur ? 'blur(10px)' : 'blur(0px)'
+      },
+      visible: {
+        opacity: opacity?.[1] ?? 1,
+        y: 0,
+        scale: 1,
+        filter: 'blur(0px)'
+      }
+    };
+  } else {
+    // Use provided variants or default
+    const baseVariants = variants || fadeInUp;
+    finalVariants = getVariants(baseVariants);
+  }
 
-  // Add delay to the transition if specified
-  const variantsWithDelay: Variants = {
-    hidden: safeVariants.hidden,
+  // Add delay and duration to the transition
+  const variantsWithTransition: Variants = {
+    hidden: finalVariants.hidden,
     visible: {
-      ...safeVariants.visible,
+      ...finalVariants.visible,
       transition: {
-        ...(safeVariants.visible?.transition as object),
+        duration,
         delay,
+        ease: [0.32, 0.72, 0, 1],
+        ...(finalVariants.visible?.transition as object || {}),
       },
     },
   };
@@ -71,7 +142,7 @@ export const RevealOnScroll = ({
       ref={ref}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      variants={variantsWithDelay}
+      variants={variantsWithTransition}
       className={className}
     >
       {children}

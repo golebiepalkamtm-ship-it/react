@@ -37,7 +37,7 @@ import {
   SeamlessSection,
   ProgressIndicator,
   RevealOnScroll,
-} from '@/components/animations';
+} from '@/components/motion';
 
 registerCustomEasings();
 

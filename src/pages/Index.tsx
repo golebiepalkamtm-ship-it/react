@@ -53,6 +53,7 @@ import {
   ProgressIndicator,
   AdvancedParallax,
   ParallaxImage,
+  useLenisContext,
 } from "@/components/animations";
 
 registerCustomEasings();
@@ -111,6 +112,8 @@ const HeroPremium = memo(() => {
    * ffmpeg -i input.mp4 -c:v libx264 -preset slow -crf 22 -g 1 -keyint_min 1 -an output_scrub.mp4
    */
 
+  const [isSplit, setIsSplit] = useState(false);
+
   // ── Font-ready SplitText with gsap.context cleanup ──────────────────
   useEffect(() => {
     const titleEl = titleContainerRef.current;
@@ -132,9 +135,11 @@ const HeroPremium = memo(() => {
       titleEl.innerHTML = chars
         .map(
           (char) =>
-            `<span class="char-reveal" style="display:inline-block;will-change:transform">${char === " " ? "&nbsp;" : char}</span>`,
+            `<span class="char-reveal" style="display:inline-block;will-change:transform;opacity:0">${char === " " ? "&nbsp;" : char}</span>`,
         )
         .join("");
+
+      setIsSplit(true);
     };
 
     void initSplit();
@@ -143,6 +148,25 @@ const HeroPremium = memo(() => {
       cancelled = true;
     };
   }, []);
+
+  // ── Velocity-based Text Skew (Lenis Style) ──────────────────────────
+  useEffect(() => {
+    if (!isSplit || !titleContainerRef.current) return;
+
+    const chars = titleContainerRef.current.querySelectorAll(".char-reveal");
+    const skewSetter = gsap.quickTo(chars, "skewY", {
+      duration: 0.4,
+      ease: "power3",
+    });
+    const clamp = gsap.utils.clamp(-15, 15);
+
+    ScrollTrigger.create({
+      onUpdate: (self) => {
+        const skew = clamp(self.getVelocity() / -400);
+        skewSetter(skew);
+      },
+    });
+  }, [isSplit]);
 
   // Use the custom hook for hero animations
   useScrollAnimation(
@@ -167,14 +191,14 @@ const HeroPremium = memo(() => {
       {
         targets: () =>
           titleContainerRef.current?.querySelectorAll(".char-reveal"),
-        fromVars: { opacity: 0, y: 30, rotateX: -90 },
+        fromVars: { opacity: 0, y: 40, rotateX: -90 },
         toVars: {
           opacity: 1,
           y: 0,
           rotateX: 0,
-          stagger: 0.03,
-          duration: 0.6,
-          ease: "back.out(1.7)",
+          stagger: 0.04,
+          duration: 1.2,
+          ease: "expo.out",
           delay: 0.6,
         },
         timeline: true,
@@ -240,8 +264,23 @@ const HeroPremium = memo(() => {
           scrub: 1,
         },
       },
+      // Hero Background Zoom
+      {
+        targets: ".hero-background-media",
+        toVars: {
+          scale: 1.3,
+          y: "10%",
+          ease: "none",
+        },
+        scrollTrigger: {
+          trigger: () => heroRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
+      },
     ],
-    [],
+    [isSplit],
   );
 
   return (
@@ -251,7 +290,13 @@ const HeroPremium = memo(() => {
       data-section="hero"
     >
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+        <div className="hero-background-media absolute inset-0 will-change-transform">
+          <img
+            src="https://images.unsplash.com/photo-1591485423007-765bdf4139ef?q=80&w=2000"
+            className="w-full h-full object-cover opacity-40"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
 
         {/* Animated blur spots */}
         <div
@@ -543,13 +588,13 @@ const FeaturesSectionPremium = () => {
       // Header animation — GPU y + opacity
       {
         targets: () => sectionRef.current?.querySelector(".features-header"),
-        fromVars: { y: 60, opacity: 0 },
-        toVars: { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        fromVars: { y: 100, opacity: 0 },
+        toVars: { y: 0, opacity: 1, duration: 1.2, ease: "expo.out" },
         scrollTrigger: {
           trigger: () => sectionRef.current,
-          start: "top 80%",
-          end: "top 30%",
-          scrub: 1.5,
+          start: "top 85%",
+          toggleActions: "play none none none",
+          once: true,
         },
         constructionEffect: "reveal",
       },
@@ -557,21 +602,20 @@ const FeaturesSectionPremium = () => {
       {
         targets: () =>
           sectionRef.current?.querySelectorAll(".feature-card-item"),
-        fromVars: { y: 80, opacity: 0, scale: 0.92 },
+        fromVars: { y: 120, opacity: 0, scale: 0.9 },
         toVars: {
           y: 0,
           opacity: 1,
           scale: 1,
-          duration: 0.5,
+          duration: 1.4,
           ease: "expo.out",
-          stagger: 0.12,
+          stagger: 0.2,
         },
         scrollTrigger: {
-          trigger: () =>
-            sectionRef.current?.querySelector(".feature-card-item"),
-          start: "top 85%",
-          end: "top 35%",
-          scrub: 1.5,
+          trigger: () => sectionRef.current,
+          start: "top 80%",
+          toggleActions: "play none none none",
+          once: true,
         },
         constructionEffect: "build",
       },
@@ -622,51 +666,37 @@ const CTASectionPremium = () => {
     [
       {
         targets: () => ctaRef.current?.querySelector("h2"),
-        fromVars: { y: 80, opacity: 0, scale: 0.95 },
-        toVars: { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "expo.out" },
+        fromVars: { y: 100, opacity: 0, scale: 0.95 },
+        toVars: { y: 0, opacity: 1, scale: 1, duration: 1.2, ease: "expo.out" },
         scrollTrigger: {
           trigger: () => ctaRef.current,
-          start: "top 80%",
-          end: "top 30%",
-          scrub: 1.5,
+          start: "top 85%",
+          toggleActions: "play none none none",
+          once: true,
         },
         timeline: true,
         constructionEffect: "reveal",
       },
       {
         targets: () => ctaRef.current?.querySelector("p"),
-        fromVars: { y: 50, opacity: 0 },
+        fromVars: { y: 60, opacity: 0 },
         toVars: {
           y: 0,
           opacity: 1,
-          duration: 0.3,
-          ease: "power2.out",
-          delay: 0.2,
-        },
-        scrollTrigger: {
-          trigger: () => ctaRef.current,
-          start: "top 80%",
-          end: "top 30%",
-          scrub: 1.5,
+          duration: 1.0,
+          ease: "expo.out",
         },
         timeline: true,
       },
       {
         targets: () => ctaRef.current?.querySelector("a"),
-        fromVars: { y: 40, opacity: 0, scale: 0.9 },
+        fromVars: { y: 80, opacity: 0, scale: 0.9 },
         toVars: {
           y: 0,
           opacity: 1,
           scale: 1,
-          duration: 0.3,
+          duration: 1.2,
           ease: "expo.out",
-          delay: 0.35,
-        },
-        scrollTrigger: {
-          trigger: () => ctaRef.current,
-          start: "top 80%",
-          end: "top 30%",
-          scrub: 1.5,
         },
         timeline: true,
         constructionEffect: "build",
@@ -715,6 +745,7 @@ const Index = () => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const followerRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const { getLenis } = useLenisContext();
 
   // ── Block hash navigation auto-scroll ───────────────────────────────
   useEffect(() => {
@@ -769,27 +800,41 @@ const Index = () => {
 
       const elementPosition = el.getBoundingClientRect().top + window.scrollY;
       const offsetPosition = elementPosition - offset;
-      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+
+      getLenis()?.scrollTo(el, {
+        offset: -offset,
+        duration: 0.8,
+        easing: (t) => 1 - Math.pow(1 - t, 3),
+      });
     }, 80);
 
     return () => clearTimeout(timer);
-  }, [location]);
+  }, [location, getLenis]);
 
   // ── Cursor physics — driven by gsap.ticker, NOT recursive rAF ──────
   // This prevents the leaked rAF loop that the old code had (no cancelAnimationFrame).
   const cursorSpring = useSpringPhysics({ stiffness: 0.15, damping: 0.25 });
   const followerSpring = useSpringPhysics({ stiffness: 0.08, damping: 0.3 });
 
+  const [cursorLabel, setCursorLabel] = useState("");
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       cursorSpring.setTarget(e.clientX, e.clientY);
       followerSpring.setTarget(e.clientX, e.clientY);
+
+      // Detect cursor label from target or parents
+      const target = e.target as HTMLElement;
+      const labelEl = target.closest("[data-cursor-label]");
+      if (labelEl) {
+        setCursorLabel(labelEl.getAttribute("data-cursor-label") || "");
+      } else {
+        setCursorLabel("");
+      }
     };
 
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Use gsap.ticker instead of recursive rAF — single animation loop,
-    // proper cleanup via ticker.remove(), synced with Lenis/ScrollTrigger.
     const tickHandler = () => {
       const cursorPos = cursorSpring.update();
       const followerPos = followerSpring.update();
@@ -809,7 +854,19 @@ const Index = () => {
           y: followerPos.y,
           xPercent: -50,
           yPercent: -50,
+          scale: cursorLabel ? 5 : 1,
+          duration: 0.3,
+          overwrite: "auto",
         });
+
+        const labelSpan = followerRef.current.querySelector("span");
+        if (labelSpan) {
+          gsap.set(labelSpan, {
+            opacity: cursorLabel ? 1 : 0,
+            scale: cursorLabel ? 0.2 : 0, // Compensate for parent scale
+          });
+          if (cursorLabel) labelSpan.textContent = cursorLabel;
+        }
       }
     };
 
@@ -819,7 +876,7 @@ const Index = () => {
       window.removeEventListener("mousemove", handleMouseMove);
       gsap.ticker.remove(tickHandler);
     };
-  }, [cursorSpring, followerSpring]);
+  }, [cursorSpring, followerSpring, cursorLabel]);
 
   // ── Page lifecycle — single cleanup ─────────────────────────────────
   useEffect(() => {
@@ -828,7 +885,7 @@ const Index = () => {
     // Single delayed refresh for all mount-time ScrollTriggers
     const refreshTimer = setTimeout(() => {
       ScrollTrigger.refresh(true);
-    }, 200);
+    }, 500);
 
     return () => {
       clearTimeout(refreshTimer);
@@ -917,7 +974,12 @@ const Index = () => {
       <ProgressIndicator />
 
       <div ref={cursorRef} className="custom-cursor-main" />
-      <div ref={followerRef} className="cursor-follower-main" />
+      <div
+        ref={followerRef}
+        className="cursor-follower-main flex items-center justify-center"
+      >
+        <span className="text-[10px] text-zinc-950 font-bold opacity-0 whitespace-nowrap"></span>
+      </div>
 
       <div className="fixed inset-0 -z-10 pointer-events-none"></div>
 
@@ -963,18 +1025,19 @@ const Index = () => {
           />
         </div>
 
+        {/* Hero Section - with seamless transition to About */}
         <HeroPremium />
 
-        <AdvancedParallax speed={0.9} ease="smooth" className="mt-24">
+        {/* About Section - O nas */}
+        <div className="relative">
           <AboutSection />
-        </AdvancedParallax>
+        </div>
 
-        {/* Carousel Section - with focused dark overlay for 'Galeria Mistrzów' effect */}
+        {/* Carousel Section - Galeria Mistrzów */}
         <section
           className="relative mt-24 py-12 overflow-hidden"
           id="gallery-3d"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none z-0" />
           <div className="relative z-10">
             <Carousel3D />
           </div>
@@ -984,9 +1047,8 @@ const Index = () => {
           <FeaturesSectionPremium />
         </AdvancedParallax>
 
-        {/* Media i Prasa - with focused dark overlay */}
+        {/* Media i Prasa */}
         <section className="relative mt-24 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none z-0" />
           <div className="relative z-10">
             <PressSection />
           </div>

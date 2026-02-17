@@ -180,46 +180,8 @@ export const GsapScaleIn: React.FC<ScaleInProps> = ({
   );
 };
 
-// ============ KOMPONENT: Parallax (Follow Mouse) ============
-interface ParallaxProps {
-  children: React.ReactNode;
-  speed?: number;
-  className?: string;
-}
-
-export const GsapParallax: React.FC<ParallaxProps> = ({
-  children,
-  speed = 0.5,
-  className = '',
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-
-    ScrollTrigger.create({
-      trigger: ref.current,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 0.5,
-      onUpdate: (self) => {
-        if (ref.current) {
-          ref.current.style.transform = `translateY(${self.getProgress() * window.innerHeight * speed}px)`;
-        }
-      },
-    });
-
-    return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
-  }, [speed]);
-
-  return (
-    <div ref={ref} className={className}>
-      {children}
-    </div>
-  );
-};
+// ============ KOMPONENT: Parallax (DEPRECATED - Use AdvancedParallax instead) ============
+// Removed GsapParallax - use AdvancedParallax from './AdvancedParallax' instead
 
 // ============ KOMPONENT: Staggered List ============
 interface StaggeredListProps {

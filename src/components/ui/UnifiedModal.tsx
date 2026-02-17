@@ -82,7 +82,7 @@ const sizeConfig = {
   sm: 'max-w-md',
   md: 'max-w-lg',
   lg: 'max-w-2xl',
-  xl: 'max-w-4xl md:max-w-4xl',
+  xl: 'max-w-2xl md:max-w-2xl',
   full: 'max-w-full md:max-w-7xl mx-0 md:mx-4 h-full md:h-auto'
 };
 
