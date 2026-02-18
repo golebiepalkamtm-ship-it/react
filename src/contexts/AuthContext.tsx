@@ -109,7 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const isEmailConfirmed = useCallback((authUser: User) => {
     const u = authUser as any;
-    return Boolean(u?.email_confirmed_at || u?.confirmed_at);
+    const isOAuth =
+      u?.app_metadata?.provider === "google" ||
+      u?.app_metadata?.provider === "facebook" ||
+      u?.user_metadata?.provider === "google" ||
+      u?.user_metadata?.provider === "facebook";
+    return Boolean(u?.email_confirmed_at || u?.confirmed_at || isOAuth);
   }, []);
 
   const isPhoneConfirmed = useCallback((authUser: User) => {
@@ -128,9 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const userWithVerifications: UserWithVerifications = {
         id: authUser.id,
         email: authUser.email,
-        email_confirmed_at:
-          (authUser as any).email_confirmed_at ||
-          (authUser as any).confirmed_at,
+        email_confirmed_at: isEmailConfirmed(authUser) ? "confirmed" : null,
         phone: authUser.phone,
         phone_confirmed_at: (authUser as any).phone_confirmed_at,
         role: inferredRole,
@@ -138,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return calculateRole(userWithVerifications);
     },
-    [],
+    [isEmailConfirmed],
   );
 
   const ensureProfile = useCallback(
@@ -147,10 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Check if existing profile needs synchronization with Auth state
       if (existingProfile) {
         const appMeta = (authUser as any).app_metadata;
-        const isEmailVerified = Boolean(
-          (authUser as any).email_confirmed_at ||
-          (authUser as any).confirmed_at,
-        );
+        const isEmailVerified = isEmailConfirmed(authUser);
         const isPhoneVerified = Boolean((authUser as any).phone_confirmed_at);
 
         let newRole: UserRole | null = null;
@@ -192,9 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const userWithVerifications: UserWithVerifications = {
         id: authUser.id,
         email: authUser.email,
-        email_confirmed_at:
-          (authUser as any).email_confirmed_at ||
-          (authUser as any).confirmed_at,
+        email_confirmed_at: isEmailConfirmed(authUser) ? "confirmed" : null,
         phone: authUser.phone,
         phone_confirmed_at: (authUser as any).phone_confirmed_at,
         role: roleOverride ?? "USER_REGISTERED",
@@ -214,7 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         avatar_url: authUser.user_metadata?.avatar_url,
       } as Profile;
     },
-    [],
+    [isEmailConfirmed],
   );
 
   const clearPendingEmailVerification = useCallback(() => {
@@ -589,10 +587,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         options: {
           redirectTo,
           skipBrowserRedirect: false,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
         },
       });
 
@@ -634,6 +628,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         provider: "facebook",
         options: {
           redirectTo,
+          scopes: "email,public_profile",
+          queryParams: {
+            auth_type: "rerequest",
+          },
         },
       });
 

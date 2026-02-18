@@ -73,6 +73,14 @@ export default function Login() {
         provider,
         options: {
           redirectTo,
+          scopes:
+            provider === "google" ? "email profile" : "email,public_profile",
+          queryParams:
+            provider === "facebook"
+              ? {
+                  auth_type: "rerequest",
+                }
+              : undefined,
         },
       });
       if (error) throw error;
