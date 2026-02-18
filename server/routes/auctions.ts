@@ -138,6 +138,67 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Get user's watchlist auctions
+router.get(
+  "/watchlist",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId || !prisma)
+        return res.status(401).json({ error: "Unauthorized" });
+
+      const watchlists = await prisma.watchlist.findMany({
+        where: { userId },
+        include: {
+          auction: {
+            include: listAuctionInclude,
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const auctions = watchlists.map((w) => w.auction);
+      const serialized = auctions.map((a) => serializePublicAuction(a, userId));
+      res.json(serialized);
+    } catch (error) {
+      console.error("Error fetching watchlist:", error);
+      res.status(500).json({ error: "Failed to fetch watchlist" });
+    }
+  },
+);
+
+// Get auctions where user has active bids
+router.get(
+  "/bidding",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId || !prisma)
+        return res.status(401).json({ error: "Unauthorized" });
+
+      // Fetch auctions where user has at least one bid
+      const auctions = await prisma.auction.findMany({
+        where: {
+          bids: {
+            some: { bidderId: userId },
+          },
+          status: "ACTIVE",
+        },
+        orderBy: { endTime: "asc" },
+        include: listAuctionInclude,
+      });
+
+      const serialized = auctions.map((a) => serializePublicAuction(a, userId));
+      res.json(serialized);
+    } catch (error) {
+      console.error("Error fetching bidding auctions:", error);
+      res.status(500).json({ error: "Failed to fetch active biddings" });
+    }
+  },
+);
+
 // Get user's auctions
 router.get("/my", authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {

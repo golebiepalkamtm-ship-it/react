@@ -58,6 +58,7 @@ export const useAuctionForm = ({
 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const [documentFiles, setDocumentFiles] = useState<File[]>([]);
 
   const [feedback, setFeedback] = useState<{
     isOpen: boolean;
@@ -122,7 +123,10 @@ export const useAuctionForm = ({
       // 2. Upload Videos
       const videoUrls = await uploadFiles(videoFiles, "filmy");
 
-      // 3. Prepare Final Request
+      // 3. Upload Documents (Pedigree etc.)
+      const documentUrls = await uploadFiles(documentFiles, "dokumenty");
+
+      // 4. Prepare Final Request
       const endTime = new Date();
       const days = Number(formData.durationDays ?? 7);
       const hours = Number(formData.durationHours ?? 0);
@@ -139,6 +143,7 @@ export const useAuctionForm = ({
         location: formData.location!,
         images: imageUrls,
         videos: videoUrls,
+        documents: documentUrls,
         endTime: endTime.toISOString(),
         pigeon:
           category === "pigeons"
@@ -187,6 +192,8 @@ export const useAuctionForm = ({
     setImageFiles,
     videoFiles,
     setVideoFiles,
+    documentFiles,
+    setDocumentFiles,
     currentStep,
     setCurrentStep,
     loading: loading || isUploading,

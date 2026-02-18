@@ -100,6 +100,30 @@ export const auctionService = {
   },
 
   /**
+   * Pobierz aukcje z listy życzeń użytkownika
+   */
+  async getWatchlist(token: string | null): Promise<Auction[]> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.getWithToken<Auction[]>(
+      "/auctions/watchlist",
+      undefined,
+      token,
+    );
+  },
+
+  /**
+   * Pobierz aukcje, w których użytkownik licytuje
+   */
+  async getBiddingAuctions(token: string | null): Promise<Auction[]> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.getWithToken<Auction[]>(
+      "/auctions/bidding",
+      undefined,
+      token,
+    );
+  },
+
+  /**
    * Usuń aukcję
    */
   async deleteAuction(id: string, token: string | null): Promise<void> {
@@ -139,7 +163,6 @@ export const auctionService = {
       token,
     );
   },
-
 
   /**
    * Sprawdź czy aukcja jest aktywna

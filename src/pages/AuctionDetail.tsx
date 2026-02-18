@@ -212,13 +212,13 @@ const AuctionDetail: React.FC = () => {
     if (fromPigeon) return fromPigeon;
     const doc =
       displayAuction?.documents?.find((d: string) =>
-        /\.(pdf|jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(d),
+        /\.(pdf|jpg|jpeg|png|gif|webp|bmp|tiff)(\?.*)?$/i.test(d),
       ) || null;
     return doc || null;
   }, [displayAuction, isPigeon]);
   const pedigreeImages = useMemo(() => {
     const isImage = (u: string) =>
-      /\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(u);
+      /\.(jpg|jpeg|png|gif|webp|bmp|tiff)(\?.*)?$/i.test(u);
     const imgs: string[] = [];
     if (
       displayAuction?.pigeon?.pedigreeUrl &&

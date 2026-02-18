@@ -1,29 +1,75 @@
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { User, MapPin, Star, Shield, Settings, X, Calendar, Phone, Mail, Lock, Save, Trophy, Package, Clock, Award, CreditCard, Bell, LogOut, Edit3, Check, AlertCircle, TrendingUp, Heart, Eye, EyeOff, Crown, Zap, Sparkles, Plus } from 'lucide-react';
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLocale } from '@/contexts/LocaleContext';
-import { useProfile } from '@/hooks/useProfile';
+import {
+  motion,
+  AnimatePresence,
+  PanInfo,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
+import {
+  User,
+  MapPin,
+  Star,
+  Shield,
+  Settings,
+  X,
+  Calendar,
+  Phone,
+  Mail,
+  Lock,
+  Save,
+  Trophy,
+  Package,
+  Clock,
+  Award,
+  CreditCard,
+  Bell,
+  LogOut,
+  Edit3,
+  Check,
+  AlertCircle,
+  TrendingUp,
+  Heart,
+  Eye,
+  EyeOff,
+  Crown,
+  Zap,
+  Sparkles,
+  Plus,
+} from "lucide-react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
+import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
-import { UnifiedModal } from '@/components/ui/UnifiedModal';
-import PhoneVerification from '@/components/auth/PhoneVerification';
+import { useNavigate, Link } from "react-router-dom";
+import { UnifiedModal } from "@/components/ui/UnifiedModal";
+import PhoneVerification from "@/components/auth/PhoneVerification";
+import { auctionService } from "@/services/auctionService";
+import { Auction } from "@/types/auction";
+import { formatDistanceToNow } from "date-fns";
+import { pl } from "date-fns/locale";
 
 interface UserPanelProps {
   onClose: () => void;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, session, signOut } = useAuth();
   const { t } = useLocale();
-  const { updateUserProfile, loading: profileSaving, error: profileError } = useProfile();
+  const {
+    updateUserProfile,
+    loading: profileSaving,
+    error: profileError,
+  } = useProfile();
   const navigate = useNavigate();
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success');
-  const [feedbackTitle, setFeedbackTitle] = useState('');
-  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackType, setFeedbackType] = useState<"success" | "error">(
+    "success",
+  );
+  const [feedbackTitle, setFeedbackTitle] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
 
   // Mouse tracking for parallax effects (disabled to prevent flickering)
   const mouseX = useMotionValue(0);
@@ -48,25 +94,58 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const layer3X = useTransform(mouseX, [0, 1], [-60, 60]);
   const layer3Y = useTransform(mouseY, [0, 1], [-45, 45]);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'security' | 'auctions'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "profile" | "security" | "auctions"
+  >("overview");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dragConstraintsRef = useRef(null);
-  const [username, setUsername] = useState(profile?.username ?? '');
-  const [firstName, setFirstName] = useState(profile?.first_name ?? '');
-  const [lastName, setLastName] = useState(profile?.last_name ?? '');
-  const [street, setStreet] = useState(profile?.street ?? '');
-  const [postalCode, setPostalCode] = useState(profile?.postal_code ?? '');
-  const [city, setCity] = useState(profile?.city ?? '');
-  const [country, setCountry] = useState(profile?.country ?? '');
-  const [phone, setPhone] = useState(profile?.phone ?? '');
+  const [username, setUsername] = useState(profile?.username ?? "");
+  const [firstName, setFirstName] = useState(profile?.first_name ?? "");
+  const [lastName, setLastName] = useState(profile?.last_name ?? "");
+  const [street, setStreet] = useState(profile?.street ?? "");
+  const [postalCode, setPostalCode] = useState(profile?.postal_code ?? "");
+  const [city, setCity] = useState(profile?.city ?? "");
+  const [country, setCountry] = useState(profile?.country ?? "");
+  const [phone, setPhone] = useState(profile?.phone ?? "");
   const [showSmsAuth, setShowSmsAuth] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [passSaving, setPassSaving] = useState(false);
-  const [passError, setPassError] = useState('');
+  const [passError, setPassError] = useState("");
 
-  const isEmailVerified = profile?.role === 'USER_EMAIL_VERIFIED' || profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN';
+  const [userAuctions, setUserAuctions] = useState<Auction[]>([]);
+  const [watchedAuctions, setWatchedAuctions] = useState<Auction[]>([]);
+  const [biddingAuctions, setBiddingAuctions] = useState<Auction[]>([]);
+  const [loadingAuctions, setLoadingAuctions] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!session?.access_token) return;
+      try {
+        setLoadingAuctions(true);
+        const [my, watched, bidding] = await Promise.all([
+          auctionService.getUserAuctions(session.access_token),
+          auctionService.getWatchlist(session.access_token),
+          auctionService.getBiddingAuctions(session.access_token),
+        ]);
+        setUserAuctions(my);
+        setWatchedAuctions(watched);
+        setBiddingAuctions(bidding);
+      } catch (err) {
+        console.error("Failed to fetch user auction data:", err);
+      } finally {
+        setLoadingAuctions(false);
+      }
+    };
+
+    fetchStats();
+  }, [session?.access_token]);
+
+  const isEmailVerified =
+    profile?.role === "USER_EMAIL_VERIFIED" ||
+    profile?.role === "USER_FULL_VERIFIED" ||
+    profile?.role === "ADMIN";
 
   const profileCompleteForSms = useMemo(() => {
     if (!isEmailVerified) return false;
@@ -79,13 +158,22 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
       country.trim() &&
       phone.trim(),
     );
-  }, [firstName, lastName, street, postalCode, city, country, phone, isEmailVerified]);
+  }, [
+    firstName,
+    lastName,
+    street,
+    postalCode,
+    city,
+    country,
+    phone,
+    isEmailVerified,
+  ]);
 
   const onSaveProfile = async () => {
     if (!username.trim() || username.trim().length < 3) {
-      setFeedbackType('error');
-      setFeedbackTitle('Błąd');
-      setFeedbackMessage('Nick jest wymagany i musi mieć min. 3 znaki');
+      setFeedbackType("error");
+      setFeedbackTitle("Błąd");
+      setFeedbackMessage("Nick jest wymagany i musi mieć min. 3 znaki");
       setFeedbackOpen(true);
       return;
     }
@@ -101,53 +189,60 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         country: country.trim(),
         phone: phone.trim(),
       });
-      setFeedbackType('success');
-      setFeedbackTitle('Zapisano');
-      setFeedbackMessage('Profil został zaktualizowany. Teraz musisz wykonać weryfikację SMS, aby w pełni aktywować konto.');
+      setFeedbackType("success");
+      setFeedbackTitle("Zapisano");
+      setFeedbackMessage(
+        "Profil został zaktualizowany. Teraz musisz wykonać weryfikację SMS, aby w pełni aktywować konto.",
+      );
       setFeedbackOpen(true);
     } catch (err) {
-      console.error('Profile save failed:', err);
-      const message = (err as any)?.message || profileError || 'Nie udało się zapisać profilu.';
-      setFeedbackType('error');
-      setFeedbackTitle('Nie zapisano');
+      console.error("Profile save failed:", err);
+      const message =
+        (err as any)?.message ||
+        profileError ||
+        "Nie udało się zapisać profilu.";
+      setFeedbackType("error");
+      setFeedbackTitle("Nie zapisano");
       setFeedbackMessage(message);
       setFeedbackOpen(true);
     }
   };
 
   const onChangePassword = async () => {
-    setPassError('');
+    setPassError("");
     if (!newPassword || newPassword.length < 6) {
-      setPassError('Hasło musi mieć co najmniej 6 znaków');
+      setPassError("Hasło musi mieć co najmniej 6 znaków");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPassError('Hasła nie są takie same');
+      setPassError("Hasła nie są takie same");
       return;
     }
     try {
       setPassSaving(true);
-      const { supabase } = await import('@/lib/supabase');
+      const { supabase } = await import("@/lib/supabase");
       if (!supabase) {
-        setPassError('Brak połączenia z bazą danych');
+        setPassError("Brak połączenia z bazą danych");
         return;
       }
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
       if (error) {
-        setPassError(error.message ?? 'Nie udało się zmienić hasła');
+        setPassError(error.message ?? "Nie udało się zmienić hasła");
         return;
       }
-      setNewPassword('');
-      setConfirmPassword('');
-      setFeedbackType('success');
-      setFeedbackTitle('Hasło zmienione');
-      setFeedbackMessage('Twoje hasło zostało pomyślnie zaktualizowane.');
+      setNewPassword("");
+      setConfirmPassword("");
+      setFeedbackType("success");
+      setFeedbackTitle("Hasło zmienione");
+      setFeedbackMessage("Twoje hasło zostało pomyślnie zaktualizowane.");
       setFeedbackOpen(true);
     } catch (err: any) {
-      setPassError(err?.message ?? 'Wystąpił błąd przy zmianie hasła');
-      setFeedbackType('error');
-      setFeedbackTitle('Błąd zmiany hasła');
-      setFeedbackMessage(err?.message ?? 'Wystąpił błąd przy zmianie hasła');
+      setPassError(err?.message ?? "Wystąpił błąd przy zmianie hasła");
+      setFeedbackType("error");
+      setFeedbackTitle("Błąd zmiany hasła");
+      setFeedbackMessage(err?.message ?? "Wystąpił błąd przy zmianie hasła");
       setFeedbackOpen(true);
     } finally {
       setPassSaving(false);
@@ -156,25 +251,25 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (!profile) return;
-    setUsername(profile.username ?? '');
-    setFirstName(profile.first_name ?? '');
-    setLastName(profile.last_name ?? '');
-    setStreet(profile.street ?? '');
-    setPostalCode(profile.postal_code ?? '');
-    setCity(profile.city ?? '');
-    setCountry(profile.country ?? '');
-    setPhone(profile.phone ?? '');
+    setUsername(profile.username ?? "");
+    setFirstName(profile.first_name ?? "");
+    setLastName(profile.last_name ?? "");
+    setStreet(profile.street ?? "");
+    setPostalCode(profile.postal_code ?? "");
+    setCity(profile.city ?? "");
+    setCountry(profile.country ?? "");
+    setPhone(profile.phone ?? "");
   }, [profile]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = originalOverflow;
     };
   }, []);
 
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     return null;
   }
 
@@ -192,10 +287,10 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           initial={{ opacity: 0, scale: 0.9, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 30 }}
-          transition={{ 
-            duration: 0.4, 
+          transition={{
+            duration: 0.4,
             ease: [0.4, 0, 0.2, 1],
-            scale: { type: "spring", stiffness: 300, damping: 30 }
+            scale: { type: "spring", stiffness: 300, damping: 30 },
           }}
           className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-hidden pointer-events-auto bg-gray-900 rounded-3xl border border-white/15 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
           drag
@@ -206,12 +301,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-
           {/* Animated border glow - disabled */}
           <div
             className="absolute inset-0 rounded-3xl pointer-events-none"
             style={{
-              background: 'transparent',
+              background: "transparent",
             }}
           />
 
@@ -219,29 +313,39 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
+            transition={{
+              delay: 0.1,
+              type: "spring",
+              stiffness: 200,
+              damping: 20,
+            }}
             className="relative flex-shrink-0 p-6 md:p-8 border-b border-white/10 bg-gray-900 rounded-t-3xl"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <motion.div 
+                <motion.div
                   className="relative w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-500 to-gray-600 flex items-center justify-center shadow-lg shadow-black/30"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 20,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                     className="absolute inset-0 rounded-full opacity-20"
                     style={{
-                      background: 'conic-gradient(from 0deg, transparent, rgba(255,255,255,0.8), transparent)',
+                      background:
+                        "conic-gradient(from 0deg, transparent, rgba(255,255,255,0.8), transparent)",
                     }}
                   />
                   <Crown className="w-8 h-8 text-white relative z-10" />
                 </motion.div>
 
                 <div className="space-y-1">
-                  <motion.div 
+                  <motion.div
                     className="font-display text-3xl md:text-4xl font-bold text-white"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -273,23 +377,60 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           </motion.div>
 
           {/* Status Cards */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
             className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gray-900/70 border-b border-white/5"
           >
             {[
-              { icon: Mail, label: 'Email', value: user?.email ?? '', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
-              { icon: Star, label: 'Status', value: profile?.role ?? '-', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
-              { icon: Calendar, label: 'Następny krok', value: profile?.role === 'USER_REGISTERED' ? 'Zweryfikuj email' : profile?.role === 'USER_EMAIL_VERIFIED' ? 'Uzupełnij profil' : profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN' ? 'Konto aktywne' : '-', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
-              { icon: Phone, label: 'Telefon', value: profile?.phone ?? 'Nie dodano', color: 'from-gray-700 to-gray-600', glow: 'shadow-black/30' },
+              {
+                icon: Mail,
+                label: "Email",
+                value: user?.email ?? "",
+                color: "from-gray-700 to-gray-600",
+                glow: "shadow-black/30",
+              },
+              {
+                icon: Star,
+                label: "Status",
+                value: profile?.role ?? "-",
+                color: "from-gray-700 to-gray-600",
+                glow: "shadow-black/30",
+              },
+              {
+                icon: Calendar,
+                label: "Następny krok",
+                value:
+                  profile?.role === "USER_REGISTERED"
+                    ? "Zweryfikuj email"
+                    : profile?.role === "USER_EMAIL_VERIFIED"
+                      ? "Uzupełnij profil"
+                      : profile?.role === "USER_FULL_VERIFIED" ||
+                          profile?.role === "ADMIN"
+                        ? "Konto aktywne"
+                        : "-",
+                color: "from-gray-700 to-gray-600",
+                glow: "shadow-black/30",
+              },
+              {
+                icon: Phone,
+                label: "Telefon",
+                value: profile?.phone ?? "Nie dodano",
+                color: "from-gray-700 to-gray-600",
+                glow: "shadow-black/30",
+              },
             ].map((card, index) => (
               <motion.div
                 key={card.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.05, type: "spring", stiffness: 200, damping: 20 }}
+                transition={{
+                  delay: 0.2 + index * 0.05,
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 20,
+                }}
                 whileHover={{ y: -5, scale: 1.02 }}
                 className={`relative bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4 overflow-hidden group hover:border-white/20 hover:shadow-lg transition-all duration-300`}
               >
@@ -306,7 +447,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                     </motion.div>
                     {card.label}
                   </div>
-                  <div className="text-white text-sm font-medium break-words line-clamp-2">{card.value}</div>
+                  <div className="text-white text-sm font-medium break-words line-clamp-2">
+                    {card.value}
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -315,10 +458,10 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           {/* Navigation Tabs */}
           <div className="flex-shrink-0 flex gap-2 px-6 border-b border-white/10 bg-gray-900/70 overflow-x-auto scrollbar-hide">
             {[
-              { id: 'overview', label: 'Przegląd', icon: User },
-              { id: 'profile', label: 'Profil', icon: Settings },
-              { id: 'security', label: 'Bezpieczeństwo', icon: Shield },
-              { id: 'auctions', label: 'Aukcje', icon: Package },
+              { id: "overview", label: "Przegląd", icon: User },
+              { id: "profile", label: "Profil", icon: Settings },
+              { id: "security", label: "Bezpieczeństwo", icon: Shield },
+              { id: "auctions", label: "Aukcje", icon: Package },
             ].map((tab, index) => (
               <motion.button
                 key={tab.id}
@@ -331,8 +474,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 whileTap={{ scale: 0.95 }}
                 className={`relative px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all duration-300 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-white text-white'
-                    : 'border-transparent text-white/60 hover:text-white hover:border-white/30'
+                    ? "border-white text-white"
+                    : "border-transparent text-white/60 hover:text-white hover:border-white/30"
                 }`}
               >
                 {activeTab === tab.id && (
@@ -343,7 +486,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                   />
                 )}
                 <motion.div
-                  animate={{ rotate: activeTab === tab.id ? [0, 10, -10, 0] : 0 }}
+                  animate={{
+                    rotate: activeTab === tab.id ? [0, 10, -10, 0] : 0,
+                  }}
                   transition={{ duration: 0.5 }}
                 >
                   <tab.icon className="w-4 h-4 relative z-10" />
@@ -356,7 +501,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           {/* Tab Content */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 custom-scrollbar">
             <AnimatePresence mode="wait">
-              {activeTab === 'overview' && (
+              {activeTab === "overview" && (
                 <motion.div
                   key="overview"
                   initial={{ opacity: 0, x: 20 }}
@@ -366,7 +511,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                   className="h-full"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <motion.div 
+                    <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       whileHover={{ y: -5, scale: 1.02 }}
                       initial={{ opacity: 0, y: 20 }}
@@ -376,68 +521,75 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
                         <motion.div
                           animate={{ rotate: [0, 10, -10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            repeatDelay: 3,
+                          }}
                         >
                           <Trophy className="w-6 h-6 text-gold" />
                         </motion.div>
                         Podsumowanie konta
                       </h3>
                       <div className="space-y-4">
-                        <motion.div 
-                          className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                        <motion.button
+                          onClick={() => setActiveTab("auctions")}
+                          className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-gold/10 hover:border-gold/30 transition-all border border-white/10 group"
                           whileHover={{ x: 5 }}
                         >
-                          <span className="text-white/70 text-sm flex items-center gap-2">
+                          <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
                             <Package className="w-4 h-4" />
                             Twoje aukcje
                           </span>
-                          <motion.span 
-                            className="text-white text-2xl font-bold"
+                          <motion.span
+                            className="text-white text-2xl font-bold group-hover:text-gold transition-colors"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.3, type: "spring" }}
                           >
-                            0
+                            {userAuctions.length}
                           </motion.span>
-                        </motion.div>
-                        <motion.div 
-                          className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                        </motion.button>
+                        <motion.button
+                          onClick={() => setActiveTab("auctions")}
+                          className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-gold/10 hover:border-gold/30 transition-all border border-white/10 group"
                           whileHover={{ x: 5 }}
                         >
-                          <span className="text-white/70 text-sm flex items-center gap-2">
+                          <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
                             <TrendingUp className="w-4 h-4" />
                             Aktywne licytacje
                           </span>
-                          <motion.span 
-                            className="text-white text-2xl font-bold"
+                          <motion.span
+                            className="text-white text-2xl font-bold group-hover:text-gold transition-colors"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.4, type: "spring" }}
                           >
-                            0
+                            {biddingAuctions.length}
                           </motion.span>
-                        </motion.div>
-                        <motion.div 
-                          className="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                        </motion.button>
+                        <motion.button
+                          onClick={() => setActiveTab("auctions")}
+                          className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-gold/10 hover:border-gold/30 transition-all border border-white/10 group"
                           whileHover={{ x: 5 }}
                         >
-                          <span className="text-white/70 text-sm flex items-center gap-2">
+                          <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
                             <Heart className="w-4 h-4" />
                             Obserwowane
                           </span>
-                          <motion.span 
-                            className="text-white text-2xl font-bold"
+                          <motion.span
+                            className="text-white text-2xl font-bold group-hover:text-gold transition-colors"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.5, type: "spring" }}
                           >
-                            0
+                            {watchedAuctions.length}
                           </motion.span>
-                        </motion.div>
+                        </motion.button>
                       </div>
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       whileHover={{ y: -5, scale: 1.02 }}
                       initial={{ opacity: 0, y: 20 }}
@@ -454,8 +606,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         Status konta
                       </h3>
                       <div className="space-y-4">
-                        {profile?.role === 'USER_REGISTERED' && (
-                          <motion.div 
+                        {profile?.role === "USER_REGISTERED" && (
+                          <motion.div
                             className="p-4 bg-amber-500/20 border border-amber-500/50 rounded-xl backdrop-blur-sm"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -467,8 +619,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             </p>
                           </motion.div>
                         )}
-                        {profile?.role === 'USER_EMAIL_VERIFIED' && (
-                          <motion.div 
+                        {profile?.role === "USER_EMAIL_VERIFIED" && (
+                          <motion.div
                             className="p-4 bg-gold/20 border border-gold/50 rounded-xl backdrop-blur-sm"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -480,8 +632,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             </p>
                           </motion.div>
                         )}
-                        {profile?.role === 'USER_FULL_VERIFIED' && (
-                          <motion.div 
+                        {profile?.role === "USER_FULL_VERIFIED" && (
+                          <motion.div
                             className="p-4 bg-green-500/20 border border-green-500/50 rounded-xl backdrop-blur-sm"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -493,8 +645,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             </p>
                           </motion.div>
                         )}
-                        {profile?.role === 'ADMIN' && (
-                          <motion.div 
+                        {profile?.role === "ADMIN" && (
+                          <motion.div
                             className="p-4 bg-purple-500/20 border border-purple-500/50 rounded-xl backdrop-blur-sm"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -506,11 +658,13 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             </p>
                           </motion.div>
                         )}
-                        
+
                         <div className="pt-4 space-y-3">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-white/60">Poziom weryfikacji</span>
-                            <motion.div 
+                            <span className="text-white/60">
+                              Poziom weryfikacji
+                            </span>
+                            <motion.div
                               className="flex gap-1"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
@@ -520,11 +674,15 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                                 <motion.div
                                   key={level}
                                   className={`w-8 h-2 rounded-full ${
-                                    (profile?.role === 'USER_REGISTERED' && level <= 1) ||
-                                    (profile?.role === 'USER_EMAIL_VERIFIED' && level <= 2) ||
-                                    ((profile?.role === 'USER_FULL_VERIFIED' || profile?.role === 'ADMIN') && level <= 3)
-                                      ? 'bg-gold'
-                                      : 'bg-white/20'
+                                    (profile?.role === "USER_REGISTERED" &&
+                                      level <= 1) ||
+                                    (profile?.role === "USER_EMAIL_VERIFIED" &&
+                                      level <= 2) ||
+                                    ((profile?.role === "USER_FULL_VERIFIED" ||
+                                      profile?.role === "ADMIN") &&
+                                      level <= 3)
+                                      ? "bg-gold"
+                                      : "bg-white/20"
                                   }`}
                                   initial={{ scaleX: 0 }}
                                   animate={{ scaleX: 1 }}
@@ -540,7 +698,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 </motion.div>
               )}
 
-              {activeTab === 'profile' && (
+              {activeTab === "profile" && (
                 <motion.div
                   key="profile"
                   initial={{ opacity: 0, x: 20 }}
@@ -550,7 +708,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                   className="space-y-6"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <motion.div 
+                    <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -572,7 +730,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Nick</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Nick
+                          </label>
                           <input
                             type="text"
                             value={username}
@@ -586,7 +746,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.25 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Imię</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Imię
+                          </label>
                           <input
                             type="text"
                             value={firstName}
@@ -600,7 +762,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.3 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Nazwisko</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Nazwisko
+                          </label>
                           <input
                             type="text"
                             value={lastName}
@@ -614,7 +778,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.35 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Telefon</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Telefon
+                          </label>
                           <input
                             type="tel"
                             value={phone}
@@ -625,8 +791,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         </motion.div>
                       </div>
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -648,7 +814,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Ulica i numer</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Ulica i numer
+                          </label>
                           <input
                             type="text"
                             value={street}
@@ -662,7 +830,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.25 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Miasto</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Miasto
+                          </label>
                           <input
                             type="text"
                             value={city}
@@ -677,7 +847,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
                           >
-                            <label className="text-sm font-medium text-white/90 mb-2 block">Kod pocztowy</label>
+                            <label className="text-sm font-medium text-white/90 mb-2 block">
+                              Kod pocztowy
+                            </label>
                             <input
                               type="text"
                               value={postalCode}
@@ -691,7 +863,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.35 }}
                           >
-                            <label className="text-sm font-medium text-white/90 mb-2 block">Kraj</label>
+                            <label className="text-sm font-medium text-white/90 mb-2 block">
+                              Kraj
+                            </label>
                             <input
                               type="text"
                               value={country}
@@ -704,26 +878,32 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                       </div>
                     </motion.div>
                   </div>
-                  
-                  <motion.div 
+
+                  <motion.div
                     className="flex gap-3"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
                       <Button
                         disabled={profileSaving}
                         onClick={onSaveProfile}
                         className="bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
                       >
                         <Save className="w-4 h-4 mr-2" />
-                        {profileSaving ? 'Zapisywanie...' : 'Zapisz profil'}
+                        {profileSaving ? "Zapisywanie..." : "Zapisz profil"}
                       </Button>
                     </motion.div>
-                    
+
                     {isEmailVerified && (
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Button
                           variant="outline"
                           disabled={!profileCompleteForSms}
@@ -739,7 +919,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 </motion.div>
               )}
 
-              {activeTab === 'security' && (
+              {activeTab === "security" && (
                 <motion.div
                   key="security"
                   initial={{ opacity: 0, x: 20 }}
@@ -749,7 +929,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                   className="h-full"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <motion.div 
+                    <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -759,7 +939,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
                         <motion.div
                           animate={{ rotate: [0, -10, 10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            repeatDelay: 3,
+                          }}
                         >
                           <Shield className="w-6 h-6 text-gold" />
                         </motion.div>
@@ -771,7 +955,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Nowe hasło</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Nowe hasło
+                          </label>
                           <div className="relative">
                             <input
                               type={showPassword ? "text" : "password"}
@@ -785,7 +971,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               onClick={() => setShowPassword(!showPassword)}
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                             >
-                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              {showPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
                             </button>
                           </div>
                         </motion.div>
@@ -794,27 +984,37 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.25 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">Potwierdź hasło</label>
+                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                            Potwierdź hasło
+                          </label>
                           <div className="relative">
                             <input
                               type={showConfirmPassword ? "text" : "password"}
                               value={confirmPassword}
-                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                              }
                               placeholder="Potwierdź hasło"
                               autoComplete="new-password"
                               className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
                             />
                             <button
                               type="button"
-                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              onClick={() =>
+                                setShowConfirmPassword(!showConfirmPassword)
+                              }
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                             >
-                              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              {showConfirmPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
                             </button>
                           </div>
                         </motion.div>
                         {passError && (
-                          <motion.div 
+                          <motion.div
                             className="p-4 bg-red-500/20 border border-red-500/50 rounded-xl backdrop-blur-sm"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -825,20 +1025,23 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             </p>
                           </motion.div>
                         )}
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
                           <Button
                             disabled={passSaving}
                             onClick={onChangePassword}
                             className="w-full bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
                           >
                             <Lock className="w-4 h-4 mr-2" />
-                            {passSaving ? 'Zmienianie...' : 'Zmień hasło'}
+                            {passSaving ? "Zmienianie..." : "Zmień hasło"}
                           </Button>
                         </motion.div>
                       </div>
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="rounded-2xl border border-red-500/40 bg-gradient-to-br from-red-500/20 to-red-900/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-red-500/60 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -850,9 +1053,14 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         Wyloguj się
                       </h4>
                       <p className="text-red-300 text-sm mb-4 leading-relaxed">
-                        Zakończ sesję i wyloguj się ze swojego konta. Będziesz musiał ponownie zalogować się, aby uzyskać dostęp do swojego konta.
+                        Zakończ sesję i wyloguj się ze swojego konta. Będziesz
+                        musiał ponownie zalogować się, aby uzyskać dostęp do
+                        swojego konta.
                       </p>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Button
                           variant="outline"
                           onClick={() => {
@@ -870,84 +1078,199 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 </motion.div>
               )}
 
-              {activeTab === 'auctions' && (
+              {activeTab === "auctions" && (
                 <motion.div
                   key="auctions"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="h-full"
+                  className="h-full space-y-6"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <motion.div 
+                    {/* Moje aukcje */}
+                    <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      whileHover={{ y: -3 }}
                     >
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                        <motion.div
-                          animate={{ rotate: [0, 360] }}
-                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                        >
-                          <Package className="w-6 h-6 text-gold" />
-                        </motion.div>
-                        Moje aukcje
+                        <Package className="w-6 h-6 text-gold" />
+                        Moje aukcje ({userAuctions.length})
                       </h3>
-                      <div className="text-center py-8">
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                        >
-                          <Package className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                        </motion.div>
-                        <p className="text-white/60 mb-6">Nie masz jeszcze żadnych aukcji</p>
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Button 
-                            onClick={() => {
-                              onClose();
-                              navigate('/auctions');
-                              setTimeout(() => {
-                                window.dispatchEvent(new CustomEvent('openCategorySelector'));
-                              }, 100);
-                            }}
-                            className="w-full bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Stwórz aukcję
-                          </Button>
-                        </motion.div>
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {userAuctions.length > 0 ? (
+                          userAuctions.map((auction) => (
+                            <Link
+                              key={auction.id}
+                              to={`/auctions/${auction.id}`}
+                              onClick={onClose}
+                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/30 hover:bg-white/10 transition-all group"
+                            >
+                              <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
+                                <img
+                                  src={
+                                    auction.images?.[0] || "/placeholder.svg"
+                                  }
+                                  alt=""
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-bold text-sm truncate group-hover:text-gold transition-colors">
+                                  {auction.title}
+                                </p>
+                                <p className="text-xs text-white/40">
+                                  {auction.currentPrice.toLocaleString("pl-PL")}{" "}
+                                  PLN
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[10px] text-white/40 block">
+                                  {auction.status === "active"
+                                    ? "Aktywna"
+                                    : "Zakończona"}
+                                </span>
+                              </div>
+                            </Link>
+                          ))
+                        ) : (
+                          <div className="text-center py-6">
+                            <p className="text-white/40 text-sm mb-4">
+                              Nie masz jeszcze żadnych aukcji
+                            </p>
+                            <Button
+                              onClick={() => {
+                                onClose();
+                                navigate("/auctions");
+                                setTimeout(() => {
+                                  window.dispatchEvent(
+                                    new CustomEvent("openCategorySelector"),
+                                  );
+                                }, 100);
+                              }}
+                              className="w-full bg-gold text-navy hover:bg-gold-light text-xs py-2 h-auto"
+                            >
+                              Stwórz aukcję
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
 
-                    <motion.div 
+                    {/* Moje licytacje */}
+                    <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
-                      whileHover={{ y: -3 }}
                     >
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                        <motion.div
-                          animate={{ scale: [1, 1.1, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Clock className="w-6 h-6 text-gold" />
-                        </motion.div>
-                        Moje licytacje
+                        <Gavel className="w-6 h-6 text-gold" />
+                        Moje licytacje ({biddingAuctions.length})
                       </h3>
-                      <div className="text-center py-8">
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                        >
-                          <Clock className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                        </motion.div>
-                        <p className="text-white/60">Nie bierzesz udziału w żadnych licytacjach</p>
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {biddingAuctions.length > 0 ? (
+                          biddingAuctions.map((auction) => (
+                            <Link
+                              key={auction.id}
+                              to={`/auctions/${auction.id}`}
+                              onClick={onClose}
+                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/30 hover:bg-white/10 transition-all group"
+                            >
+                              <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
+                                <img
+                                  src={
+                                    auction.images?.[0] || "/placeholder.svg"
+                                  }
+                                  alt=""
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-bold text-sm truncate group-hover:text-gold transition-colors">
+                                  {auction.title}
+                                </p>
+                                <p className="text-xs text-white/40">
+                                  {auction.currentPrice.toLocaleString("pl-PL")}{" "}
+                                  PLN
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[10px] text-primary font-bold block">
+                                  Licytujesz
+                                </span>
+                              </div>
+                            </Link>
+                          ))
+                        ) : (
+                          <div className="text-center py-6">
+                            <p className="text-white/40 text-sm">
+                              Nie bierzesz udziału w licytacjach
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* Obserwowane */}
+                    <motion.div
+                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300 lg:col-span-2"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <Heart className="w-6 h-6 text-red-500" />
+                        Obserwowane ({watchedAuctions.length})
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {watchedAuctions.length > 0 ? (
+                          watchedAuctions.map((auction) => (
+                            <Link
+                              key={auction.id}
+                              to={`/auctions/${auction.id}`}
+                              onClick={onClose}
+                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/30 hover:bg-white/10 transition-all group"
+                            >
+                              <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
+                                <img
+                                  src={
+                                    auction.images?.[0] || "/placeholder.svg"
+                                  }
+                                  alt=""
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-bold text-sm truncate group-hover:text-gold transition-colors">
+                                  {auction.title}
+                                </p>
+                                <p className="text-xs text-white/40">
+                                  {auction.currentPrice.toLocaleString("pl-PL")}{" "}
+                                  PLN
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[10px] text-white/20 block">
+                                  {auction.status === "active" ? (
+                                    <span className="text-green-500/60 flex items-center gap-1">
+                                      <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                                      Aktywna
+                                    </span>
+                                  ) : (
+                                    "Zakończona"
+                                  )}
+                                </span>
+                              </div>
+                            </Link>
+                          ))
+                        ) : (
+                          <div className="col-span-full text-center py-6 text-white/40 text-sm">
+                            Brak obserwowanych aukcji
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   </div>
@@ -966,12 +1289,14 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         size="md"
         type="default"
       >
-        <PhoneVerification 
+        <PhoneVerification
           onVerified={() => {
             setShowSmsAuth(false);
-            setFeedbackType('success');
-            setFeedbackTitle('Sukces');
-            setFeedbackMessage('Numer telefonu został zweryfikowany pomyślnie.');
+            setFeedbackType("success");
+            setFeedbackTitle("Sukces");
+            setFeedbackMessage(
+              "Numer telefonu został zweryfikowany pomyślnie.",
+            );
             setFeedbackOpen(true);
           }}
           initialPhone={phone}
@@ -986,22 +1311,30 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         type={feedbackType}
         title={feedbackTitle}
         message={feedbackMessage}
-        confirmButton={{ 
-          text: feedbackType === 'success' && feedbackMessage.includes('weryfikację SMS') ? 'Weryfikuj SMS' : 'OK', 
+        confirmButton={{
+          text:
+            feedbackType === "success" &&
+            feedbackMessage.includes("weryfikację SMS")
+              ? "Weryfikuj SMS"
+              : "OK",
           onClick: () => {
             setFeedbackOpen(false);
-            if (feedbackType === 'success' && feedbackMessage.includes('weryfikację SMS')) {
+            if (
+              feedbackType === "success" &&
+              feedbackMessage.includes("weryfikację SMS")
+            ) {
               setShowSmsAuth(true);
             }
-          } 
+          },
         }}
         showCloseButton={true}
         closeOnBackdrop={true}
         closeOnEscape={true}
         size="md"
       />
-    </>
-  , document.body);
+    </>,
+    document.body,
+  );
 };
 
 export default UserPanel;
