@@ -369,7 +369,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       data: { subscription },
     } = client.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        logger.debug("Auth state change:", event);
+        logger.debug(`Auth state change: ${event}`, {
+          hasUser: !!session?.user,
+          url: window.location.href,
+        });
 
         if (event === "SIGNED_OUT") {
           setSession(null);
@@ -461,7 +464,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         provider: "google",
         options: {
           redirectTo,
-          scopes: "email profile",
+          scopes: "openid email profile",
           queryParams: {
             access_type: "offline",
             prompt: "consent",
