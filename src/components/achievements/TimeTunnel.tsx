@@ -1,6 +1,6 @@
 /**
  * TimeTunnel — Ultra-Luxury Cinematic Timeline
- * 
+ *
  * Orchestrates the complete experience:
  * - Split-text hero entrance
  * - Lenis smooth scrolling + GSAP parallax
@@ -9,7 +9,13 @@
  */
 
 import { useRef, useState, useEffect, useMemo } from "react";
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  AnimatePresence,
+} from "framer-motion";
 import TimelineCard from "./TimelineCard";
 import ProgressBar from "./ProgressBar";
 import ParticlesBackground from "./ParticlesBackground";
@@ -372,9 +378,27 @@ const TimeTunnel = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { updateOptions, resetOptions } = useLenisContext();
 
   // Lenis jest już zainicjalizowany przez SmoothScrollProvider w App.tsx
   useParallax();
+
+  // 🧈 Maślany scroll — bardzo niskie lerp dla ultra-płynnego efektu
+  useEffect(() => {
+    // Krótkie opóźnienie żeby Lenis zdążył się zainicjalizować
+    const timer = setTimeout(() => {
+      updateOptions({
+        lerp: 0.02,
+        wheelMultiplier: 0.45,
+        touchMultiplier: 1.2,
+      });
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      resetOptions(); // Przywróć domyślne przy wyjściu ze strony
+    };
+  }, [updateOptions, resetOptions]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 300);
@@ -382,7 +406,9 @@ const TimeTunnel = () => {
   }, []);
 
   const stats = useMemo(() => {
-    let mistrz = 0, wicemistrz = 0, przodownik = 0;
+    let mistrz = 0,
+      wicemistrz = 0,
+      przodownik = 0;
     timelineEvents.forEach((event) => {
       event.achievements.forEach((a) => {
         if (a.includes("Mistrz")) mistrz++;
@@ -405,13 +431,17 @@ const TimeTunnel = () => {
   });
 
   const perspectiveZ = useTransform(smoothProgress, [0, 1], [0, -500]);
-  const tunnelOpacity = useTransform(smoothProgress, [0, 0.1, 0.9, 1], [0, 1, 1, 0]);
+  const tunnelOpacity = useTransform(
+    smoothProgress,
+    [0, 0.1, 0.9, 1],
+    [0, 1, 1, 0],
+  );
 
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (value) => {
       const newIndex = Math.min(
         Math.floor(value * timelineEvents.length),
-        timelineEvents.length - 1
+        timelineEvents.length - 1,
       );
       setActiveIndex(newIndex);
     });
@@ -426,42 +456,52 @@ const TimeTunnel = () => {
   return (
     <div ref={containerRef} className="relative min-h-[400vh]">
       {/* Background */}
-      <div className="fixed inset-0 -z-10" style={{
-        background: 'linear-gradient(175deg, hsl(230, 50%, 10%) 0%, hsl(225, 55%, 8%) 30%, hsl(220, 60%, 7%) 60%, hsl(225, 55%, 6%) 100%)'
-      }} />
+      <div
+        className="fixed inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(175deg, hsl(230, 50%, 10%) 0%, hsl(225, 55%, 8%) 30%, hsl(220, 60%, 7%) 60%, hsl(225, 55%, 6%) 100%)",
+        }}
+      />
 
       {/* Parallax orbs */}
       <div className="fixed inset-0 -z-8 pointer-events-none overflow-hidden">
         <div
           className="absolute w-[600px] h-[600px] rounded-full opacity-30"
           style={{
-            background: 'radial-gradient(circle, hsl(45 38% 47% / 0.4) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-            top: '10%', left: '10%',
+            background:
+              "radial-gradient(circle, hsl(45 38% 47% / 0.4) 0%, transparent 70%)",
+            filter: "blur(80px)",
+            top: "10%",
+            left: "10%",
           }}
         />
         <div
           className="absolute w-[500px] h-[500px] rounded-full opacity-25"
           style={{
-            background: 'radial-gradient(circle, hsl(45 38% 47% / 0.3) 0%, transparent 70%)',
-            filter: 'blur(100px)',
-            top: '40%', right: '5%',
+            background:
+              "radial-gradient(circle, hsl(45 38% 47% / 0.3) 0%, transparent 70%)",
+            filter: "blur(100px)",
+            top: "40%",
+            right: "5%",
           }}
         />
         <div
           className="absolute w-[350px] h-[350px] rounded-full opacity-35"
           style={{
-            background: 'radial-gradient(circle, hsl(45 38% 47% / 0.5) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-            bottom: '20%', left: '20%',
+            background:
+              "radial-gradient(circle, hsl(45 38% 47% / 0.5) 0%, transparent 70%)",
+            filter: "blur(60px)",
+            bottom: "20%",
+            left: "20%",
           }}
         />
         {/* Floating dots */}
         {[
-          { top: '15%', left: '25%', size: 4, depth: 0.6 },
-          { top: '35%', right: '30%', size: 3, depth: 0.7 },
-          { top: '55%', left: '15%', size: 5, depth: 0.5 },
-          { top: '75%', right: '20%', size: 2, depth: 0.8 },
+          { top: "15%", left: "25%", size: 4, depth: 0.6 },
+          { top: "35%", right: "30%", size: 3, depth: 0.7 },
+          { top: "55%", left: "15%", size: 5, depth: 0.5 },
+          { top: "75%", right: "20%", size: 2, depth: 0.8 },
         ].map((dot, i) => (
           <div
             key={i}
@@ -489,7 +529,8 @@ const TimeTunnel = () => {
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.08) 0%, transparent 55%)',
+            background:
+              "radial-gradient(ellipse at center, hsl(var(--primary) / 0.08) 0%, transparent 55%)",
           }}
         />
       </motion.div>
@@ -508,7 +549,6 @@ const TimeTunnel = () => {
 
       {/* Timeline Content */}
       <div className="relative z-10 pt-20 pb-[50vh] px-4 md:px-16 lg:px-24 max-w-7xl mx-auto">
-        
         {/* ==========================================
          * HERO SECTION — Cinematic Split-Text Entrance
          * ========================================== */}
@@ -538,16 +578,20 @@ const TimeTunnel = () => {
               <motion.span
                 key={i}
                 className="split-char"
-                initial={{ 
-                  opacity: 0, 
-                  y: 80, 
+                initial={{
+                  opacity: 0,
+                  y: 80,
                   rotateX: 90,
                 }}
-                animate={isLoaded ? { 
-                  opacity: 1, 
-                  y: 0, 
-                  rotateX: 0,
-                } : {}}
+                animate={
+                  isLoaded
+                    ? {
+                        opacity: 1,
+                        y: 0,
+                        rotateX: 0,
+                      }
+                    : {}
+                }
                 transition={{
                   duration: 0.8,
                   delay: 0.5 + i * 0.035,
@@ -666,7 +710,9 @@ const TimeTunnel = () => {
           <div className="w-20 h-[2px] rounded-full bg-border/30 overflow-hidden">
             <motion.div
               className="h-full progress-glow"
-              animate={{ width: `${((activeIndex + 1) / years.length) * 100}%` }}
+              animate={{
+                width: `${((activeIndex + 1) / years.length) * 100}%`,
+              }}
               transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
             />
           </div>

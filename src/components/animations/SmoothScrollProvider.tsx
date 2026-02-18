@@ -3,21 +3,46 @@
  * Tylko płynne przewijanie bez skomplikowanych efektów GSAP
  */
 
-import { ReactNode, useEffect, useRef, createContext, useContext, useCallback } from "react";
+import {
+  ReactNode,
+  useEffect,
+  useRef,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
 import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+interface LenisOptions {
+  lerp?: number;
+  wheelMultiplier?: number;
+  touchMultiplier?: number;
+}
 
 interface LenisContextValue {
   getLenis: () => Lenis | null;
   isReduced: boolean;
   stopScroll: () => void;
   startScroll: () => void;
+  updateOptions: (opts: LenisOptions) => void;
+  resetOptions: () => void;
 }
+
+const DEFAULT_OPTIONS: LenisOptions = {
+  lerp: 0.1,
+  wheelMultiplier: 1,
+  touchMultiplier: 2,
+};
 
 const LenisContext = createContext<LenisContextValue>({
   getLenis: () => null,
   isReduced: false,
   stopScroll: () => {},
   startScroll: () => {},
+  updateOptions: () => {},
+  resetOptions: () => {},
 });
 
 export const useLenisContext = () => useContext(LenisContext);
@@ -49,7 +74,6 @@ export const SmoothScrollProvider = ({
       smoothWheel: true,
       wheelMultiplier: 1,
       touchMultiplier: 2,
-      smooth: true,
     });
 
     lenisRef.current = lenis;
@@ -59,16 +83,22 @@ export const SmoothScrollProvider = ({
       (window as unknown as { lenis: Lenis }).lenis = lenis;
     }
 
-    // Raf loop - proste przewijanie
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    // 🔥 KLUCZOWE DLA PŁYNNOŚCI: Synchronizacja Lenis z GSAP Ticker
+    // Zamiast osobnej pętli rAF, używamy tickera GSAP.
+    // Dzięki temu scroll i animacje są obliczane w tej samej klatce.
+    lenis.on("scroll", ScrollTrigger.update);
 
-    const rafId = requestAnimationFrame(raf);
+    const ticker = (time: number) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(ticker);
+
+    // Zapobiega skokom przy lagach
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(ticker);
       lenis.destroy();
       lenisRef.current = null;
       if (typeof window !== "undefined") {
@@ -87,9 +117,35 @@ export const SmoothScrollProvider = ({
     lenisRef.current?.start();
   }, []);
 
+  // Dynamically update Lenis options (e.g. for buttery-smooth pages)
+  const updateOptions = useCallback((opts: LenisOptions) => {
+    const lenis = lenisRef.current;
+    if (!lenis) return;
+    if (opts.lerp !== undefined) (lenis as any).options.lerp = opts.lerp;
+    if (opts.wheelMultiplier !== undefined)
+      (lenis as any).options.wheelMultiplier = opts.wheelMultiplier;
+    if (opts.touchMultiplier !== undefined)
+      (lenis as any).options.touchMultiplier = opts.touchMultiplier;
+  }, []);
+
+  const resetOptions = useCallback(() => {
+    const lenis = lenisRef.current;
+    if (!lenis) return;
+    (lenis as any).options.lerp = DEFAULT_OPTIONS.lerp;
+    (lenis as any).options.wheelMultiplier = DEFAULT_OPTIONS.wheelMultiplier;
+    (lenis as any).options.touchMultiplier = DEFAULT_OPTIONS.touchMultiplier;
+  }, []);
+
   return (
     <LenisContext.Provider
-      value={{ getLenis, isReduced, stopScroll, startScroll }}
+      value={{
+        getLenis,
+        isReduced,
+        stopScroll,
+        startScroll,
+        updateOptions,
+        resetOptions,
+      }}
     >
       {children}
     </LenisContext.Provider>
