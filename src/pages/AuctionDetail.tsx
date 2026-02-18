@@ -188,7 +188,13 @@ const AuctionDetail: React.FC = () => {
   };
 
   const displayAuction = isDemo ? demoAuction : auction;
+  const dAuction = displayAuction;
   const isLoadingCurrent = loading && !isDemo;
+
+  const isOwner = useMemo(() => {
+    if (!dAuction || !user) return false;
+    return user.id === dAuction.seller?.id;
+  }, [user, dAuction]);
 
   const minimumBidValue = useMemo(() => {
     if (!displayAuction) return 0;
@@ -276,8 +282,9 @@ const AuctionDetail: React.FC = () => {
   }, [navigate, profile, roleActions, user]);
 
   const handleBid = useCallback(async () => {
+    if (isOwner) return;
     if (!checkAccess()) return;
-    if (!token || !auction) return;
+    if (!token || !dAuction) return;
 
     const amount = parseFloat(bidAmount);
     if (isNaN(amount)) return;
@@ -286,7 +293,7 @@ const AuctionDetail: React.FC = () => {
     if (!bidError) {
       setBidAmount("");
     }
-  }, [checkAccess, token, auction, placeBid, bidAmount, bidError]);
+  }, [checkAccess, token, dAuction, placeBid, bidAmount, bidError, isOwner]);
 
   const handleAdminUpdate = async (data: {
     currentPrice?: number;
@@ -315,8 +322,9 @@ const AuctionDetail: React.FC = () => {
   };
 
   const handleBuyNow = useCallback(async () => {
+    if (isOwner) return;
     if (!checkAccess()) return;
-    if (!token || !auction || !auction.buyNowPrice) return;
+    if (!token || !dAuction || !dAuction.buyNowPrice) return;
     setIsCheckoutLoading(true);
     try {
       const clientUrl = window.location.origin;
@@ -336,7 +344,7 @@ const AuctionDetail: React.FC = () => {
     } finally {
       setIsCheckoutLoading(false);
     }
-  }, [checkAccess, token, auction, id]);
+  }, [checkAccess, token, dAuction, id, isOwner]);
 
   const toggleWatch = useCallback(async () => {
     if (!token || !id) return;
@@ -452,8 +460,6 @@ const AuctionDetail: React.FC = () => {
     setReviewSubmitted(true);
     setShowReviewForm(false);
   };
-
-  const dAuction = displayAuction;
 
   return (
     <div className="min-h-screen">
@@ -645,7 +651,9 @@ const AuctionDetail: React.FC = () => {
                     <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
                       <div className="min-w-fit">
                         <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-1">
-                          Aktualna cena
+                          {dAuction.startingPrice != null
+                            ? "Aktualna cena"
+                            : "Cena"}
                         </p>
                         <div className="flex items-baseline gap-2">
                           <span className="text-4xl md:text-5xl font-black text-primary tracking-tighter">
@@ -674,33 +682,56 @@ const AuctionDetail: React.FC = () => {
 
                     {!isEnded && (
                       <div className="flex flex-wrap lg:flex-nowrap items-stretch gap-2">
-                        <div className="relative flex-[1.2] min-w-[110px] group/input">
-                          <input
-                            type="number"
-                            value={bidAmount}
-                            onChange={(e) => setBidAmount(e.target.value)}
-                            placeholder={`${minimumBidValue ? minimumBidValue.toLocaleString("pl-PL") : "0"}+`}
-                            className="w-full h-full bg-white/[0.05] border border-white/10 rounded-2xl px-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all font-bold group-hover/input:border-white/20 text-sm"
-                          />
-                        </div>
-                        <Button
-                          onClick={handleBid}
-                          disabled={bidLoading}
-                          className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-tighter shadow-glow hover:shadow-glow-lg transition-all text-[12px] whitespace-nowrap"
-                        >
-                          <Gavel className="w-3.5 h-3.5 mr-1.5" />
-                          Licytuj
-                        </Button>
-                        {dAuction.buyNowPrice && (
-                          <div className="relative group/buynow flex-1">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/50 to-primary/50 rounded-2xl blur opacity-0 group-hover/buynow:opacity-30 transition duration-500" />
-                            <Button
-                              onClick={handleBuyNow}
-                              className="relative w-full h-full px-4 py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-tighter transition-all text-[12px] whitespace-nowrap"
-                            >
-                              Kup teraz
-                            </Button>
+                        {isOwner ? (
+                          <div className="w-full flex items-center justify-center gap-3 p-6 bg-white/5 border border-white/10 rounded-2xl text-white/50 text-sm font-medium backdrop-blur-sm">
+                            <AlertCircle className="w-5 h-5 text-gold/50" />
+                            {dAuction.startingPrice != null &&
+                            dAuction.buyNowPrice
+                              ? "To jest Twoja aukcja. Nie możesz licytować ani kupować własnych przedmiotów."
+                              : dAuction.startingPrice != null
+                                ? "To jest Twoja aukcja. Nie możesz licytować własnych przedmiotów."
+                                : "To jest Twoja aukcja. Nie możesz kupować własnych przedmiotów."}
                           </div>
+                        ) : (
+                          <>
+                            {dAuction.startingPrice != null && (
+                              <>
+                                <div className="relative flex-[1.2] min-w-[110px] group/input">
+                                  <input
+                                    type="number"
+                                    value={bidAmount}
+                                    onChange={(e) =>
+                                      setBidAmount(e.target.value)
+                                    }
+                                    placeholder={`${minimumBidValue ? minimumBidValue.toLocaleString("pl-PL") : "0"}+`}
+                                    className="w-full h-full bg-white/[0.05] border border-white/10 rounded-2xl px-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all font-bold group-hover/input:border-white/20 text-sm"
+                                  />
+                                </div>
+                                <Button
+                                  onClick={handleBid}
+                                  disabled={bidLoading}
+                                  className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-tighter shadow-glow hover:shadow-glow-lg transition-all text-[12px] whitespace-nowrap"
+                                >
+                                  <Gavel className="w-3.5 h-3.5 mr-1.5" />
+                                  Licytuj
+                                </Button>
+                              </>
+                            )}
+                            {dAuction.buyNowPrice && (
+                              <div className="relative group/buynow flex-1">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/50 to-primary/50 rounded-2xl blur opacity-0 group-hover/buynow:opacity-30 transition duration-500" />
+                                <Button
+                                  onClick={handleBuyNow}
+                                  className="relative w-full h-full px-4 py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-tighter transition-all text-[12px] whitespace-nowrap"
+                                  disabled={isCheckoutLoading}
+                                >
+                                  {isCheckoutLoading
+                                    ? "Przetwarzanie..."
+                                    : "Kup teraz"}
+                                </Button>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}

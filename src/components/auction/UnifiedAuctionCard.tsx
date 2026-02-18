@@ -227,8 +227,7 @@ export const UnifiedAuctionCard = memo(
     }, [category]);
 
     const hasBuyNow = typeof buyNowPrice === "number" && buyNowPrice > 0;
-    const hasBidding =
-      typeof startingPrice === "number" && startingPrice !== null;
+    const hasBidding = startingPrice !== undefined && startingPrice !== null;
 
     const ringBadge = isPigeon ? ringNumber : null;
 
@@ -517,8 +516,16 @@ export const UnifiedAuctionCard = memo(
                   )}
                 </p>
                 <p className="font-display text-2xl font-bold text-gold drop-shadow-lg">
-                  {formatNumber(currentBid)}
+                  {formatNumber(hasBidding ? currentBid : buyNowPrice)}
                 </p>
+                {hasBidding && hasBuyNow && (
+                  <p className="text-[9px] text-white/40 mt-1">
+                    Kup Teraz:{" "}
+                    <span className="text-white/60">
+                      {formatNumber(buyNowPrice)}
+                    </span>
+                  </p>
+                )}
               </div>
               {hasBidding && (
                 <div className="text-right">
