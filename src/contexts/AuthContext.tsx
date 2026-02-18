@@ -587,6 +587,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         options: {
           redirectTo,
           skipBrowserRedirect: false,
+          scopes: "email profile",
         },
       });
 
@@ -628,7 +629,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         provider: "facebook",
         options: {
           redirectTo,
-          scopes: "email,public_profile",
+          scopes: "email public_profile",
           queryParams: {
             auth_type: "rerequest",
           },
@@ -743,6 +744,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await apiClient.patch<Profile>(
         "/users/profile",
         safeUpdates,
+        session?.access_token,
       );
 
       if (!response) {
