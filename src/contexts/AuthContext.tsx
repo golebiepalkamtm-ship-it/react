@@ -398,6 +398,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             url: currentUrl.toString(),
           });
 
+          // Show specific error to the user via toast
+          toast.error(`Błąd logowania: ${errorDescription || errorParam}`);
+
           if (
             errorCode === "unexpected_failure" ||
             errorParam === "server_error"
@@ -408,37 +411,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               hint: "Check Google OAuth configuration in Supabase Dashboard and Google Cloud Console",
             });
           }
-
-          // Clean up error params
-          currentUrl.searchParams.delete("error");
-          currentUrl.searchParams.delete("error_description");
-          currentUrl.searchParams.delete("error_code");
-          window.history.replaceState(
-            {},
-            document.title,
-            currentUrl.toString(),
-          );
-        }
-
-        // If OAuth code is present, Supabase will automatically exchange it for a session
-        // due to detectSessionInUrl: true in supabase config
-        // Clean up OAuth params after Supabase processes them
-        if (code) {
-          logger.info(
-            "OAuth code detected, Supabase will handle exchange automatically",
-          );
-
-          // Give Supabase a moment to process the code
-          await new Promise((resolve) => setTimeout(resolve, 500));
-
-          // Clean up OAuth params
-          currentUrl.searchParams.delete("code");
-          currentUrl.searchParams.delete("state");
-          window.history.replaceState(
-            {},
-            document.title,
-            currentUrl.toString(),
-          );
         }
 
         const {
@@ -520,13 +492,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           window.history.replaceState({}, document.title, resetUrl.toString());
         }
 
-        setSession(session);
-        setUser(session?.user ?? null);
         if (session?.user) {
+          // Double check if user actually exists to prevent ghost sessions in state changes
+          const {
+            data: { user: verifiedUser },
+            error: verifyError,
+          } = await client.auth.getUser();
+          if (verifyError || !verifiedUser) {
+            await client.auth.signOut();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            return;
+          }
+
           clearPendingEmailVerification();
           // Odśwież CSRF token po zalogowaniu
           await initCSRFToken();
           void fetchProfile(session.user);
+
+          // Clean up URL params ONLY after successful session
+          const url = new URL(window.location.href);
+          if (url.searchParams.has("code") || url.searchParams.has("error")) {
+            url.searchParams.delete("code");
+            url.searchParams.delete("state");
+            url.searchParams.delete("error");
+            url.searchParams.delete("error_description");
+            url.searchParams.delete("error_code");
+            window.history.replaceState({}, document.title, url.toString());
+          }
         } else {
           setProfile(null);
           setLoading(false);
