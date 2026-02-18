@@ -320,211 +320,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
-    let isInitialized = false;
-
     const init = async () => {
       try {
-        // Inicjalizuj CSRF token na starcie
         await initCSRFToken();
 
-        // Helper to parse params from Search OR Hash
-        const getParams = () => {
-          const url = new URL(window.location.href);
-          const searchParams = url.searchParams;
-          const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
-
-          return {
-            tokenHash:
-              searchParams.get("token_hash") || hashParams.get("token_hash"),
-            type: searchParams.get("type") || hashParams.get("type"),
-            code: searchParams.get("code") || hashParams.get("code"),
-            errorParam: searchParams.get("error") || hashParams.get("error"),
-            errorDescription:
-              searchParams.get("error_description") ||
-              hashParams.get("error_description"),
-            errorCode:
-              searchParams.get("error_code") || hashParams.get("error_code"),
-          };
-        };
-
-        const {
-          tokenHash,
-          type,
-          code,
-          errorParam,
-          errorDescription,
-          errorCode,
-        } = getParams();
-        const currentUrl = new URL(window.location.href);
-
-        // Handle email verification callback (token_hash + type=email)
-        if (tokenHash && type === "email") {
-          logger.info("Email verification callback detected");
-          const { error } = await client.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: "email",
-          });
-
-          if (error) {
-            logger.error("Email verification failed:", error);
-            // Redirect to verify-email with error
-            const verifyUrl = new URL("/verify-email", window.location.origin);
-            verifyUrl.searchParams.set("error", "verification_failed");
-            verifyUrl.searchParams.set(
-              "error_description",
-              error.message || "Weryfikacja emaila nie powiodła się",
-            );
-            window.location.href = verifyUrl.toString();
-            return;
-          } else {
-            logger.info("Email verification successful");
-            // Force refresh session to ensure user data is up to date
-            await client.auth.refreshSession();
-
-            // Redirect to verify-email with success flag
-            const verifyUrl = new URL("/verify-email", window.location.origin);
-            verifyUrl.searchParams.set("verified", "true");
-            window.location.href = verifyUrl.toString();
-            return;
-          }
-        }
-
-        // Handle OAuth errors
-        if (errorParam) {
-          logger.error("OAuth error detected:", {
-            error: errorParam,
-            errorCode,
-            description: errorDescription,
-            url: currentUrl.toString(),
-          });
-
-          // Show specific error to the user via toast
-          toast.error(`Błąd logowania: ${errorDescription || errorParam}`);
-
-          if (
-            errorCode === "unexpected_failure" ||
-            errorParam === "server_error"
-          ) {
-            logger.error("OAuth exchange failed - likely configuration issue", {
-              error: errorParam,
-              description: errorDescription,
-              hint: "Check Google OAuth configuration in Supabase Dashboard and Google Cloud Console",
-            });
-          }
-        }
-
+        // Check active session
         const {
           data: { session },
           error: sessionError,
         } = await client.auth.getSession();
 
         if (sessionError) {
+          // Handle "Refresh Token Not Found" by logging out
           if (sessionError.message.includes("Refresh Token Not Found")) {
-            logger.warn("Refresh token missing, clearing session");
             await client.auth.signOut();
             setSession(null);
             setUser(null);
             setProfile(null);
-            setLoading(false);
-            return;
           }
-          throw sessionError;
-        }
-
-        // Verify if user still exists in Supabase to avoid "ghost" sessions
-        let verifiedUser: User | null = session?.user ?? null;
-        if (session) {
+        } else if (session?.user) {
+          // Verify if user exists in DB (Ghost user protection)
           const {
             data: { user: dbUser },
             error: userError,
           } = await client.auth.getUser();
+
           if (userError || !dbUser) {
-            logger.warn(
-              "Session exists but user not found in Supabase (likely deleted). clearing local session.",
-            );
+            logger.warn("User deleted from DB. Logging out.");
             await client.auth.signOut();
             setSession(null);
             setUser(null);
             setProfile(null);
-            setLoading(false);
-            return;
+          } else {
+            setSession(session);
+            setUser(dbUser);
+            void fetchProfile(dbUser);
           }
-          verifiedUser = dbUser;
         }
-
-        isInitialized = true;
-        setSession(session);
-        setUser(verifiedUser);
-        if (verifiedUser) {
-          void fetchProfile(verifiedUser);
-        } else {
-          setLoading(false);
-        }
-      } catch (err: unknown) {
-        logger.error("Error getting initial session:", err);
-        setSession(null);
-        setUser(null);
-        setProfile(null);
+      } catch (err) {
+        logger.error("Auth init error:", err);
+      } finally {
         setLoading(false);
       }
     };
 
-    // Listen for auth changes - set up BEFORE init to catch OAuth callback
+    // Listen for auth state changes (Login, Logout, OAuth callback)
     const {
       data: { subscription },
     } = client.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        if (logger.debug) {
-          logger.debug("Auth state change", {
-            event,
-            hasSession: !!session,
-            isInitialized,
-          });
-        }
+        logger.debug("Auth state change:", event);
 
-        // Skip duplicate processing during initial OAuth exchange
-        if (!isInitialized && event === "INITIAL_SESSION") {
+        if (event === "SIGNED_OUT") {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
           return;
-        }
-        if (event === "PASSWORD_RECOVERY") {
-          // Supabase recovery flow: enforce reset screen
-          const resetUrl = new URL("/auth?mode=reset", window.location.origin);
-          window.history.replaceState({}, document.title, resetUrl.toString());
         }
 
         if (session?.user) {
-          // Double check if user actually exists to prevent ghost sessions in state changes
-          const {
-            data: { user: verifiedUser },
-            error: verifyError,
-          } = await client.auth.getUser();
-          if (verifyError || !verifiedUser) {
-            await client.auth.signOut();
-            setSession(null);
-            setUser(null);
-            setProfile(null);
-            setLoading(false);
-            return;
-          }
-
-          clearPendingEmailVerification();
-          // Odśwież CSRF token po zalogowaniu
+          setSession(session);
+          setUser(session.user);
           await initCSRFToken();
           void fetchProfile(session.user);
+        }
 
-          // Clean up URL params ONLY after successful session
-          const url = new URL(window.location.href);
-          if (url.searchParams.has("code") || url.searchParams.has("error")) {
-            url.searchParams.delete("code");
-            url.searchParams.delete("state");
-            url.searchParams.delete("error");
-            url.searchParams.delete("error_description");
-            url.searchParams.delete("error_code");
-            window.history.replaceState({}, document.title, url.toString());
-          }
-        } else {
-          setProfile(null);
-          setLoading(false);
+        // Handle Password Recovery flow
+        if (event === "PASSWORD_RECOVERY") {
+          const resetUrl = new URL("/auth?mode=reset", window.location.origin);
+          window.history.replaceState({}, document.title, resetUrl.toString());
         }
       },
     );
@@ -532,12 +397,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     init();
 
     return () => subscription.unsubscribe();
-  }, [
-    clearPendingEmailVerification,
-    fetchProfile,
-    initCSRFToken,
-    sendEmailVerification,
-  ]);
+  }, [clearPendingEmailVerification, fetchProfile, initCSRFToken]);
 
   const signUp = async (email: string, password: string) => {
     const client = supabase;
@@ -601,11 +461,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo,
-          skipBrowserRedirect: false,
-          scopes: "email profile",
           queryParams: {
-            prompt: "select_account",
+            access_type: "offline",
+            prompt: "consent",
           },
         },
       });
