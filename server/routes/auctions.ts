@@ -40,16 +40,10 @@ const router: Router = express.Router();
 
 const auctionIdSchema = z.string().uuid("Invalid auction id");
 
-const ALLOWED_CATEGORIES = new Set([
-  "RACING",
-  "BREEDING",
-  "SHOW",
-  "SUPPLEMENTS",
-  "ACCESSORIES",
-]);
+const ALLOWED_CATEGORIES = new Set(["PIGEONS", "SUPPLEMENTS", "ACCESSORIES"]);
 const normalizeCategory = (input?: string) => {
   const up = (input || "").toUpperCase();
-  return ALLOWED_CATEGORIES.has(up) ? up : "SHOW";
+  return ALLOWED_CATEGORIES.has(up) ? up : "PIGEONS";
 };
 
 // Get all auctions
@@ -318,10 +312,8 @@ async function performAuctionCreate(req: any, userId: string | null) {
       )
     : false;
 
-  const auctionCategory = normalizeCategory(category || "RACING");
-  const isPigeonAuction = ["RACING", "BREEDING", "SHOW"].includes(
-    auctionCategory,
-  );
+  const auctionCategory = normalizeCategory(category || "PIGEONS");
+  const isPigeonAuction = auctionCategory === "PIGEONS";
 
   const pigeonPayload =
     isPigeonAuction && pigeonHasTraits

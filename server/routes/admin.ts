@@ -974,7 +974,7 @@ router.post(
           reservePrice,
           status: status || "ACTIVE",
           endTime: endTime ? new Date(endTime) : null,
-          category: category || "RACING",
+          category: category || "PIGEONS",
           sellerId: finalSellerId,
           minBidIncrement: minBidIncrement || 100,
           gender: sex || "MALE",
