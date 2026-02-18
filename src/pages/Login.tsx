@@ -20,7 +20,14 @@ function useCallbackUrl(): string {
 export default function Login() {
   const navigate = useNavigate();
   const callbackUrl = useCallbackUrl();
-  const { signIn, user, profile, loading } = useAuth();
+  const {
+    signIn,
+    signInWithGoogle,
+    signInWithFacebook,
+    user,
+    profile,
+    loading,
+  } = useAuth();
   const { error: showError } = useOptimizedToast();
 
   const [email, setEmail] = useState("");
@@ -67,22 +74,12 @@ export default function Login() {
       if (!supabase) throw new Error("Supabase not available");
 
       const baseUrl = window.location.origin;
-      const redirectTo = `${baseUrl}/auth?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+      const redirectTo = `${baseUrl}/auth`;
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo,
-          scopes:
-            provider === "google" ? "email profile" : "email,public_profile",
-          queryParams:
-            provider === "facebook"
-              ? {
-                  auth_type: "rerequest",
-                }
-              : undefined,
-        },
-      });
+      const { error } =
+        provider === "google"
+          ? await signInWithGoogle(redirectTo)
+          : await signInWithFacebook(redirectTo);
       if (error) throw error;
       // OAuth will redirect; no navigation here
     } catch (err) {

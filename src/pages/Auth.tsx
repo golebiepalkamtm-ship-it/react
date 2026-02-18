@@ -347,7 +347,7 @@ export default function Auth() {
 
     try {
       const baseUrl = window.location.origin;
-      const redirectTo = `${baseUrl}/auth?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+      const redirectTo = `${baseUrl}/auth`;
 
       const { error } =
         provider === "google"
