@@ -459,11 +459,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           throw sessionError;
         }
 
+        // Verify if user still exists in Supabase to avoid "ghost" sessions
+        let finalUser: User | null = session?.user ?? null;
+        if (session) {
+          const {
+            data: { user: verifiedUser },
+            error: userError,
+          } = await client.auth.getUser();
+          if (userError || !verifiedUser) {
+            logger.warn(
+              "Session exists but user not found in Supabase (likely deleted). Clearing...",
+            );
+            await client.auth.signOut();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            return;
+          }
+          finalUser = verifiedUser;
+        }
+
         isInitialized = true;
         setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          void fetchProfile(session.user);
+        setUser(finalUser);
+        if (finalUser) {
+          void fetchProfile(finalUser);
         } else {
           setLoading(false);
         }
