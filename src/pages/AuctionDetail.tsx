@@ -649,7 +649,9 @@ const AuctionDetail: React.FC = () => {
                         </p>
                         <div className="flex items-baseline gap-2">
                           <span className="text-4xl md:text-5xl font-black text-primary tracking-tighter">
-                            {dAuction.currentPrice ? dAuction.currentPrice.toLocaleString("pl-PL") : "0"}
+                            {dAuction.currentPrice
+                              ? dAuction.currentPrice.toLocaleString("pl-PL")
+                              : "0"}
                           </span>
                           <span className="text-sm font-bold text-primary/60 uppercase tracking-widest mb-1">
                             PLN
@@ -838,7 +840,7 @@ const AuctionDetail: React.FC = () => {
                                     <p
                                       className={`text-base font-black ${bidx === 0 ? "text-white" : "text-white/70"}`}
                                     >
-                                      {bid.bidder.username}
+                                      {bid?.bidder?.username || "Anonimowy"}
                                     </p>
                                     <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">
                                       {new Date(
@@ -858,7 +860,9 @@ const AuctionDetail: React.FC = () => {
                                   <p
                                     className={`text-xl font-black ${bidx === 0 ? "text-primary" : "text-white"}`}
                                   >
-                                    {bid.amount ? bid.amount.toLocaleString("pl-PL") : "0"}
+                                    {bid.amount
+                                      ? bid.amount.toLocaleString("pl-PL")
+                                      : "0"}
                                     <span className="text-[10px] ml-1.5 opacity-40 font-bold tracking-tighter">
                                       PLN
                                     </span>
