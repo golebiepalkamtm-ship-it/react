@@ -459,12 +459,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           throw sessionError;
         }
 
+        // Verify if user still exists in Supabase to avoid "ghost" sessions
+        let verifiedUser: User | null = session?.user ?? null;
+        if (session) {
+          const {
+            data: { user: dbUser },
+            error: userError,
+          } = await client.auth.getUser();
+          if (userError || !dbUser) {
+            logger.warn(
+              "Session exists but user not found in Supabase (likely deleted). clearing local session.",
+            );
+            await client.auth.signOut();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            return;
+          }
+          verifiedUser = dbUser;
+        }
+
         isInitialized = true;
-        const initialUser = session?.user ?? null;
         setSession(session);
-        setUser(initialUser);
-        if (initialUser) {
-          void fetchProfile(initialUser);
+        setUser(verifiedUser);
+        if (verifiedUser) {
+          void fetchProfile(verifiedUser);
         } else {
           setLoading(false);
         }
@@ -588,7 +608,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         options: {
           redirectTo,
           skipBrowserRedirect: false,
-          scopes: "email,profile",
+          scopes: "email profile",
+          queryParams: {
+            prompt: "select_account",
+          },
         },
       });
 
