@@ -291,6 +291,12 @@ export default function Auth() {
     const errorCode = query.get("error_code");
 
     if (errorParam && !modalOpen) {
+      console.error("DEBUG: OAuth error detected in URL", {
+        error: errorParam,
+        description: errorDescription,
+        code: errorCode,
+        fullUrl: window.location.href,
+      });
       let errorMessage = "Błąd autoryzacji";
       let errorTitle = "Błąd logowania";
 
