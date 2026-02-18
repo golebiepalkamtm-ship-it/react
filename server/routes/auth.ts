@@ -216,10 +216,15 @@ router.post(
 
       const isValid = await smsService.verifyCode(phone, code);
       if (!isValid) {
+        console.warn(
+          `[OTP] Invalid code attempt for user ${userId} / ${phone}`,
+        );
         return res
           .status(400)
-          .json({ error: "Nieprawidłowy kod weryfikacyjny." });
+          .json({ error: "Nieprawidłowy lub wygasły kod weryfikacyjny." });
       }
+
+      console.log(`[OTP] Code approved for ${userId}, updating database...`);
 
       // Aktualizacja w bazie danych Prisma
       await prisma.user.update({
@@ -231,6 +236,9 @@ router.post(
         },
       });
 
+      console.log(
+        `[OTP] Database updated for ${userId}. Verification complete.`,
+      );
       res.json({ success: true, message: "Telefon zweryfikowany pomyślnie!" });
     } catch (error: any) {
       console.error("OTP verify error:", error);

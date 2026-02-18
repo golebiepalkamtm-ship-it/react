@@ -612,6 +612,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     delete (safeUpdates as any).id;
     delete (safeUpdates as any).email;
 
+    if (Object.keys(safeUpdates).length === 0) {
+      // If no updates to send, just refresh from server
+      await refreshSession();
+      return;
+    }
+
     // Validate username if present in updates
     if ("username" in safeUpdates && safeUpdates.username) {
       safeUpdates.username = sanitizeUsername(safeUpdates.username);
