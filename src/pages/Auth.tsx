@@ -23,7 +23,16 @@ import { VideoBackground } from "@/components/animations";
 
 function useQueryParams() {
   const location = useLocation();
-  return useMemo(() => new URLSearchParams(location.search), [location.search]);
+  return useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    if (location.hash) {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      hashParams.forEach((value, key) => {
+        if (!params.has(key)) params.set(key, value);
+      });
+    }
+    return params;
+  }, [location.search, location.hash]);
 }
 
 function sanitizeCallbackUrl(callbackUrl: string | null): string {

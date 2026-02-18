@@ -446,8 +446,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       | string
       | undefined;
     const baseUrl = getBaseUrl();
-    const redirectTo =
-      customRedirect || configuredRedirect || `${baseUrl}/auth`;
+    const redirectTo = `${baseUrl}/auth`;
 
     try {
       logger.info("Initiating Google OAuth", {
@@ -461,6 +460,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
+          redirectTo,
+          scopes: "email profile",
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -498,8 +499,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       | string
       | undefined;
     const baseUrl = getBaseUrl();
-    const redirectTo =
-      customRedirect || configuredRedirect || `${baseUrl}/auth`;
+    const redirectTo = `${baseUrl}/auth`;
 
     try {
       const { data, error } = await client.auth.signInWithOAuth({
