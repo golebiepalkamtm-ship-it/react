@@ -9,12 +9,9 @@ import {
   useSpring,
   useScroll,
 } from "framer-motion";
-import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
+import { gsap } from "@/lib/gsapConfig";
 import { PressService, PressArticle } from "@/services/pressService";
 import { logger } from "@/lib/logger";
-import { useScrollTriggerSync } from "@/hooks/useScrollTriggerSync";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const PressArticleCard = ({
   article,
@@ -64,7 +61,7 @@ const PressArticleCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] h-full flex flex-col"
+        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-zinc-950/20 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl backdrop-brightness-125 h-full flex flex-col"
         style={{
           rotateX,
           rotateY,
@@ -73,7 +70,8 @@ const PressArticleCard = ({
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.3),transparent_70%)] pointer-events-none" />
 
         <motion.div
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
@@ -107,33 +105,31 @@ const PressArticleCard = ({
 
         <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
           <div className="flex items-center gap-2 text-sm text-white/60 mb-3 flex-wrap">
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/80 border border-gold/20">
-              <Newspaper className="w-3 h-3" />
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/90 border border-gold/30">
+              <Newspaper className="w-3 h-3 text-[#C8AE68]" />
               {article.publication}
             </span>
             <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10">
-              <Calendar className="w-3 h-3" />
+              <Calendar className="w-3 h-3 text-[#C8AE68]" />
               {new Date(article.date).toLocaleDateString("pl-PL")}
             </span>
           </div>
 
-          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
+          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white transition-colors">
             {article.title}
           </h3>
 
-          <p className="text-white/60 text-sm line-clamp-4 mb-4">
+          <p className="text-white/80 text-sm font-medium line-clamp-4 mb-4">
             {article.excerpt}
           </p>
 
           <div className="mt-auto">
             <Button
-              variant="outline"
-              size="sm"
-              className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300 relative z-40"
+              className="w-full inline-flex items-center justify-center bg-[#A68E4E] text-zinc-900 hover:bg-[#A68E4E]/90 border-0 font-bold uppercase tracking-wider py-5 rounded-full hover:scale-[1.05] active:scale-[0.95] transition-all shadow-md"
               asChild
             >
               <Link to={`/press/${article.id}`}>
-                Czytaj więcej
+                CZYTAJ WIĘCEJ
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
@@ -191,11 +187,11 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
     fetchArticles();
   }, []);
 
-  // Używamy hooka do synchronizacji ScrollTrigger z Lenis
-  const { refresh } = useScrollTriggerSync({
-    refreshOnMount: true,
-    refreshDelay: 200,
-  });
+  // Używamy hooka do synchronizacji ScrollTrigger z Lenis - removed
+  // const { refresh } = useScrollTriggerSync({
+  //   refreshOnMount: true,
+  //   refreshDelay: 200,
+  // });
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -217,13 +213,13 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
       });
 
       const headerTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom",
-          end: "top 60%",
-          toggleActions: "play none none reverse",
-          once: true,
-        },
+        // scrollTrigger: {
+        //   trigger: sectionRef.current,
+        //   start: "top bottom",
+        //   end: "top 60%",
+        //   toggleActions: "play none none reverse",
+        //   once: true,
+        // },
       });
 
       headerTl
@@ -307,17 +303,14 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
       }
     }, sectionRef);
 
-    // Odświeżamy ScrollTriggery po zakończeniu animacji
-    refresh(true);
-
     return () => ctx.revert();
-  }, [loading, articles, prefersReducedMotion, refresh]);
+  }, []);
 
   return (
     <section
       ref={sectionRef}
       id="press-section"
-      className="py-20 relative overflow-hidden"
+      className="min-h-screen flex items-center py-20 relative overflow-hidden"
       style={{
         perspective: "2000px",
         transformStyle: "preserve-3d",
@@ -332,33 +325,36 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
         >
           <span
             ref={badgeRef}
-            className="inline-block px-4 py-1.5 rounded-full bg-gold/10 text-gold text-sm font-medium tracking-wide mb-6"
+            className="inline-block px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] font-bold uppercase tracking-[0.2em] mb-6 shadow-lg shadow-gold/20"
             style={{
               transformStyle: "preserve-3d",
               backfaceVisibility: "hidden",
             }}
           >
-            Media o nas
+            Autorytet w branży
           </span>
           <h2
             ref={titleRef}
-            className="font-display text-3xl md:text-4xl text-white font-bold leading-tight mb-4"
+            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.18em] mb-8"
             style={{
               transformStyle: "preserve-3d",
               backfaceVisibility: "hidden",
             }}
           >
-            W centrum <span className="text-gold">uwagi</span>
+            <span className="text-zinc-900">Pałka MTM w Mediach</span> –{" "}
+            <span className="text-[#A68E4E]">Standard Doskonałości</span>
           </h2>
           <p
             ref={descRef}
-            className="text-white/70 max-w-2xl mx-auto"
+            className="text-white text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed"
             style={{
               transformStyle: "preserve-3d",
               backfaceVisibility: "hidden",
             }}
           >
-            Zobacz, jak media opisują nasze sukcesy w hodowli gołębi pocztowych.
+            Nasza pasja i rekordowe wyniki są regularnie doceniane przez
+            najbardziej prestiżowe magazyny oraz portale branżowe w całej
+            Europie.
           </p>
         </div>
 
@@ -371,13 +367,13 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <div className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+            <div className="relative overflow-hidden rounded-2xl border-2 border-[#A68E4E] bg-[#0a0a0a] shadow-[0_40px_100px_rgba(0,0,0,0.9),0_20px_40px_rgba(0,0,0,0.7)]">
               <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
               <div className="relative pb-[56.25%] h-0">
                 <iframe
                   className="absolute inset-0 w-full h-full"
-                  src="https://www.youtube.com/embed/s5R-tUv5d2o"
-                  title="Tadeusz Pałka - Lubań"
+                  src="https://www.youtube.com/embed/utXkaMWyZfk"
+                  title="Film o Hodowli Pałka MTM"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -411,18 +407,18 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
           }}
         >
           <Button
-            variant="outline"
-            size="lg"
-            className="border-gold/50 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300"
+            className="inline-flex items-center justify-center bg-[#A68E4E] text-zinc-900 font-bold uppercase tracking-widest px-12 py-6 rounded-full hover:scale-105 active:scale-95 transition-all shadow-xl shadow-gold/20"
             asChild
           >
             <Link to="/press">
-              Zobacz wszystkie artykuły
-              <Newspaper className="w-4 h-4 ml-2" />
+              Wszystkie Artykuły
+              <Newspaper className="w-5 h-5 ml-3 text-zinc-900" />
             </Link>
           </Button>
         </div>
       </div>
+
+      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent z-20" />
     </section>
   );
 };

@@ -1,8 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap&subset=latin-ext");
 @import "./styles/emergency-fix.css";
 @import "./styles/ethereal-overrides.css";
 @import "./styles/advanced-animations.css";
-@import "./styles/smooth-scroll.css";
 @import "./styles/dynamic-lights.css";
 /* footer-fix.css removed - styles are already in emergency-fix.css */
 @import "./styles/performance-tunings.css";
@@ -27,17 +26,35 @@
     /* Standard property supported by modern browsers */
   }
 
-  html {
-    scroll-behavior: auto;
-    /* Lenis wymaga auto, nie smooth */
-    scroll-padding-top: 0px;
-  }
-
   html,
   body {
     position: relative;
     margin: 0;
     padding: 0;
+    background: url("/Gemini_Generated_Image_am1cv9am1cv9am1c.png") center center / cover no-repeat fixed !important;
+    min-height: 100%;
+  }
+
+  /* Global background layer to keep image visible everywhere */
+  body::before {
+    content: none;
+  }
+
+  #root {
+    position: relative;
+    z-index: 0;
+    background: transparent !important;
+  }
+
+  main,
+  .page-wrapper,
+  .app-shell {
+    background: transparent !important;
+  }
+
+  /* Force white backgrounds to transparent to expose global image */
+  [class*="bg-white"] {
+    background-color: transparent !important;
   }
 
   :root {
@@ -47,24 +64,24 @@
     --font-orbitron: "Orbitron", monospace;
     --font-space: "Space Grotesk", sans-serif;
     --background: 0 0% 100%;
-    --foreground: 222 47% 10%;
+    --foreground: 0 0% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 10%;
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 10%;
-    --primary: 222 47% 10%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 0 0% 10%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 10%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 10%;
-    --destructive: 0 84% 60%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 47%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 0% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 47% 10%;
+    --border: 0 0% 91%;
+    --input: 0 0% 91%;
+    --ring: 0 0% 10%;
 
     /* Variable font control via CSS variables */
     --vf-weight: 700;
@@ -89,26 +106,22 @@
     --color-input: hsl(var(--input));
     --color-ring: hsl(var(--ring));
 
-    --gold: 45 38% 47%;
+    --gold: 0 0% 47%;
     /* Muted Olive Gold - Authorised by User */
-    --gold-light: 45 45% 65%;
-    --gold-dark: 45 30% 35%;
+    --gold-light: 0 0% 65%;
+    --gold-dark: 0 0% 35%;
 
     /* EtheReal overrides -> visual tokens */
-    --glow-gold: 0 0 60px hsl(45 38% 47% / 0.4);
-    --glow-soft: 0 0 100px hsl(45 38% 47% / 0.2);
-    --gradient-gold: linear-gradient(135deg, hsl(45 38% 47%), hsl(45 45% 65%));
+    --glow-gold: 0 0 60px hsl(0 0% 47% / 0.4);
+    --glow-soft: 0 0 100px hsl(0 0% 47% / 0.2);
+    --gradient-gold: linear-gradient(135deg, hsl(0 0% 47%), hsl(0 0% 65%));
 
     /* Timeline Colors */
-    --timeline-gold: 45 30% 60%;
-    --timeline-light-shadow: 45 20% 40%;
-    --timeline-dark-shadow: 45 15% 25%;
-    --timeline-card-bg: linear-gradient(
-      145deg,
-      hsl(230, 50%, 10%),
-      hsl(230, 40%, 8%)
-    );
-    --glow-color: 45 30% 70%;
+    --timeline-gold: 0 0% 60%;
+    --timeline-light-shadow: 0 0% 40%;
+    --timeline-dark-shadow: 0 0% 25%;
+    --timeline-card-bg: linear-gradient(145deg, hsl(0 0% 10%), hsl(0 0% 8%));
+    --glow-color: 0 0% 70%;
 
     /* Gradients */
     --gradient-gold: linear-gradient(
@@ -116,11 +129,7 @@
       hsl(var(--gold)),
       hsl(var(--gold-light))
     );
-    --gradient-navy: linear-gradient(
-      180deg,
-      hsl(230, 50%, 8%),
-      hsl(230, 40%, 5%)
-    );
+    --gradient-navy: linear-gradient(180deg, hsl(0 0% 8%), hsl(0 0% 5%));
     --gradient-hero-overlay: radial-gradient(
       circle at center,
       rgba(0, 0, 0, 0) 0%,
@@ -129,32 +138,32 @@
     --gradient-hero: none;
     --gradient-card: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.02)
+      rgba(0, 0, 0, 0.05),
+      rgba(0, 0, 0, 0.02)
     );
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsla(230, 10%, 10%, 0.2);
-    --shadow-md: 0 8px 24px -8px hsla(230, 15%, 5%, 0.4);
-    --shadow-lg: 0 16px 48px -12px hsla(230, 20%, 3%, 0.6);
-    --shadow-gold: 0 4px 20px -4px hsla(45, 30%, 60%, 0.4);
+    --shadow-sm: 0 2px 8px -2px hsla(0 0% 10%, 0.2);
+    --shadow-md: 0 8px 24px -8px hsla(0 0% 5%, 0.4);
+    --shadow-lg: 0 16px 48px -12px hsla(0 0% 3%, 0.6);
+    --shadow-gold: 0 4px 20px -4px hsla(0 0% 60%, 0.4);
 
     /* Chrono Tunnel Custom Tokens - Dark Navy with Gold */
-    --glass-bg: 230 50% 8%;
-    --glass-border: 45 30% 60%;
-    --year-ghost: 45 30% 60% / 0.1;
-    --tunnel-depth: 230 60% 3%;
-    --glow-primary: 45 30% 60%;
-    --glow-secondary: 45 40% 75%;
+    --glass-bg: 0 0% 8%;
+    --glass-border: 0 0% 60%;
+    --year-ghost: 0 0% 60% / 0.1;
+    --tunnel-depth: 0 0% 3%;
+    --glow-primary: 0 0% 60%;
+    --glow-secondary: 0 0% 75%;
 
-    --sidebar-background: 230 50% 6%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 26%;
+    --sidebar-primary: 0 0% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 91%;
+    --sidebar-ring: 0 0% 60%;
 
     --sidebar-width: 16rem;
     --sidebar-width-icon: 3rem;
@@ -277,29 +286,29 @@
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 96%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 96%;
-    --primary: var(--gold);
-    --primary-foreground: 222 47% 6%;
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 222 47% 12%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 45 55% 52%;
-    --accent-foreground: 222 47% 6%;
-    --destructive: 0 74% 50%;
+    --background: 0 0% 6%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 0 0% 47%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 52%;
+    --accent-foreground: 0 0% 6%;
+    --destructive: 0 0% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 47% 18%;
-    --input: 222 47% 18%;
-    --ring: var(--gold);
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 47%;
 
-    --gold: 45 38% 47%;
-    --gold-light: 48 40% 56%;
-    --gold-dark: 42 34% 34%;
+    --gold: 0 0% 47%;
+    --gold-light: 0 0% 56%;
+    --gold-dark: 0 0% 34%;
 
     --color-background: hsl(var(--background));
     --color-foreground: hsl(var(--foreground));
@@ -321,33 +330,62 @@
     --color-input: hsl(var(--input));
     --color-ring: hsl(var(--ring));
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 0 0% 95.9%;
+    --sidebar-primary: 0 0% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 15.9%;
+    --sidebar-accent-foreground: 0 0% 95.9%;
+    --sidebar-border: 0 0% 15.9%;
+    --sidebar-ring: 0 0% 59.8%;
   }
 
   /* Scoped light "chrono-tunnel" theme for Achievements only */
   .achievements-tunnel {
     /* Custom tunnel tokens - Original Golden Theme */
-    --background: 222 35% 12%;
-    --foreground: 210 40% 96%;
-    --glass-bg: 222 35% 18%;
-    --glass-border: 43 81% 46%;
-    --year-ghost: 43 81% 46%;
-    --tunnel-depth: 222 35% 8%;
-    --glow-primary: 43 81% 46%;
-    --glow-secondary: 35 90% 55%;
-    --parallax-bg: 222 30% 15%;
+    --background: 0 0% 12%;
+    --foreground: 0 0% 96%;
+    --glass-bg: 0 0% 18%;
+    --glass-border: 0 0% 46%;
+    --year-ghost: 0 0% 46%;
+    --tunnel-depth: 0 0% 8%;
+    --glow-primary: 0 0% 46%;
+    --glow-secondary: 0 0% 55%;
+    --parallax-bg: 0 0% 15%;
   }
 
   .theme {
     --animate-shiny-text: shiny-text 8s infinite;
   }
+}
+
+/* Scrollytelling & FOUC Guard */
+.js-loading .reveal-element {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.reveal-element {
+  will-change: transform, opacity;
+}
+
+.section-wrapper {
+  opacity: 0;
+  transform: translateY(50px);
+  will-change: transform, opacity;
+}
+
+.pinned-section {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parallax-layer {
+  will-change: transform;
 }
 
 @layer base {
@@ -424,9 +462,9 @@
   .text-gradient-gold {
     background-image: linear-gradient(
       135deg,
-      #8f7932b2 0%,
-      #e6ca2d 50%,
-      #614d0c 100%
+      #808080 0%,
+      #a0a0a0 50%,
+      #606060 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -658,6 +696,32 @@
 }
 
 @layer utilities {
+  /* Floating particles animation for hero section */
+  .floating-particle {
+    animation: floatParticle 5s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
+  @keyframes floatParticle {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.3;
+    }
+    25% {
+      transform: translate(15px, -25px) scale(1.1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translate(-10px, -15px) scale(1);
+      opacity: 0.5;
+    }
+    75% {
+      transform: translate(-20px, -30px) scale(0.9);
+      opacity: 0.6;
+    }
+  }
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
@@ -769,6 +833,9 @@
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
@@ -788,11 +855,6 @@
   z-index: -1;
 }
 
-.glass-card:hover {
-  /* Removed border-white/20 apply to avoid border repaint if possible, relying on pseudo-element */
-  /* @apply border-white/20; */
-}
-
 .glass-card:hover::before {
   opacity: 1;
 }
@@ -809,7 +871,7 @@
 }
 
 .premium-card {
-  @apply glass-card border-gold/20 shadow-gold/5 transition-all duration-700;
+  @apply glass-card border-gray-500 shadow-gray-500/5 transition-all duration-700;
   background-image: linear-gradient(
     to bottom right,
     #020611,
@@ -820,11 +882,6 @@
   position: relative;
   overflow: hidden;
   transform: translateZ(0);
-}
-
-.premium-card:hover {
-  /* Removed direct border change */
-  /* hover:border-gold/40 removed from @apply */
 }
 
 /* Radial glow effect following mouse */
@@ -937,9 +994,9 @@
    3D GOLD TEXT EFFECT
    ======================================== */
 :root {
-  --gold-3d: #d4af37;
-  --light-shadow-3d: #8a6d1d;
-  --dark-shadow-3d: #3b2a07;
+  --gold-3d: #808080;
+  --light-shadow-3d: #606060;
+  --dark-shadow-3d: #404040;
 }
 
 .gold-text-3d {
@@ -1667,56 +1724,6 @@
     background-image: none;
   }
 
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.5);
-    border-radius: 3px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.7);
-  }
-
-  /* Custom scrollbar for user panel */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(
-      180deg,
-      rgba(212, 175, 55, 0.6),
-      rgba(212, 175, 55, 0.3)
-    );
-    border-radius: 10px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(
-      180deg,
-      rgba(212, 175, 55, 0.8),
-      rgba(212, 175, 55, 0.5)
-    );
-    border-radius: 10px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -1897,6 +1904,104 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Global gold styling tokens */
+.gold-card {
+  border: 1px solid #a68e4e4d;
+  background-image: linear-gradient(
+    135deg,
+    rgba(24, 24, 24, 0.95),
+    rgba(18, 18, 18, 0.95)
+  );
+  box-shadow:
+    0 0 40px rgba(166, 142, 78, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+}
+
+.gold-icon {
+  color: #a68e4e;
+}
+
+.gold-heading {
+  color: #a68e4e;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.premium-title {
+  position: relative;
+  display: inline-block;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.premium-title::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: #a68e4e;
+  border-radius: 2px;
+}
+
+.nav-link-premium {
+  position: relative;
+  transition: color 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.nav-link-premium::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #a68e4e;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.nav-link-premium:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.glass-header {
+  background: rgba(9, 9, 11, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gold-button {
+  border: 1px solid #a68e4e;
+  background: linear-gradient(
+    135deg,
+    rgba(166, 142, 78, 0.9),
+    rgba(166, 142, 78, 0.8)
+  );
+  color: #0f0f0f;
+  box-shadow: 0 10px 40px rgba(166, 142, 78, 0.2);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.gold-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(166, 142, 78, 0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(166, 142, 78, 0.95),
+    rgba(166, 142, 78, 0.85)
+  );
 }
 
 /* ============================================================================

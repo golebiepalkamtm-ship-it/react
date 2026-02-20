@@ -578,20 +578,22 @@ const AuctionDetail: React.FC = () => {
               <div className="flex flex-col h-full">
                 {/* Single Unified Auction Dashboard Container */}
                 <div
-                  className="glass-vault border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative group h-full"
+                  className="glass-vault rounded-[2.5rem] overflow-hidden relative group h-full !border-2 !border-[#A68E4E] !shadow-[0_0_50px_rgba(166,142,78,0.5)]"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                      "radial-gradient(circle at top, rgba(166, 142, 78, 0.05), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.4) 0%, rgba(6, 35, 46, 0.3) 45%, rgba(9, 61, 77, 0.2) 100%)",
+                    border: "2px solid #A68E4E",
+                    boxShadow: "0 0 50px rgba(166,142,78,0.5)",
                   }}
                 >
                   {/* Decorative glow */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full -mr-32 -mt-32 transition-all duration-1000 group-hover:bg-primary/10" />
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 blur-[100px] rounded-full -mr-32 -mt-32 transition-all duration-1000 group-hover:bg-gold/10" />
 
                   {/* Section 0: Enhanced Header (Category, Status, Bids, Views, Watch) */}
-                  <div className="p-8 border-b border-white/5 relative bg-white/[0.02]">
+                  <div className="p-8 border-b-2 border-[#A68E4E] relative bg-white/[0.02]">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className="px-4 py-1.5 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] border border-primary/30">
+                        <span className="px-4 py-1.5 rounded-full bg-gold/10 text-gold text-[10px] font-black uppercase tracking-[0.2em] border border-gold/30">
                           {formatCategory(dAuction.category)}
                         </span>
                         {isEnded ? (
@@ -647,7 +649,7 @@ const AuctionDetail: React.FC = () => {
                   </div>
 
                   {/* Section 1: Bidding & Price (The "Hot" Zone) */}
-                  <div className="p-8 border-b border-white/5 relative bg-gradient-to-b from-white/[0.02] to-transparent">
+                  <div className="p-8 border-b-2 border-[#A68E4E] relative bg-gradient-to-b from-white/[0.02] to-transparent">
                     <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
                       <div className="min-w-fit">
                         <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-1">
@@ -656,20 +658,20 @@ const AuctionDetail: React.FC = () => {
                             : "Cena"}
                         </p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-4xl md:text-5xl font-black text-primary tracking-tighter">
+                          <span className="text-4xl md:text-5xl font-black text-gold tracking-tighter">
                             {dAuction.currentPrice
                               ? dAuction.currentPrice.toLocaleString("pl-PL")
                               : "0"}
                           </span>
-                          <span className="text-sm font-bold text-primary/60 uppercase tracking-widest mb-1">
+                          <span className="text-sm font-bold text-gold/60 uppercase tracking-widest mb-1">
                             PLN
                           </span>
                         </div>
                       </div>
                       {!isEnded && (
                         <div className="min-w-fit">
-                          <div className="bg-white/[0.05] border border-white/10 px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-sm">
-                            <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-black leading-none">
+                          <div className="bg-white/[0.05] border-2 border-[#A68E4E] px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-sm shadow-[0_0_15px_-5px_rgba(166,142,78,0.3)]">
+                            <p className="text-[9px] text-gold/60 uppercase tracking-[0.2em] font-black leading-none">
                               Koniec za
                             </p>
                             <div className="text-2xl font-black text-white tabular-nums tracking-tight leading-none">
@@ -683,7 +685,7 @@ const AuctionDetail: React.FC = () => {
                     {!isEnded && (
                       <div className="flex flex-wrap lg:flex-nowrap items-stretch gap-2">
                         {isOwner ? (
-                          <div className="w-full flex items-center justify-center gap-3 p-6 bg-white/5 border border-white/10 rounded-2xl text-white/50 text-sm font-medium backdrop-blur-sm">
+                          <div className="w-full flex items-center justify-center gap-3 p-6 bg-white/5 border border-gold/20 rounded-2xl text-white/50 text-sm font-medium backdrop-blur-sm">
                             <AlertCircle className="w-5 h-5 text-gold/50" />
                             {dAuction.startingPrice != null &&
                             dAuction.buyNowPrice
@@ -704,13 +706,18 @@ const AuctionDetail: React.FC = () => {
                                       setBidAmount(e.target.value)
                                     }
                                     placeholder={`${minimumBidValue ? minimumBidValue.toLocaleString("pl-PL") : "0"}+`}
-                                    className="w-full h-full bg-white/[0.05] border border-white/10 rounded-2xl px-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all font-bold group-hover/input:border-white/20 text-sm"
+                                    className="w-full h-full bg-white/[0.05] border-2 border-[#A68E4E] rounded-2xl px-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-[#A68E4E] transition-all font-bold group-hover/input:border-[#A68E4E] text-sm placeholder:text-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                                   />
                                 </div>
                                 <Button
                                   onClick={handleBid}
                                   disabled={bidLoading}
-                                  className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-tighter shadow-glow hover:shadow-glow-lg transition-all text-[12px] whitespace-nowrap"
+                                  className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-tighter shadow-glow hover:shadow-glow-lg transition-all text-[12px] whitespace-nowrap gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                                  style={{
+                                    backgroundImage:
+                                      "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                    color: "#0f0f0f",
+                                  }}
                                 >
                                   <Gavel className="w-3.5 h-3.5 mr-1.5" />
                                   Licytuj
@@ -722,7 +729,12 @@ const AuctionDetail: React.FC = () => {
                                 <div className="absolute -inset-0.5 bg-gradient-to-r from-gold/50 to-primary/50 rounded-2xl blur opacity-0 group-hover/buynow:opacity-30 transition duration-500" />
                                 <Button
                                   onClick={handleBuyNow}
-                                  className="relative w-full h-full px-4 py-4 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-tighter transition-all text-[12px] whitespace-nowrap"
+                                  className="relative w-full h-full px-4 py-4 bg-white/5 border-2 border-[#A68E4E] hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-tighter transition-all text-[12px] whitespace-nowrap hover:border-[#A68E4E] hover:shadow-[0_0_15px_-5px_rgba(166,142,78,0.4)]"
+                                  style={{
+                                    backgroundImage:
+                                      "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                    color: "#0f0f0f",
+                                  }}
                                   disabled={isCheckoutLoading}
                                 >
                                   {isCheckoutLoading
@@ -740,23 +752,47 @@ const AuctionDetail: React.FC = () => {
                   {/* Section 3: Deep Details (Tabbed View) */}
                   <div className="p-8">
                     {/* Navigation Buttons (The "Separate Buttons") */}
-                    <div className="flex flex-wrap gap-2 mb-8 p-1 bg-white/5 rounded-2xl border border-white/5">
+                    <div className="flex flex-wrap gap-2 mb-8 p-1 bg-white/5 rounded-2xl border-2 border-[#A68E4E] shadow-[0_0_20px_-10px_rgba(166,142,78,0.2)]">
                       <button
                         onClick={() => setActiveDetailTab("details")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "details" ? "bg-primary text-black shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "details" ? "bg-gold text-zinc-950 shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        style={
+                          activeDetailTab === "details"
+                            ? {
+                                backgroundImage:
+                                  "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                              }
+                            : {}
+                        }
                       >
                         Informacje
                       </button>
                       <button
                         onClick={() => setActiveDetailTab("history")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "history" ? "bg-primary text-black shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "history" ? "bg-gold text-zinc-950 shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                        style={
+                          activeDetailTab === "history"
+                            ? {
+                                backgroundImage:
+                                  "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                              }
+                            : {}
+                        }
                       >
                         Historia ({dAuction.bids?.length || 0})
                       </button>
                       {dAuction.documents && dAuction.documents.length > 0 && (
                         <button
                           onClick={() => setActiveDetailTab("documents")}
-                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "documents" ? "bg-primary text-black shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${activeDetailTab === "documents" ? "bg-gold text-zinc-950 shadow-glow scale-[1.02]" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                          style={
+                            activeDetailTab === "documents"
+                              ? {
+                                  backgroundImage:
+                                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                }
+                              : {}
+                          }
                         >
                           Dokumenty ({dAuction.documents.length})
                         </button>
@@ -772,7 +808,7 @@ const AuctionDetail: React.FC = () => {
                           className="space-y-6"
                         >
                           <div
-                            className="border border-white/5 rounded-[2.5rem] overflow-hidden"
+                            className="border-2 border-[#A68E4E] rounded-[2.5rem] overflow-hidden shadow-[0_0_30px_-15px_rgba(166,142,78,0.2)]"
                             style={{
                               background:
                                 "radial-gradient(circle at top, rgba(66, 192, 206, 0.1), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.5) 0%, rgba(6, 35, 46, 0.4) 45%, rgba(9, 61, 77, 0.3) 100%)",
@@ -833,7 +869,7 @@ const AuctionDetail: React.FC = () => {
                             </div>
 
                             {dAuction.description && (
-                              <div className="p-10 border-t border-white/5">
+                              <div className="p-10 border-t-2 border-[#A68E4E]">
                                 <div className="text-white/70 leading-relaxed whitespace-pre-wrap font-sans text-base">
                                   {dAuction.description}
                                 </div>
@@ -853,7 +889,7 @@ const AuctionDetail: React.FC = () => {
                             dAuction.bids.map((bid, bidx) => (
                               <div
                                 key={bid.id}
-                                className={`flex items-center justify-between p-5 rounded-2xl transition-all duration-500 border ${bidx === 0 ? "bg-primary/10 border-primary/30 shadow-glow-sm" : "bg-white/[0.03] border-white/5 hover:border-white/10"}`}
+                                className={`flex items-center justify-between p-5 rounded-2xl transition-all duration-500 border-2 ${bidx === 0 ? "bg-gold/10 border-[#A68E4E] shadow-[0_0_20px_-5px_rgba(166,142,78,0.4)]" : "bg-white/[0.03] border-[#A68E4E]/50 hover:border-[#A68E4E]"}`}
                               >
                                 <div className="flex items-center gap-5">
                                   <div

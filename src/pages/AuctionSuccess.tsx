@@ -2,10 +2,19 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { CheckCircle, Clock, Euro, Mail, MapPin, Phone, Star, User } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  Euro,
+  Mail,
+  MapPin,
+  Phone,
+  Star,
+  User,
+} from "lucide-react";
 
 interface SuccessData {
-  type: 'buy_now' | 'auction_won' | 'listing_fee';
+  type: "buy_now" | "auction_won" | "listing_fee";
   auctionId: string;
   auctionTitle: string;
   price: number;
@@ -26,9 +35,9 @@ import type { FC } from "react";
 const AuctionSuccess: FC = () => {
   const [successData, setSuccessData] = useState<SuccessData | null>(() => {
     try {
-      const data = localStorage.getItem('auctionSuccess');
+      const data = localStorage.getItem("auctionSuccess");
       if (data) {
-        localStorage.removeItem('auctionSuccess');
+        localStorage.removeItem("auctionSuccess");
         return JSON.parse(data) as SuccessData;
       }
     } catch {
@@ -38,15 +47,15 @@ const AuctionSuccess: FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const formatPrice = (value: number) => `${value.toLocaleString('pl-PL')} EUR`;
+  const formatPrice = (value: number) => `${value.toLocaleString("pl-PL")} EUR`;
 
   const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('pl-PL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(timestamp).toLocaleString("pl-PL", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -71,8 +80,12 @@ const AuctionSuccess: FC = () => {
         <Header />
         <div className="min-h-screen flex items-center justify-center pt-20">
           <div className="text-center">
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">Błąd</h1>
-            <p className="text-muted-foreground mb-6">Nie znaleziono danych o transakcji.</p>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">
+              Błąd
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              Nie znaleziono danych o transakcji.
+            </p>
             <Link
               to="/auctions"
               className="inline-block px-6 py-3 rounded-md bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] text-foreground hover:border-gold/30 transition-colors"
@@ -91,29 +104,33 @@ const AuctionSuccess: FC = () => {
       <Header />
       <div className="min-h-screen py-12 pt-32">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] shadow-lg p-8 hover:border-gold/30 transition-colors">
+          <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-8 hover:border-gold/30 transition-colors">
             {/* Ikona sukcesu */}
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
               <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">
-                {successData.type === 'buy_now' ? 'Zakup zakończony!' :
-                  successData.type === 'listing_fee' ? 'Opłata za wystawienie!' :
-                    'Wygrana licytacja!'}
+                {successData.type === "buy_now"
+                  ? "Zakup zakończony!"
+                  : successData.type === "listing_fee"
+                    ? "Opłata za wystawienie!"
+                    : "Wygrana licytacja!"}
               </h1>
               <p className="text-muted-foreground">
-                {successData.type === 'buy_now'
-                  ? 'Pomyślnie zakupiłeś gołębia pocztowego'
-                  : successData.type === 'listing_fee'
-                    ? 'Pomyślnie opłacono wystawienie aukcji'
-                    : 'Gratulacje! Wygrałeś licytację'}
+                {successData.type === "buy_now"
+                  ? "Pomyślnie zakupiłeś gołębia pocztowego"
+                  : successData.type === "listing_fee"
+                    ? "Pomyślnie opłacono wystawienie aukcji"
+                    : "Gratulacje! Wygrałeś licytację"}
               </p>
             </div>
 
             {/* Szczegóły transakcji */}
             <div className="border-t border-white/15 pt-8">
-              <h2 className="text-xl font-semibold text-foreground mb-6">Szczegóły transakcji</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-6">
+                Szczegóły transakcji
+              </h2>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-white/15">
@@ -121,10 +138,12 @@ const AuctionSuccess: FC = () => {
                     <Euro className="w-5 h-5 text-muted-foreground" />
                     <span className="text-muted-foreground">Cena</span>
                   </div>
-                  <span className="font-semibold text-foreground">{formatPrice(successData.price)}</span>
+                  <span className="font-semibold text-foreground">
+                    {formatPrice(successData.price)}
+                  </span>
                 </div>
 
-                {successData.type !== 'listing_fee' && successData.seller && (
+                {successData.type !== "listing_fee" && successData.seller && (
                   <div className="py-3 border-b border-white/15">
                     <div className="flex items-center gap-3 mb-3">
                       <User className="w-5 h-5 text-muted-foreground" />
@@ -132,11 +151,14 @@ const AuctionSuccess: FC = () => {
                     </div>
                     <div className="pl-8 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground">{successData.seller.name}</span>
+                        <span className="font-semibold text-foreground">
+                          {successData.seller.name}
+                        </span>
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 text-gold fill-current" />
                           <span className="text-sm text-muted-foreground">
-                            {successData.seller.rating} ({successData.seller.salesCount} sprzedaży)
+                            {successData.seller.rating} (
+                            {successData.seller.salesCount} sprzedaży)
                           </span>
                         </div>
                       </div>
@@ -170,14 +192,18 @@ const AuctionSuccess: FC = () => {
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-muted-foreground">Gołąb</span>
                   </div>
-                  <span className="font-semibold text-foreground">{successData.auctionTitle}</span>
+                  <span className="font-semibold text-foreground">
+                    {successData.auctionTitle}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Następne kroki */}
             <div className="mt-8 p-6 bg-blue-500/10 rounded-lg border border-blue-400/20">
-              <h3 className="text-lg font-semibold text-blue-300 mb-3">Następne kroki</h3>
+              <h3 className="text-lg font-semibold text-blue-300 mb-3">
+                Następne kroki
+              </h3>
               <ul className="space-y-2 text-blue-200">
                 <li>• Sprzedawca skontaktuje się z Tobą w ciągu 24 godzin</li>
                 <li>• Uzgodnicie szczegóły dostawy i płatności</li>

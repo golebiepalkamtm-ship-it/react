@@ -199,7 +199,7 @@ export const Carousel3D = () => {
     return (
       <section className="relative py-24 overflow-hidden section-surface">
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-gold animate-spin" />
+          <Loader2 className="w-8 h-8 gold-icon animate-spin" />
           <span className="ml-3 text-muted-foreground">
             Ładowanie championów...
           </span>
@@ -216,22 +216,17 @@ export const Carousel3D = () => {
     <section
       ref={carouselRef}
       id="carousel"
-      className="relative min-h-screen overflow-hidden section-surface"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden section-surface"
       onMouseEnter={pauseAutoPlay}
       onMouseMove={handleUserInteraction}
     >
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[140px] opacity-[0.2]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-gold/10 blur-[120px] opacity-[0.2]" />
-      </div>
-
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      {/* Wewnętrzne tła usunięte - prześwituje tło globalne */}
 
       <div className="relative z-20 pt-16 md:pt-24 pb-8 text-center">
         <div>
           <span
             ref={badgeRef}
-            className="inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-primary mb-4"
+            className="inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-zinc-900 mb-4"
             style={{
               transformStyle: "preserve-3d",
               backfaceVisibility: "hidden",
@@ -248,53 +243,40 @@ export const Carousel3D = () => {
                 ease: "easeInOut",
               }}
             >
-              <Trophy className="w-4 h-4" />
+              <Trophy className="w-4 h-4 text-[#A68E4E]" />
             </motion.div>
             Pałka M.T.M
-            <motion.div
-              animate={{
-                scale: [1, 1.15, 1],
-                opacity: [0.8, 1, 0.8],
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1.25,
-              }}
-            >
-              <Trophy className="w-4 h-4" />
-            </motion.div>
           </span>
+
           <h2
             ref={titleRef}
-            className="font-display text-4xl md:text-6xl lg:text-7xl font-light"
+            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.2em] mb-10"
             style={{
               transformStyle: "preserve-3d",
               backfaceVisibility: "hidden",
             }}
           >
-            <span className="text-foreground">Galeria </span>
-            <span className="text-gold">Mistrzów</span>
+            <span className="text-zinc-900">Championy Hodowli</span> –{" "}
+            <span className="text-[#A68E4E]">Nasza Elita</span>
           </h2>
         </div>
       </div>
 
-      <div className="relative z-10 flex items-center justify-center px-4 md:px-8 lg:px-16 pb-32">
+      <div className="relative z-10 flex items-center justify-center px-4 md:px-8 lg:px-16 pb-16">
         <div className="relative w-full max-w-7xl">
           <button
             onClick={() => navigate(-1)}
-            className="absolute left-0 md:-left-4 lg:-left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full border border-primary/30 bg-background/50 backdrop-blur-sm flex items-center justify-center text-foreground hover:border-primary hover:bg-primary/10 transition-all duration-300 group"
+            className="absolute left-[-20px] md:left-[-60px] lg:left-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#A68E4E] flex items-center justify-center text-zinc-900 hover:scale-110 active:scale-90 transition-all duration-300 shadow-xl shadow-gold/20 group"
             aria-label="Poprzedni"
           >
-            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 group-hover:-translate-x-1 transition-transform" />
           </button>
           <button
             onClick={() => navigate(1)}
-            className="absolute right-0 md:-right-4 lg:-right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full border border-primary/30 bg-background/50 backdrop-blur-sm flex items-center justify-center text-foreground hover:border-primary hover:bg-primary/10 transition-all duration-300 group"
+            className="absolute right-[-20px] md:right-[-60px] lg:right-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#A68E4E] flex items-center justify-center text-zinc-900 hover:scale-110 active:scale-90 transition-all duration-300 shadow-xl shadow-gold/20 group"
             aria-label="Następny"
           >
-            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-6 h-6 md:w-8 md:h-8 group-hover:translate-x-1 transition-transform" />
           </button>
 
           <div className="relative flex flex-col lg:flex-row items-start gap-8 lg:gap-16">
@@ -308,13 +290,13 @@ export const Carousel3D = () => {
             >
               {/* Złota poświata wokół ramki */}
               <div className="absolute inset-0 rounded-3xl z-10 pointer-events-none">
-                <div className="absolute inset-0 rounded-3xl shadow-[0_0_60px_rgba(212,175,55,0.4),0_0_100px_rgba(212,175,55,0.2),inset_0_0_60px_rgba(212,175,55,0.1)]" />
+                <div className="absolute inset-0 rounded-3xl shadow-[0_0_80px_rgba(212,175,55,0.6),0_0_140px_rgba(212,175,55,0.25),inset_0_0_60px_rgba(212,175,55,0.15)]" />
               </div>
-              <div className="absolute inset-0 border-2 border-gold/30 rounded-3xl z-20 pointer-events-none" />
-              <div className="absolute inset-4 border border-gold/20 rounded-2xl z-20 pointer-events-none" />
+              <div className="absolute inset-0 border-2 border-[#C8AE68] rounded-3xl z-20 pointer-events-none" />
+              <div className="absolute inset-4 border border-[#C8AE68] rounded-2xl z-20 pointer-events-none" />
 
               <svg
-                className="absolute top-2 left-2 w-12 h-12 text-primary/40 z-20"
+                className="absolute top-2 left-2 w-12 h-12 gold-icon z-20"
                 viewBox="0 0 48 48"
               >
                 <path
@@ -325,7 +307,7 @@ export const Carousel3D = () => {
                 />
               </svg>
               <svg
-                className="absolute top-2 right-2 w-12 h-12 text-primary/40 z-20"
+                className="absolute top-2 right-2 w-12 h-12 gold-icon z-20"
                 viewBox="0 0 48 48"
               >
                 <path
@@ -336,7 +318,7 @@ export const Carousel3D = () => {
                 />
               </svg>
               <svg
-                className="absolute bottom-2 left-2 w-12 h-12 text-primary/40 z-20"
+                className="absolute bottom-2 left-2 w-12 h-12 gold-icon z-20"
                 viewBox="0 0 48 48"
               >
                 <path
@@ -347,7 +329,7 @@ export const Carousel3D = () => {
                 />
               </svg>
               <svg
-                className="absolute bottom-2 right-2 w-12 h-12 text-primary/40 z-20"
+                className="absolute bottom-2 right-2 w-12 h-12 gold-icon z-20"
                 viewBox="0 0 48 48"
               >
                 <path
@@ -376,11 +358,11 @@ export const Carousel3D = () => {
                     <img
                       src={activeChampion.images[0]}
                       alt={activeChampion.name}
-                      className="w-full h-full object-cover bg-gradient-to-b from-muted/20 to-background transition-transform duration-700 group-hover/img:scale-110"
+                      className="w-full h-full object-cover bg-gradient-to-b from-muted/20 to-background transition-transform duration-700"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <div className="px-6 py-2 bg-gold text-black rounded-full font-bold uppercase tracking-widest text-xs transform translate-y-4 group-hover/img:translate-y-0 transition-transform duration-300">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="px-6 py-2 bg-gold text-black rounded-full font-bold uppercase tracking-widest text-xs transform translate-y-4 transition-transform duration-300">
                         Zobacz Galerię & Detale
                       </div>
                     </div>
@@ -408,12 +390,12 @@ export const Carousel3D = () => {
                 >
                   {/* Ring number at the top */}
                   <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2">
-                    <p className="font-body text-sm uppercase tracking-widest text-primary font-medium">
+                    <p className="font-body text-sm uppercase tracking-widest text-[#C8AE68] font-medium">
                       {activeChampion.ringNumber || activeChampion.records[0]}
                     </p>
                   </div>
 
-                  <p className="font-display text-xl md:text-2xl text-muted-foreground italic">
+                  <p className="font-display text-xl md:text-2xl text-[#C8AE68] italic">
                     {activeChampion.title}
                   </p>
 
@@ -422,18 +404,16 @@ export const Carousel3D = () => {
                       <button
                         type="button"
                         onClick={() => openPedigree(activeChampion.pedigree!)}
-                        className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-primary/30 bg-background/40 backdrop-blur-sm hover:border-primary hover:bg-primary/10 transition-all duration-300 text-foreground"
+                        className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-[#A68E4E] text-zinc-900 font-bold hover:scale-105 active:scale-95 transition-all duration-300 uppercase text-xs tracking-[0.2em] shadow-lg shadow-gold/10"
                       >
                         <FileText className="w-5 h-5" />
-                        <span className="font-body text-sm uppercase tracking-widest">
-                          Rodowód
-                        </span>
+                        <span>Rodowód</span>
                       </button>
                     </div>
                   )}
 
                   <div className="space-y-3 pt-4 border-t border-primary/20">
-                    <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">
+                    <p className="font-body text-xs uppercase tracking-widest text-[#C8AE68]">
                       Osiągnięcia
                     </p>
                     <div className="grid grid-cols-2 gap-4">
@@ -446,7 +426,7 @@ export const Carousel3D = () => {
                           .map((achievement, i) => (
                             <li
                               key={`${activeChampion.id}-${achievement}-col1`}
-                              className="flex items-center gap-3 font-body text-foreground"
+                              className="flex items-center gap-3 font-body text-[#C8AE68]"
                             >
                               <motion.div
                                 initial={{ opacity: 0, x: -20 }}
@@ -454,7 +434,7 @@ export const Carousel3D = () => {
                                 transition={{ delay: 0.4 + i * 0.1 }}
                                 className="flex items-center gap-3 w-full"
                               >
-                                <span className="w-2 h-2 rounded-full bg-primary" />
+                                <span className="w-2 h-2 rounded-full bg-[#C8AE68]" />
                                 {achievement}
                               </motion.div>
                             </li>
@@ -468,7 +448,7 @@ export const Carousel3D = () => {
                           .map((achievement, i) => (
                             <li
                               key={`${activeChampion.id}-${achievement}-col2`}
-                              className="flex items-center gap-3 font-body text-foreground"
+                              className="flex items-center gap-3 font-body text-[#C8AE68]"
                             >
                               <motion.div
                                 initial={{ opacity: 0, x: -20 }}
@@ -484,7 +464,7 @@ export const Carousel3D = () => {
                                 }}
                                 className="flex items-center gap-3 w-full"
                               >
-                                <span className="w-2 h-2 rounded-full bg-primary" />
+                                <span className="w-2 h-2 rounded-full bg-[#C8AE68]" />
                                 {achievement}
                               </motion.div>
                             </li>
@@ -521,6 +501,8 @@ export const Carousel3D = () => {
           />
         )}
       </AnimatePresence>
+
+      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent z-20" />
     </section>
   );
 };

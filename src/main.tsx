@@ -11,8 +11,6 @@ import { TimeProvider } from '@/providers/TimeProvider';
 
 // Debug tools - uruchom w konsoli: window.debugAnimations()
 import './utils/debugAnimations';
-import './utils/scrollMetrics';
-import './utils/scrollOptimizer';
 import './utils/checkSections';
 import './utils/animationDebugger';
 

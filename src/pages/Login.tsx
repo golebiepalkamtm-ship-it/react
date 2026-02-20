@@ -184,7 +184,7 @@ export default function Login() {
               <div className="text-center text-sm text-muted-foreground">
                 Nie masz konta?{" "}
                 <Link
-                  className="text-gold hover:underline"
+                  className="gold-heading hover:underline"
                   to={`/register?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                 >
                   Zarejestruj się

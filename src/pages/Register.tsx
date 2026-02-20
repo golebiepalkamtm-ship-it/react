@@ -161,7 +161,7 @@ export default function Register() {
               <div className="text-center text-sm text-muted-foreground">
                 Masz już konto?{" "}
                 <Link
-                  className="text-gold hover:underline"
+                  className="gold-heading hover:underline"
                   to={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                 >
                   Zaloguj się

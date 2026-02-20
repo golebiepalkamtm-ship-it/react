@@ -7,25 +7,25 @@
 
 :root {
   /* Premium Champion Colors */
-  --champion-black: #06080f;
-  --champion-navy: #0b1328;
-  --champion-gold: #d8a838;
-  --champion-platinum: #cfd4e1;
-  --champion-burgundy: #7b1e2b;
+  --champion-black: #404040;
+  --champion-navy: #202020;
+  --champion-gold: #808080;
+  --champion-platinum: #a0a0a0;
+  --champion-burgundy: #606060;
   
   /* Trophy Colors */
-  --trophy-gold: #d8a838;
-  --trophy-silver: #c0c5ce;
-  --trophy-bronze: #cd7f32;
+  --trophy-gold: #808080;
+  --trophy-silver: #909090;
+  --trophy-bronze: #707070;
   
   /* Premium Typography */
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Inter', sans-serif;
   
   /* Premium Shadows */
-  --shadow-champion: 0 8px 32px rgba(216, 168, 56, 0.15);
-  --shadow-trophy: 0 4px 24px rgba(216, 168, 56, 0.25);
-  --shadow-elite: 0 12px 48px rgba(6, 8, 15, 0.4);
+  --shadow-champion: 0 8px 32px rgba(128, 128, 128, 0.15);
+  --shadow-trophy: 0 4px 24px rgba(128, 128, 128, 0.25);
+  --shadow-elite: 0 12px 48px rgba(64, 64, 64, 0.4);
 }
 
 /* Premium Typography */
@@ -100,16 +100,17 @@
 
 /* Premium Card System */
 .champion-card {
-  background: linear-gradient(135deg, rgba(11, 19, 40, 0.95), rgba(6, 8, 15, 0.98));
-  border: 1px solid rgba(216, 168, 56, 0.15);
-  border-radius: 0.5rem;
-  /* Static base shadow - cheap to render once */
-  box-shadow: var(--shadow-champion);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  @apply glass-card border-gold/20 shadow-gold/5 transition-all duration-700;
+  background-image: linear-gradient(
+    to bottom right,
+    #404040,
+    #505050 50%,
+    #606060
+  );
+  background-blend-mode: normal;
   position: relative;
   overflow: hidden;
-  transform: translateZ(0); /* Promote to layer */
-  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* Top border gradient line */

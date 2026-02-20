@@ -308,27 +308,41 @@ const AuctionsPage = () => {
   ];
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-20 opacity-[0.025] bg-[radial-gradient(55%_55%_at_22%_18%,rgba(0,180,190,0.1),transparent_76%)]" />
+    <div className="relative isolate min-h-screen overflow-hidden bg-white">
 
       <section
         ref={heroRef}
-        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24"
+        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
       >
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-navy via-navy-dark to-navy" />
         <div className="container mx-auto px-4">
           <div ref={heroContentRef} className="text-left">
-            <h1 className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gold leading-tight">
-              Aukcje Champion Class
+            <h1 className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+              <span style={{ color: "#A68E4E" }}>Aukcje</span>{" "}
+              <span className="text-slate-900">Champion Class</span>
             </h1>
             <div className="mt-8 flex flex-wrap gap-4 justify-start">
-              <Button variant="gold" size="lg">
+              <Button
+                variant="gold"
+                size="lg"
+                className="gold-button text-zinc-950 border-0"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                  color: "#0f0f0f",
+                }}
+              >
                 Przeglądaj aukcje
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 onClick={handleCreateAuctionClick}
+                className="gold-button text-zinc-950 border-0 hover:bg-gold/90"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                  color: "#0f0f0f",
+                }}
               >
                 Dodaj swoją aukcję
               </Button>
@@ -338,14 +352,14 @@ const AuctionsPage = () => {
             {statTiles.map(({ label, value, meta, Icon }) => (
               <div
                 key={label}
-                className="group glass-vault bg-white/[0.05] px-5 py-6 text-left border-gold"
+                className="group rounded-2xl bg-transparent px-5 py-6 text-left shadow-none border border-gold/20"
               >
                 <Icon className="h-5 w-5 text-gold mb-2" />
-                <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">
+                <p className="text-[11px] uppercase tracking-[0.35em] text-slate-500">
                   {label}
                 </p>
-                <p className="text-2xl font-display text-white">{value}</p>
-                <p className="text-sm text-white/60">{meta}</p>
+                <p className="text-2xl font-display text-slate-900">{value}</p>
+                <p className="text-sm text-slate-600">{meta}</p>
               </div>
             ))}
           </div>
@@ -354,23 +368,23 @@ const AuctionsPage = () => {
 
       <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
         <div className="container mx-auto px-4">
-          <div className="group glass-vault bg-white/[0.05] pt-4 px-4 pb-6 space-y-8 sm:px-6 border-gold">
+          <div className="group rounded-2xl bg-transparent pt-4 px-4 pb-6 space-y-8 sm:px-6 border border-gold/15 shadow-none">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Szukaj po nazwie, linii lub numerze obrączki"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-white/90 focus:border-gold focus:outline-none"
+                  className="w-full rounded-2xl border border-gold/30 bg-transparent backdrop-blur-none py-3 pl-12 pr-4 text-slate-900 placeholder:text-slate-500 focus:border-gold focus:outline-none"
                 />
               </div>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as AuctionSortBy)}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white md:w-auto"
+                  className="rounded-2xl border border-gold/30 bg-transparent backdrop-blur-none px-4 py-3 text-sm text-slate-900 md:w-auto"
                 >
                   <option value="newest">Najnowsze</option>
                   <option value="ending-soon">Kończące się</option>
@@ -379,7 +393,7 @@ const AuctionsPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 rounded-2xl border-white/20"
+                  className="flex items-center gap-2 rounded-2xl border-slate-200 text-slate-900"
                 >
                   <SlidersHorizontal className="h-4 w-4" /> Filtry{" "}
                   {hasActiveFilters && (
@@ -388,16 +402,21 @@ const AuctionsPage = () => {
                 </Button>
                 <Button
                   onClick={handleCreateAuctionClick}
-                  className="rounded-2xl bg-gold text-navy-dark px-5 py-2 font-bold shadow-glow"
+                  className="rounded-2xl bg-gold text-zinc-950 px-5 py-2 font-bold shadow-glow gold-button border-0 hover:bg-gold/90"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                    color: "#0f0f0f",
+                  }}
                 >
                   <Plus className="h-4 w-4 mr-2" /> Dodaj aukcję
                 </Button>
               </div>
             </div>
             {showFilters && (
-              <div className="grid gap-4 md:grid-cols-3 p-6 glass-vault bg-white/5">
+              <div className="grid gap-4 md:grid-cols-3 p-6 rounded-2xl bg-transparent border border-gold/20">
                 <div>
-                  <label className="text-sm font-medium text-white/70 mb-2 block">
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
                     Cena (PLN)
                   </label>
                   <div className="flex gap-2">
@@ -406,25 +425,25 @@ const AuctionsPage = () => {
                       placeholder="Min"
                       value={priceMin}
                       onChange={(e) => setPriceMin(e.target.value)}
-                      className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-white"
+                      className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
                     />
                     <input
                       type="number"
                       placeholder="Max"
                       value={priceMax}
                       onChange={(e) => setPriceMax(e.target.value)}
-                      className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-white"
+                      className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-white/70 mb-2 block">
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
                     Kategoria
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-white"
+                    className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
                   >
                     <option value="all">Wszystkie</option>
                     <option value="PIGEONS">Gołębie</option>
@@ -433,13 +452,13 @@ const AuctionsPage = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-white/70 mb-2 block">
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">
                     Płeć
                   </label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-white"
+                    className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
                   >
                     <option value="all">Wszystkie</option>
                     <option value="male">Samiec</option>
@@ -459,7 +478,7 @@ const AuctionsPage = () => {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-[580px] rounded-2xl bg-white/5 animate-pulse shadow-[0_18px_48px_rgba(0,0,0,0.32)]"
+                  className="h-[580px] rounded-2xl bg-transparent border border-gold/20 animate-pulse shadow-[0_18px_48px_rgba(0,0,0,0.12)]"
                 />
               ))}
             </div>

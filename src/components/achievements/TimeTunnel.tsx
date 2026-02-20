@@ -378,27 +378,30 @@ const TimeTunnel = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const { updateOptions, resetOptions } = useLenisContext();
+  const lenis = useLenisContext();
 
   // Lenis jest już zainicjalizowany przez SmoothScrollProvider w App.tsx
   useParallax();
 
   // 🧈 Maślany scroll — bardzo niskie lerp dla ultra-płynnego efektu
   useEffect(() => {
-    // Krótkie opóźnienie żeby Lenis zdążył się zainicjalizować
+    if (!lenis) return;
+    const prevOptions = { ...lenis.options };
+
     const timer = setTimeout(() => {
-      updateOptions({
+      lenis.options = {
+        ...lenis.options,
         lerp: 0.02,
         wheelMultiplier: 0.45,
         touchMultiplier: 1.2,
-      });
+      };
     }, 100);
 
     return () => {
       clearTimeout(timer);
-      resetOptions(); // Przywróć domyślne przy wyjściu ze strony
+      lenis.options = prevOptions;
     };
-  }, [updateOptions, resetOptions]);
+  }, [lenis]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 300);
@@ -454,15 +457,8 @@ const TimeTunnel = () => {
   const titleChars = "HISTORIA OSIĄGNIĘĆ".split("");
 
   return (
-    <div ref={containerRef} className="relative min-h-[400vh]">
-      {/* Background */}
-      <div
-        className="fixed inset-0 -z-10"
-        style={{
-          background:
-            "linear-gradient(175deg, hsl(230, 50%, 10%) 0%, hsl(225, 55%, 8%) 30%, hsl(220, 60%, 7%) 60%, hsl(225, 55%, 6%) 100%)",
-        }}
-      />
+    <div ref={containerRef} className="relative min-h-[400vh] bg-transparent">
+      {/* Background removed to expose global image */}
 
       {/* Parallax orbs */}
       <div className="fixed inset-0 -z-8 pointer-events-none overflow-hidden">
@@ -566,52 +562,18 @@ const TimeTunnel = () => {
             transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="luxury-divider w-24 h-[3px] bg-yellow-500 shadow-[0_0_25px_rgba(255,215,0,1)]" />
-            <span className="text-sm md:text-base tracking-[0.4em] uppercase text-yellow-400 font-black drop-shadow-[0_0_15px_rgba(255,215,0,1)] shadow-gold">
+            <span className="text-xl md:text-2xl leading-relaxed italic pl-8 gold-heading">
               2001 — 2024
             </span>
             <div className="luxury-divider w-24 h-[3px] bg-yellow-500 shadow-[0_0_25px_rgba(255,215,0,1)]" />
           </motion.div>
-
-          {/* Split-text title — each char animates individually */}
-          <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-none text-gold">
-            {titleChars.map((char, i) => (
-              <motion.span
-                key={i}
-                className="split-char"
-                initial={{
-                  opacity: 0,
-                  y: 80,
-                  rotateX: 90,
-                }}
-                animate={
-                  isLoaded
-                    ? {
-                        opacity: 1,
-                        y: 0,
-                        rotateX: 0,
-                      }
-                    : {}
-                }
-                transition={{
-                  duration: 0.8,
-                  delay: 0.5 + i * 0.035,
-                  ease: [0.16, 1, 0.3, 1], // expo.out
-                }}
-                style={{
-                  color: char === " " ? "transparent" : undefined,
-                  width: char === " " ? "0.3em" : undefined,
-                }}
-              >
-                <span className="text-gold">
-                  {char === " " ? "\u00A0" : char}
-                </span>
-              </motion.span>
-            ))}
+          <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-none gold-heading">
+            HISTORIA OSIĄGNIĘĆ
           </h1>
 
           {/* Subtitle */}
           <motion.p
-            className="hero-subtitle text-gold/70 text-base md:text-lg lg:text-xl max-w-xl mx-auto mb-12 font-light tracking-wide"
+            className="hero-subtitle gold-heading text-base md:text-lg lg:text-xl max-w-xl mx-auto mb-12 font-light tracking-wide"
             initial={{ opacity: 0, y: 30 }}
             animate={isLoaded ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
@@ -639,7 +601,7 @@ const TimeTunnel = () => {
             animate={isLoaded ? { opacity: 1 } : {}}
             transition={{ duration: 0.6, delay: 2 }}
           >
-            <span className="text-xs tracking-[0.3em] uppercase text-yellow-400 font-extrabold drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]">
+            <span className="text-xs tracking-[0.3em] uppercase gold-heading font-extrabold drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]">
               PRZEWIŃ
             </span>
             <div className="w-[2px] h-16 relative overflow-hidden bg-yellow-900/30 rounded-full">
@@ -685,7 +647,7 @@ const TimeTunnel = () => {
             viewport={{ once: true }}
           />
           <motion.p
-            className="footer-text font-serif text-2xl md:text-3xl text-muted-foreground italic"
+            className="footer-text font-serif text-2xl md:text-3xl italic gold-heading"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
@@ -704,7 +666,7 @@ const TimeTunnel = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 2 }}
         >
-          <span className="font-display text-base text-primary glow-text">
+          <span className="font-display text-base gold-heading glow-text">
             {years[activeIndex]}
           </span>
           <div className="w-20 h-[2px] rounded-full bg-border/30 overflow-hidden">

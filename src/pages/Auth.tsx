@@ -548,15 +548,15 @@ export default function Auth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#f7f7fb]">
         <Header />
         <main className="pt-28 md:pt-32">
           <div className="container mx-auto px-4">
-            <div className="mx-auto w-full max-w-md rounded-2xl border border-white/25 bg-black/70 p-6 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] text-center">
+            <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_48px_rgba(0,0,0,0.12)] text-center">
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="w-12 h-12 border-4 border-gold/30 border-t-gold rounded-full animate-spin mb-4"></div>
-                <p className="text-foreground font-medium">Ładowanie...</p>
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-slate-900 font-medium">Ładowanie...</p>
+                <p className="text-sm text-slate-600 mt-2">
                   Sprawdzanie sesji użytkownika
                 </p>
               </div>
@@ -568,7 +568,11 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen text-foreground relative isolate overflow-hidden">
+    <div className="min-h-screen text-slate-900 relative isolate overflow-hidden">
+      <div
+        className="absolute inset-0 -z-10 bg-cover bg-center"
+        style={{ backgroundImage: "url('/Gemini_Generated_Image_am1cv9am1cv9am1c.png')" }}
+      />
       <Header />
 
       <main className="relative flex flex-col lg:flex-row min-h-screen overflow-hidden z-10">
@@ -579,7 +583,7 @@ export default function Auth() {
             muted
             loop
             playsInline
-            className="absolute inset-0 w-full h-full object-contain scale-[0.78] translate-x-[15%] translate-y-8 sm:translate-y-16 lg:translate-y-20 z-0"
+            className="absolute inset-0 w-full h-full object-contain scale-[0.78] sm:scale-[0.82] lg:scale-[0.88] translate-x-[10%] translate-y-6 sm:translate-y-12 lg:translate-y-16 z-0 opacity-80"
           />
 
           <div
@@ -596,15 +600,20 @@ export default function Auth() {
               }}
               animate={{ opacity: 1, y: 0, scale: isLogoHovered ? 1.02 : 1 }}
               transition={{ duration: reduceMotion ? 0 : 0.6 }}
-              className="rounded-3xl border-2 border-gold/40 bg-white/10 backdrop-blur-2xl px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center text-center overflow-hidden"
+              className="rounded-3xl border-2 border-gold/60 backdrop-blur-2xl px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center text-center overflow-hidden"
               style={{
                 rotateX: logoRotateX,
                 rotateY: logoRotateY,
                 transformStyle: "preserve-3d",
-                background:
-                  "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
+                backgroundColor: "rgba(2, 10, 19, 0.96)",
+                backgroundImage:
+                  "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
               }}
             >
+              <div className="absolute top-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
+              <div className="absolute bottom-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
+              <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
+              <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
               {/* Dynamic light reflection */}
               <motion.div
                 className="absolute inset-0 pointer-events-none z-10"
@@ -613,10 +622,10 @@ export default function Auth() {
                   opacity: isLogoHovered ? 1 : 0,
                 }}
               />
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-tight text-center whitespace-nowrap">
-                Pałka <span className="text-gold">MTM</span>
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-tight text-center whitespace-nowrap relative z-30">
+                Pałka <span className="gold-heading">MTM</span>
               </h1>
-              <p className="text-white/80 mt-2 text-base sm:text-lg tracking-wide font-light text-center">
+              <p className="text-white mt-2 text-base sm:text-lg tracking-wide font-light text-center">
                 Mistrzowie sprintu
               </p>
             </motion.div>
@@ -645,15 +654,20 @@ export default function Auth() {
                 duration: reduceMotion ? 0 : 0.6,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative z-50 rounded-3xl backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] p-5 sm:p-6 border-2 border-gold/40 overflow-hidden"
+              className="relative z-50 rounded-3xl text-white backdrop-blur-xl shadow-[0_18px_48px_rgba(0,0,0,0.18)] p-5 sm:p-6 border border-gold/40 overflow-hidden"
               style={{
                 rotateX,
                 rotateY,
                 transformStyle: "preserve-3d",
-                background:
-                  "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
+                backgroundColor: "rgba(2, 10, 19, 0.96)",
+                backgroundImage:
+                  "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
               }}
             >
+              <div className="absolute top-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
+              <div className="absolute bottom-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
+              <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
+              <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
               {/* Dynamic light reflection */}
               <motion.div
                 className="absolute inset-0 pointer-events-none z-10"
@@ -666,18 +680,20 @@ export default function Auth() {
                 <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight mb-1">
                   {mode === "register" ? "Dołącz do nas" : "Witaj ponownie"}
                 </h2>
-                <p className="text-white/70 text-sm">
+                <p className="text-white/80 text-sm">
                   {mode === "register"
                     ? "Stwórz konto i odkryj świat hodowli"
                     : "Zaloguj się do swojego konta"}
                 </p>
               </div>
 
+              <div className="h-[4px] w-full bg-gradient-to-r from-transparent via-[#A68E4E] to-transparent rounded-full mb-4" />
+
               {/* Przełącznik - ukryj dla trybów reset/forgot */}
               {["login", "register"].includes(mode) && (
-                <div className="relative bg-white/5 rounded-xl p-1 mb-4 backdrop-blur-sm border border-white/10">
+                <div className="relative bg-slate-100 rounded-xl p-1 mb-4 border border-slate-200">
                   <motion.div
-                    className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/15 rounded-lg shadow-lg border border-white/10"
+                    className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm border border-gold/30"
                     animate={{
                       x: mode === "register" ? "calc(100% + 4px)" : 0,
                     }}
@@ -686,14 +702,14 @@ export default function Auth() {
                   <div className="relative flex">
                     <button
                       onClick={() => switchMode("login")}
-                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-white" : "text-white/60 hover:text-white/80"}`}
+                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
                       type="button"
                     >
                       Logowanie
                     </button>
                     <button
                       onClick={() => switchMode("register")}
-                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-white" : "text-white/60 hover:text-white/80"}`}
+                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
                       type="button"
                     >
                       Rejestracja
@@ -705,63 +721,65 @@ export default function Auth() {
               {/* Social */}
               <div className="space-y-2 mb-4">
                 <motion.button
-                  whileHover={
-                    reduceMotion
-                      ? undefined
-                      : {
-                          scale: 1.02,
-                          backgroundColor: "rgba(255,255,255,0.06)",
-                        }
-                  }
-                  whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-zinc-900 text-sm font-bold border border-slate-200 shadow-sm transition-none bg-white"
+                  style={{ backgroundColor: "#FFFFFF" }}
                   type="button"
                   onClick={() => handleOAuthSignIn("google")}
                   disabled={isOAuthSubmitting}
                 >
-                  <span
-                    className="w-5 h-5 rounded-full bg-white/80 inline-block"
-                    aria-hidden="true"
-                  />
-                  {isOAuthSubmitting
-                    ? mode === "login"
-                      ? "Logowanie…"
-                      : "Rejestracja…"
-                    : mode === "login"
-                      ? "Kontynuuj z Google"
-                      : "Zarejestruj / zaloguj przez Google"}
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    />
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    />
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                      fill="#FBBC05"
+                    />
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    />
+                  </svg>
+                  <span>
+                    {isOAuthSubmitting
+                      ? "Inicjowanie..."
+                      : mode === "login"
+                        ? "Kontynuuj z Google"
+                        : "Zarejestruj się przez Google"}
+                  </span>
                 </motion.button>
 
                 <motion.button
-                  whileHover={
-                    reduceMotion
-                      ? undefined
-                      : {
-                          scale: 1.02,
-                          backgroundColor: "rgba(255,255,255,0.06)",
-                        }
-                  }
-                  whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium transition-all duration-300 hover:border-gold/30"
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-white text-sm font-bold border-0 shadow-md shadow-blue-500/20 transition-none"
+                  style={{ backgroundColor: "#1877F2" }}
                   type="button"
                   onClick={() => handleOAuthSignIn("facebook")}
                   disabled={isOAuthSubmitting}
                 >
-                  <span
-                    className="w-5 h-5 rounded-full bg-white/80 inline-block"
-                    aria-hidden="true"
-                  />
-                  {isOAuthSubmitting
-                    ? mode === "login"
-                      ? "Logowanie…"
-                      : "Rejestracja…"
-                    : mode === "login"
-                      ? "Kontynuuj z Facebook"
-                      : "Zarejestruj / zaloguj przez Facebook"}
+                  <svg
+                    className="w-5 h-5 fill-current shrink-0"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                  <span>
+                    {isOAuthSubmitting
+                      ? "Inicjowanie..."
+                      : mode === "login"
+                        ? "Kontynuuj z Facebook"
+                        : "Zarejestruj się przez Facebook"}
+                  </span>
                 </motion.button>
 
                 {mode === "register" && (
-                  <p className="text-xs text-white/60">
+                  <p className="text-xs text-slate-600">
                     Jeśli nie masz konta, zostanie utworzone po pierwszym
                     logowaniu przez Google/Facebook. Pamiętaj o weryfikacji
                     email.
@@ -771,10 +789,10 @@ export default function Auth() {
 
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10" />
+                  <div className="w-full h-[4px] bg-gradient-to-r from-transparent via-[#A68E4E] to-transparent rounded-full" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-background px-4 text-xs text-white/60 uppercase tracking-wider">
+                  <span className="bg-white px-4 text-xs text-[#A68E4E] font-semibold uppercase tracking-wider relative z-30">
                     {mode === "login" ? "lub email" : "albo email"}
                   </span>
                 </div>
@@ -784,13 +802,13 @@ export default function Auth() {
                 {mode === "register" && (
                   <div className="space-y-2">
                     <label
-                      className="text-sm font-medium text-white"
+                      className="text-sm font-medium text-slate-700"
                       htmlFor="username"
                     >
                       Nick (wyświetlana nazwa)
                     </label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 gold-icon" />
                       <Input
                         id="username"
                         name="username"
@@ -799,22 +817,20 @@ export default function Auth() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="np. champion-123"
-                        className="pl-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                        required
+                        className="pl-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                     </div>
                   </div>
                 )}
-
                 <div className="space-y-2">
                   <label
-                    className="text-sm font-medium text-white"
+                    className="text-sm font-medium text-gold"
                     htmlFor="email"
                   >
                     Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 gold-icon" />
                     <Input
                       id="email"
                       name="email"
@@ -825,23 +841,22 @@ export default function Auth() {
                       placeholder="twoj@email.com"
                       autoComplete="email"
                       required
-                      className="pl-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                      className="pl-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     />
                   </div>
                 </div>
-
                 {(mode === "login" ||
                   mode === "register" ||
                   mode === "reset") && (
                   <div className="space-y-2">
                     <label
-                      className="text-sm font-medium text-white"
+                      className="text-sm font-medium text-slate-700"
                       htmlFor="password"
                     >
                       Hasło
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 gold-icon" />
                       <Input
                         id="password"
                         name="password"
@@ -854,12 +869,12 @@ export default function Auth() {
                           mode === "login" ? "current-password" : "new-password"
                         }
                         required
-                        className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                        className="pl-12 pr-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
                       >
                         {showPassword ? (
                           <EyeOff className="w-5 h-5" />
@@ -870,17 +885,16 @@ export default function Auth() {
                     </div>
                   </div>
                 )}
-
                 {(mode === "register" || mode === "reset") && (
                   <div className="space-y-2">
                     <label
-                      className="text-sm font-medium text-white"
+                      className="text-sm font-medium text-slate-700"
                       htmlFor="confirmPassword"
                     >
                       Potwierdź hasło
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 gold-icon" />
                       <Input
                         id="confirmPassword"
                         name="confirmPassword"
@@ -891,12 +905,12 @@ export default function Auth() {
                         placeholder="••••••••"
                         autoComplete="new-password"
                         required
-                        className="pl-12 pr-12 bg-white/5 border-white/10 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                        className="pl-12 pr-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="w-5 h-5" />
@@ -907,35 +921,32 @@ export default function Auth() {
                     </div>
                   </div>
                 )}
-
                 {mode === "login" && (
                   <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={() => switchMode("forgot")}
-                      className="text-sm text-gold hover:text-gold/80 transition-colors"
+                      className="text-sm gold-heading hover:opacity-80 transition-opacity"
                     >
                       Zapomniałeś hasła?
                     </button>
                   </div>
                 )}
                 {mode === "forgot" && (
-                  <p className="text-xs text-white/70">
+                  <p className="text-xs text-slate-600">
                     Podaj email powiązany z kontem. Wyślemy jednorazowy link do
                     zmiany hasła.
                   </p>
                 )}
                 {mode === "reset" && (
-                  <p className="text-xs text-white/70">
+                  <p className="text-xs text-slate-600">
                     Ustal nowe hasło dla swojego konta. Po zapisaniu zostaniesz
                     zalogowany.
                   </p>
                 )}
-
                 <Button
                   type="submit"
-                  variant="heroGold"
-                  className="w-full rounded-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="w-full bg-[#A68E4E] text-zinc-900 py-4 rounded-full font-bold uppercase tracking-widest transition-none flex items-center justify-center border-0 hover:bg-[#A68E4E] active:scale-[0.98]"
                   data-testid="auth-submit"
                   disabled={isSubmitting}
                 >
@@ -954,10 +965,9 @@ export default function Auth() {
                         : mode === "forgot"
                           ? "Wyślij link resetujący"
                           : "Ustaw nowe hasło"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-
-                <div className="text-center text-sm text-white/70">
+                <div className="text-center text-sm text-slate-600">
                   {mode === "login" ? (
                     <>
                       Nie masz konta?{" "}
@@ -1004,8 +1014,7 @@ export default function Auth() {
                     </>
                   )}
                 </div>
-
-                <div className="text-center text-xs text-white/60">
+                <div className="text-center text-xs text-slate-500">
                   <Link className="hover:underline" to={callbackUrl}>
                     Wróć
                   </Link>

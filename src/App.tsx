@@ -13,7 +13,6 @@ import React, { Suspense, useEffect } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { GSAPPageTransition } from "@/components/motion";
@@ -46,27 +45,13 @@ import {
 } from "@/utils/lazyImports";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-// GSAP Demo - direct import (not lazy)
-const GSAPDemo = React.lazy(() => import("@/pages/GSAPDemo"));
+// GSAP Demo - removed as file does not exist
+// const GSAPDemo = React.lazy(() => import("@/pages/GSAPDemo"));
 
 // Awwwards Prototype - Site of the Year Candidate
 const AwwwardsPrototype = React.lazy(() => import("@/pages/AwwwardsPrototype"));
 
 const queryClient = new QueryClient();
-
-// Scroll to top on normal route changes.
-const ScrollToTopOnRouteChange = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    const state = (location.state as any) || {};
-    if (state.scrollTo) return;
-
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname, location.state]);
-
-  return null;
-};
 
 const BackgroundWrapper = () => {
   const location = useLocation();
@@ -76,37 +61,26 @@ const BackgroundWrapper = () => {
 
   if (isTimeTunnel) return null;
 
-  return (
-    <>
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: -100,
-          background: "linear-gradient(to bottom, #46403E 0%, #6B6654 100%)",
-          pointerEvents: "none",
-        }}
-      />
-    </>
-  );
+  return null;
 };
+
+import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
 
 const App = () => {
   useEffect(() => {
     trackMetric("SITE").catch(() => {});
+    // Remove FOUC guard
+    document.documentElement.classList.remove("js-loading");
   }, []);
 
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="dark" storageKey="champion-pigeon-theme">
+        <ThemeProvider defaultTheme="light" storageKey="champion-pigeon-theme">
           <LocaleProvider>
             <AuthProvider>
-              <UIProviders>
-                <SmoothScrollProvider>
+              <SmoothScrollProvider>
+                <UIProviders>
                   <TooltipProvider>
                     <Toaster />
                     <Sonner />
@@ -117,17 +91,16 @@ const App = () => {
                       }}
                     >
                       <BackgroundWrapper />
-                      <ScrollToTopOnRouteChange />
                       <GSAPPageTransition
                         defaultStyle="reveal"
                         duration={0.9}
-                        primaryColor="#A68E4E"
+                        primaryColor="#09090b"
                         accentColor="#A68E4E"
                         useRouteStyles={false}
                       >
                         <Suspense fallback={<LoadingSpinner />}>
                           <Routes>
-                            <Route path="/" element={<LazyIndex />} />
+                            <Route path="/" element={<LazyHomePagePremium />} />
                             <Route
                               path="/wyniki-lotowe"
                               element={<LazyFlightResults />}
@@ -200,7 +173,7 @@ const App = () => {
                               path="/homepage-premium"
                               element={<LazyHomePagePremium />}
                             />
-                            <Route path="/gsap-demo" element={<GSAPDemo />} />
+                            {/* <Route path="/gsap-demo" element={<GSAPDemo />} /> */}
                             <Route
                               path="/awwwards-prototype"
                               element={<AwwwardsPrototype />}
@@ -227,8 +200,8 @@ const App = () => {
                       </GSAPPageTransition>
                     </BrowserRouter>
                   </TooltipProvider>
-                </SmoothScrollProvider>
-              </UIProviders>
+                </UIProviders>
+              </SmoothScrollProvider>
             </AuthProvider>
           </LocaleProvider>
         </ThemeProvider>

@@ -63,12 +63,18 @@ const VerifyEmail = () => {
           className="relative z-10 max-w-md w-full bg-card/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl text-center mt-20"
         >
           <div className="flex justify-center mb-6">
-            <div className="p-4 rounded-full bg-gold/10 text-gold">
-              <Mail className="w-12 h-12" />
+            <div className="p-4 rounded-full"
+              style={{
+                backgroundImage: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
+                boxShadow: "0 0 20px #A68E4E55",
+                border: "1px solid rgba(166,142,78,0.3)",
+              }}
+            >
+              <Mail className="w-12 h-12 gold-icon" />
             </div>
           </div>
 
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white tracking-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 gold-heading tracking-tight">
             Sprawdź Skrzynkę
           </h1>
 

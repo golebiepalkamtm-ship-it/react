@@ -10,7 +10,7 @@
  * - Horizontal scroll sections
  */
 
-import { useRef, useEffect, ReactNode, CSSProperties } from "react";
+import { useRef, useEffect, ReactNode, CSSProperties, forwardRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
 
 interface SeamlessSectionProps {
@@ -26,75 +26,96 @@ interface SeamlessSectionProps {
   end?: string;
 }
 
-export const SeamlessSection = ({
-  children,
-  className = "",
-  backgroundColor,
-  transitionIn = "fade",
-  transitionOut = "none",
-  pin = false,
-  pinSpacing = true,
-  scrub = 1,
-  start = "top bottom",
-  end = "bottom top",
-}: SeamlessSectionProps) => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+export const SeamlessSection = forwardRef<HTMLElement, SeamlessSectionProps>(
+  (
+    {
+      children,
+      className = "",
+      backgroundColor,
+      transitionIn = "fade",
+      transitionOut = "none",
+      pin = false,
+      pinSpacing = true,
+      scrub = 1,
+      start = "top bottom",
+      end = "bottom top",
+    },
+    ref,
+  ) => {
+    const innerRef = useRef<HTMLElement>(null);
+    const sectionRef = (ref as React.RefObject<HTMLElement>) || innerRef;
+    const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!sectionRef.current) return;
+    useEffect(() => {
+      if (!sectionRef.current) return;
 
-    const element = sectionRef.current;
-    const content = contentRef.current;
+      const element = sectionRef.current;
+      const content = contentRef.current;
 
-    const ctx = gsap.context(() => {
-      // Entrance animation
-      if (transitionIn !== "none") {
-        const fromVars: gsap.TweenVars = { opacity: 0 };
-        if (transitionIn === "slide") fromVars.y = 100;
-        if (transitionIn === "scale") fromVars.scale = 0.9;
-        if (transitionIn === "reveal")
-          fromVars.clipPath = "inset(100% 0% 0% 0%)";
+      const ctx = gsap.context(() => {
+        // Entrance animation
+        if (transitionIn !== "none") {
+          const fromVars: gsap.TweenVars = { opacity: 0 };
+          if (transitionIn === "slide") fromVars.y = 100;
+          if (transitionIn === "scale") fromVars.scale = 0.9;
+          if (transitionIn === "reveal")
+            fromVars.clipPath = "inset(100% 0% 0% 0%)";
 
-        gsap.from(content, {
-          ...fromVars,
-          duration: 1.2,
-          ease: "expo.out",
-          scrollTrigger: {
+          gsap.from(content, {
+            ...fromVars,
+            duration: 1.2,
+            ease: "expo.out",
+            scrollTrigger: {
+              trigger: element,
+              start: "top 90%",
+              toggleActions: "play none none none",
+            },
+          });
+        }
+
+        // Pinning logic
+        if (pin) {
+          ScrollTrigger.create({
             trigger: element,
-            start: "top 90%",
-            toggleActions: "play none none none",
-          },
-        });
-      }
+            start: "top top",
+            end: "bottom top",
+            pin: content,
+            pinSpacing,
+            scrub: scrub === 1 ? true : scrub,
+            invalidateOnRefresh: true,
+          });
+        }
+      }, element);
 
-      // Pinning logic
-      if (pin) {
-        ScrollTrigger.create({
-          trigger: element,
-          start: "top top",
-          end: "bottom top",
-          pin: content,
-          pinSpacing,
-          scrub: scrub === 1 ? true : scrub,
-          invalidateOnRefresh: true,
-        });
-      }
-    }, element);
+      return () => ctx.revert();
+    }, [
+      transitionIn,
+      transitionOut,
+      pin,
+      pinSpacing,
+      scrub,
+      start,
+      end,
+      sectionRef,
+    ]);
 
-    return () => ctx.revert();
-  }, [transitionIn, transitionOut, pin, pinSpacing, scrub, start, end]);
+    const style: CSSProperties = backgroundColor ? { backgroundColor } : {};
 
-  const style: CSSProperties = backgroundColor ? { backgroundColor } : {};
+    return (
+      <section
+        ref={sectionRef}
+        className={`relative ${className}`}
+        style={style}
+      >
+        <div ref={contentRef} className="relative">
+          {children}
+        </div>
+      </section>
+    );
+  },
+);
 
-  return (
-    <section ref={sectionRef} className={`relative ${className}`} style={style}>
-      <div ref={contentRef} className="relative">
-        {children}
-      </div>
-    </section>
-  );
-};
+SeamlessSection.displayName = "SeamlessSection";
 
 interface PinnedRevealProps {
   children: ReactNode;
@@ -103,6 +124,9 @@ interface PinnedRevealProps {
   revealClassName?: string;
   direction?: "up" | "down" | "left" | "right";
   scrub?: number;
+  activeScale?: number;
+  activeBlur?: number;
+  activeOpacity?: number;
 }
 
 export const PinnedReveal = ({
@@ -112,6 +136,9 @@ export const PinnedReveal = ({
   revealClassName = "",
   direction = "up",
   scrub = 1,
+  activeScale = 0.9,
+  activeBlur = 10,
+  activeOpacity = 0.5,
 }: PinnedRevealProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef<HTMLDivElement>(null);
@@ -160,8 +187,8 @@ export const PinnedReveal = ({
       tl.to(
         pinned,
         {
-          scale: 0.9,
-          filter: "brightness(0.5) blur(10px)",
+          scale: activeScale,
+          filter: `brightness(${activeOpacity}) blur(${activeBlur}px)`,
           ease: "none",
         },
         0,
@@ -171,7 +198,7 @@ export const PinnedReveal = ({
     return () => {
       ctx.revert();
     };
-  }, [direction, scrub]);
+  }, [direction, scrub, activeScale, activeBlur, activeOpacity]);
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>

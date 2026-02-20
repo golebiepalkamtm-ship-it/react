@@ -142,7 +142,7 @@ export const ChampionsGallery = () => {
                     ease: "easeInOut",
                   }}
                 >
-                  <Star className="w-4 h-4" />
+                  <Star className="w-4 h-4 gold-icon" />
                 </motion.div>
                 Ekskluzywna Kolekcja
                 <motion.div
@@ -157,7 +157,7 @@ export const ChampionsGallery = () => {
                     delay: 1.25,
                   }}
                 >
-                  <Star className="w-4 h-4" />
+                  <Star className="w-4 h-4 gold-icon" />
                 </motion.div>
               </motion.span>
             </RevealOnScroll>
@@ -165,17 +165,17 @@ export const ChampionsGallery = () => {
             <div className="mb-6">
               <h1
                 data-split-text
-                className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gold"
+                className="font-display text-3xl md:text-4xl lg:text-5xl font-bold"
               >
-                Galeria Championów
+                <span className="gold-heading">Galeria</span> <span className="text-slate-900">Championów</span>
               </h1>
             </div>
 
             <RevealOnScroll delay={0.2}>
-              <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12">
+              <p className="text-slate-700 text-lg md:text-xl max-w-2xl mx-auto mb-12">
                 MTM Pałka – Ponad 20 lat dominacji w hodowli gołębi pocztowych.
                 <br />
-                <span className="text-gold/80">Zwycięstwo mamy w genach.</span>
+                <span className="text-gold-dark">Zwycięstwo mamy w genach.</span>
               </p>
             </RevealOnScroll>
 
@@ -196,13 +196,19 @@ export const ChampionsGallery = () => {
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-gold-dark/10 border border-gold/30 mb-3 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-shadow">
-                      <stat.icon className="w-7 h-7 text-gold" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-shadow"
+                      style={{
+                        backgroundImage: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
+                        boxShadow: "0 0 20px #A68E4E55",
+                        border: "1px solid rgba(166,142,78,0.3)",
+                      }}
+                    >
+                      <stat.icon className="w-7 h-7 gold-icon" />
                     </div>
-                    <div className="font-display text-4xl md:text-5xl font-bold text-white mb-1">
+                    <div className="font-display text-4xl md:text-5xl font-bold text-slate-900 mb-1">
                       <CountUp end={stat.value} duration={2} suffix="+" />
                     </div>
-                    <div className="text-white/50 text-sm uppercase tracking-wider">
+                    <div className="text-slate-500 text-sm uppercase tracking-wider">
                       {stat.label}
                     </div>
                   </motion.div>
@@ -212,9 +218,7 @@ export const ChampionsGallery = () => {
           </div>
         </motion.section>
 
-        <section className="py-16 px-4 relative">
-          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
-
+        <section className="py-16 px-4 relative bg-transparent">
           <div className="max-w-7xl mx-auto">
             {loading && (
               <div className="flex flex-col items-center justify-center py-32">
@@ -222,7 +226,7 @@ export const ChampionsGallery = () => {
                   <div className="w-16 h-16 border-4 border-gold/20 rounded-full" />
                   <div className="absolute inset-0 w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin" />
                 </div>
-                <span className="mt-6 text-white/60">
+                <span className="mt-6 text-slate-600">
                   Ładowanie championów...
                 </span>
               </div>
@@ -230,7 +234,7 @@ export const ChampionsGallery = () => {
 
             {error && (
               <div className="text-center py-32">
-                <p className="text-red-400">{error}</p>
+                <p className="text-red-500">{error}</p>
               </div>
             )}
 

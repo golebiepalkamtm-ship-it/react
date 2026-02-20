@@ -99,7 +99,7 @@ const PressArticleCard = ({
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
+              "radial-gradient(ellipse at center, rgba(212,175,55,0.18) 0%, transparent 60%)",
           }}
           animate={{
             opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3,
@@ -109,7 +109,7 @@ const PressArticleCard = ({
 
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
-        <div className="relative aspect-[16/10] overflow-hidden">
+        <div className="relative aspect-[16/10] overflow-hidden bg-slate-50">
           <img
             src={article.images.main}
             alt={article.title}
@@ -126,13 +126,13 @@ const PressArticleCard = ({
         </div>
 
         <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
-          <div className="flex items-center gap-2 text-sm text-white/60 mb-3 flex-wrap">
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-light/80 border border-gold/20">
-              <Newspaper className="w-3 h-3" />
+          <div className="flex items-center gap-2 text-sm text-slate-600 mb-3 flex-wrap">
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-dark border border-gold/20">
+              <Newspaper className="w-3 h-3 gold-icon" />
               {article.publication}
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 text-white/60 border border-white/10">
-              <Calendar className="w-3 h-3" />
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              <Calendar className="w-3 h-3 gold-icon" />
               {new Date(article.date).toLocaleDateString("pl-PL")}
             </span>
           </div>
@@ -147,14 +147,13 @@ const PressArticleCard = ({
 
           <div className="mt-auto">
             <Button
-              variant="outline"
               size="sm"
-              className="w-full border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold transition-all duration-300 relative z-40"
+              className="w-full gold-button relative z-40"
               asChild
             >
               <Link to={`/press/${article.id}`}>
                 Czytaj więcej
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform text-zinc-950" />
               </Link>
             </Button>
           </div>
@@ -283,7 +282,7 @@ const PressPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
@@ -302,190 +301,141 @@ const PressPage = () => {
             />
             <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-gold" />
           </div>
-          <p className="text-white/60 text-lg">Ładowanie artykułów...</p>
+          <p className="text-slate-600 text-lg">Ładowanie artykułów...</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-transparent">
       <Header />
 
-      <section
-        ref={heroRef}
-        className="relative min-h-[70vh] flex items-center justify-center z-10 pt-20"
-      >
-        <div className="absolute inset-0 overflow-hidden" />
-
-        <div
-          ref={heroContentRef}
-          className="relative z-10 container mx-auto px-4 text-center"
+      <main className="flex-1">
+        <section
+          ref={heroRef}
+          className="relative min-h-[70vh] flex items-center justify-center z-10 pt-20 bg-transparent"
         >
-          <motion.div
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
-            animate={{
-              boxShadow: [
-                "0 0 30px rgba(250,204,21,0.2)",
-                "0 0 60px rgba(250,204,21,0.4)",
-                "0 0 30px rgba(250,204,21,0.2)",
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <Newspaper className="w-10 h-10 text-gold" />
-          </motion.div>
-
-          <h1
-            data-split-text
-            className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gold mb-6"
-          >
-            Prasa i Media
-          </h1>
-
-          <motion.p
-            className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            Przeczytaj co piszą o nas media branżowe i ogólnopolskie
-          </motion.p>
-
-          <motion.div
-            className="flex flex-wrap justify-center gap-6 md:gap-12 mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+          <div
+            ref={heroContentRef}
+            className="relative z-40 container mx-auto px-4 text-center"
           >
             <motion.div
-              className="text-center"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.6, type: "spring" }}
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-8"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
+                boxShadow: "0 0 20px #A68E4E55",
+                border: "1px solid rgba(166,142,78,0.3)",
+              }}
             >
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2 bg-gradient-to-br from-gold-light to-gold shadow-lg">
-                <Newspaper className="w-7 h-7 text-black/80" />
-              </div>
-              <div className="font-display text-3xl md:text-4xl font-bold text-white">
-                {pressArticles.length}
-              </div>
-              <div className="text-white/50 text-sm uppercase tracking-wider">
-                Artykułów
-              </div>
+              <Newspaper className="w-12 h-12 md:w-16 md:h-16 gold-icon" />
             </motion.div>
-          </motion.div>
+            <h1
+              data-split-text
+              className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4"
+            >
+              <span className="gold-heading">Prasa i Media</span>
+            </h1>
+            <p className="text-zinc-200 text-lg md:text-xl max-w-2xl mx-auto shadow-sm">
+              Przeczytaj, co piszą o nas media branżowe i ogólnopolskie.
+            </p>
+          </div>
+        </section>
 
-          <motion.div
-            className="mt-12 flex flex-col items-center gap-2"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <span className="text-white/40 text-sm uppercase tracking-widest">
-              Przewijaj
-            </span>
-            <ChevronDown className="w-6 h-6 text-gold/60" />
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="relative z-10 py-8">
-        <div className="container mx-auto px-4">
-          <motion.div
-            className="max-w-4xl mx-auto"
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <div className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15)]">
-              <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
-              <div className="relative pb-[56.25%] h-0">
+        {/* Wideo YouTube */}
+        <section className="relative z-10 py-10 bg-transparent">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto relative overflow-hidden rounded-3xl border border-gold/20 bg-black/20 backdrop-blur-md shadow-[0_18px_48px_rgba(0,0,0,0.12)]">
+              <div className="absolute inset-0 pointer-events-none" />
+              <div className="aspect-video">
                 <iframe
-                  className="absolute inset-0 w-full h-full"
-                  src="https://www.youtube.com/embed/s5R-tUv5d2o"
-                  title="Tadeusz Pałka - Lubań"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  src="https://www.youtube.com/embed/utXkaMWyZfk"
+                  title="MTM Pałka - video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
+                  className="w-full h-full"
                 />
               </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <section className="relative z-10 py-20">
-        <div className="container mx-auto px-4">
-          <motion.div
-            className="flex flex-wrap items-center gap-4 mb-12 p-4 md:p-5 rounded-2xl border border-gold/20 bg-gradient-to-br from-zinc-800/80 via-zinc-900/80 to-zinc-800/80 backdrop-blur-xl"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="flex items-center gap-2 text-white font-medium">
-              <Filter className="w-4 h-4 text-gold" />
-              <span>Kategoria:</span>
-            </div>
-            {categories.map((category, index) => (
-              <motion.div
-                key={category.value}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-              >
-                <Button
-                  variant={
-                    selectedCategory === category.value ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.value)}
-                  className={
-                    selectedCategory === category.value
-                      ? "bg-gradient-to-r from-gold to-gold text-black font-bold border-none"
-                      : "border-gold/30 text-gold-light hover:bg-gold hover:text-black hover:border-gold"
-                  }
-                >
-                  {category.label}
-                </Button>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {filteredArticles.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredArticles.map((article, index) => (
-                <PressArticleCard
-                  key={article.id}
-                  article={article}
-                  index={index}
-                />
-              ))}
-            </div>
-          ) : (
+        <section className="relative z-10 py-20">
+          <div className="container mx-auto px-4">
             <motion.div
-              className="max-w-2xl mx-auto text-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap items-center gap-4 mb-12 p-5 md:p-6 rounded-2xl border-2 border-[#A68E4E] bg-black/20 backdrop-blur-md shadow-[0_18px_48px_rgba(0,0,0,0.12)]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl p-12">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
-                <Newspaper className="w-16 h-16 text-gold/50 mx-auto mb-6" />
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  Brak artykułów
-                </h2>
-                <p className="text-white/60 mb-4">
-                  Brak artykułów w tej kategorii
-                </p>
-                <p className="text-white/40 text-sm">
-                  Spróbuj wybrać inną kategorię lub zobacz wszystkie artykuły
-                </p>
+              <div className="flex items-center gap-2 text-slate-800 font-bold uppercase tracking-widest text-xs">
+                <Filter className="w-4 h-4 text-gold" />
+                <span>Filtruj:</span>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {categories.map((category, index) => (
+                  <motion.div
+                    key={category.value}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedCategory(category.value)}
+                      className={`px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-300 border ${
+                        selectedCategory === category.value
+                          ? "bg-[#A68E4E] text-zinc-950 border-[#A68E4E] shadow-lg shadow-gold/20 scale-105"
+                          : "bg-transparent text-gold-dark/80 border-gold/30 hover:border-gold hover:text-gold hover:bg-gold/5"
+                      }`}
+                    >
+                      {category.label}
+                    </Button>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
-          )}
-        </div>
-      </section>
+
+            {filteredArticles.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredArticles.map((article, index) => (
+                  <PressArticleCard
+                    key={article.id}
+                    article={article}
+                    index={index}
+                  />
+                ))}
+              </div>
+            ) : (
+              <motion.div
+                className="max-w-2xl mx-auto text-center"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="relative overflow-hidden pb-12 pt-24 sm:pb-16 sm:pt-28 md:pb-20 md:pt-32">
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/8 backdrop-blur-[1px]" />
+                  <div className="container mx-auto px-4">
+                    <div className="rounded-3xl border border-dashed border-gold/40 bg-black/40 backdrop-blur-md p-8 text-center shadow-lg">
+                      <p className="text-zinc-200">
+                        Brak artykułów w wybranej kategorii.
+                      </p>
+                      <p className="text-zinc-400 text-sm">
+                        Spróbuj wybrać inną kategorię lub zobacz wszystkie
+                        artykuły
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </section>
+
+        {/* ... */}
+      </main>
 
       <div className="relative z-10">
         <Footer />

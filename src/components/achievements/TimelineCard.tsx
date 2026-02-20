@@ -183,8 +183,8 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
               }}
               style={{
                 color: "transparent",
-                WebkitTextStroke: "2px rgba(212, 175, 55, 0.25)",
-                textShadow: "0 0 80px rgba(212, 175, 55, 0.15)",
+                WebkitTextStroke: "2px rgba(166, 142, 78, 0.35)",
+                textShadow: "0 0 50px rgba(166, 142, 78, 0.2)",
               }}
             >
               {event.year}
@@ -213,9 +213,9 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                 rotateY: rotateYSpring,
                 transformStyle: "preserve-3d",
                 boxShadow: `
-                  0 0 20px 2px rgba(212, 175, 55, 0.6),
-                  0 0 10px 0px rgba(212, 175, 55, 0.4),
-                  inset 0 0 15px rgba(212, 175, 55, 0.2)
+                  0 0 16px 2px rgba(166, 142, 78, 0.6),
+                  0 0 8px 0px rgba(166, 142, 78, 0.35),
+                  inset 0 0 12px rgba(166, 142, 78, 0.2)
                 `,
               }}
               initial={{ opacity: 0 }}
@@ -265,18 +265,18 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                     style={{
                       background: `conic-gradient(from ${isHovered ? "0deg" : "180deg"}, 
                       transparent 0%, 
-                      rgba(212, 175, 55, 0.6) 10%, 
+                      rgba(166, 142, 78, 0.6) 10%, 
                       transparent 20%, 
-                      rgba(212, 175, 55, 0.3) 40%, 
+                      rgba(166, 142, 78, 0.3) 40%, 
                       transparent 60%, 
-                      rgba(212, 175, 55, 0.6) 80%, 
+                      rgba(166, 142, 78, 0.6) 80%, 
                       transparent 100%)`,
                       mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                       WebkitMask:
                         "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
                       WebkitMaskComposite: "xor",
                       maskComposite: "exclude",
-                      padding: "1.5px",
+                      padding: "1px",
                     }}
                     animate={{
                       rotate: isHovered ? 360 : 0,
@@ -311,7 +311,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                     className="w-1/3 h-full"
                     style={{
                       background:
-                        "linear-gradient(105deg, transparent 30%, rgba(212, 175, 55, 0.15) 45%, rgba(255, 255, 255, 0.1) 50%, rgba(212, 175, 55, 0.15) 55%, transparent 70%)",
+                        "linear-gradient(105deg, transparent 30%, rgba(166, 142, 78, 0.18) 45%, rgba(255, 255, 255, 0.1) 50%, rgba(166, 142, 78, 0.18) 55%, transparent 70%)",
                     }}
                   />
                 </motion.div>
@@ -321,7 +321,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                   className="absolute -top-20 left-1/2 -translate-x-1/2 w-[180%] h-40 pointer-events-none z-0"
                   style={{
                     background:
-                      "radial-gradient(ellipse at center, rgba(212, 175, 55, 0.12) 0%, transparent 70%)",
+                      "radial-gradient(ellipse at center, rgba(166, 142, 78, 0.14) 0%, transparent 70%)",
                   }}
                   animate={
                     isActive
@@ -349,65 +349,33 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                 >
                   {/* Mobile Year */}
                   <motion.div className="md:hidden mb-5" variants={itemReveal}>
-                    <span className="font-display text-5xl font-bold text-yellow-400 drop-shadow-[0_0_20px_rgba(255,215,0,0.5)]">
+                    <span className="font-display text-5xl font-bold gold-heading">
                       {event.year}
                     </span>
                   </motion.div>
 
                   {/* Year badge — desktop */}
                   <motion.div
-                    className="hidden md:inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full border border-yellow-400/40 bg-yellow-400/10 text-yellow-400 font-bold text-sm tracking-widest"
+                    className="hidden md:inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full border font-bold text-sm tracking-widest gold-heading"
                     variants={itemReveal}
                     style={{
+                      borderColor: "#A68E4E",
+                      backgroundColor: "rgba(166,142,78,0.08)",
                       boxShadow:
-                        "0 0 20px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05)",
+                        "0 0 12px rgba(166,142,78,0.25), inset 0 0 10px rgba(166,142,78,0.08)",
                     }}
                   >
-                    <motion.span
-                      animate={
-                        isActive
-                          ? {
-                              textShadow: [
-                                "0 0 5px rgba(212,175,55,0)",
-                                "0 0 15px rgba(212,175,55,0.8)",
-                                "0 0 5px rgba(212,175,55,0)",
-                              ],
-                            }
-                          : {}
-                      }
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
+                    <motion.span>
                       {event.year}
                     </motion.span>
                   </motion.div>
 
                   {/* Title with split-letter reveal */}
                   <motion.h3
-                    className="font-display text-2xl md:text-3xl font-bold mb-4 overflow-hidden"
+                    className="font-display text-2xl md:text-3xl font-bold mb-4 overflow-hidden gold-heading"
                     variants={itemReveal}
                   >
-                    <span className="inline-block">
-                      {event.title.split("").map((char, i) => (
-                        <motion.span
-                          key={i}
-                          className="inline-block text-yellow-400"
-                          initial={{ y: "100%", opacity: 0, rotateX: 90 }}
-                          animate={
-                            isInView ? { y: "0%", opacity: 1, rotateX: 0 } : {}
-                          }
-                          transition={{
-                            duration: 0.6,
-                            delay: 0.5 + i * 0.025,
-                            ease: [0.16, 1, 0.3, 1],
-                          }}
-                          style={{
-                            textShadow: "0 0 20px rgba(212, 175, 55, 0.4)",
-                          }}
-                        >
-                          {char === " " ? "\u00A0" : char}
-                        </motion.span>
-                      ))}
-                    </span>
+                    <span className="inline-block">{event.title}</span>
                   </motion.h3>
 
                   {/* Highlight badge with count-up effect */}
@@ -417,7 +385,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                       variants={itemReveal}
                     >
                       <motion.div
-                        className="h-[2px] bg-gradient-to-r from-yellow-400/80 to-transparent flex-1"
+                        className="h-[2px] bg-gradient-to-r from-gold/70 to-transparent flex-1"
                         initial={{ scaleX: 0 }}
                         animate={isInView ? { scaleX: 1 } : {}}
                         transition={{
@@ -427,11 +395,11 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                         }}
                         style={{ transformOrigin: isEven ? "left" : "right" }}
                       />
-                      <span className="text-xs text-yellow-400/90 tracking-[0.25em] uppercase font-black whitespace-nowrap">
+                      <span className="text-xs tracking-[0.25em] uppercase font-black whitespace-nowrap gold-heading">
                         {event.highlight}
                       </span>
                       <motion.div
-                        className="h-[2px] bg-gradient-to-l from-yellow-400/80 to-transparent flex-1"
+                        className="h-[2px] bg-gradient-to-l from-gold/70 to-transparent flex-1"
                         initial={{ scaleX: 0 }}
                         animate={isInView ? { scaleX: 1 } : {}}
                         transition={{
@@ -503,7 +471,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
 
                           <div className="pl-3 flex items-start gap-2.5">
                             <MedalBadge rank={rank} index={i} />
-                            <span className="text-gray-300 font-medium group-hover:text-yellow-200 transition-colors duration-300 leading-relaxed">
+                            <span className="text-gray-300 font-medium group-hover:text-[#A68E4E] transition-colors duration-300 leading-relaxed">
                               {achievement}
                             </span>
                           </div>
@@ -519,7 +487,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                     className="h-full w-full"
                     style={{
                       background:
-                        "linear-gradient(90deg, transparent, rgba(212,175,55,0.6), rgba(212,175,55,0.8), rgba(212,175,55,0.6), transparent)",
+                        "linear-gradient(90deg, transparent, rgba(166,142,78,0.65), rgba(166,142,78,0.85), rgba(166,142,78,0.65), transparent)",
                     }}
                     initial={{ x: "-100%" }}
                     animate={isInView ? { x: "0%" } : {}}
@@ -537,7 +505,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                     className="h-full w-full"
                     style={{
                       background:
-                        "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent)",
+                        "linear-gradient(90deg, transparent, rgba(166,142,78,0.45), transparent)",
                     }}
                     initial={{ scaleX: 0 }}
                     animate={isInView ? { scaleX: 1 } : {}}
@@ -577,15 +545,15 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                 className="absolute inset-0"
                 style={{
                   background: `linear-gradient(${isEven ? "270deg" : "90deg"}, 
-                  rgba(212,175,55,0.6), rgba(212,175,55,0.1), transparent)`,
+                  rgba(166,142,78,0.6), rgba(166,142,78,0.1), transparent)`,
                 }}
               />
               {/* Animated dot traveling along line */}
               <motion.div
                 className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
                 style={{
-                  background: "rgba(212,175,55,0.8)",
-                  boxShadow: "0 0 10px rgba(212,175,55,0.6)",
+                  background: "rgba(166,142,78,0.8)",
+                  boxShadow: "0 0 10px rgba(166,142,78,0.6)",
                 }}
                 initial={{ left: isEven ? "100%" : "0%" }}
                 animate={

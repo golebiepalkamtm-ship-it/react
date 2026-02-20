@@ -1,18 +1,18 @@
+import React, { useRef, type ReactNode } from "react";
 import { motion, useInView } from "framer-motion";
-import { useRef, type ReactNode } from "react";
 import { fadeInUp, getVariants } from "@/lib/motion-config";
-import type { Variants } from "framer-motion";
+import type { Variants, UseInViewOptions } from "framer-motion";
 
 interface RevealOnScrollProps {
   children: ReactNode;
   /** Animation variants (defaults to fadeInUp) */
   variants?: Variants;
   /** Direction for simple animations (overrides variants if provided) */
-  direction?: 'up' | 'down' | 'left' | 'right' | 'scale' | 'fade';
+  direction?: "up" | "down" | "left" | "right" | "scale" | "fade";
   /** Viewport threshold (0-1) */
   threshold?: number;
   /** Amount of margin from viewport edge */
-  margin?: string;
+  margin?: UseInViewOptions["margin"];
   /** Once: animate only once, always: animate every time it enters viewport */
   once?: boolean;
   /** Additional className */
@@ -23,30 +23,23 @@ interface RevealOnScrollProps {
   duration?: number;
   /** Y offset for custom animations */
   y?: number;
+  /** Alias for y offset (for compatibility) */
+  distance?: number;
   /** Scale for custom animations */
   scale?: number;
   /** Opacity range [start, end] */
   opacity?: [number, number];
   /** Enable blur effect */
   blur?: boolean;
+  /** Stagger delay for children in seconds */
+  stagger?: number;
 }
 
 /**
  * RevealOnScroll Component (also exported as Reveal)
- * 
+ *
  * Triggers animations when elements enter the viewport using useInView.
  * Perfect for scroll-triggered reveals with smooth spring animations.
- * 
- * @example
- * ```tsx
- * <RevealOnScroll>
- *   <h1>This will fade in when scrolled into view</h1>
- * </RevealOnScroll>
- * 
- * <RevealOnScroll variants={fadeInLeft} delay={0.2}>
- *   <p>Custom animation with delay</p>
- * </RevealOnScroll>
- * ```
  */
 export const RevealOnScroll = ({
   children,
@@ -59,63 +52,74 @@ export const RevealOnScroll = ({
   delay = 0,
   duration = 0.6,
   y,
+  distance,
   scale,
   opacity,
   blur = false,
+  stagger = 0,
 }: RevealOnScrollProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, {
-    threshold,
-    margin,
+    amount: threshold,
+    margin: margin as any,
     once,
   });
 
+  // Decide on final Y offset
+  const finalY = y ?? distance ?? 60;
+
   // If direction is provided, use simple direction-based variants
   let finalVariants: Variants;
-  
+
   if (direction) {
     const directionVariants: Record<string, Variants> = {
       up: {
-        hidden: { opacity: 0, y: y ?? 60 },
-        visible: { opacity: 1, y: 0 }
+        hidden: { opacity: 0, y: finalY },
+        visible: { opacity: 1, y: 0 },
       },
       down: {
-        hidden: { opacity: 0, y: y ? -y : -60 },
-        visible: { opacity: 1, y: 0 }
+        hidden: { opacity: 0, y: -finalY },
+        visible: { opacity: 1, y: 0 },
       },
       left: {
-        hidden: { opacity: 0, x: 60 },
-        visible: { opacity: 1, x: 0 }
+        hidden: { opacity: 0, x: finalY },
+        visible: { opacity: 1, x: 0 },
       },
       right: {
-        hidden: { opacity: 0, x: -60 },
-        visible: { opacity: 1, x: 0 }
+        hidden: { opacity: 0, x: -finalY },
+        visible: { opacity: 1, x: 0 },
       },
       scale: {
         hidden: { opacity: 0, scale: scale ?? 0.8 },
-        visible: { opacity: 1, scale: 1 }
+        visible: { opacity: 1, scale: 1 },
       },
       fade: {
         hidden: { opacity: 0 },
-        visible: { opacity: 1 }
-      }
+        visible: { opacity: 1 },
+      },
     };
     finalVariants = directionVariants[direction];
-  } else if (y !== undefined || scale !== undefined || opacity || blur) {
+  } else if (
+    y !== undefined ||
+    distance !== undefined ||
+    scale !== undefined ||
+    opacity ||
+    blur
+  ) {
     // Custom animation props
     finalVariants = {
       hidden: {
         opacity: opacity?.[0] ?? 0,
-        y: y ?? 0,
+        y: finalY,
         scale: scale ?? 1,
-        filter: blur ? 'blur(10px)' : 'blur(0px)'
+        filter: blur ? "blur(10px)" : "blur(0px)",
       },
       visible: {
         opacity: opacity?.[1] ?? 1,
         y: 0,
         scale: 1,
-        filter: 'blur(0px)'
-      }
+        filter: "blur(0px)",
+      },
     };
   } else {
     // Use provided variants or default
@@ -123,16 +127,22 @@ export const RevealOnScroll = ({
     finalVariants = getVariants(baseVariants);
   }
 
-  // Add delay and duration to the transition
+  // Add delay, duration and stagger to the transition
   const variantsWithTransition: Variants = {
     hidden: finalVariants.hidden,
     visible: {
-      ...finalVariants.visible,
+      ...(finalVariants.visible as any),
       transition: {
         duration,
         delay,
         ease: [0.32, 0.72, 0, 1],
-        ...(finalVariants.visible?.transition as object || {}),
+        staggerChildren: stagger,
+        delayChildren: delay,
+        ...(finalVariants.visible &&
+        typeof finalVariants.visible === "object" &&
+        "transition" in finalVariants.visible
+          ? (finalVariants.visible as any).transition
+          : {}),
       },
     },
   };
@@ -145,7 +155,11 @@ export const RevealOnScroll = ({
       variants={variantsWithTransition}
       className={className}
     >
-      {children}
+      {stagger > 0
+        ? React.Children.map(children, (child) => (
+            <motion.div variants={finalVariants}>{child}</motion.div>
+          ))
+        : children}
     </motion.div>
   );
 };
@@ -154,4 +168,3 @@ export const RevealOnScroll = ({
  * Alias for RevealOnScroll for convenience
  */
 export const Reveal = RevealOnScroll;
-

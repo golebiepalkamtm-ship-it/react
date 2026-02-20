@@ -103,23 +103,7 @@ const Header = () => {
   const isAuctionsPage = location.pathname.startsWith("/auctions");
   const isContactPage = location.pathname.startsWith("/contact");
   const isReferencesPage = location.pathname.startsWith("/references");
-  const isOverlay = useMemo(
-    () =>
-      !isScrolled &&
-      (isHomePage ||
-        isBreederPage ||
-        isAuctionsPage ||
-        isContactPage ||
-        isReferencesPage),
-    [
-      isScrolled,
-      isHomePage,
-      isBreederPage,
-      isAuctionsPage,
-      isContactPage,
-      isReferencesPage,
-    ],
-  );
+  const isOverlay = useMemo(() => true, []);
   const accountHref = user
     ? "ACCOUNT_MODAL_TRIGGER"
     : "/auth?mode=login&callbackUrl=ACCOUNT_MODAL_TRIGGER";
@@ -269,11 +253,7 @@ const Header = () => {
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-500 ${
-        isOverlay
-          ? "bg-transparent py-0"
-          : "bg-hero-gradient/90 backdrop-blur-lg shadow-lg py-0"
-      }`}
+      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-transparent py-0"
     >
       {/* Efekt podświetlenia dla nagłówka */}
       <motion.div
@@ -389,27 +369,13 @@ const Header = () => {
                 <motion.button
                   key={link.label}
                   onClick={() => setShowAccountModal(true)}
-                  className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
+                  className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
                   variants={{
                     hidden: { opacity: 0, y: -10 },
                     visible: { opacity: 1, y: 0 },
                   }}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ y: 0 }}
                 >
-                  <span className="relative z-10">{link.label}</span>
-                  <motion.span
-                    className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
-                    initial={{ scaleX: 0, originX: 0 }}
-                    whileHover={{ scaleX: 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <motion.div
-                    className="absolute inset-0 bg-gold/10 rounded-md pointer-events-none"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileHover={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
+                  {link.label}
                 </motion.button>
               );
             }
@@ -418,27 +384,13 @@ const Header = () => {
                 <motion.button
                   key={link.label}
                   onClick={() => setAdminModalWithTrace(true)}
-                  className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
+                  className="nav-link-premium text-sm font-semibold tracking-widest text-gold hover:text-white uppercase"
                   variants={{
                     hidden: { opacity: 0, y: -10 },
                     visible: { opacity: 1, y: 0 },
                   }}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ y: 0 }}
                 >
-                  <span className="relative z-10">{link.label}</span>
-                  <motion.span
-                    className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
-                    initial={{ scaleX: 0, originX: 0 }}
-                    whileHover={{ scaleX: 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <motion.div
-                    className="absolute inset-0 bg-gold/10 rounded-md pointer-events-none"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileHover={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
+                  {link.label}
                 </motion.button>
               );
             }
@@ -449,8 +401,6 @@ const Header = () => {
                   hidden: { opacity: 0, y: -10 },
                   visible: { opacity: 1, y: 0 },
                 }}
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
               >
                 {link.href.startsWith("/#") ? (
                   <button
@@ -459,28 +409,16 @@ const Header = () => {
                       const anchor = link.href.split("#")[1];
                       scrollToAnchor(anchor);
                     }}
-                    className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary`}
+                    className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
                   >
                     {link.label}
                   </button>
                 ) : (
                   <RouterLink
                     to={link.href}
-                    className={`transition-colors duration-300 text-sm font-medium tracking-wide text-white/90 hover:text-primary relative overflow-hidden group`}
+                    className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
                   >
-                    <span className="relative z-10">{link.label}</span>
-                    <motion.span
-                      className="absolute bottom-0 left-0 w-full h-[1px] bg-gold"
-                      initial={{ scaleX: 0, originX: 0 }}
-                      whileHover={{ scaleX: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <motion.div
-                      className="absolute inset-0 bg-gold/10 rounded-md pointer-events-none"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileHover={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    />
+                    {link.label}
                   </RouterLink>
                 )}
               </motion.div>

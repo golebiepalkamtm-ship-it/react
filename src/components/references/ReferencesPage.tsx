@@ -49,12 +49,8 @@ function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardPro
     <motion.div
       ref={cardRef}
       style={{ opacity, y }}
-      className={`
-        reference-card group cursor-pointer rounded-2xl border p-6 transition-all duration-500
-        ${isActive 
-          ? 'border-gold/60 bg-gradient-to-br from-gold-dark/40 via-zinc-900/90 to-gold-dark/30 shadow-[0_0_60px_rgba(212,175,55,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] scale-[1.02]' 
-          : 'border-gold/20 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 hover:border-gold/40 hover:shadow-[0_0_30px_rgba(212,175,55,0.15)]'
-        }
+      className={`reference-card group cursor-pointer rounded-2xl border p-6 transition-all duration-500 bg-white shadow-lg
+        ${isActive ? 'border-gold/50 scale-[1.015]' : 'border-gold/20 hover:border-gold/40'}
       `}
       onClick={onClick}
       initial={{ opacity: 0, y: 30 }}
@@ -63,13 +59,11 @@ function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardPro
       viewport={{ once: true }}
       whileHover={{ scale: isActive ? 1.02 : 1.01 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none rounded-2xl" />
-      
       {isActive && (
         <motion.div 
           className="absolute -top-8 left-1/2 -translate-x-1/2 w-[100%] h-24 pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(250,204,21,0.3) 0%, transparent 60%)',
+            background: 'radial-gradient(ellipse at center, rgba(250,204,21,0.25) 0%, transparent 60%)',
           }}
           animate={{
             opacity: [0.5, 0.8, 0.5],
@@ -80,31 +74,31 @@ function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardPro
 
       <div className="relative flex items-center gap-4 mb-4">
         <div className={`
-          w-14 h-14 rounded-full overflow-hidden border-2 flex-shrink-0
-          ${isActive ? 'border-gold/60 shadow-[0_0_20px_rgba(212,175,55,0.4)]' : 'border-gold/20'}
+          w-14 h-14 rounded-full overflow-hidden border-2 flex-shrink-0 bg-white
+          ${isActive ? 'border-gold/60 shadow-[0_0_20px_rgba(212,175,55,0.25)]' : 'border-gold/20'}
         `}>
           {getPrimaryImage() ? (
             <img 
               src={getPrimaryImage() as string} 
-              alt={reference.breederName}
+              alt={reference.breeder_name}
               className="w-full h-full object-cover object-top"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-zinc-800">
-              <ImageOff className="w-5 h-5 text-white/40" />
+            <div className="w-full h-full flex items-center justify-center bg-slate-100">
+              <ImageOff className="w-5 h-5 text-slate-400" />
             </div>
           )}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className={`
             font-semibold truncate transition-colors
-            ${isActive ? 'text-gold-light' : 'text-white group-hover:text-gold'}
+            ${isActive ? 'text-gold-dark' : 'text-slate-900 group-hover:text-gold-dark'}
           `}>
-            {reference.breederName}
+            {reference.breeder_name}
           </h3>
-          <div className="flex items-center gap-2 text-sm text-white/50">
-            <MapPin className="w-3 h-3 flex-shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <MapPin className="w-3 h-3 flex-shrink-0 text-gold" />
             <span className="truncate">{reference.location}</span>
           </div>
         </div>
@@ -114,20 +108,20 @@ function ReferenceCard({ reference, index, isActive, onClick }: ReferenceCardPro
         {[...Array(5)].map((_, i) => (
           <Star 
             key={i} 
-            className={`w-4 h-4 ${i < Math.max(1, Math.min(5, reference.rating)) ? 'text-gold fill-gold' : 'text-white/20'}`} 
+            className={`w-4 h-4 ${i < Math.max(1, Math.min(5, reference.rating)) ? 'text-gold fill-gold' : 'text-slate-200'}`} 
           />
         ))}
-        <span className="text-xs text-white/40 ml-2">{reference.rating}/5</span>
+        <span className="text-xs text-slate-600 ml-2">{reference.rating}/5</span>
       </div>
 
-      <p className="text-sm text-white/70 line-clamp-3 mb-3 italic">
+      <p className="text-sm text-slate-700 line-clamp-3 mb-3 italic">
         "{reference.opinion}"
       </p>
 
-      {reference.pigeonName && (
-        <div className="flex items-center gap-2 text-xs text-gold/80 font-medium">
+      {reference.pigeon_name && (
+        <div className="flex items-center gap-2 text-xs text-gold-dark font-medium">
           <Trophy className="w-3 h-3" />
-          {reference.pigeonName}
+          {reference.pigeon_name}
         </div>
       )}
     </motion.div>
@@ -155,9 +149,9 @@ export function ReferencesPage() {
     message: ''
   });
   
-  const containerRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const heroContentRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const heroRef = useRef<HTMLDivElement | null>(null);
+  const heroContentRef = useRef<HTMLDivElement | null>(null);
   
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -192,9 +186,8 @@ export function ReferencesPage() {
         ease: 'power3.out',
         delay: 0.5
       },
-      constructionEffect: 'reveal',
       scrollTrigger: {
-        trigger: heroRef,
+        trigger: () => heroRef.current,
         start: 'top+=100 bottom',  // Dodano offset +100px - jeszcze wcześniejsze rozpoczęcie animacji
         end: 'top 70%',           // Zwiększono end point z 60% na 70%
         toggleActions: 'play none none none',
@@ -210,7 +203,7 @@ export function ReferencesPage() {
         scale: 0.95
       },
       scrollTrigger: {
-        trigger: heroRef,
+        trigger: () => heroRef.current,
         start: 'top top',
         end: 'bottom top',
         scrub: 0.5
@@ -231,12 +224,11 @@ export function ReferencesPage() {
       },
       scrollTrigger: {
         trigger: '.reference-card',
-        start: 'top bottom-=100',
+        start: 'top bottom-=200', // Zwiększono offset z 150px na 200px
         end: 'top center',
         toggleActions: 'play none none reverse',
         once: true
-      },
-      constructionEffect: 'build'
+      }
     }
   ], [references]);
 
@@ -353,7 +345,7 @@ export function ReferencesPage() {
       if (!Array.isArray(parsed) || parsed.length === 0) return null;
 
       return (
-        <ul className="space-y-1 text-white/60 text-sm">
+        <ul className="space-y-1 text-slate-700 text-sm">
           {parsed.slice(0, 4).map((a, i) => (
             <li key={`achievement-${i}`} className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-gold/60" />
@@ -365,7 +357,7 @@ export function ReferencesPage() {
         </ul>
       );
     } catch {
-      return <p className="text-white/60 text-sm">{ref.achievements}</p>;
+      return <p className="text-slate-700 text-sm">{ref.achievements}</p>;
     }
   };
 
@@ -381,33 +373,33 @@ export function ReferencesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <motion.div 
+      <div className="min-h-screen flex items-center justify-center bg-[#f7f7fb]">
+        <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <div className="relative w-16 h-16 mx-auto mb-6">
-            <motion.div 
+            <motion.div
               className="absolute inset-0 rounded-full border-2 border-gold/30"
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             />
-            <motion.div 
+            <motion.div
               className="absolute inset-2 rounded-full border-2 border-t-gold border-r-transparent border-b-transparent border-l-transparent"
               animate={{ rotate: -360 }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
             />
             <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-gold" />
           </div>
-          <p className="text-white/60 text-lg">Ładowanie referencji...</p>
+          <p className="text-slate-600 text-lg">Ładowanie referencji...</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen relative overflow-hidden">
+    <div ref={containerRef} className="min-h-screen relative overflow-hidden bg-transparent">
 
       <section 
         ref={heroRef}
@@ -417,23 +409,30 @@ export function ReferencesPage() {
 
         <div ref={heroContentRef} className="relative z-10 container mx-auto px-4 text-center">
             <motion.div 
-              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/20 border border-gold/40 mb-8"
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-8"
+              style={{
+                backgroundImage: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
+                boxShadow: "0 0 20px #A68E4E55",
+                border: "1px solid rgba(166,142,78,0.3)",
+              }}
               animate={{ 
                 boxShadow: ['0 0 30px rgba(212,175,55,0.2)', '0 0 60px rgba(212,175,55,0.4)', '0 0 30px rgba(212,175,55,0.2)']
               }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              <MessageSquareQuote className="w-10 h-10 text-gold" />
+              <MessageSquareQuote className="w-10 h-10 gold-icon" />
             </motion.div>
 
             <motion.h1 
-              className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6 text-gold"
+              className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6"
             >
-              REFERENCJE
+              <span className="gold-heading">
+                Referencje
+              </span>
             </motion.h1>
 
             <motion.p 
-              className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12"
+              className="text-slate-700 text-lg md:text-xl max-w-2xl mx-auto mb-12"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
@@ -458,13 +457,19 @@ export function ReferencesPage() {
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.6 + i * 0.1, type: "spring" }}
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2 bg-gradient-to-br from-gold-light to-gold shadow-lg">
-                    <stat.icon className="w-7 h-7 text-black/80" />
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2"
+                    style={{
+                      backgroundImage: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
+                      boxShadow: "0 0 20px #A68E4E55",
+                      border: "1px solid rgba(166,142,78,0.3)",
+                    }}
+                  >
+                    <stat.icon className="w-7 h-7 gold-icon" />
                   </div>
-                  <div className="font-display text-3xl md:text-4xl font-bold text-white">
+                  <div className="font-display text-3xl md:text-4xl font-bold text-slate-900">
                     {stat.value}
                   </div>
-                  <div className="text-white/50 text-sm uppercase tracking-wider">
+                  <div className="text-slate-500 text-sm uppercase tracking-wider">
                     {stat.label}
                   </div>
                 </motion.div>
@@ -479,7 +484,12 @@ export function ReferencesPage() {
               <Button
                 ref={triggerButtonRef}
                 onClick={handleAddReference}
-                className="bg-gradient-to-r from-gold to-gold text-black font-bold px-8 py-3 rounded-full hover:from-gold-light hover:to-gold shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-300"
+                className="gold-button text-zinc-950 font-bold px-8 py-3 rounded-full"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                  color: "#0f0f0f",
+                }}
               >
                 <MessageSquareQuote className="w-5 h-5 mr-2" />
                 Dodaj referencję
@@ -491,8 +501,8 @@ export function ReferencesPage() {
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <span className="text-white/40 text-sm uppercase tracking-widest">Przewijaj</span>
-              <ChevronDown className="w-6 h-6 text-gold/60" />
+              <span className="text-slate-500 text-sm uppercase tracking-widest">Przewijaj</span>
+              <ChevronDown className="w-6 h-6 gold-icon" />
             </motion.div>
         </div>
       </section>
@@ -531,10 +541,10 @@ export function ReferencesPage() {
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
-                        className={`w-6 h-6 ${i < Math.max(1, Math.min(5, currentRef.rating)) ? 'text-gold fill-gold' : 'text-white/20'}`} 
+                        className={`w-6 h-6 ${i < Math.max(1, Math.min(5, currentRef.rating)) ? 'text-gold fill-gold' : 'text-slate-200'}`} 
                       />
                     ))}
-                    <span className="text-white/50 ml-3">{currentRef.rating}/5</span>
+                    <span className="text-slate-600 ml-3">{currentRef.rating}/5</span>
                   </motion.div>
                   
                   <motion.div 
@@ -544,31 +554,31 @@ export function ReferencesPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-light to-gold">
+                    <h3 className="text-2xl font-bold gold-heading">
                       {currentRef.breeder_name}
                     </h3>
-                    <div className="flex items-center gap-2 text-white/60">
-                      <MapPin className="w-4 h-4 text-gold/60" />
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <MapPin className="w-4 h-4 gold-icon" />
                       <span>{currentRef.location}</span>
                     </div>
-                    <div className="text-sm text-white/40">
+                    <div className="text-sm text-slate-500">
                       {formatDatePl(currentRef.created_at)}
                     </div>
                   </motion.div>
 
                   <motion.div 
-                    className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 p-6"
+                    className="relative overflow-hidden rounded-2xl border border-gold/30 bg-white p-6 shadow-lg"
                     key={`achievements-${currentRef.id}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/30 to-transparent pointer-events-none" />
                     <div className="relative flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-gold/15 flex items-center justify-center">
                         <Trophy className="w-5 h-5 text-gold" />
                       </div>
-                      <h4 className="font-semibold text-white">
+                      <h4 className="font-semibold text-slate-900">
                         {getReferenceTitle(currentRef)}
                       </h4>
                     </div>
@@ -578,13 +588,13 @@ export function ReferencesPage() {
 
                 <div className="relative">
                   <motion.div 
-                    className="relative rounded-2xl overflow-hidden border border-gold/30 shadow-[0_0_60px_rgba(212,175,55,0.2)] bg-black/40"
+                    className="relative rounded-2xl overflow-hidden border border-gold/30 shadow-[0_18px_48px_rgba(0,0,0,0.12)] bg-white"
                     key={`image-${currentRef.id}`}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent z-10 pointer-events-none" />
                     {getPrimaryImage(currentRef) ? (
                       <div className="flex items-center justify-center min-h-[300px] max-h-[500px]">
                         <img 
@@ -595,8 +605,8 @@ export function ReferencesPage() {
                         />
                       </div>
                     ) : (
-                      <div className="w-full aspect-square flex items-center justify-center bg-zinc-900">
-                        <div className="text-center text-white/40">
+                      <div className="w-full aspect-square flex items-center justify-center bg-slate-100">
+                        <div className="text-center text-slate-500">
                           <ImageOff className="w-16 h-16 mx-auto mb-4" />
                           <div>Brak zdjęcia</div>
                         </div>
@@ -605,18 +615,18 @@ export function ReferencesPage() {
                   </motion.div>
                   
                   <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 z-20">
-                    <div className="flex items-center gap-4 bg-zinc-900/90 backdrop-blur-xl border border-gold/30 rounded-full p-2 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                    <div className="flex items-center gap-4 bg-white backdrop-blur-xl border border-gold/30 rounded-full p-2 shadow-[0_18px_48px_rgba(0,0,0,0.12)]">
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={prevSlide}
                         disabled={references.length === 0}
-                        className="rounded-full w-10 h-10 p-0 text-white hover:text-gold hover:bg-gold/10"
+                        className="rounded-full w-10 h-10 p-0 text-slate-800 hover:text-gold hover:bg-gold/10"
                       >
                         <ChevronLeft className="w-5 h-5" />
                       </Button>
                       
-                      <span className="text-sm text-white/60 px-2 min-w-[60px] text-center">
+                      <span className="text-sm text-slate-700 px-2 min-w-[60px] text-center">
                         {currentIndex + 1} / {references.length}
                       </span>
                       
@@ -625,7 +635,7 @@ export function ReferencesPage() {
                         size="sm" 
                         onClick={nextSlide}
                         disabled={references.length === 0}
-                        className="rounded-full w-10 h-10 p-0 text-white hover:text-gold hover:bg-gold/10"
+                        className="rounded-full w-10 h-10 p-0 text-slate-800 hover:text-gold hover:bg-gold/10"
                       >
                         <ChevronRight className="w-5 h-5" />
                       </Button>
@@ -647,10 +657,10 @@ export function ReferencesPage() {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
-              <span className="text-white">Wszystkie </span>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-light to-gold">referencje</span>
+              <span className="text-slate-900">Wszystkie </span>
+              <span className="gold-heading">referencje</span>
             </h2>
-            <p className="text-white/50 max-w-2xl mx-auto">
+            <p className="font-display text-xl md:text-2xl text-slate-800 font-semibold max-w-2xl mx-auto">
               Zobacz pełną listę opinii zadowolonych hodowców
             </p>
           </motion.div>
@@ -673,11 +683,11 @@ export function ReferencesPage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-zinc-800/90 via-zinc-900/90 to-zinc-800/90 backdrop-blur-xl p-12">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
-                <MessageSquareQuote className="w-16 h-16 text-gold/50 mx-auto mb-6" />
-                <h2 className="text-2xl font-bold text-white mb-4">Brak referencji</h2>
-                <p className="text-white/60 mb-8">
+              <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-lg p-12">
+                <div className="absolute inset-0 bg-gradient-to-b from-white via-white/60 to-transparent pointer-events-none" />
+                <MessageSquareQuote className="w-16 h-16 text-gold/60 mx-auto mb-6" />
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">Brak referencji</h2>
+                <p className="text-slate-600 mb-8">
                   Dodaj pierwszą opinię – pojawi się tutaj od razu.
                 </p>
                 <Button

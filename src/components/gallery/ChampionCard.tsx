@@ -5,11 +5,25 @@
  * - Liquid distortion na hover
  */
 import { useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import type { MouseEvent as ReactMouseEvent, CSSProperties } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, FileText, Sparkles } from "lucide-react";
 import type { Champion } from "@/hooks/useChampions";
 import "./ChampionCard.css";
+
+const CONTENT_BACKGROUND =
+  "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)";
+
+const GOLD_LINE_BASE_STYLE: CSSProperties = {
+  height: "4px",
+  width: "100%",
+  borderRadius: "999px",
+  background:
+    "linear-gradient(90deg, transparent 0%, rgba(255,215,128,0.2) 8%, rgba(255,215,128,0.95) 50%, rgba(255,215,128,0.2) 92%, transparent 100%)",
+  clipPath: "polygon(0% 50%, 7% 0%, 93% 0%, 100% 50%, 93% 100%, 7% 100%)",
+  boxShadow: "0 0 22px rgba(255, 215, 128, 0.35)",
+  pointerEvents: "none",
+};
 
 interface ChampionCardProps {
   champion: Champion;
@@ -115,13 +129,16 @@ export const ChampionCard = ({
       onClick={() => onSelect?.(champion)}
     >
       <motion.div
-        className="champion-card-inner relative rounded-2xl overflow-hidden shadow-[0_14px_32px_rgba(0,0,0,0.6)] border border-white/10 transition-all duration-300"
+        className="champion-card-inner relative rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.6)] border border-white/10 transition-all duration-300 bg-[#010509]"
         style={{
-          background:
-            "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-          // transformStyle: 'preserve-3d', // Disabled for performance
+          transformStyle: "preserve-3d",
         }}
       >
+        {/* Decorative gold lines like in auction card */}
+        <div className="absolute top-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
+        <div className="absolute bottom-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
+        <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
+        <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
         {/* Jedna widoczna ramka wokół całej karty */}
 
         {/* Dynamic light reflection */}
@@ -148,7 +165,8 @@ export const ChampionCard = ({
          /> */}
 
         {/* Obraz z efektami hover */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-950/20">
+        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-900 to-black">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none z-10" />
           {/* Obrazek championa */}
           {champion.images?.[0] ? (
             <motion.img
@@ -173,11 +191,6 @@ export const ChampionCard = ({
             </div>
           )}
 
-          {/* Fallback gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-gold/10 -z-10" />
-
-          {/* Bezpośrednio eksponujemy obraz bez dodatkowej winiety, żeby był jaśniejszy */}
-
           {/* Scanline effect - Disabled for performance */}
           {/* <motion.div
             className="absolute inset-0 pointer-events-none"
@@ -189,18 +202,34 @@ export const ChampionCard = ({
         </div>
 
         {/* Content - numer gołębia i przycisk rodowodu */}
-        <div className="relative p-3 gallery-card-content">
+        <div
+          className="relative p-6 gallery-card-content backdrop-blur-2xl overflow-hidden"
+          style={{
+            backgroundImage: CONTENT_BACKGROUND,
+            backgroundBlendMode: "normal",
+          }}
+        >
+          {/* Gold guide line under photo like in auction card */}
+          <div className="-mt-4 mb-4" style={GOLD_LINE_BASE_STYLE} />
+
           {/* Numer obrączki */}
-          <motion.h3 className="text-base font-bold font-display text-foreground text-center group-hover:text-gold transition-all duration-300 mb-2 gallery-card-title">
+          <motion.h3 className="text-xl font-bold font-display text-white text-center group-hover:text-gold transition-all duration-300 mb-4 gallery-card-title drop-shadow-lg">
             {champion.ringNumber || champion.records[0] || champion.name}
           </motion.h3>
+
+          <div className="mb-4" style={GOLD_LINE_BASE_STYLE} />
 
           {/* Przycisk rodowodu */}
           {champion.pedigree && (
             <div className="flex justify-center">
               <button
                 onClick={handlePedigreeOpen}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-full text-gold text-xs font-medium transition-all duration-300"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 gold-button text-zinc-950 border-0 hover:bg-gold/90"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                  color: "#0f0f0f",
+                }}
               >
                 <FileText className="w-4 h-4" />
                 <span>Rodowód</span>

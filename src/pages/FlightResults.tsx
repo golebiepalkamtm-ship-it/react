@@ -5,7 +5,7 @@ import TimeTunnel from "@/components/achievements/TimeTunnel";
 
 const FlightResults = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-transparent">
       <Header />
       <TimeTunnel />
       <Footer />

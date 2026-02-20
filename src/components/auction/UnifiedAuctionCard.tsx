@@ -303,9 +303,8 @@ export const UnifiedAuctionCard = memo(
         };
       }
       return {
-        gradient:
-          "radial-gradient(circle at top, rgba(64,195,210,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #01060a 55%, #021216 100%)",
-        base: "#010509",
+        gradient: CONTENT_BACKGROUND,
+        base: "rgba(2, 10, 19, 0.96)",
         border: "transparent",
         glow: "none",
       };
@@ -419,7 +418,7 @@ export const UnifiedAuctionCard = memo(
             <AuctionImage
               src={imgSrc}
               alt={title}
-              className={`w-full h-full ${imageObjectClass} transition-transform duration-700 ease-in-out hover:scale-110 origin-center will-change-transform`}
+              className={`w-full h-full ${imageObjectClass} duration-700 ease-in-out origin-center`}
               // style={{ transform: "scale(1) translateZ(0px)" }} // Removed inline style to allow CSS hover effect
               onError={handleImageError}
             />
@@ -432,6 +431,7 @@ export const UnifiedAuctionCard = memo(
             className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-transparent backdrop-blur-2xl relative overflow-hidden"
             style={{
               backgroundImage: CONTENT_BACKGROUND,
+              backgroundColor: "rgba(2, 10, 19, 0.96)",
               backgroundBlendMode: "normal",
             }}
           >
@@ -549,8 +549,12 @@ export const UnifiedAuctionCard = memo(
                     className="flex-1"
                   >
                     <Button
-                      variant="premiumGold"
-                      className="w-full h-11 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl"
+                      className="w-full h-11 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                        color: "#0f0f0f",
+                      }}
                     >
                       Kup Teraz
                     </Button>
@@ -575,8 +579,12 @@ export const UnifiedAuctionCard = memo(
                   className="w-full"
                 >
                   <Button
-                    variant="premiumGold"
-                    className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl"
+                    className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                      color: "#0f0f0f",
+                    }}
                   >
                     Kup Teraz
                   </Button>
@@ -588,8 +596,12 @@ export const UnifiedAuctionCard = memo(
                   className="w-full"
                 >
                   <Button
-                    variant="graphite"
-                    className="w-full h-12 text-sm font-semibold rounded-xl"
+                    className="w-full h-12 text-sm font-semibold rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                      color: "#0f0f0f",
+                    }}
                   >
                     <Gavel className="h-4 w-4 mr-2" /> Licytuj Teraz
                   </Button>
@@ -602,7 +614,12 @@ export const UnifiedAuctionCard = memo(
                 >
                   <Button
                     variant="outline"
-                    className="w-full h-12 text-sm font-semibold bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30 transition-all rounded-xl"
+                    className="w-full h-12 text-sm font-semibold rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                      color: "#0f0f0f",
+                    }}
                   >
                     Zobacz Szczegóły
                   </Button>

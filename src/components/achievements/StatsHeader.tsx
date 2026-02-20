@@ -65,7 +65,7 @@ const StatsHeader = ({ mistrz, wicemistrz, przodownik }: StatsHeaderProps) => {
       scale: 1,
       rotateX: 0,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 200,
         damping: 18,
       },
@@ -181,7 +181,7 @@ const AnimatedCounter = ({ value, delay }: { value: number; delay: number }) => 
   return (
     <motion.span
       ref={displayRef}
-      className="text-2xl md:text-3xl font-bold text-foreground tabular-nums"
+      className="text-2xl md:text-3xl font-bold text-gold tabular-nums"
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{

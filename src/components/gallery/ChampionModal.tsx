@@ -201,7 +201,7 @@ export const ChampionModal = ({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 60, opacity: 0 }}
         transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
-        className="relative w-full max-w-7xl h-auto min-h-screen md:min-h-[85vh] isolate pointer-events-auto overflow-hidden flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] md:rounded-[2.5rem] mt-0 md:mt-10 mb-10 border border-white/5"
+        className="relative w-full max-w-7xl h-auto min-h-screen md:min-h-[85vh] isolate pointer-events-auto overflow-hidden flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] md:rounded-[2.5rem] mt-0 md:mt-10 mb-10 border border-gold"
         style={{
           background:
             "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
@@ -294,7 +294,7 @@ export const ChampionModal = ({
               transition={{ delay: 0.2 }}
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/5 rounded-xl border border-gold/20 mb-8 w-full justify-center md:justify-start">
-                <span className="text-2xl md:text-3xl font-display font-black text-gold tracking-tight">
+                <span className="text-2xl md:text-3xl font-display font-black gold-heading tracking-tight">
                   {champion.ringNumber || "Brak numeru"}
                 </span>
               </div>
@@ -310,7 +310,7 @@ export const ChampionModal = ({
                         <div className="w-4 h-4 rounded-full bg-gold/10 flex items-center justify-center shrink-0 mt-0.5 border border-gold/20">
                           <Trophy className="w-2 h-2 text-gold opacity-70 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <span className="text-[13px] text-white/80 leading-snug font-medium">
+                        <span className="text-[13px] gold-heading leading-snug font-medium">
                           {achievement}
                         </span>
                       </div>
@@ -322,10 +322,10 @@ export const ChampionModal = ({
                   <div className="pt-4">
                     <button
                       onClick={() => onViewPedigree(champion.pedigree!)}
-                      className="w-full py-3 bg-gradient-to-r from-gold/80 to-gold hover:from-gold hover:to-gold-light text-black font-black uppercase tracking-[0.1em] rounded-xl transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2 text-[10px] transform active:scale-[0.98]"
+                      className="w-full py-3 gold-button rounded-xl flex items-center justify-center gap-2 text-[10px] transform active:scale-[0.98]"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Karta Rodowodowa
+                      <Sparkles className="w-3.5 h-3.5 gold-icon" />
+                      <span className="font-black uppercase tracking-[0.1em]">Karta Rodowodowa</span>
                     </button>
                   </div>
                 )}
