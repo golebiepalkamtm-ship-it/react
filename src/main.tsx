@@ -10,10 +10,6 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { TimeProvider } from '@/providers/TimeProvider';
 
 // Debug tools - uruchom w konsoli: window.debugAnimations()
-import './utils/debugAnimations';
-import './utils/checkSections';
-import './utils/animationDebugger';
-
 document.documentElement.classList.add('dark');
 
 const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
@@ -31,10 +27,8 @@ if (gaId) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw-vite.js', { scope: '/' })
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      }).catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
+      .catch(() => {
+        /* swallow SW registration errors in production */
       });
   });
 }
