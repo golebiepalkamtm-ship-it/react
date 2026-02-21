@@ -34,6 +34,7 @@
     background: url("/Gemini_Generated_Image_am1cv9am1cv9am1c.png") center
       center / cover no-repeat fixed !important;
     min-height: 100%;
+    scroll-behavior: auto;
   }
 
   /* Global background layer to keep image visible everywhere */
@@ -370,6 +371,29 @@
   will-change: transform, opacity;
 }
 
+/* Smooth scroll wrapper – otrzymuje skew z SmoothScrollProvider */
+.smooth-scroll-wrapper {
+  transform-origin: center top;
+  will-change: transform;
+  overflow-x: hidden;
+}
+
+/* Home sections – GSAP ustawia stan startowy przez gsap.set(), nie CSS */
+/* Fallback: sekcje są ZAWSZE widoczne jeśli GSAP nie zadziała */
+.home-section {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Animated divider lines */
+.section-divider {
+  transform-origin: left center;
+  will-change: transform, opacity;
+  opacity: 0;
+  transform: scaleX(0);
+}
+
 .section-wrapper {
   opacity: 0;
   transform: translateY(50px);
@@ -386,6 +410,12 @@
 }
 
 .parallax-layer {
+  will-change: transform;
+}
+
+/* Scroll progress bar */
+.scroll-progress-inner {
+  transform-origin: left;
   will-change: transform;
 }
 

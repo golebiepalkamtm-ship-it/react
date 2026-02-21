@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { TimeProvider } from '@/providers/TimeProvider';
+import "@/debug/scroll-diagnostics";
 
 // Debug tools - uruchom w konsoli: window.debugAnimations()
 document.documentElement.classList.add('dark');

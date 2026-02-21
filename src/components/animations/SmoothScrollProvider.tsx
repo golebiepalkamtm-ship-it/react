@@ -37,51 +37,75 @@ export const SmoothScrollProvider = ({
   const rafIdRef = useRef<number>(0);
 
   useEffect(() => {
-    // Inicjalizacja Lenis z premium, dopieszczonymi parametrami
     const lenis = new Lenis({
-      // 2.2s = bardzo powolny, filmowy scroll
-      duration: 2.2,
-      // Eksponencjalna krzywa zwalniania - premium feel
+      duration: 1.4,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      // Niski mnożnik = wolniejsza reakcja na kółko
-      wheelMultiplier: 0.6,
-      // Płynny scroll na mobile
-      touchMultiplier: 1.4,
+      wheelMultiplier: 0.85,
+      touchMultiplier: 1.6,
+      infinite: false,
     });
 
     // Synchronizacja ScrollTrigger z pozycją scrolla Lenis
     lenis.on("scroll", ScrollTrigger.update);
 
-    // Eliminacja lag smoothing - krytyczne dla precyzji ScrollTrigger
+    // Eliminacja lag smoothing – krytyczne dla precyzji ScrollTrigger
     gsap.ticker.lagSmoothing(0);
 
-    // Własna pętla rAF - Lenis.raf() oczekuje DOMHighResTimeStamp (ms).
-    // rAF callback dostaje czas w ms od performance.timeOrigin — dokładnie
-    // to czego Lenis potrzebuje.
+    // Prosta pętla rAF – bez żadnych transform side-effects
     const animate = (time: number) => {
       lenis.raf(time);
       rafIdRef.current = requestAnimationFrame(animate);
     };
 
+    // Pauza/wznowienie pętli rAF, gdy karta jest ukryta/widoczna (mikro-optymalizacja)
+    let paused = false;
+    const handleVisibility = () => {
+      if (document.hidden) {
+        paused = true;
+        cancelAnimationFrame(rafIdRef.current);
+      } else if (paused) {
+        paused = false;
+        rafIdRef.current = requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
     rafIdRef.current = requestAnimationFrame(animate);
 
-    // Udostępniamy instancję przez kontekst asynchronicznie,
-    // by uniknąć synchronicznego setState w efekcie
-    Promise.resolve().then(() => setLenisInstance(lenis));
+    Promise.resolve().then(() => {
+      (window as any).lenis = lenis;
+      setLenisInstance(lenis);
+    });
+
+    const refreshScrollTriggers = () => ScrollTrigger.refresh();
+    window.addEventListener("load", refreshScrollTriggers, { once: true });
+
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts?.ready
+        .then(() => {
+          refreshScrollTriggers();
+        })
+        .catch(() => {
+          /* ignore font readiness errors */
+        });
+    }
 
     return () => {
       cancelAnimationFrame(rafIdRef.current);
       lenis.destroy();
+      window.removeEventListener("load", refreshScrollTriggers);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      delete (window as any).lenis;
       setLenisInstance(null);
     };
   }, []);
 
   return (
     <LenisContext.Provider value={lenisInstance}>
-      {children}
+      <div className="smooth-scroll-wrapper">{children}</div>
     </LenisContext.Provider>
   );
 };

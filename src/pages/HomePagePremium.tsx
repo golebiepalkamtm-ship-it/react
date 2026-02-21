@@ -43,6 +43,7 @@ import {
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { ScrollIndicator } from "@/components/animations/ScrollIndicator";
 
 registerCustomEasings();
 
@@ -257,35 +258,36 @@ const HeroPremium = () => {
   useEffect(() => {
     if (!heroRef.current || !contentRef.current) return;
 
-    const content = contentRef.current;
+    const ctx = gsap.context(() => {
+      const content = contentRef.current!;
 
-    // Elements stagger entrance
-    gsap.fromTo(
-      content.querySelectorAll(".hero-reveal"),
-      { opacity: 0, y: 50 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 1.4,
-        stagger: 0.15,
-        ease: "expo.out",
-        delay: 0.3,
-      },
-    );
+      gsap.fromTo(
+        content.querySelectorAll(".hero-reveal"),
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1.4,
+          stagger: 0.15,
+          ease: "expo.out",
+          delay: 0.3,
+        },
+      );
 
-    const parallaxTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: 1.5,
-      },
-    });
-
-    parallaxTl.to(content, { y: 100, opacity: 0.8 }, 0);
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: 1.5,
+          },
+        })
+        .to(content, { y: 100, opacity: 0.8 }, 0);
+    }, heroRef);
 
     return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
+      ctx.revert();
     };
   }, []);
 
@@ -402,11 +404,11 @@ const CTAFeaturesSection = () => {
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
 
-          <div className="grid md:grid-cols-3 gap-8 text-left max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 text-left max-w-6xl mx-auto reveal-cards">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group relative overflow-hidden rounded-2xl border border-gold/60 bg-emerald-900/40 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl backdrop-brightness-125 transition-all duration-500 p-8 h-full hover:border-gold/80"
+                className="reveal-card group relative overflow-hidden rounded-2xl border border-gold/60 bg-emerald-900/40 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl backdrop-brightness-125 transition-all duration-500 p-8 h-full hover:border-gold/80"
               >
                 {/* Decorative Overlays to match other cards */}
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
@@ -443,64 +445,325 @@ export const HomePagePremium = () => {
   const lenis = useLenis();
 
   useEffect(() => {
-    // Scroll do górny po wejściu na stronę
     window.scrollTo(0, 0);
 
-    // Daj czas na wyrenderowanie elementów, potem odśwież ScrollTrigger
-    const timer = setTimeout(() => {
-      ScrollTrigger.refresh();
+    // Eksponujemy GSAP globalnie dla narzędzi diagnostycznych
+    (window as any).gsap = gsap;
+    (window as any).ScrollTrigger = ScrollTrigger;
 
-      // GSAP scroll reveal dla sekcji
-      const sections = document.querySelectorAll<HTMLElement>(".home-section");
-      sections.forEach((section, i) => {
-        gsap.fromTo(
-          section,
-          { opacity: 0, y: 60 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1.2,
-            ease: "expo.out",
-            scrollTrigger: {
+    let rafId: number;
+    let cleanup: (() => void) | null = null;
+    const setupAnimations = () => {
+      try {
+        ScrollTrigger.refresh();
+
+        const sections = Array.from(
+          document.querySelectorAll<HTMLElement>(".home-section"),
+        );
+
+        if (sections.length === 0) {
+          rafId = requestAnimationFrame(setupAnimations);
+          return;
+        }
+
+        const ctx = gsap.context(() => {
+          // ── SECTION REVEALS – każda sekcja ma inny efekt ──────────────────
+          sections.forEach((section) => {
+            const animType = section.dataset.anim || "fade-up";
+
+            const st = {
               trigger: section,
               start: "top 88%",
-              end: "top 40%",
               toggleActions: "play none none reverse",
-            },
-          },
-        );
-      });
-    }, 300);
+            };
+
+            if (animType === "zoom-blur") {
+              // Kinematyczny zoom + blur – jakby kamera ostrzeje obraz
+              gsap.fromTo(
+                section,
+                { opacity: 0, scale: 1.12, filter: "blur(20px)", y: 20 },
+                {
+                  opacity: 1,
+                  scale: 1,
+                  filter: "blur(0px)",
+                  y: 0,
+                  duration: 1.8,
+                  ease: "expo.out",
+                  scrollTrigger: st,
+                  onComplete: () => {
+                    gsap.set(section, { clearProps: "filter,scale" });
+                  },
+                },
+              );
+            } else if (animType === "slide-right") {
+              // Dramatyczne wejście z prawej strony
+              gsap.fromTo(
+                section,
+                { opacity: 0, xPercent: 6, filter: "blur(12px)" },
+                {
+                  opacity: 1,
+                  xPercent: 0,
+                  filter: "blur(0px)",
+                  duration: 1.5,
+                  ease: "expo.out",
+                  scrollTrigger: st,
+                  onComplete: () => {
+                    gsap.set(section, { clearProps: "filter,xPercent" });
+                  },
+                },
+              );
+            } else if (animType === "slide-left") {
+              // Dramatyczne wejście z lewej strony
+              gsap.fromTo(
+                section,
+                { opacity: 0, xPercent: -6, filter: "blur(12px)" },
+                {
+                  opacity: 1,
+                  xPercent: 0,
+                  filter: "blur(0px)",
+                  duration: 1.5,
+                  ease: "expo.out",
+                  scrollTrigger: st,
+                  onComplete: () => {
+                    gsap.set(section, { clearProps: "filter,xPercent" });
+                  },
+                },
+              );
+            } else if (animType === "curtain") {
+              // Odsłanianie jak kurtyna – clip-path z dołu
+              gsap.set(section, { opacity: 1 });
+              gsap.fromTo(
+                section,
+                { clipPath: "inset(100% 0 0 0)" },
+                {
+                  clipPath: "inset(0% 0 0 0)",
+                  duration: 1.6,
+                  ease: "expo.inOut",
+                  scrollTrigger: st,
+                  onComplete: () => {
+                    gsap.set(section, { clearProps: "clipPath" });
+                  },
+                },
+              );
+            } else {
+              // Default: czysty fade-up
+              gsap.fromTo(
+                section,
+                { opacity: 0, y: 70 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 1.4,
+                  ease: "expo.out",
+                  scrollTrigger: st,
+                },
+              );
+            }
+          });
+
+          // ── INNER ELEMENT ANIMATIONS – elementy wewnątrz sekcji ──────────
+          // Nagłówki h2/h3 – slide-up z clip-mask
+          document
+            .querySelectorAll<HTMLElement>(".home-section h2, .home-section h3")
+            .forEach((el) => {
+              gsap.fromTo(
+                el,
+                { opacity: 0, y: 50, filter: "blur(6px)" },
+                {
+                  opacity: 1,
+                  y: 0,
+                  filter: "blur(0px)",
+                  duration: 1.1,
+                  ease: "power4.out",
+                  scrollTrigger: {
+                    trigger: el,
+                    start: "top 90%",
+                    toggleActions: "play none none reverse",
+                  },
+                  onComplete: () => {
+                    gsap.set(el, { clearProps: "filter" });
+                  },
+                },
+              );
+            });
+
+          // Paragrafy – delikatne fade-up ze stagger jeśli blisko siebie
+          document
+            .querySelectorAll<HTMLElement>(".home-section p")
+            .forEach((el, i) => {
+              gsap.fromTo(
+                el,
+                { opacity: 0, y: 30 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 1.0,
+                  ease: "power3.out",
+                  delay: 0.1,
+                  scrollTrigger: {
+                    trigger: el,
+                    start: "top 93%",
+                    toggleActions: "play none none reverse",
+                  },
+                },
+              );
+            });
+
+          // Obrazy – scale + blur reveal
+          document
+            .querySelectorAll<HTMLElement>(
+              ".home-section img, .home-section video",
+            )
+            .forEach((el) => {
+              gsap.fromTo(
+                el,
+                { opacity: 0, scale: 1.08, filter: "blur(10px)" },
+                {
+                  opacity: 1,
+                  scale: 1,
+                  filter: "blur(0px)",
+                  duration: 1.6,
+                  ease: "expo.out",
+                  scrollTrigger: {
+                    trigger: el,
+                    start: "top 90%",
+                    toggleActions: "play none none reverse",
+                  },
+                  onComplete: () => {
+                    gsap.set(el, { clearProps: "filter,scale" });
+                  },
+                },
+              );
+            });
+
+          // Staggered card reveals (.reveal-card)
+          document
+            .querySelectorAll<HTMLElement>(".reveal-cards")
+            .forEach((group) => {
+              const cards = group.querySelectorAll<HTMLElement>(".reveal-card");
+              if (!cards.length) return;
+              gsap.fromTo(
+                cards,
+                { opacity: 0, y: 60, scale: 0.9, filter: "blur(8px)" },
+                {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  filter: "blur(0px)",
+                  duration: 1.0,
+                  stagger: 0.14,
+                  ease: "expo.out",
+                  scrollTrigger: {
+                    trigger: group,
+                    start: "top 86%",
+                    toggleActions: "play none none reverse",
+                  },
+                  onComplete: () => {
+                    gsap.set(cards, { clearProps: "filter,scale" });
+                  },
+                },
+              );
+            });
+
+          // Section dividers
+          document
+            .querySelectorAll<HTMLElement>(".section-divider")
+            .forEach((divider) => {
+              gsap.fromTo(
+                divider,
+                { scaleX: 0, opacity: 0 },
+                {
+                  scaleX: 1,
+                  opacity: 1,
+                  duration: 1.8,
+                  ease: "expo.out",
+                  scrollTrigger: {
+                    trigger: divider,
+                    start: "top 94%",
+                    toggleActions: "play none none reverse",
+                  },
+                },
+              );
+            });
+
+          // ── Parallax dekoracyjny ────────────────────────────────────────
+          document
+            .querySelectorAll<HTMLElement>(".home-parallax")
+            .forEach((el) => {
+              const speed = el.dataset.speed
+                ? parseFloat(el.dataset.speed)
+                : 0.25;
+              gsap.to(el, {
+                y: () => -window.innerHeight * speed,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: el.closest(".home-section") || el,
+                  start: "top bottom",
+                  end: "bottom top",
+                  scrub: 1.5,
+                  invalidateOnRefresh: true,
+                },
+              });
+            });
+        });
+
+        cleanup = () => {
+          ctx.revert();
+          delete (window as any).gsap;
+          delete (window as any).ScrollTrigger;
+        };
+      } catch (err) {
+        console.error("[HomePagePremium] Animation setup error:", err);
+        document.querySelectorAll<HTMLElement>(".home-section").forEach((s) => {
+          s.style.opacity = "1";
+          s.style.transform = "none";
+        });
+      }
+    };
+
+    // Czekamy na pełne wyrenderowanie DOM
+    // Double rAF gwarantuje że layout jest gotowy
+    rafId = requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(setupAnimations);
+    });
 
     return () => {
-      clearTimeout(timer);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
+      cancelAnimationFrame(rafId);
+      cleanup?.();
     };
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" style={{ perspective: "1200px" }}>
       <Header />
       <ProgressIndicator color="rgba(212, 175, 55, 0.8)" height={2} />
-      <CursorFollower size={24} color="rgba(212, 175, 55, 0.4)" />
+      <CursorFollower size={24} color="rgba(212, 175, 75, 0.4)" />
+      <ScrollIndicator />
 
-      <main>
+      <main style={{ transformStyle: "preserve-3d" }}>
         {/* Hero - bez reveal, animowane wewnętrznie */}
         <HeroPremium />
 
-        {/* Pozostałe sekcje - scroll reveal */}
+        {/* Section divider */}
+        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent origin-center" />
+
+        {/* Pozostałe sekcje - premium 3D scroll reveal */}
         <div className="home-section">
           <AboutSection />
         </div>
+        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/20 to-transparent origin-center" />
         <div className="home-section">
           <Carousel3D />
         </div>
-        <div className="home-section">
+        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/20 to-transparent origin-center" />
+        <div className="home-section reveal-cards">
           <CTAFeaturesSection />
         </div>
+        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/20 to-transparent origin-center" />
         <div className="home-section">
           <PressSection />
         </div>
+        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/20 to-transparent origin-center" />
         <div className="home-section">
           <ContactSection />
         </div>
