@@ -309,7 +309,6 @@ const AuctionsPage = () => {
 
   return (
     <div className="relative isolate min-h-screen overflow-hidden bg-white">
-
       <section
         ref={heroRef}
         className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
@@ -352,14 +351,20 @@ const AuctionsPage = () => {
             {statTiles.map(({ label, value, meta, Icon }) => (
               <div
                 key={label}
-                className="group rounded-2xl bg-transparent px-5 py-6 text-left shadow-none border border-gold/20"
+                className="group rounded-2xl px-5 py-6 text-left shadow-xl border border-[#A68E4E]/30 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-gold/20"
+                style={{
+                  background:
+                    "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                }}
               >
-                <Icon className="h-5 w-5 text-gold mb-2" />
-                <p className="text-[11px] uppercase tracking-[0.35em] text-slate-500">
+                <Icon className="h-5 w-5 text-[#A68E4E] mb-2" />
+                <p className="text-[11px] uppercase tracking-[0.35em] text-[#A68E4E]/80">
                   {label}
                 </p>
-                <p className="text-2xl font-display text-slate-900">{value}</p>
-                <p className="text-sm text-slate-600">{meta}</p>
+                <p className="text-2xl font-display text-[#A68E4E] font-bold">
+                  {value}
+                </p>
+                <p className="text-sm text-[#A68E4E]/70">{meta}</p>
               </div>
             ))}
           </div>
@@ -368,55 +373,62 @@ const AuctionsPage = () => {
 
       <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
         <div className="container mx-auto px-4">
-          <div className="group rounded-2xl bg-transparent pt-4 px-4 pb-6 space-y-8 sm:px-6 border border-gold/15 shadow-none">
+          <div
+            className="group rounded-2xl pt-4 px-4 pb-6 space-y-8 sm:px-6 border border-[#A68E4E]/30 shadow-2xl backdrop-blur-md"
+            style={{
+              background:
+                "radial-gradient(circle at top, rgba(66, 192, 206, 0.12), transparent 60%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+            }}
+          >
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#A68E4E]/60" />
                 <input
                   type="text"
                   placeholder="Szukaj po nazwie, linii lub numerze obrączki"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-2xl border border-gold/30 bg-transparent backdrop-blur-none py-3 pl-12 pr-4 text-slate-900 placeholder:text-slate-500 focus:border-gold focus:outline-none"
+                  className="w-full rounded-2xl border border-[#A68E4E]/30 bg-black/40 py-3 pl-12 pr-4 text-[#A68E4E] placeholder:text-[#A68E4E]/40 focus:border-[#A68E4E] focus:outline-none transition-all backdrop-blur-sm"
                 />
               </div>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as AuctionSortBy)}
-                  className="rounded-2xl border border-gold/30 bg-transparent backdrop-blur-none px-4 py-3 text-sm text-slate-900 md:w-auto"
+                  className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 px-4 py-3 text-sm text-[#A68E4E] md:w-auto focus:border-[#A68E4E] focus:outline-none appearance-none cursor-pointer backdrop-blur-sm"
                 >
-                  <option value="newest">Najnowsze</option>
-                  <option value="ending-soon">Kończące się</option>
-                  <option value="price-high">Najdroższe</option>
+                  <option value="newest" className="bg-[#020a13]">
+                    Najnowsze
+                  </option>
+                  <option value="ending-soon" className="bg-[#020a13]">
+                    Kończące się
+                  </option>
+                  <option value="price-high" className="bg-[#020a13]">
+                    Najdroższe
+                  </option>
                 </select>
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 rounded-2xl border-slate-200 text-slate-900"
+                  className="flex items-center gap-2 rounded-2xl border-[#A68E4E]/30 bg-black/40 text-[#A68E4E] hover:bg-[#A68E4E] hover:text-[#020a13] transition-all backdrop-blur-sm"
                 >
                   <SlidersHorizontal className="h-4 w-4" /> Filtry{" "}
                   {hasActiveFilters && (
-                    <span className="h-2 w-2 rounded-full bg-gold" />
+                    <span className="h-2 w-2 rounded-full bg-[#A68E4E] shadow-[0_0_8px_#A68E4E]" />
                   )}
                 </Button>
                 <Button
                   onClick={handleCreateAuctionClick}
-                  className="rounded-2xl bg-gold text-zinc-950 px-5 py-2 font-bold shadow-glow gold-button border-0 hover:bg-gold/90"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
-                    color: "#0f0f0f",
-                  }}
+                  className="rounded-2xl bg-[#A68E4E] text-[#064e3b] px-5 py-2 font-bold shadow-lg border-0 hover:bg-[#A68E4E]/90 transition-all"
                 >
                   <Plus className="h-4 w-4 mr-2" /> Dodaj aukcję
                 </Button>
               </div>
             </div>
             {showFilters && (
-              <div className="grid gap-4 md:grid-cols-3 p-6 rounded-2xl bg-transparent border border-gold/20">
+              <div className="grid gap-4 md:grid-cols-3 p-6 rounded-2xl bg-black/20 border border-[#A68E4E]/20 backdrop-blur-sm">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                  <label className="text-sm font-medium text-[#A68E4E]/90 mb-2 block">
                     Cena (PLN)
                   </label>
                   <div className="flex gap-2">
@@ -425,44 +437,58 @@ const AuctionsPage = () => {
                       placeholder="Min"
                       value={priceMin}
                       onChange={(e) => setPriceMin(e.target.value)}
-                      className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
+                      className="w-full rounded-xl bg-black/40 border border-[#A68E4E]/30 px-3 py-2 text-[#A68E4E] placeholder:text-[#A68E4E]/40 focus:border-[#A68E4E] focus:outline-none"
                     />
                     <input
                       type="number"
                       placeholder="Max"
                       value={priceMax}
                       onChange={(e) => setPriceMax(e.target.value)}
-                      className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
+                      className="w-full rounded-xl bg-black/40 border border-[#A68E4E]/30 px-3 py-2 text-[#A68E4E] placeholder:text-[#A68E4E]/40 focus:border-[#A68E4E] focus:outline-none"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                  <label className="text-sm font-medium text-[#A68E4E]/90 mb-2 block">
                     Kategoria
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
+                    className="w-full rounded-xl bg-black/40 border border-[#A68E4E]/30 px-3 py-2 text-[#A68E4E] focus:border-[#A68E4E] focus:outline-none appearance-none cursor-pointer"
                   >
-                    <option value="all">Wszystkie</option>
-                    <option value="PIGEONS">Gołębie</option>
-                    <option value="SUPPLEMENTS">Suplementy</option>
-                    <option value="ACCESSORIES">Akcesoria</option>
+                    <option value="all" className="bg-[#020a13]">
+                      Wszystkie
+                    </option>
+                    <option value="PIGEONS" className="bg-[#020a13]">
+                      Gołębie
+                    </option>
+                    <option value="SUPPLEMENTS" className="bg-[#020a13]">
+                      Suplementy
+                    </option>
+                    <option value="ACCESSORIES" className="bg-[#020a13]">
+                      Akcesoria
+                    </option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">
+                  <label className="text-sm font-medium text-[#A68E4E]/90 mb-2 block">
                     Płeć
                   </label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-full rounded-xl bg-transparent border border-gold/30 px-3 py-2 text-slate-900"
+                    className="w-full rounded-xl bg-black/40 border border-[#A68E4E]/30 px-3 py-2 text-[#A68E4E] focus:border-[#A68E4E] focus:outline-none appearance-none cursor-pointer"
                   >
-                    <option value="all">Wszystkie</option>
-                    <option value="male">Samiec</option>
-                    <option value="female">Samica</option>
+                    <option value="all" className="bg-[#020a13]">
+                      Wszystkie
+                    </option>
+                    <option value="male" className="bg-[#020a13]">
+                      Samiec
+                    </option>
+                    <option value="female" className="bg-[#020a13]">
+                      Samica
+                    </option>
                   </select>
                 </div>
               </div>

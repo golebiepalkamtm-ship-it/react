@@ -157,7 +157,12 @@ const HeroPremium = () => {
           <div className="hero-reveal grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl w-full">
             {[
               { icon: Trophy, value: 150, suffix: "+", label: "Mistrzostw" },
-              { icon: Award, value: 45, suffix: "+", label: "Lat Doświadczenia" },
+              {
+                icon: Award,
+                value: 45,
+                suffix: "+",
+                label: "Lat Doświadczenia",
+              },
               { icon: Zap, value: 3, suffix: "", label: "Pokolenia Hodowców" },
             ].map((stat, i) => (
               <div

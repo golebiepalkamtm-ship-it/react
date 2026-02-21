@@ -31,7 +31,8 @@
     position: relative;
     margin: 0;
     padding: 0;
-    background: url("/Gemini_Generated_Image_am1cv9am1cv9am1c.png") center center / cover no-repeat fixed !important;
+    background: url("/Gemini_Generated_Image_am1cv9am1cv9am1c.png") center
+      center / cover no-repeat fixed !important;
     min-height: 100%;
   }
 

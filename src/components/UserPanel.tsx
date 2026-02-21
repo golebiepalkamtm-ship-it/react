@@ -292,7 +292,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             ease: [0.4, 0, 0.2, 1],
             scale: { type: "spring", stiffness: 300, damping: 30 },
           }}
-          className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-hidden pointer-events-auto bg-gray-900 rounded-3xl border border-white/15 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
+          className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-hidden pointer-events-auto rounded-3xl border border-[#A68E4E]/30 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
+          style={{
+            background:
+              "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+          }}
           drag
           dragConstraints={dragConstraintsRef}
           dragMomentum={false}
@@ -319,7 +323,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
               stiffness: 200,
               damping: 20,
             }}
-            className="relative flex-shrink-0 p-6 md:p-8 border-b border-white/10 bg-gray-900 rounded-t-3xl"
+            className="relative flex-shrink-0 p-6 md:p-8 border-b border-[#A68E4E]/20 bg-transparent rounded-t-3xl"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -381,7 +385,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gray-900/70 border-b border-white/5"
+            className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-black/20 border-b border-[#A68E4E]/10"
           >
             {[
               {
@@ -432,7 +436,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                   damping: 20,
                 }}
                 whileHover={{ y: -5, scale: 1.02 }}
-                className={`relative bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4 overflow-hidden group hover:border-white/20 hover:shadow-lg transition-all duration-300`}
+                className={`relative bg-black/30 backdrop-blur-xl rounded-2xl border border-[#A68E4E]/10 p-4 overflow-hidden group hover:border-[#A68E4E]/20 hover:shadow-lg transition-all duration-300`}
               >
                 <motion.div
                   className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-10 group-hover:opacity-20 transition-opacity duration-300`}
@@ -456,7 +460,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
           </motion.div>
 
           {/* Navigation Tabs */}
-          <div className="flex-shrink-0 flex gap-2 px-6 border-b border-white/10 bg-gray-900/70 overflow-x-auto scrollbar-hide">
+          <div className="flex-shrink-0 flex gap-2 px-6 border-b border-[#A68E4E]/10 bg-black/20 overflow-x-auto scrollbar-hide">
             {[
               { id: "overview", label: "Przegląd", icon: User },
               { id: "profile", label: "Profil", icon: Settings },
@@ -474,8 +478,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 whileTap={{ scale: 0.95 }}
                 className={`relative px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all duration-300 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "border-white text-white"
-                    : "border-transparent text-white/60 hover:text-white hover:border-white/30"
+                    ? "border-[#A68E4E] text-[#A68E4E]"
+                    : "border-transparent text-[#A68E4E]/60 hover:text-[#A68E4E] hover:border-[#A68E4E]/30"
                 }`}
               >
                 {activeTab === tab.id && (
@@ -512,7 +516,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
                       whileHover={{ y: -5, scale: 1.02 }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -534,7 +542,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                       <div className="space-y-4">
                         <motion.button
                           onClick={() => setActiveTab("auctions")}
-                          className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-gold/10 hover:border-gold/30 transition-all border border-white/10 group"
+                          className="w-full flex items-center justify-between p-4 rounded-xl bg-black/20 hover:bg-[#A68E4E]/10 hover:border-[#A68E4E]/30 transition-all border border-[#A68E4E]/10 group"
                           whileHover={{ x: 5 }}
                         >
                           <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
@@ -552,7 +560,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         </motion.button>
                         <motion.button
                           onClick={() => setActiveTab("auctions")}
-                          className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-gold/10 hover:border-gold/30 transition-all border border-white/10 group"
+                          className="w-full flex items-center justify-between p-4 rounded-xl bg-black/20 hover:bg-[#A68E4E]/10 hover:border-[#A68E4E]/30 transition-all border border-[#A68E4E]/10 group"
                           whileHover={{ x: 5 }}
                         >
                           <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
@@ -570,7 +578,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         </motion.button>
                         <motion.button
                           onClick={() => setActiveTab("auctions")}
-                          className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-gold/10 hover:border-gold/30 transition-all border border-white/10 group"
+                          className="w-full flex items-center justify-between p-4 rounded-xl bg-black/20 hover:bg-[#A68E4E]/10 hover:border-[#A68E4E]/30 transition-all border border-[#A68E4E]/10 group"
                           whileHover={{ x: 5 }}
                         >
                           <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
@@ -590,7 +598,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                     </motion.div>
 
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
                       whileHover={{ y: -5, scale: 1.02 }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -738,7 +750,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Nazwa użytkownika"
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                           />
                         </motion.div>
                         <motion.div
@@ -754,7 +766,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             placeholder="Imię"
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                           />
                         </motion.div>
                         <motion.div
@@ -770,7 +782,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             placeholder="Nazwisko"
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                           />
                         </motion.div>
                         <motion.div
@@ -786,7 +798,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="+48 600 000 000"
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                           />
                         </motion.div>
                       </div>
@@ -822,7 +834,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             value={street}
                             onChange={(e) => setStreet(e.target.value)}
                             placeholder="Ulica i numer"
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                           />
                         </motion.div>
                         <motion.div
@@ -838,7 +850,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
                             placeholder="Miasto"
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                           />
                         </motion.div>
                         <div className="grid grid-cols-2 gap-4">
@@ -855,7 +867,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               value={postalCode}
                               onChange={(e) => setPostalCode(e.target.value)}
                               placeholder="00-000"
-                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                             />
                           </motion.div>
                           <motion.div
@@ -871,7 +883,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               value={country}
                               onChange={(e) => setCountry(e.target.value)}
                               placeholder="Polska"
-                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                             />
                           </motion.div>
                         </div>
@@ -964,7 +976,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               value={newPassword}
                               onChange={(e) => setNewPassword(e.target.value)}
                               placeholder="Nowe hasło"
-                              className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                             />
                             <button
                               type="button"
@@ -996,7 +1008,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               }
                               placeholder="Potwierdź hasło"
                               autoComplete="new-password"
-                              className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all duration-200 hover:bg-white/15"
+                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                             />
                             <button
                               type="button"
@@ -1090,7 +1102,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Moje aukcje */}
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
@@ -1106,7 +1122,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               key={auction.id}
                               to={`/auctions/${auction.id}`}
                               onClick={onClose}
-                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/30 hover:bg-white/10 transition-all group"
+                              className="flex items-center gap-3 p-3 bg-black/20 rounded-xl border border-[#A68E4E]/10 hover:border-[#A68E4E]/30 hover:bg-black/40 transition-all group"
                             >
                               <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
                                 <img
@@ -1161,7 +1177,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
                     {/* Moje licytacje */}
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
@@ -1177,7 +1197,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               key={auction.id}
                               to={`/auctions/${auction.id}`}
                               onClick={onClose}
-                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/30 hover:bg-white/10 transition-all group"
+                              className="flex items-center gap-3 p-3 bg-black/20 rounded-xl border border-[#A68E4E]/10 hover:border-[#A68E4E]/30 hover:bg-black/40 transition-all group"
                             >
                               <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
                                 <img
@@ -1216,7 +1236,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
                     {/* Obserwowane */}
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300 lg:col-span-2"
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300 lg:col-span-2"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
@@ -1232,7 +1256,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               key={auction.id}
                               to={`/auctions/${auction.id}`}
                               onClick={onClose}
-                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/30 hover:bg-white/10 transition-all group"
+                              className="flex items-center gap-3 p-3 bg-black/20 rounded-xl border border-[#A68E4E]/10 hover:border-[#A68E4E]/30 hover:bg-black/40 transition-all group"
                             >
                               <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
                                 <img
