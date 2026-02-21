@@ -355,7 +355,7 @@ export const UnifiedAuctionCard = memo(
             <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border transition-all">
               {timeMeta.ended ? (
                 <div className="flex mt-2">
-                  <span className="font-mono text-[11px] tracking-wider text-gold rounded-xl border border-gold/30 bg-gold/10 px-3 py-1 uppercase font-semibold">
+                  <span className="font-mono text-[11px] tracking-wider text-[#A68E4E] rounded-xl border border-[#A68E4E]/30 bg-[#A68E4E]/10 px-3 py-1 uppercase font-semibold">
                     {ringBadge}
                   </span>
                 </div>
@@ -449,7 +449,7 @@ export const UnifiedAuctionCard = memo(
             {/* Ring number badge above title - always render container for height consistency */}
             <div className="flex mt-2">
               {ringBadge ? (
-                <span className="font-mono text-[11px] tracking-wider text-gold rounded-xl border border-gold/30 bg-gold/10 px-3 py-1 uppercase font-semibold">
+                <span className="font-mono text-[11px] tracking-wider text-[#A68E4E] rounded-xl border border-[#A68E4E]/30 bg-[#A68E4E]/10 px-3 py-1 uppercase font-semibold">
                   {ringBadge}
                 </span>
               ) : (
@@ -502,20 +502,20 @@ export const UnifiedAuctionCard = memo(
             {/* Price and bids */}
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 mb-1.5 font-medium flex items-center gap-1.5">
+                <p className="text-[10px] uppercase tracking-[0.15em] mb-1.5 font-medium flex items-center gap-1.5 text-[#A68E4E]">
                   {hasBidding ? (
                     <>
-                      <Gavel className="w-3 h-3 text-gold/60" />
+                      <Gavel className="w-3 h-3 opacity-80" />
                       <span>Aktualna cena</span>
                     </>
                   ) : (
                     <>
-                      <Tag className="w-3 h-3 text-gold/60" />
+                      <Tag className="w-3 h-3 opacity-80" />
                       <span>Cena Kup Teraz</span>
                     </>
                   )}
                 </p>
-                <p className="font-display text-2xl font-bold text-gold drop-shadow-lg">
+                <p className="font-display text-2xl font-bold drop-shadow-lg text-[#A68E4E]">
                   {formatNumber(hasBidding ? currentBid : buyNowPrice)}
                 </p>
                 {hasBidding && hasBuyNow && (
