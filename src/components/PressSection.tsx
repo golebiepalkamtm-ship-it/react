@@ -61,18 +61,17 @@ const PressArticleCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-zinc-950/20 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl backdrop-brightness-125 h-full flex flex-col"
+        className="relative overflow-hidden rounded-2xl border border-white/40 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl h-full flex flex-col"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d",
+          background:
+            "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.3),transparent_70%)] pointer-events-none" />
-
         <motion.div
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
@@ -341,7 +340,7 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
               backfaceVisibility: "hidden",
             }}
           >
-            <span className="text-zinc-900">Pałka MTM w Mediach</span> –{" "}
+            <span className="text-black">Pałka MTM w Mediach</span> –{" "}
             <span className="text-[#A68E4E]">Standard Doskonałości</span>
           </h2>
           <p

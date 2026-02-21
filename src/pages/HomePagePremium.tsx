@@ -19,6 +19,7 @@ import React, {
 import { Link } from "react-router-dom";
 import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
 import { registerCustomEasings, gsapEasings } from "@/lib/customEasings";
+import { useLenis } from "@/components/animations/SmoothScrollProvider";
 import {
   ArrowRight,
   Trophy,
@@ -316,30 +317,70 @@ const CTAFeaturesSection = () => {
 // ============================================================================
 
 export const HomePagePremium = () => {
+  const lenis = useLenis();
+
   useEffect(() => {
-    ScrollTrigger.refresh();
+    // Scroll do górny po wejściu na stronę
     window.scrollTo(0, 0);
 
+    // Daj czas na wyrenderowanie elementów, potem odśwież ScrollTrigger
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+
+      // GSAP scroll reveal dla sekcji
+      const sections = document.querySelectorAll<HTMLElement>(".home-section");
+      sections.forEach((section, i) => {
+        gsap.fromTo(
+          section,
+          { opacity: 0, y: 60 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: "expo.out",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 88%",
+              end: "top 40%",
+              toggleActions: "play none none reverse",
+            },
+          },
+        );
+      });
+    }, 300);
+
     return () => {
+      clearTimeout(timer);
       ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
 
   return (
-    <div className="min-min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       <Header />
       <ProgressIndicator color="rgba(212, 175, 55, 0.8)" height={2} />
       <CursorFollower size={24} color="rgba(212, 175, 55, 0.4)" />
 
-      {/* ŻADNEGO CIEMNEGO TŁA - USUNIĘTE NA ZAWSZE */}
-
       <main>
+        {/* Hero - bez reveal, animowane wewnętrznie */}
         <HeroPremium />
-        <AboutSection />
-        <Carousel3D />
-        <CTAFeaturesSection />
-        <PressSection />
-        <ContactSection />
+
+        {/* Pozostałe sekcje - scroll reveal */}
+        <div className="home-section">
+          <AboutSection />
+        </div>
+        <div className="home-section">
+          <Carousel3D />
+        </div>
+        <div className="home-section">
+          <CTAFeaturesSection />
+        </div>
+        <div className="home-section">
+          <PressSection />
+        </div>
+        <div className="home-section">
+          <ContactSection />
+        </div>
         <Footer />
       </main>
     </div>

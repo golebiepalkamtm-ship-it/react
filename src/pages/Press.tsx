@@ -84,32 +84,18 @@ const PressArticleCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="relative overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-zinc-800/95 via-zinc-900/95 to-zinc-800/95 backdrop-blur-xl shadow-[0_0_40px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] h-full flex flex-col"
+        className="relative overflow-hidden rounded-2xl border border-white/40 backdrop-blur-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] h-full flex flex-col"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d",
+          background:
+            "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/20 pointer-events-none" />
-
-        <motion.div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(212,175,55,0.18) 0%, transparent 60%)",
-          }}
-          animate={{
-            opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3,
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-
-        <div className="relative aspect-[16/10] overflow-hidden bg-slate-50">
+        <div className="relative aspect-[16/10] overflow-hidden bg-transparent">
           <img
             src={article.images.main}
             alt={article.title}
@@ -122,16 +108,15 @@ const PressArticleCard = ({
                 "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop";
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
 
         <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
           <div className="flex items-center gap-2 text-sm text-slate-600 mb-3 flex-wrap">
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-dark border border-gold/20">
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-dark">
               <Newspaper className="w-3 h-3 gold-icon" />
               {article.publication}
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/70">
               <Calendar className="w-3 h-3 gold-icon" />
               {new Date(article.date).toLocaleDateString("pl-PL")}
             </span>
@@ -141,19 +126,19 @@ const PressArticleCard = ({
             {article.title}
           </h3>
 
-          <p className="text-white/60 text-sm line-clamp-4 mb-4">
+          <p className="text-white/70 text-sm line-clamp-4 mb-4">
             {article.excerpt}
           </p>
 
           <div className="mt-auto">
             <Button
               size="sm"
-              className="w-full gold-button relative z-40"
+              className="w-full relative z-40 bg-[#A68E4E] hover:bg-[#8e7a42] text-zinc-950 font-bold border-none transition-colors"
               asChild
             >
               <Link to={`/press/${article.id}`}>
                 Czytaj więcej
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform text-zinc-950" />
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
           </div>
@@ -335,7 +320,8 @@ const PressPage = () => {
               data-split-text
               className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4"
             >
-              <span className="gold-heading">Prasa i Media</span>
+              <span className="text-black">Prasa</span>{" "}
+              <span className="text-[#A68E4E]">i Media</span>
             </h1>
             <p className="text-zinc-200 text-lg md:text-xl max-w-2xl mx-auto shadow-sm">
               Przeczytaj, co piszą o nas media branżowe i ogólnopolskie.
@@ -386,10 +372,10 @@ const PressPage = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedCategory(category.value)}
-                      className={`px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-300 border ${
+                      className={`px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-300 ${
                         selectedCategory === category.value
-                          ? "bg-[#A68E4E] text-zinc-950 border-[#A68E4E] shadow-lg shadow-gold/20 scale-105"
-                          : "bg-transparent text-gold-dark/80 border-gold/30 hover:border-gold hover:text-gold hover:bg-gold/5"
+                          ? "bg-[#A68E4E] text-zinc-950 shadow-lg shadow-gold/20 scale-105"
+                          : "bg-transparent text-white/60 hover:text-[#A68E4E] hover:bg-gold/5"
                       }`}
                     >
                       {category.label}

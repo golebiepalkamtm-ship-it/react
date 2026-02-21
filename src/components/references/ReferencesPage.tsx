@@ -476,6 +476,7 @@ export function ReferencesPage() {
           </motion.div>
 
           <motion.h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6">
+            <span className="text-black">Nasze</span>{" "}
             <span className="gold-heading">Referencje</span>
           </motion.h1>
 
@@ -711,7 +712,7 @@ export function ReferencesPage() {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
-              <span className="text-white">Wszystkie </span>
+              <span className="text-black">Wszystkie </span>
               <span className="gold-heading">referencje</span>
             </h2>
             <p className="font-display text-xl md:text-2xl text-white/80 font-semibold max-w-2xl mx-auto">

@@ -236,10 +236,10 @@ export default function BreederMeetings() {
             </motion.div>
             <h1
               data-split-text
-              className="font-display text-2xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6 text-white"
+              className="font-display text-2xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6"
             >
-              <span className="gold-heading">Spotkania</span>{" "}
-              <span className="text-white">z Hodowcami</span>
+              <span className="text-black">Spotkania</span>{" "}
+              <span className="gold-heading">z Hodowcami</span>
             </h1>
             <p className="font-display italic text-white text-lg md:text-xl max-w-3xl mx-auto mb-12">
               Galeria zdjęć z naszych spotkań z hodowcami

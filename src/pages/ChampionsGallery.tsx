@@ -71,14 +71,14 @@ export const ChampionsGallery = () => {
     if (selectedIndex === null || champions.length === 0) return;
     const nextIdx = (selectedIndex - 1 + champions.length) % champions.length;
     setSelectedIndex(nextIdx);
-    setSelectedChampion(champions[nextIdx]);
+    setSelectedChampion(champions[nextIdx] || null);
   }, [champions, selectedIndex]);
 
   const handleNextChampion = useCallback(() => {
     if (selectedIndex === null || champions.length === 0) return;
     const nextIdx = (selectedIndex + 1) % champions.length;
     setSelectedIndex(nextIdx);
-    setSelectedChampion(champions[nextIdx]);
+    setSelectedChampion(champions[nextIdx] || null);
   }, [champions, selectedIndex]);
 
   useEffect(() => {
@@ -167,15 +167,16 @@ export const ChampionsGallery = () => {
                 data-split-text
                 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold"
               >
-                <span className="gold-heading">Galeria</span> <span className="text-slate-900">Championów</span>
+                <span className="gold-heading">Galeria</span>{" "}
+                <span className="text-black">Championów</span>
               </h1>
             </div>
 
             <RevealOnScroll delay={0.2}>
-              <p className="text-slate-700 text-lg md:text-xl max-w-2xl mx-auto mb-12">
+              <p className="text-white text-lg md:text-xl max-w-2xl mx-auto mb-12">
                 MTM Pałka – Ponad 20 lat dominacji w hodowli gołębi pocztowych.
                 <br />
-                <span className="text-gold-dark">Zwycięstwo mamy w genach.</span>
+                <span className="text-gold">Zwycięstwo mamy w genach.</span>
               </p>
             </RevealOnScroll>
 
@@ -196,19 +197,21 @@ export const ChampionsGallery = () => {
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-shadow"
+                    <div
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-shadow"
                       style={{
-                        backgroundImage: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
+                        backgroundImage:
+                          "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
                         boxShadow: "0 0 20px #A68E4E55",
                         border: "1px solid rgba(166,142,78,0.3)",
                       }}
                     >
                       <stat.icon className="w-7 h-7 gold-icon" />
                     </div>
-                    <div className="font-display text-4xl md:text-5xl font-bold text-slate-900 mb-1">
+                    <div className="font-display text-4xl md:text-5xl font-bold text-white mb-1">
                       <CountUp end={stat.value} duration={2} suffix="+" />
                     </div>
-                    <div className="text-slate-500 text-sm uppercase tracking-wider">
+                    <div className="text-white/70 text-sm uppercase tracking-wider">
                       {stat.label}
                     </div>
                   </motion.div>
@@ -226,7 +229,7 @@ export const ChampionsGallery = () => {
                   <div className="w-16 h-16 border-4 border-gold/20 rounded-full" />
                   <div className="absolute inset-0 w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin" />
                 </div>
-                <span className="mt-6 text-slate-600">
+                <span className="mt-6 text-white/60">
                   Ładowanie championów...
                 </span>
               </div>
