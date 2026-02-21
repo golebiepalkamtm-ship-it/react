@@ -1,8 +1,13 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 export async function debugAuthState() {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  
+  if (!supabase) return { session: null, error: "Supabase not initialized" };
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  /*
   console.group('🔐 Auth Debug Info');
   console.log('Session exists:', !!session);
   console.log('Access token:', session?.access_token ? `${session.access_token.substring(0, 20)}...` : 'NONE');
@@ -12,6 +17,7 @@ export async function debugAuthState() {
   console.log('User role (metadata):', (session?.user as any)?.app_metadata?.role);
   console.log('Error:', error);
   console.groupEnd();
-  
+  */
+
   return { session, error };
 }

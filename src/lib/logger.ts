@@ -1,14 +1,26 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
-const isProd = typeof window !== 'undefined' ? import.meta.env.PROD === true : process.env.NODE_ENV === 'production';
+const isProd =
+  typeof window !== "undefined"
+    ? import.meta.env.PROD === true
+    : process.env.NODE_ENV === "production";
 
 function noop(..._args: any[]) {}
 
-const consoleImpl = typeof console !== 'undefined' ? console : { log: noop, info: noop, warn: noop, error: noop, debug: noop } as Console;
+const consoleImpl =
+  typeof console !== "undefined"
+    ? console
+    : ({
+        log: noop,
+        info: noop,
+        warn: noop,
+        error: noop,
+        debug: noop,
+      } as Console);
 
 export const logger = {
-  debug: isProd ? noop : (...args: any[]) => consoleImpl.debug?.(...args),
-  info: isProd ? noop : (...args: any[]) => consoleImpl.info?.(...args),
+  debug: noop,
+  info: noop,
   warn: (...args: any[]) => consoleImpl.warn?.(...args),
   error: (...args: any[]) => consoleImpl.error?.(...args),
 };

@@ -236,7 +236,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
       data: { subscription },
     } = client.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        console.log("🔄 Auth state change:", {
+        logger.debug("🔄 Auth state change:", {
           event,
           hasSession: !!session,
           isInitialized,

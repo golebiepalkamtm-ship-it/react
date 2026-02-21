@@ -45,7 +45,7 @@ if (isSupabaseConfigured && supabaseUrl && supabaseKey) {
       persistSession: true,
       detectSessionInUrl: true,
       flowType: "pkce",
-      debug: true,
+      debug: false,
       storage: window.localStorage,
     },
     global: {

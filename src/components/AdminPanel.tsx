@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/services/api";
+import { logger } from "@/lib/logger";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { Button } from "@/components/ui/button";
 
@@ -100,12 +101,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
     setLoading(true);
     try {
-      console.log(
-        "🔑 Fetching admin data with token:",
-        session.access_token.substring(0, 20) + "...",
-      );
-      console.log("👤 Profile role:", profile?.role);
-      console.log("📧 User email:", session.user?.email);
+      logger.info("Fetching admin data...");
 
       const statsData = await apiClient.getWithToken<AdminStats>(
         "/admin/stats",
@@ -133,11 +129,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       );
       setHistoricalStats(historicalData);
     } catch (error) {
-      console.error("❌ Error fetching admin data:", error);
-      console.error(
-        "Error details:",
-        error instanceof Error ? error.message : error,
-      );
+      logger.error("❌ Error fetching admin data:", error);
       setFeedbackModal({
         isOpen: true,
         type: "error",
@@ -147,7 +139,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     } finally {
       setLoading(false);
     }
-  }, [session?.access_token, profile?.role, session?.user?.email]);
+  }, [session?.access_token]);
 
   useEffect(() => {
     if (isOpen && profile?.role === "ADMIN" && session?.access_token) {
@@ -581,15 +573,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               setFeedbackModal((prev) => ({ ...prev, isOpen: false }));
             },
           }}
-          cancelButton={
-            feedbackModal.onConfirm
-              ? {
+          {...(feedbackModal.onConfirm
+            ? {
+                cancelButton: {
                   text: "Anuluj",
                   onClick: () =>
                     setFeedbackModal((prev) => ({ ...prev, isOpen: false })),
-                }
-              : undefined
-          }
+                },
+              }
+            : {})}
         />
       </motion.div>
     </div>,
