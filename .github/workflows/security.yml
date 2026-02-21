@@ -26,7 +26,6 @@ jobs:
   rls-and-auth-sync:
     name: Supabase RLS & auth sync check
     runs-on: ubuntu-latest
-    if: ${{ secrets.DATABASE_URL != '' && secrets.SUPABASE_URL != '' }}
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
