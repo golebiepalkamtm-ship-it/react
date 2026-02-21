@@ -17,6 +17,7 @@ import React, {
   Suspense,
 } from "react";
 import { Link } from "react-router-dom";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
 import { registerCustomEasings, gsapEasings } from "@/lib/customEasings";
 import { useLenis } from "@/components/animations/SmoothScrollProvider";
@@ -68,6 +69,182 @@ const STATIC_PARTICLES = [
   { id: 18, left: "22%", top: "82%", size: 3, delay: 0.9, duration: 5 },
   { id: 19, left: "68%", top: "48%", size: 2, delay: 2.2, duration: 4 },
 ] as const;
+
+// ============================================================================
+// INTERACTIVE VIDEO HERO - Improved MP4 Experience
+// ============================================================================
+
+interface Ember {
+  left: string;
+  x: number[];
+  duration: number;
+  delay: number;
+}
+
+const EMBERS: Ember[] = [
+  { left: "10%", x: [0, 20, 50], duration: 4.5, delay: 0.2 },
+  { left: "25%", x: [0, -15, -40], duration: 5.2, delay: 1.5 },
+  { left: "40%", x: [0, 10, 30], duration: 4.8, delay: 0.8 },
+  { left: "55%", x: [0, -20, -60], duration: 6.1, delay: 2.1 },
+  { left: "70%", x: [0, 15, 45], duration: 5.5, delay: 1.2 },
+  { left: "85%", x: [0, -10, -35], duration: 4.2, delay: 0.5 },
+  { left: "15%", x: [0, 25, 55], duration: 5.8, delay: 3.1 },
+  { left: "35%", x: [0, -30, -70], duration: 6.5, delay: 1.8 },
+  { left: "65%", x: [0, 20, 60], duration: 5.0, delay: 0.9 },
+  { left: "80%", x: [0, -15, -50], duration: 4.7, delay: 2.5 },
+  { left: "95%", x: [0, 10, 40], duration: 5.3, delay: 1.1 },
+  { left: "5%", x: [0, -25, -55], duration: 6.2, delay: 3.5 },
+];
+
+const InteractiveVideoHero = () => {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), {
+    stiffness: 120,
+    damping: 25,
+  });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), {
+    stiffness: 120,
+    damping: 25,
+  });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  return (
+    <div className="relative group/hero-container">
+      {/* 3D Ambient Shadow */}
+      <div className="absolute inset-x-10 -bottom-10 h-20 bg-black/40 blur-[100px] rounded-[50%] opacity-60 group-hover/hero-container:opacity-100 transition-opacity duration-1000" />
+
+      <motion.div
+        className="relative w-full max-w-2xl mt-0 aspect-[4/5] rounded-[3rem] overflow-hidden shadow-[0_80px_160px_rgba(0,0,0,0.7)] border border-white/10 group cursor-none"
+        style={{
+          transformStyle: "preserve-3d",
+          rotateX,
+          rotateY,
+        }}
+        initial={{ opacity: 0, scale: 0.95, y: 40 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Dynamic Multi-layered Glow */}
+        <div className="absolute -inset-40 bg-[radial-gradient(circle_at_center,rgba(166,142,78,0.2),transparent_60%)] blur-[120px] pointer-events-none group-hover:opacity-100 opacity-40 transition-opacity duration-1000 animate-pulse" />
+        <div className="absolute -inset-20 bg-[conic-gradient(from_0deg,transparent,rgba(166,142,78,0.05),transparent)] blur-2xl pointer-events-none animate-[spin_10s_linear_infinite]" />
+
+        {/* Video Content with Zoom Effect */}
+        <video
+          src="/szpaki.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] ease-out group-hover:scale-110 grayscale-[0.2] group-hover:grayscale-0"
+        />
+
+        {/* Cinematic Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none z-10" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#A68E4E]/20 via-transparent to-transparent pointer-events-none z-10" />
+
+        {/* Scanlines Effect */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_2px,3px_100%] pointer-events-none z-10 opacity-30" />
+
+        {/* Floating Atmospheric Particles (Embers) */}
+        <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+          {EMBERS.map((p, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-[#A68E4E] rounded-full blur-[1px]"
+              animate={{
+                y: [0, -100, -200],
+                x: p.x,
+                opacity: [0, 0.6, 0],
+                scale: [0, 1.5, 0],
+              }}
+              transition={{
+                duration: p.duration,
+                repeat: Infinity,
+                delay: p.delay,
+                ease: "linear",
+              }}
+              style={{
+                left: p.left,
+                bottom: "-10px",
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Premium Glassmorphism Corner Badge */}
+        <div
+          className="absolute top-10 right-10 z-30 transform-gpu"
+          style={{ transform: "translateZ(50px)" }}
+        >
+          <div className="flex flex-col items-end gap-2 p-4 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#A68E4E] animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.4em] text-[#A68E4E] font-black">
+                Premium Quality
+              </span>
+            </div>
+            <span className="text-[8px] uppercase tracking-[0.2em] text-white/60 font-medium">
+              Pałka MTM Heritage since 1979
+            </span>
+          </div>
+        </div>
+
+        {/* Cinematic Scanner Effect */}
+        <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-[#A68E4E]/10 to-transparent -translate-y-full group-hover:animate-[scan_4s_ease-in-out_infinite] z-20 pointer-events-none" />
+
+        {/* Interactive Luxury Light Flare */}
+        <motion.div
+          className="absolute w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(166,142,78,0.12),transparent_70%)] rounded-full blur-[60px] pointer-events-none z-20"
+          style={{
+            left: useTransform(mouseX, [-0.5, 0.5], ["-10%", "50%"]),
+            top: useTransform(mouseY, [-0.5, 0.5], ["-10%", "50%"]),
+          }}
+        />
+
+        {/* Frame Glowing Border */}
+        <div className="absolute inset-0 rounded-[3rem] border border-[#A68E4E]/30 pointer-events-none z-30 group-hover:border-[#A68E4E]/60 transition-colors duration-700" />
+      </motion.div>
+
+      {/* Hero Stats Floating Pill (Optional Touch) */}
+      <motion.div
+        className="absolute -bottom-6 left-1/2 -translate-x-1/2 z-40 bg-zinc-900/90 backdrop-blur-2xl border border-gold/40 px-8 py-4 rounded-full shadow-2xl flex items-center gap-6 whitespace-nowrap"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.8 }}
+      >
+        <div className="flex items-center gap-2">
+          <Trophy className="w-4 h-4 text-gold" />
+          <span className="text-[10px] uppercase tracking-widest text-white font-bold">
+            TOP GENES
+          </span>
+        </div>
+        <div className="w-px h-4 bg-white/10" />
+        <div className="flex items-center gap-2">
+          <Award className="w-4 h-4 text-gold" />
+          <span className="text-[10px] uppercase tracking-widest text-white font-bold">
+            EUROPEAN CHAMPIONS
+          </span>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 // ============================================================================
 // HERO PREMIUM - Czysty, Jasny i Profesjonalny
@@ -194,18 +371,8 @@ const HeroPremium = () => {
           </div>
         </div>
 
-        <div className="hidden lg:flex flex-1 justify-end">
-          <div className="relative w-full max-w-none mt-0 aspect-square rounded-3xl overflow-hidden shadow-[0_52px_140px_rgba(0,0,0,0.55)] border border-gold/30">
-            <video
-              src="/szpaki.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent pointer-events-none" />
-          </div>
+        <div className="hidden lg:flex flex-1 justify-end perspective-1000">
+          <InteractiveVideoHero />
         </div>
       </div>
 
