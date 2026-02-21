@@ -34,7 +34,15 @@ export const useScrollAnimation = (
         // Resolve targets - handle functions, strings, or Ref objects
         let target =
           typeof anim.targets === "function" ? anim.targets() : anim.targets;
-        if (target && "current" in target) target = target.current;
+        // Only dereference React refs/objects that actually have "current"
+        if (
+          target &&
+          typeof target === "object" &&
+          !Array.isArray(target) &&
+          "current" in target
+        ) {
+          target = (target as { current: unknown }).current;
+        }
         if (!target) return;
 
         // Resolve trigger - handle functions, strings, or Ref objects
@@ -45,22 +53,30 @@ export const useScrollAnimation = (
               ? anim.scrollTrigger.trigger()
               : anim.scrollTrigger.trigger;
 
-          if (resolvedTrigger && "current" in resolvedTrigger) {
-            resolvedTrigger = resolvedTrigger.current;
+          if (
+            resolvedTrigger &&
+            typeof resolvedTrigger === "object" &&
+            !Array.isArray(resolvedTrigger) &&
+            "current" in resolvedTrigger
+          ) {
+            resolvedTrigger = (resolvedTrigger as { current: unknown }).current;
           }
         }
 
-        const config = {
+        const delay = anim.delay !== undefined ? anim.delay : anim.toVars.delay;
+        const scrollTrigger = anim.scrollTrigger
+          ? {
+              ...anim.scrollTrigger,
+              trigger: resolvedTrigger,
+              // Domyślny start jeśli nie podano
+              start: anim.scrollTrigger.start || "top 80%",
+            }
+          : undefined;
+
+        const config: gsap.TweenVars = {
           ...anim.toVars,
-          delay: anim.delay !== undefined ? anim.delay : anim.toVars.delay,
-          scrollTrigger: anim.scrollTrigger
-            ? {
-                ...anim.scrollTrigger,
-                trigger: resolvedTrigger,
-                // Domyślny start jeśli nie podano
-                start: anim.scrollTrigger.start || "top 80%",
-              }
-            : undefined,
+          ...(delay !== undefined ? { delay } : {}),
+          ...(scrollTrigger ? { scrollTrigger } : {}),
         };
 
         if (anim.fromVars) {

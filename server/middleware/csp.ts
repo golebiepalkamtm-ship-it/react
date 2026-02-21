@@ -9,14 +9,16 @@ import {
 
 const isDev = process.env.NODE_ENV === 'development';
 
+const vercelLiveOrigin = 'https://vercel.live';
+
 const cspHeader = `
     default-src 'none';
-    script-src 'self' ${isDev ? "'unsafe-eval'" : ''} blob: ${getSupabaseOrigins().join(' ')} ${getGoogleAuthOrigins().join(' ')};
-    script-src-elem 'self' ${isDev ? "'unsafe-eval'" : ''} blob: ${getSupabaseOrigins().join(' ')} ${getGoogleAuthOrigins().join(' ')};
+    script-src 'self' ${isDev ? "'unsafe-eval'" : ''} blob: ${vercelLiveOrigin} ${getSupabaseOrigins().join(' ')} ${getGoogleAuthOrigins().join(' ')};
+    script-src-elem 'self' ${isDev ? "'unsafe-eval'" : ''} blob: ${vercelLiveOrigin} ${getSupabaseOrigins().join(' ')} ${getGoogleAuthOrigins().join(' ')};
     worker-src 'self' blob: data: ${getSupabaseOrigins().join(' ')};
     style-src 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
     style-src-elem 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
-    connect-src 'self' ${getSupabaseOrigins().concat('wss://*.supabase.co').join(' ')} ${getGoogleAuthOrigins().join(' ')} ${getFontOrigins().join(' ')} ${getStripeOrigins().join(' ')} ${getAllowedOrigins().join(' ')};
+    connect-src 'self' ${vercelLiveOrigin} ${getSupabaseOrigins().concat('wss://*.supabase.co').join(' ')} ${getGoogleAuthOrigins().join(' ')} ${getFontOrigins().join(' ')} ${getStripeOrigins().join(' ')} ${getAllowedOrigins().join(' ')};
     img-src 'self' data: https: blob: ${getSupabaseOrigins().join(' ')};
     frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://maps.google.com ${getGoogleAuthOrigins().join(' ')} ${getStripeOrigins().join(' ')};
     font-src 'self' data: https: ${getFontOrigins().join(' ')};
