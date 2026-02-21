@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { getSupabaseOrigins, getStripeOrigins, getFontOrigins, getGoogleAuthOrigins } from '../lib/originUtils.js';
+import {
+  getSupabaseOrigins,
+  getStripeOrigins,
+  getFontOrigins,
+  getGoogleAuthOrigins,
+  getAllowedOrigins,
+} from '../lib/originUtils.js';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -10,7 +16,7 @@ const cspHeader = `
     worker-src 'self' blob: data: ${getSupabaseOrigins().join(' ')};
     style-src 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
     style-src-elem 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
-    connect-src 'self' ${getSupabaseOrigins().concat('wss://*.supabase.co').join(' ')} ${getGoogleAuthOrigins().join(' ')} ${getFontOrigins().join(' ')} ${getStripeOrigins().join(' ')};
+    connect-src 'self' ${getSupabaseOrigins().concat('wss://*.supabase.co').join(' ')} ${getGoogleAuthOrigins().join(' ')} ${getFontOrigins().join(' ')} ${getStripeOrigins().join(' ')} ${getAllowedOrigins().join(' ')};
     img-src 'self' data: https: blob: ${getSupabaseOrigins().join(' ')};
     frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://maps.google.com ${getGoogleAuthOrigins().join(' ')} ${getStripeOrigins().join(' ')};
     font-src 'self' data: https: ${getFontOrigins().join(' ')};
