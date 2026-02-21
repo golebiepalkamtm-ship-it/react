@@ -18,9 +18,9 @@ const cspHeader = `
     worker-src 'self' blob: data: ${getSupabaseOrigins().join(' ')};
     style-src 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
     style-src-elem 'self' 'unsafe-inline' ${getFontOrigins().join(' ')};
-    connect-src 'self' ${vercelLiveOrigin} ${getSupabaseOrigins().concat('wss://*.supabase.co').join(' ')} ${getGoogleAuthOrigins().join(' ')} ${getFontOrigins().join(' ')} ${getStripeOrigins().join(' ')} ${getAllowedOrigins().join(' ')};
+    connect-src 'self' ${vercelLiveOrigin} ws://localhost:8001 ${getSupabaseOrigins().concat('wss://*.supabase.co').join(' ')} ${getGoogleAuthOrigins().join(' ')} ${getFontOrigins().join(' ')} ${getStripeOrigins().join(' ')} ${getAllowedOrigins().join(' ')};
     img-src 'self' data: https: blob: ${getSupabaseOrigins().join(' ')};
-    frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://maps.google.com ${getGoogleAuthOrigins().join(' ')} ${getStripeOrigins().join(' ')};
+    frame-src 'self' ${vercelLiveOrigin} https://www.google.com https://www.youtube.com https://www.youtube-nocookie.com https://maps.google.com ${getGoogleAuthOrigins().join(' ')} ${getStripeOrigins().join(' ')};
     font-src 'self' data: https: ${getFontOrigins().join(' ')};
     media-src 'self' data: blob: ${getSupabaseOrigins().join(' ')};
     object-src 'none';
