@@ -1,0 +1,97 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list
+    - region "Notifications alt+T"
+    - generic:
+      - generic:
+        - img
+        - generic: Champion Pigeons
+    - generic [ref=e4]:
+      - banner [ref=e6]:
+        - generic [ref=e7]:
+          - link "M MTM Pałka Gołębie pocztowe" [ref=e9] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e11]: M
+            - generic [ref=e12]:
+              - generic [ref=e13]: MTM Pałka
+              - generic [ref=e14]: Gołębie pocztowe
+          - navigation [ref=e18]:
+            - button "Start" [ref=e20] [cursor=pointer]
+            - link "Aukcje" [ref=e22] [cursor=pointer]:
+              - /url: /auctions
+            - link "Championy" [ref=e24] [cursor=pointer]:
+              - /url: /champions
+            - link "Wyniki lotowe" [ref=e26] [cursor=pointer]:
+              - /url: /flight-results
+            - link "Spotkania z hodowcami" [ref=e28] [cursor=pointer]:
+              - /url: /breeder-meetings
+            - link "Referencje" [ref=e30] [cursor=pointer]:
+              - /url: /references
+            - link "Prasa i media" [ref=e32] [cursor=pointer]:
+              - /url: /press
+            - button "O nas" [ref=e34] [cursor=pointer]
+            - button "Kontakt" [ref=e36] [cursor=pointer]
+            - link "Konto" [ref=e38] [cursor=pointer]:
+              - /url: /auth?mode=login&callbackUrl=ACCOUNT_MODAL_TRIGGER
+      - main [ref=e39]:
+        - generic [ref=e43]:
+          - heading "Pałka MTM" [level=1] [ref=e44]
+          - paragraph [ref=e45]: Mistrzowie sprintu
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - heading "Witaj ponownie" [level=2] [ref=e50]
+            - paragraph [ref=e51]: Zaloguj się do swojego konta
+          - generic [ref=e55]:
+            - button "Logowanie" [ref=e56] [cursor=pointer]
+            - button "Rejestracja" [ref=e57] [cursor=pointer]
+          - generic [ref=e58]:
+            - button "Kontynuuj z Google" [ref=e59] [cursor=pointer]:
+              - img [ref=e60]
+              - generic [ref=e65]: Kontynuuj z Google
+            - button "Kontynuuj z Facebook" [ref=e66] [cursor=pointer]:
+              - img [ref=e67]
+              - generic [ref=e69]: Kontynuuj z Facebook
+          - generic [ref=e74]: lub email
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - text: Email
+              - generic [ref=e77]:
+                - img [ref=e78]
+                - textbox "Email" [ref=e81]:
+                  - /placeholder: twoj@email.com
+                  - text: e2e+1771632724195@example.com
+            - generic [ref=e82]:
+              - text: Hasło
+              - generic [ref=e83]:
+                - img [ref=e84]
+                - textbox "Hasło" [ref=e87]:
+                  - /placeholder: ••••••••
+                  - text: P@ssw0rd!23
+                - button [ref=e88] [cursor=pointer]:
+                  - img [ref=e89]
+            - button "Zapomniałeś hasła?" [ref=e93] [cursor=pointer]
+            - button "Zaloguj się" [ref=e94] [cursor=pointer]:
+              - text: Zaloguj się
+              - img
+            - generic [ref=e95]:
+              - text: Nie masz konta?
+              - button "Zarejestruj się" [ref=e96] [cursor=pointer]
+            - link "Wróć" [ref=e98] [cursor=pointer]:
+              - /url: /
+    - status [ref=e100]:
+      - img [ref=e102]
+      - generic [ref=e104]:
+        - paragraph [ref=e105]: Logowanie...
+        - paragraph [ref=e106]: Proszę czekać...
+  - generic [ref=e109]:
+    - generic [ref=e111]:
+      - img [ref=e113]
+      - generic [ref=e117]:
+        - heading "Błąd logowania" [level=2] [ref=e118]
+        - paragraph [ref=e119]: Nieprawidłowy adres e-mail lub hasło. Upewnij się, że wpisane dane są poprawne.
+    - button "OK" [ref=e123] [cursor=pointer]
+```

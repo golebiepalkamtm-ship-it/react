@@ -51,8 +51,10 @@ export const useChampions = () => {
   const [champions, setChampions] = useState<Champion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadChampions = async () => {
       try {
         setLoading(true);
@@ -60,7 +62,7 @@ export const useChampions = () => {
         const path = (p: string) => `${base}/${p.replace(/^\/+/, '')}`;
         const fallbackImage = path('/back.png');
 
-        const manifestRes = await fetch(path('/champions/manifest.json'), { cache: 'no-store' });
+        const manifestRes = await fetch(path('/champions/manifest.json'), { cache: 'no-store', signal: controller.signal });
         if (!manifestRes.ok) {
           throw new Error('Nie można załadować manifestu championów');
         }
@@ -80,7 +82,7 @@ export const useChampions = () => {
               
               let data: ChampionData | null = null;
               try {
-                const dataRes = await fetch(path(`/champions/${item.id}/data.json`), { cache: 'no-store' });
+                const dataRes = await fetch(path(`/champions/${item.id}/data.json`), { cache: 'no-store', signal: controller.signal });
                 if (dataRes.ok) {
                   data = await dataRes.json();
                 }
@@ -119,6 +121,7 @@ export const useChampions = () => {
         setChampions(championsData);
         setError(null);
       } catch (err) {
+        if (controller.signal.aborted) return;
         setError(err instanceof Error ? err.message : 'Błąd ładowania');
         console.error('Błąd ładowania championów:', err);
       } finally {
@@ -127,9 +130,10 @@ export const useChampions = () => {
     };
 
     loadChampions();
-  }, []);
+    return () => controller.abort();
+  }, [reloadKey]);
 
-  return { champions, loading, error, refetch: () => {} };
+  return { champions, loading, error, refetch: () => setReloadKey((k) => k + 1) };
 };
 
 // Statyczny fallback dla SSR lub szybkiego pierwszego renderowania

@@ -7,6 +7,7 @@ import {
 } from "../utils/tokenVerifier.js";
 import { calculateRole, UserWithVerifications } from "../types/roles.js";
 import { validatedEnv } from "../lib/env.js";
+import jwt from "jsonwebtoken";
 
 let tokenVerifier: TokenVerifier | null = null;
 
@@ -81,6 +82,22 @@ export const authMiddleware = async (
     const rateLimitKey = `auth:${clientIP}`;
 
     console.log("🔍 [Auth Middleware] Verifying token for IP:", clientIP);
+
+    // In non-production, allow local JWT verification using test secret to avoid Supabase dependency during tests
+    if (validatedEnv.NODE_ENV !== "production") {
+      try {
+        const decoded = jwt.verify(token, validatedEnv.JWT_SECRET) as jwt.JwtPayload;
+        req.user = {
+          id: (decoded.sub as string) || (decoded.id as string) || "test-user",
+          email: (decoded.email as string) || "test@local.dev",
+          role: ((decoded.role as string) || "USER").toUpperCase(),
+        };
+        console.log("✅ [Auth Middleware] Test token verified locally");
+        return next();
+      } catch (err) {
+        console.error("❌ [Auth Middleware] Local test token verification failed:", err);
+      }
+    }
 
     const tokenVerifier = getTokenVerifier();
     const verificationResult = await tokenVerifier.verifyTokenWithRole(

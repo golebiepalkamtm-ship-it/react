@@ -3,6 +3,9 @@ dist
 build
 .env
 .env.local
+.env.web
+.env.development
+.env.local.frontend
 .env.production
 .env.staging
 .env*.local

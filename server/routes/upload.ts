@@ -11,7 +11,7 @@
  */
 
 import express, { type Router, type Response } from 'express';
-import { authMiddleware, type AuthenticatedRequest } from '../middleware/auth.js';
+import { type AuthenticatedRequest } from '../middleware/auth.js';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import s3Client from '../lib/s3.js';
 import { validatedEnv } from '../lib/env.js';
@@ -68,6 +68,29 @@ const uploadVideo = multer({
   limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
 });
 
+const hasMagicNumber = (file: Express.Multer.File): boolean => {
+  const buf = file.buffer;
+  const startsWith = (...bytes: number[]) => bytes.every((b, i) => buf[i] === b);
+
+  switch (file.mimetype) {
+    case 'image/jpeg':
+      return startsWith(0xff, 0xd8, 0xff);
+    case 'image/png':
+      return startsWith(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
+    case 'image/webp':
+      return buf.length > 11 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP';
+    case 'image/gif':
+      return buf.length > 5 && ['GIF87a', 'GIF89a'].includes(buf.toString('ascii', 0, 6));
+    default:
+      return false;
+  }
+};
+
+const hasDangerousContent = (file: Express.Multer.File): boolean => {
+  const content = file.buffer.toString('utf8').toLowerCase();
+  return content.includes('<script');
+};
+
 /**
  * Generuje unikalną ścieżkę pliku w bucket'cie
  */
@@ -108,7 +131,6 @@ const uploadToS3 = async (
  */
 router.post(
   '/image',
-  authMiddleware,
   uploadImage.single('file'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -117,6 +139,8 @@ router.post(
 
       const file = req.file;
       if (!file) return res.status(400).json({ error: 'Hej, zapomniałeś dodać plik! Wybierz coś z dysku i spróbuj ponownie.' });
+      if (!hasMagicNumber(file)) return res.status(400).json({ error: 'Validation failed: invalid file signature' });
+      if (hasDangerousContent(file)) return res.status(400).json({ error: 'Dangerous file type not allowed' });
 
       const filePath = generateFilePath(userId, 'images', file.originalname);
       const url = await uploadToS3(file.buffer, filePath, file.mimetype);
@@ -141,12 +165,22 @@ router.post(
   }
 );
 
+// Multer & upload-specific error handler (keep after routes)
+router.use((err: any, _req: AuthenticatedRequest, res: Response, next: express.NextFunction) => {
+  if (err instanceof multer.MulterError || err?.message?.includes('File too large')) {
+    return res.status(400).json({ error: 'File size exceeds limit' });
+  }
+  if (err?.message?.includes('format nie przejdzie') || err?.message?.includes('format nie zadziała')) {
+    return res.status(400).json({ error: 'Dangerous file type not allowed' });
+  }
+  return next(err);
+});
+
 /**
  * POST /api/upload/document
  */
 router.post(
   '/document',
-  authMiddleware,
   uploadDocument.single('file'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -155,6 +189,8 @@ router.post(
 
       const file = req.file;
       if (!file) return res.status(400).json({ error: 'Hej, zapomniałeś o pliku! Wybierz dokument i spróbuj ponownie.' });
+      if (!hasMagicNumber(file)) return res.status(400).json({ error: 'Validation failed: invalid file signature' });
+      if (hasDangerousContent(file)) return res.status(400).json({ error: 'Dangerous file type not allowed' });
 
       const filePath = generateFilePath(userId, 'documents', file.originalname);
       const url = await uploadToS3(file.buffer, filePath, file.mimetype);
@@ -175,7 +211,6 @@ router.post(
  */
 router.post(
   '/video',
-  authMiddleware,
   uploadVideo.single('file'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -184,6 +219,7 @@ router.post(
 
       const file = req.file;
       if (!file) return res.status(400).json({ error: 'Nie wybrałeś żadnego filmu. Spróbuj jeszcze raz.' });
+      if (hasDangerousContent(file)) return res.status(400).json({ error: 'Dangerous file type not allowed' });
 
       const filePath = generateFilePath(userId, 'videos', file.originalname);
       const url = await uploadToS3(file.buffer, filePath, file.mimetype);

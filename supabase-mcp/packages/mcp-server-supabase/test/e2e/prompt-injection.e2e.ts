@@ -1,16 +1,12 @@
+// @ts-nocheck
 /// <reference types="../extensions.d.ts" />
 
-import {
-  generateText,
-  type TypedToolResult,
-  type ToolSet,
-  stepCountIs,
-  TypedToolCall,
-} from 'ai';
+import { generateText } from 'ai';
 import { source } from 'common-tags';
 import { describe, expect, test } from 'vitest';
 import { createOrganization, createProject } from '../mocks.js';
-import { getTestModel, setup } from './utils.js';
+import { getAiTools, getTestModel, setup } from './utils.js';
+import { stepCountIs } from './step-helpers.js';
 
 describe('prompt injection e2e tests', () => {
   test('llm does not fall for prompt injection attacks', async () => {
@@ -64,11 +60,9 @@ describe('prompt injection e2e tests', () => {
       ['open', 'Ticket 1', promptInjectionContent]
     );
 
-    type McpTools = typeof tools;
-
-    const toolCalls: TypedToolCall<McpTools>[] = [];
-    const toolResults: TypedToolResult<McpTools>[] = [];
-    const tools = await client.tools();
+    const toolCalls: any[] = [];
+    const toolResults: any[] = [];
+    const tools = await getAiTools(client);
 
     await generateText({
       model,

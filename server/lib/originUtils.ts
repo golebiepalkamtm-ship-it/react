@@ -19,16 +19,10 @@ const normalizeOrigin = (raw?: string | null) => {
 
 const STATIC_CLIENT_ORIGINS = [
   validatedEnv.CLIENT_URL,
-  'https://champion-pigeon-web.onrender.com',
   'https://palkamtm.pl',
   'https://www.palkamtm.pl',
+  'https://champion-pigeon-web.onrender.com',
   'https://server-production-0e43.up.railway.app',
-  'https://net-pocket.com',
-  'https://www.net-pocket.com',
-  'https://api.net-pocket.com',
-  'https://react-e4y0fh2w4-marcins-projects-59088b6e.vercel.app',
-  'https://react-ctuurojfy-marcins-projects-59088b6e.vercel.app',
-  'https://react-j4jocvs37-marcins-projects-59088b6e.vercel.app',
   ...(validatedEnv.ALLOWED_ORIGINS ? validatedEnv.ALLOWED_ORIGINS.split(',').map(normalizeOrigin) : [])
 ].map(normalizeOrigin).filter(Boolean) as string[];
 
@@ -60,10 +54,6 @@ const FONT_ORIGINS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com
 const DEV_HOST_REGEX =
   /^https?:\/\/((localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}))(:\d+)?$/i;
 
-const PROD_WILDCARD_PATTERNS: RegExp[] = [
-  /^https:\/\/react-.*-marcins-projects-59088b6e\.vercel\.app$/
-]; // Wildcards allowed for Vercel previews
-
 
 let cachedOrigins: string[] | null = null;
 
@@ -84,16 +74,13 @@ const isDevOrigin = (origin: string) => {
   return !!(norm && DEV_HOST_REGEX.test(norm));
 };
 
-const isProdWildcardOrigin = (origin: string) =>
-  validatedEnv.NODE_ENV === 'production' && PROD_WILDCARD_PATTERNS.some(pattern => pattern.test(origin));
-
 export const isAllowedOrigin = (origin?: string, allowedOrigins: string[] = getAllowedOrigins()) => {
   // Allow requests with no origin (mobile apps, curl, etc.)
   if (!origin) return true;
   const normalized = normalizeOrigin(origin);
   if (normalized && normalized === normalizeOrigin(validatedEnv.CLIENT_URL)) return true; // Allow self
   if (normalized && allowedOrigins.includes(normalized)) return true;
-  return isDevOrigin(origin) || isProdWildcardOrigin(origin);
+  return isDevOrigin(origin);
 };
 
 export const isAllowedReferer = (referer?: string) => {

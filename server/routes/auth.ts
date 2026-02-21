@@ -17,10 +17,41 @@ import {
   authMiddleware,
   type AuthenticatedRequest,
 } from "../middleware/auth.js";
+import { resetLimiter, loginLimiter } from "../middleware/rateLimiter.js";
+import { validate } from "../middleware/validation.js";
+import { z } from "zod";
 import { prisma } from "../lib/db.js";
 import { smsService } from "../services/SmsService.js";
 
 const router: Router = express.Router();
+
+// Stub login endpoint (rate-limited) — frontend uses Supabase, so we return 501 but keep limiter
+router.post(
+  "/login",
+  loginLimiter,
+  validate(
+    z.object({
+      email: z.string().email(),
+      password: z.string().min(8),
+    }),
+    { sanitize: true },
+  ),
+  (_req, res) => {
+    res.status(501).json({ error: "Login handled via Supabase SDK" });
+  },
+);
+
+// Stub reset password endpoint (rate-limited)
+router.post(
+  "/reset-password",
+  resetLimiter,
+  validate(z.object({ email: z.string().email() }), { sanitize: true }),
+  (_req, res) => {
+    res
+      .status(501)
+      .json({ error: "Password reset handled via Supabase auth flow" });
+  },
+);
 
 /**
  * POST /api/auth/sync
@@ -29,6 +60,7 @@ const router: Router = express.Router();
  */
 router.post(
   "/sync",
+  loginLimiter,
   authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -180,13 +212,17 @@ router.delete(
 router.post(
   "/otp/send",
   authMiddleware,
+  validate(
+    z.object({
+      phone: z.string().trim().min(5).regex(/^\+?[\d\s\-()]+$/, {
+        message: "Nieprawidłowy numer telefonu.",
+      }),
+    }),
+    { sanitize: true },
+  ),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { phone } = req.body;
-      if (!phone) {
-        return res.status(400).json({ error: "Numer telefonu jest wymagany." });
-      }
-
       await smsService.sendVerificationCode(phone);
       res.json({ success: true, message: "Kod SMS został wysłany." });
     } catch (error: any) {
@@ -203,14 +239,23 @@ router.post(
 router.post(
   "/otp/verify",
   authMiddleware,
+  validate(
+    z.object({
+      phone: z.string().trim().min(5).regex(/^\+?[\d\s\-()]+$/, {
+        message: "Nieprawidłowy numer telefonu.",
+      }),
+      code: z.string().trim().min(4).max(12),
+    }),
+    { sanitize: true },
+  ),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.user?.id;
       const { phone, code } = req.body;
 
-      if (!userId || !phone || !code) {
+      if (!userId) {
         return res
-          .status(400)
+          .status(401)
           .json({ error: "Brak wymaganych danych (ID, telefon lub kod)." });
       }
 

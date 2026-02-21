@@ -36,7 +36,7 @@ const paymentAmountSchema = z.object({
 const listingFee = 20; // PLN
 const commissionRate = 0.1; // 10%
 
-router.post('/stripe/checkout', validate(createCheckoutSchema), async (req: any, res) => {
+router.post('/stripe/checkout', validate(createCheckoutSchema, { sanitize: true }), async (req: any, res) => {
   try {
     if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
     const userId = req.user?.id;
@@ -135,7 +135,7 @@ router.post('/stripe/listing-fee', validate(z.object({
   auctionId: z.string().uuid(),
   successUrl: z.string().url().optional(),
   cancelUrl: z.string().url().optional()
-})), async (req: any, res) => {
+}), { sanitize: true }), async (req: any, res) => {
   try {
     if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
     const userId = req.user?.id;
@@ -218,7 +218,7 @@ router.post('/stripe/commission', validate(z.object({
   auctionId: z.string().uuid(),
   successUrl: z.string().url().optional(),
   cancelUrl: z.string().url().optional()
-})), async (req: any, res) => {
+}), { sanitize: true }), async (req: any, res) => {
   try {
     if (!stripe) return res.status(500).json({ error: 'Stripe not configured' });
     const userId = req.user?.id;

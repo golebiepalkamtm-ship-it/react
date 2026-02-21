@@ -45,6 +45,8 @@ import { cspMiddleware } from "./middleware/csp.js";
 import { validatedEnv } from "./lib/env.js";
 import { getCorsOptions, getAllowedOrigins } from "./lib/originUtils.js";
 import AuctionCronService from "./services/AuctionCronService.js";
+import { requestIdMiddleware } from "./middleware/requestId.js";
+import { prisma } from "./lib/db.js";
 
 import { RedisStore } from "connect-redis";
 import redisClient from "./lib/redis.js";
@@ -72,7 +74,7 @@ const sessionMiddleware = session({
   cookie: {
     secure: validatedEnv.NODE_ENV === "production",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   },
 });
@@ -99,26 +101,24 @@ const corsOptions = {
     "Content-Type",
     "Accept",
     "Authorization",
-    "X-CSRF-Token",
-    "Cache-Control",
-    "Pragma",
+    "X-Request-ID",
   ],
-  exposedHeaders: [
-    "X-CSRF-Token",
-    "X-RateLimit-Limit",
-    "X-RateLimit-Remaining",
-    "X-RateLimit-Reset",
-  ],
-  maxAge: validatedEnv.CORS_MAX_AGE,
+  // Ensure preflight responses use 200 (tests expect 200, not default 204)
   optionsSuccessStatus: 200,
 };
 
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   }),
 );
+app.use(requestIdMiddleware);
 app.use(compression());
+app.use(
+  express.json({
+    limit: "10mb",
+  }),
+);
 app.use(cspMiddleware);
 
 // Explicit preflight handler for health so tests get 200 (and CORS headers when allowed)
@@ -143,7 +143,6 @@ app.post(
   },
 );
 
-app.use(express.json({ limit: "10mb" }));
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SyntaxError && hasBodyProperty(err)) {
     console.error("Malformed JSON payload:", err);
@@ -240,8 +239,6 @@ app.use("/api/proxy", proxyRoutes);
 // Test CSRF endpoint
 app.post("/api/test-csrf", testCSRFEndpoint);
 app.get("/api/test-csrf", testCSRFEndpoint);
-
-import { prisma } from "./lib/db.js";
 
 const getLocalDataPath = (filename: string): string => {
   const possiblePaths = [

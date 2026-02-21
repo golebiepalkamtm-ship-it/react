@@ -33,6 +33,12 @@ interface RequestConfig extends RequestInit {
   signal?: AbortSignal;
 }
 
+export interface AbortableRequest<T> {
+  promise: Promise<T>;
+  cancel: () => void;
+  signal: AbortSignal;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -215,19 +221,22 @@ class ApiClient {
   async get<T>(
     endpoint: string,
     params?: Record<string, string | number | undefined>,
+    config?: RequestConfig,
   ): Promise<T> {
-    return this.request<T>(endpoint, { method: "GET", params });
+    return this.request<T>(endpoint, { method: "GET", params, ...(config || {}) });
   }
 
   async getWithToken<T>(
     endpoint: string,
     params?: Record<string, string | number | undefined>,
     token?: string,
+    config?: RequestConfig,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       method: "GET",
       params,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
+      ...(config || {}),
     });
   }
 
@@ -260,6 +269,22 @@ class ApiClient {
       body: data ? JSON.stringify(data) : undefined,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
+  }
+
+  createAbortableRequest<T>(
+    endpoint: string,
+    config: RequestConfig = {},
+  ): AbortableRequest<T> {
+    const controller = new AbortController();
+    const promise = this.request<T>(endpoint, {
+      ...config,
+      signal: controller.signal,
+    });
+    return {
+      promise,
+      cancel: () => controller.abort(),
+      signal: controller.signal,
+    };
   }
 
   // Metoda do pobierania CSRF token

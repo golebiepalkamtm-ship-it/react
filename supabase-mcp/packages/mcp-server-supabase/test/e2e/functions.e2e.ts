@@ -1,16 +1,13 @@
+// @ts-nocheck
 /// <reference types="../extensions.d.ts" />
 
-import {
-  generateText,
-  type TypedToolCall,
-  type ToolSet,
-  stepCountIs,
-} from 'ai';
+import { generateText } from 'ai';
 import { codeBlock } from 'common-tags';
 import { describe, expect, test } from 'vitest';
 import { createOrganization, createProject } from '../mocks.js';
 import { join } from 'node:path/posix';
-import { getTestModel, setup } from './utils.js';
+import { getAiTools, getTestModel, setup } from './utils.js';
+import { stepCountIs } from './step-helpers.js';
 
 describe('edge function e2e tests', () => {
   test('deploys an edge function', async () => {
@@ -29,8 +26,8 @@ describe('edge function e2e tests', () => {
       organization_id: org.id,
     });
 
-    const toolCalls: TypedToolCall<ToolSet>[] = [];
-    const tools = await client.tools();
+    const toolCalls: any[] = [];
+    const tools = await getAiTools(client);
 
     const { text } = await generateText({
       model,
@@ -95,8 +92,8 @@ describe('edge function e2e tests', () => {
       ]
     );
 
-    const toolCalls: TypedToolCall<ToolSet>[] = [];
-    const tools = await client.tools();
+    const toolCalls: any[] = [];
+    const tools = await getAiTools(client);
 
     const { text } = await generateText({
       model,

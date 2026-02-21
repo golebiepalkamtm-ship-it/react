@@ -1,11 +1,22 @@
-import rateLimit from 'express-rate-limit';
-import { Request, Response } from 'express';
-import logger from '../lib/logger.js';
-import { validatedEnv } from '../lib/env.js';
+import rateLimit from "express-rate-limit";
+import { Request, Response } from "express";
+import logger from "../lib/logger.js";
+import { validatedEnv } from "../lib/env.js";
+import RedisStore from "rate-limit-redis";
+import redis from "../lib/redis.js";
 
-// Redis store (optional - uncomment if you have Redis)
-// import RedisStore from 'rate-limit-redis';
-// import redis from '../lib/redis.js';
+const redisStore =
+  redis &&
+  new RedisStore({
+    // rate-limit-redis uses sendCommand signature from ioredis; adapt for node-redis
+    sendCommand: (...args: string[]) => redis.sendCommand(args),
+  });
+
+const baseLimiterConfig = {
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: redisStore ?? undefined,
+};
 
 // Global rate limiter
 export const globalLimiter = rateLimit({
@@ -15,8 +26,8 @@ export const globalLimiter = rateLimit({
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: Math.ceil(validatedEnv.RATE_LIMIT_WINDOW_MS / 1000)
   },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: true, // Also include legacy headers for compatibility
+  ...baseLimiterConfig,
+  legacyHeaders: true, // Keep legacy headers for backwards compatibility on global
   handler: (req: Request, res: Response) => {
     logger.warn(`Rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
       ip: req.ip,
@@ -24,15 +35,59 @@ export const globalLimiter = rateLimit({
       path: req.path,
       method: req.method
     });
-    
     res.status(429).json({
       error: 'Too many requests from this IP, please try again later.',
-      retryAfter: 15 * 60
+      retryAfter: Math.ceil(validatedEnv.RATE_LIMIT_WINDOW_MS / 1000),
     });
   },
-  // store: new RedisStore({
-  //   sendCommand: (...args: string[]) => redis.sendCommand(args),
-  // }),
+});
+
+// Login-specific limiter (tighter)
+export const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  message: {
+    error: 'Too many login attempts, please try again later.',
+    retryAfter: 15 * 60,
+  },
+  ...baseLimiterConfig,
+  legacyHeaders: true,
+  handler: (req: Request, res: Response) => {
+    logger.warn(`Login rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      path: req.path,
+      method: req.method,
+    });
+    res.status(429).json({
+      error: 'Too many login attempts, please try again later.',
+      retryAfter: 15 * 60,
+    });
+  },
+});
+
+// Password reset limiter
+export const resetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: {
+    error: 'Too many reset attempts, please try again later.',
+    retryAfter: 60 * 60,
+  },
+  ...baseLimiterConfig,
+  legacyHeaders: true,
+  handler: (req: Request, res: Response) => {
+    logger.warn(`Password reset rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      path: req.path,
+      method: req.method,
+    });
+    res.status(429).json({
+      error: 'Too many reset attempts, please try again later.',
+      retryAfter: 60 * 60,
+    });
+  },
 });
 
 // Auth endpoints limiter - 5 requests per 15 minutes per IP
@@ -43,7 +98,7 @@ export const authLimiter = rateLimit({
     error: 'Too many authentication attempts, please try again later.',
     retryAfter: 15 * 60 // 15 minutes in seconds
   },
-  standardHeaders: true,
+  ...baseLimiterConfig,
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(`Auth rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
@@ -58,9 +113,6 @@ export const authLimiter = rateLimit({
       retryAfter: 15 * 60
     });
   },
-  // store: new RedisStore({
-  //   sendCommand: (...args: string[]) => redis.sendCommand(args),
-  // }),
 });
 
 // Auction bidding limiter - 10 requests per minute per user (tightened for security)

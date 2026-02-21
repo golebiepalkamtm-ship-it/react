@@ -6,6 +6,8 @@ import { createSupabaseApiPlatform } from '../../src/platform/api-platform.js';
 import { ACCESS_TOKEN, API_URL, MCP_CLIENT_NAME } from '../mocks.js';
 
 const DEFAULT_TEST_MODEL = 'claude-3-7-sonnet-20250219';
+export const HAS_REAL_ANTHROPIC_KEY =
+  !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'test-key';
 
 type SetupOptions = {
   projectId?: string;
@@ -46,4 +48,21 @@ export async function setup({ projectId }: SetupOptions = {}) {
  */
 export function getTestModel(modelId?: string) {
   return anthropic(modelId ?? DEFAULT_TEST_MODEL);
+}
+
+/**
+ * Converts MCP client tools to AI SDK-compatible function tools.
+ * The AI SDK version under test does not understand "dynamic" tool types.
+ */
+export async function getAiTools(client: Awaited<ReturnType<typeof setup>>['client']) {
+  const toolsResult = await client.tools();
+  const toolsArray = Array.isArray(toolsResult)
+    ? toolsResult
+    : Array.isArray((toolsResult as any)?.tools)
+      ? (toolsResult as any).tools
+      : [];
+
+  return toolsArray.map((tool: any) =>
+    tool?.type === 'dynamic' ? { ...tool, type: 'function' } : tool
+  );
 }

@@ -54,6 +54,8 @@ model User {
   reviewsGiven    Review[]       @relation("ReviewerReviews")
   savedSearches   SavedSearch[]
   watchlist       Watchlist[]
+  sentMessages    Message[]      @relation("SentMessages")
+  receivedMessages Message[]     @relation("ReceivedMessages")
 
   @@map("users")
 }
@@ -233,6 +235,22 @@ model Notification {
   @@index([read])
   @@index([type])
   @@map("notifications")
+}
+
+model Message {
+  id             String   @id @default(uuid()) @db.Uuid
+  senderId       String   @map("sender_id") @db.Uuid
+  recipientId    String   @map("recipient_id") @db.Uuid
+  conversationId String?  @map("conversation_id") @db.Uuid
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+  sender         User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient      User     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([conversationId])
+  @@map("messages")
 }
 
 model Review {

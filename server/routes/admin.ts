@@ -122,6 +122,22 @@ async function logAdminAction(
 }
 
 /**
+ * Lightweight metrics endpoint (alias for monitoring/health)
+ */
+router.get("/metrics", ensureAdmin, async (req: Request, res: Response) => {
+  try {
+    // Keep minimal to avoid heavy DB usage; reuse cache stats if available
+    res.json({
+      status: "ok",
+      cacheKeys: cache ? Object.keys(await cache.keys?.())?.length ?? undefined : undefined,
+    });
+  } catch (error: any) {
+    console.error("Metrics fetch error:", error);
+    res.status(500).json({ error: error.message || "Failed to load metrics" });
+  }
+});
+
+/**
  * Pobiera statystyki systemowe
  */
 router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {

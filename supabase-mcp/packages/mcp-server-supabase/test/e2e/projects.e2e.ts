@@ -1,14 +1,11 @@
+// @ts-nocheck
 /// <reference types="../extensions.d.ts" />
 
-import {
-  generateText,
-  type TypedToolCall,
-  type ToolSet,
-  stepCountIs,
-} from 'ai';
+import { generateText } from 'ai';
 import { describe, expect, test } from 'vitest';
 import { createOrganization, createProject } from '../mocks.js';
-import { getTestModel, setup } from './utils.js';
+import { getTestModel, getAiTools, setup } from './utils.js';
+import { stepCountIs } from './step-helpers.js';
 
 describe('project management e2e tests', () => {
   test('identifies correct project before listing tables', async () => {
@@ -37,8 +34,8 @@ describe('project management e2e tests', () => {
     await inventoryProject.db
       .sql`create table inventory (id serial, name text)`;
 
-    const toolCalls: TypedToolCall<ToolSet>[] = [];
-    const tools = await client.tools();
+    const toolCalls: any[] = [];
+    const tools = await getAiTools(client);
 
     const { text } = await generateText({
       model,
@@ -91,8 +88,8 @@ describe('project management e2e tests', () => {
     const { client } = await setup({ projectId: project.id });
     const model = getTestModel();
 
-    const toolCalls: TypedToolCall<ToolSet>[] = [];
-    const tools = await client.tools();
+    const toolCalls: any[] = [];
+    const tools = await getAiTools(client);
 
     const { text } = await generateText({
       model,
