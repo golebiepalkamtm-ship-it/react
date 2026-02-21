@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, User, Shield, CheckCircle, AlertCircle } from "lucide-react";
+import { Menu, X, User, Shield, CheckCircle, AlertCircle, Gavel } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import UserPanel from "./UserPanel";
 import AdminPanel from "./AdminPanel";
