@@ -17,5 +17,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "server", "supabase_types.ts"]
+  "include": ["src/**/*", "server/**/*", "supabase_types.ts"]
 }
