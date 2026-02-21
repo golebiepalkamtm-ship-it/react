@@ -31,18 +31,23 @@ export const useScrollAnimation = (
 
     const ctx = gsap.context(() => {
       animations.forEach((anim) => {
-        const target =
+        // Resolve targets - handle functions, strings, or Ref objects
+        let target =
           typeof anim.targets === "function" ? anim.targets() : anim.targets;
+        if (target && "current" in target) target = target.current;
         if (!target) return;
 
-        // Rozwiązujemy trigger - jeśli jest funkcją, wywołujemy ją,
-        // w przeciwnym razie używamy podanego triggera lub kontenera
+        // Resolve trigger - handle functions, strings, or Ref objects
         let resolvedTrigger: any = containerRef.current;
         if (anim.scrollTrigger?.trigger) {
           resolvedTrigger =
             typeof anim.scrollTrigger.trigger === "function"
               ? anim.scrollTrigger.trigger()
               : anim.scrollTrigger.trigger;
+
+          if (resolvedTrigger && "current" in resolvedTrigger) {
+            resolvedTrigger = resolvedTrigger.current;
+          }
         }
 
         const config = {

@@ -56,92 +56,94 @@ function ReferenceCard({
   };
 
   return (
-    <motion.div
-      ref={cardRef}
-      style={{ opacity, y }}
-      className={`reference-card group cursor-pointer rounded-2xl border p-6 transition-all duration-500 bg-white shadow-lg
-        ${isActive ? "border-gold/50 scale-[1.015]" : "border-gold/20 hover:border-gold/40"}
-      `}
-      onClick={onClick}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      viewport={{ once: true }}
-      whileHover={{ scale: isActive ? 1.02 : 1.01 }}
-    >
-      {isActive && (
-        <motion.div
-          className="absolute -top-8 left-1/2 -translate-x-1/2 w-[100%] h-24 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(250,204,21,0.25) 0%, transparent 60%)",
-          }}
-          animate={{
-            opacity: [0.5, 0.8, 0.5],
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      )}
-
-      <div className="relative flex items-center gap-4 mb-4">
-        <div
-          className={`
-          w-14 h-14 rounded-full overflow-hidden border-2 flex-shrink-0 bg-white
-          ${isActive ? "border-gold/60 shadow-[0_0_20px_rgba(212,175,55,0.25)]" : "border-gold/20"}
+    <div className="reference-card-reveal relative h-full">
+      <motion.div
+        ref={cardRef}
+        style={{ opacity, y }}
+        className={`reference-card group cursor-pointer rounded-2xl border p-6 transition-all duration-500 bg-white shadow-lg h-full
+          ${isActive ? "border-gold/50 scale-[1.015]" : "border-gold/20 hover:border-gold/40"}
         `}
-        >
-          {getPrimaryImage() ? (
-            <img
-              src={getPrimaryImage() as string}
-              alt={reference.breeder_name}
-              className="w-full h-full object-cover object-top"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-100">
-              <ImageOff className="w-5 h-5 text-slate-400" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3
+        onClick={onClick}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+        viewport={{ once: true }}
+        whileHover={{ scale: isActive ? 1.02 : 1.01 }}
+      >
+        {isActive && (
+          <motion.div
+            className="absolute -top-8 left-1/2 -translate-x-1/2 w-[100%] h-24 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(250,204,21,0.25) 0%, transparent 60%)",
+            }}
+            animate={{
+              opacity: [0.5, 0.8, 0.5],
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        )}
+
+        <div className="relative flex items-center gap-4 mb-4">
+          <div
             className={`
-            font-semibold truncate transition-colors
-            ${isActive ? "text-gold-dark" : "text-slate-900 group-hover:text-gold-dark"}
+            w-14 h-14 rounded-full overflow-hidden border-2 flex-shrink-0 bg-white
+            ${isActive ? "border-gold/60 shadow-[0_0_20px_rgba(212,175,55,0.25)]" : "border-gold/20"}
           `}
           >
-            {reference.breeder_name}
-          </h3>
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <MapPin className="w-3 h-3 flex-shrink-0 text-gold" />
-            <span className="truncate">{reference.location}</span>
+            {getPrimaryImage() ? (
+              <img
+                src={getPrimaryImage() as string}
+                alt={reference.breeder_name}
+                className="w-full h-full object-cover object-top"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                <ImageOff className="w-5 h-5 text-slate-400" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3
+              className={`
+              font-semibold truncate transition-colors
+              ${isActive ? "text-gold-dark" : "text-slate-900 group-hover:text-gold-dark"}
+            `}
+            >
+              {reference.breeder_name}
+            </h3>
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <MapPin className="w-3 h-3 flex-shrink-0 text-gold" />
+              <span className="truncate">{reference.location}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center mb-3">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            className={`w-4 h-4 ${i < Math.max(1, Math.min(5, reference.rating)) ? "text-gold fill-gold" : "text-slate-200"}`}
-          />
-        ))}
-        <span className="text-xs text-slate-600 ml-2">
-          {reference.rating}/5
-        </span>
-      </div>
-
-      <p className="text-sm text-slate-700 line-clamp-3 mb-3 italic">
-        "{reference.opinion}"
-      </p>
-
-      {reference.pigeon_name && (
-        <div className="flex items-center gap-2 text-xs text-gold-dark font-medium">
-          <Trophy className="w-3 h-3" />
-          {reference.pigeon_name}
+        <div className="flex items-center mb-3">
+          {[...Array(5)].map((_, i) => (
+            <Star
+              key={i}
+              className={`w-4 h-4 ${i < Math.max(1, Math.min(5, reference.rating)) ? "text-gold fill-gold" : "text-slate-200"}`}
+            />
+          ))}
+          <span className="text-xs text-slate-600 ml-2">
+            {reference.rating}/5
+          </span>
         </div>
-      )}
-    </motion.div>
+
+        <p className="text-sm text-slate-700 line-clamp-3 mb-3 italic">
+          "{reference.opinion}"
+        </p>
+
+        {reference.pigeon_name && (
+          <div className="flex items-center gap-2 text-xs text-gold-dark font-medium">
+            <Trophy className="w-3 h-3" />
+            {reference.pigeon_name}
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 }
 
@@ -189,32 +191,24 @@ export function ReferencesPage() {
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  // Component-level animations using useScrollAnimation hook
   useScrollAnimation(
-    heroRef as React.RefObject<HTMLElement>,
+    heroRef,
     [
       // Hero content children animation
       {
-        targets: () => {
-          const heroContent = heroContentRef.current;
-          return heroContent?.children ? Array.from(heroContent.children) : [];
-        },
+        targets: () =>
+          heroContentRef.current
+            ? Array.from(heroContentRef.current.children)
+            : [],
         fromVars: { opacity: 0, y: 60 },
         toVars: {
           opacity: 1,
           y: 0,
-          stagger: 0.25,
-          duration: 1.8,
-          ease: "power3.out",
-          delay: 0.5,
+          stagger: 0.2,
+          duration: 1.2,
+          ease: "expo.out",
         },
-        scrollTrigger: {
-          trigger: () => heroRef.current,
-          start: "top+=100 bottom", // Dodano offset +100px - jeszcze wcześniejsze rozpoczęcie animacji
-          end: "top 70%", // Zwiększono end point z 60% na 70%
-          toggleActions: "play none none none",
-          once: true,
-        },
+        delay: 0.4,
       },
       // Parallax scroll for hero
       {
@@ -237,10 +231,10 @@ export function ReferencesPage() {
 
   // Reference cards animation
   useScrollAnimation(
-    containerRef as React.RefObject<HTMLElement>,
+    containerRef,
     [
       {
-        targets: ".reference-card",
+        targets: ".reference-card-reveal",
         fromVars: { opacity: 0, y: 50 },
         toVars: {
           opacity: 1,

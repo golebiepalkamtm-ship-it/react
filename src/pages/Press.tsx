@@ -75,84 +75,86 @@ const PressArticleCard = ({
   };
 
   return (
-    <motion.div
-      ref={cardRef}
-      className="relative group h-full press-card"
-      style={{ perspective: "1000px", opacity, y, scale }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-    >
-      <motion.article
-        className="relative overflow-hidden rounded-2xl border border-white/40 backdrop-blur-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] h-full flex flex-col"
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-          background:
-            "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
-        }}
-        whileHover={{ scale: 1.02 }}
-        transition={{ scale: { duration: 0.2 } }}
+    <div className="relative group h-full press-card-reveal">
+      <motion.div
+        ref={cardRef}
+        className="h-full"
+        style={{ perspective: "1000px", opacity, y, scale }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={handleMouseLeave}
       >
-        <div className="relative aspect-[16/10] overflow-hidden bg-transparent">
-          <img
-            src={article.images.main}
-            alt={article.title}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src =
-                "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop";
-            }}
+        <motion.article
+          className="relative overflow-hidden rounded-2xl border border-white/40 backdrop-blur-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] h-full flex flex-col"
+          style={{
+            rotateX,
+            rotateY,
+            transformStyle: "preserve-3d",
+            background:
+              "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
+          }}
+          whileHover={{ scale: 1.02 }}
+          transition={{ scale: { duration: 0.2 } }}
+        >
+          <div className="relative aspect-[16/10] overflow-hidden bg-transparent">
+            <img
+              src={article.images.main}
+              alt={article.title}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-contain p-4 md:p-5 drop-shadow-md group-hover:scale-105 transition-transform duration-500"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src =
+                  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop";
+              }}
+            />
+          </div>
+
+          <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
+            <div className="flex items-center gap-2 text-sm text-slate-600 mb-3 flex-wrap">
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-dark">
+                <Newspaper className="w-3 h-3 gold-icon" />
+                {article.publication}
+              </span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/70">
+                <Calendar className="w-3 h-3 gold-icon" />
+                {new Date(article.date).toLocaleDateString("pl-PL")}
+              </span>
+            </div>
+
+            <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
+              {article.title}
+            </h3>
+
+            <p className="text-white/70 text-sm line-clamp-4 mb-4">
+              {article.excerpt}
+            </p>
+
+            <div className="mt-auto">
+              <Button
+                size="sm"
+                className="w-full relative z-40 bg-[#A68E4E] hover:bg-[#8e7a42] text-zinc-950 font-bold border-none transition-colors"
+                asChild
+              >
+                <Link to={`/press/${article.id}`}>
+                  Czytaj więcej
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            transition={{ duration: 1, delay: index * 0.1 }}
+            viewport={{ once: true }}
           />
-        </div>
-
-        <div className="relative p-6 flex-grow flex flex-col justify-between z-30">
-          <div className="flex items-center gap-2 text-sm text-slate-600 mb-3 flex-wrap">
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold/10 text-gold-dark">
-              <Newspaper className="w-3 h-3 gold-icon" />
-              {article.publication}
-            </span>
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10 text-white/70">
-              <Calendar className="w-3 h-3 gold-icon" />
-              {new Date(article.date).toLocaleDateString("pl-PL")}
-            </span>
-          </div>
-
-          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
-            {article.title}
-          </h3>
-
-          <p className="text-white/70 text-sm line-clamp-4 mb-4">
-            {article.excerpt}
-          </p>
-
-          <div className="mt-auto">
-            <Button
-              size="sm"
-              className="w-full relative z-40 bg-[#A68E4E] hover:bg-[#8e7a42] text-zinc-950 font-bold border-none transition-colors"
-              asChild
-            >
-              <Link to={`/press/${article.id}`}>
-                Czytaj więcej
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          transition={{ duration: 1, delay: index * 0.1 }}
-          viewport={{ once: true }}
-        />
-      </motion.article>
-    </motion.div>
+        </motion.article>
+      </motion.div>
+    </div>
   );
 };
 
@@ -216,9 +218,8 @@ const PressPage = () => {
           scrub: 0.5,
         },
       },
-      // Press Cards Reveal
       {
-        targets: ".press-card",
+        targets: ".press-card-reveal",
         fromVars: { opacity: 0, y: 50 },
         toVars: {
           opacity: 1,
