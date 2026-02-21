@@ -292,15 +292,13 @@ const HeroPremium = () => {
   return (
     <section
       ref={heroRef}
-      className="relative min-h-screen flex items-center justify-start overflow-hidden bg-transparent"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent"
     >
-      {/* Żadnego tła, żadnych poświat - czysta biel */}
-
       <div
         ref={contentRef}
-        className="relative z-10 container mx-auto px-4 lg:px-6 text-left mt-[-5vh] flex flex-col lg:flex-row items-start gap-12"
+        className="relative z-10 container mx-auto px-4 lg:px-6 text-center mt-[-5vh] flex flex-col items-center gap-8"
       >
-        <div className="flex-1 min-w-0">
+        <div className="w-full max-w-4xl flex flex-col items-center">
           <div className="hero-reveal mb-8">
             <span className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/20">
               <Star className="w-3.5 h-3.5 fill-current" />
@@ -308,21 +306,21 @@ const HeroPremium = () => {
             </span>
           </div>
 
-          <h1 className="hero-reveal mb-6 text-4xl md:text-6xl lg:text-7xl font-bold font-display tracking-tight leading-tight uppercase text-left">
+          <h1 className="hero-reveal mb-6 text-4xl md:text-6xl lg:text-7xl font-bold font-display tracking-tight leading-tight uppercase text-center">
             <span className="text-zinc-900">Pałka</span>{" "}
             <span className="text-[#A68E4E]">MTM</span>
-            <span className="block text-xl md:text-2xl font-light tracking-[0.2em] text-[#A68E4E] mt-4 uppercase text-left">
+            <span className="block text-xl md:text-2xl font-light tracking-[0.2em] text-[#A68E4E] mt-4 uppercase text-center">
               — Geny Zwycięzców
             </span>
           </h1>
 
-          <p className="hero-reveal text-xl md:text-2xl text-zinc-600 max-w-2xl mb-12 font-light">
+          <p className="hero-reveal text-xl md:text-2xl text-zinc-600 max-w-2xl mb-12 font-light mx-auto">
             Trzy pokolenia pasji. Setki mistrzostw.
             <br />
             Elitarne gołębie pocztowe z Dolnego Śląska.
           </p>
 
-          <div className="hero-reveal mb-20">
+          <div className="hero-reveal flex justify-center">
             <Link
               to="/champions"
               className="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-[#A68E4E] text-zinc-900 rounded-full font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20"
@@ -331,48 +329,6 @@ const HeroPremium = () => {
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-
-          <div className="hero-reveal grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl w-full">
-            {[
-              { icon: Trophy, value: 150, suffix: "+", label: "Mistrzostw" },
-              {
-                icon: Award,
-                value: 45,
-                suffix: "+",
-                label: "Lat Doświadczenia",
-              },
-              { icon: Zap, value: 3, suffix: "", label: "Pokolenia Hodowców" },
-            ].map((stat, i) => (
-              <div
-                key={stat.label}
-                className="group text-left p-8 rounded-2xl border border-gold/40 bg-emerald-950/30 backdrop-blur-xl backdrop-brightness-125 transition-all duration-500 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden"
-              >
-                {/* Decorative Overlays to match other cards */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.15),transparent_70%)] pointer-events-none" />
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
-
-                <div className="relative z-10">
-                  <stat.icon className="w-7 h-7 text-[#A68E4E] drop-shadow-[0_0_12px_rgba(166,142,78,0.45)] mb-4 group-hover:scale-110 transition-transform" />
-                  <div className="text-4xl font-bold gold-heading mb-2 tracking-tight">
-                    <CountUp
-                      end={stat.value}
-                      duration={2.5}
-                      delay={0.5 + i * 0.2}
-                      suffix={stat.suffix}
-                    />
-                  </div>
-                  <div className="text-white/70 text-sm uppercase tracking-widest font-medium">
-                    {stat.label}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="hidden lg:flex flex-1 justify-end perspective-1000">
-          <InteractiveVideoHero />
         </div>
       </div>
 
