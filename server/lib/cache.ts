@@ -243,6 +243,10 @@ class SimpleCache {
     return { ...this.stats };
   }
 
+  keys(): string[] {
+    return Array.from(this.cache.keys());
+  }
+
   getCacheInfo(): {
     size: number;
     entries: Array<{ key: string; expiresAt: number; tags?: string[]; dependencies?: string[] }>;

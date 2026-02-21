@@ -9,8 +9,10 @@ declare module "express-serve-static-core" {
   }
 }
 
+export {};
+
 export const requestIdMiddleware = (
-  req: Request,
+  req: Request & { traceId?: string },
   res: Response,
   next: NextFunction,
 ) => {
