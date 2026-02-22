@@ -99,7 +99,7 @@ const StatCard = ({
   return (
     <motion.div
       ref={cardRef}
-      className="p-4 rounded-xl border border-teal-500/40 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8),0_0_30px_rgba(20,184,166,0.3)] backdrop-blur-xl relative overflow-hidden group"
+      className="p-4 rounded-xl border border-gold/40 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8),0_0_30px_rgba(166,142,78,0.2)] backdrop-blur-xl relative overflow-hidden group"
       style={{
         transformStyle: "preserve-3d",
         rotateX,
@@ -107,27 +107,27 @@ const StatCard = ({
         x: translateX,
         y: translateY,
         background:
-          "linear-gradient(185deg, rgba(2, 10, 19, 0.95) 0%, rgba(6, 35, 46, 0.9) 45%, rgba(9, 61, 77, 0.85) 100%)",
+          "radial-gradient(circle at top, rgba(166, 142, 78, 0.15), transparent 70%), linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(10, 10, 10, 0.96) 50%, rgba(15, 15, 15, 0.95) 100%)",
       }}
       whileHover={{ scale: 1.08 }}
       transition={{ type: "spring", stiffness: 280, damping: 18 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-teal-400/30 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.7),transparent_75%)] pointer-events-none" />
-      <div className="absolute inset-0 bg-teal-950/20 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.4),transparent_75%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-zinc-950/20 pointer-events-none" />
       <div
         className="w-10 h-10 mx-auto mb-3 rounded-full flex items-center justify-center border border-gold/30"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 30% 30%, rgba(66,192,206,0.3), rgba(9,61,77,0.85))",
-          boxShadow: `0 0 25px rgba(66, 192, 206, 0.4)`,
+            "radial-gradient(circle at 30% 30%, rgba(212,175,55,0.3), rgba(166,142,78,0.85))",
+          boxShadow: `0 0 25px rgba(212, 175, 55, 0.4)`,
         }}
       >
         <Icon className="w-5 h-5 gold-icon" />
       </div>
-      <div className="text-xl font-bold text-foreground mb-1">{value}</div>
+      <div className="text-xl font-bold text-zinc-900 mb-1">{value}</div>
       <div className="text-muted-foreground text-[9px] uppercase tracking-[0.3em]">
         {label}
       </div>
@@ -259,9 +259,11 @@ const HeroPremium = memo(() => {
             hidden: { opacity: 0, y: 40 },
             visible: { opacity: 1, y: 0 },
           }}
-          className="text-3xl md:text-5xl lg:text-6xl font-bold font-display mb-6 gold-heading tracking-tight"
+          className="text-3xl md:text-5xl lg:text-6xl font-bold font-display mb-6 tracking-tight"
         >
-          Pałka <span className="text-white">MTM</span> - Geny Zwycięzców
+          <span className="heading-black">Pałka</span>{" "}
+          <span className="gold-heading">MTM</span>{" "}
+          <span className="gold-heading">— Geny Zwycięzców</span>
         </motion.h1>
 
         <motion.p
@@ -343,6 +345,7 @@ const FeatureCardPremium = memo(
     const cardRef = useRef<HTMLDivElement>(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
+    const [isHovered, setIsHovered] = useState(false);
 
     const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
       stiffness: 160,
@@ -373,14 +376,21 @@ const FeatureCardPremium = memo(
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: index * 0.1 }}
-        className={`h-full flex flex-col p-6 rounded-xl border border-gold/40 bg-zinc-950/20 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.4)] backdrop-blur-xl backdrop-brightness-125 transition-all duration-300 relative group overflow-hidden ${className || ""}`}
+        className={`h-full flex flex-col p-6 rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300 relative group overflow-hidden ${className || ""}`}
         ref={cardRef}
         style={{ transformStyle: "preserve-3d", rotateX, rotateY }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.12),transparent_60%)] pointer-events-none" />
+        <motion.div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
+          }}
+          animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
         <div
           className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border border-gold/30"
           style={{
@@ -391,7 +401,7 @@ const FeatureCardPremium = memo(
         >
           <feature.icon className="w-6 h-6 gold-icon" />
         </div>
-        <h3 className="text-lg font-semibold font-display text-white mb-3">
+        <h3 className="text-lg font-semibold font-display text-[#A68E4E] mb-3">
           {feature.title}
         </h3>
         <p className="text-white/60 text-sm leading-relaxed">
@@ -433,8 +443,9 @@ const FeaturesSection = () => {
         <span className="inline-block px-4 py-1.5 border border-gold/20 rounded-full text-[10px] tracking-[0.2em] text-gold uppercase mb-4 bg-gold/5 backdrop-blur-sm">
           Wartości
         </span>
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-display mb-6 uppercase tracking-tight bg-gradient-to-r from-white via-white to-[#42C0CE] text-transparent bg-clip-text">
-          Nasza Filozofia – Geny Mistrzów
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-display mb-6 uppercase tracking-tight">
+          <span className="heading-black">Nasza Filozofia</span> –{" "}
+          <span className="gold-heading">Geny Mistrzów</span>
         </h2>
         <p className="font-display italic text-white/40 text-[11px] md:text-xs max-w-xl mx-auto">
           Fundamenty naszej pasji, które prowadzą nas do zwycięstwa.
@@ -513,8 +524,9 @@ const Index = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-6 uppercase tracking-[0.18em] bg-gradient-to-r from-white via-white to-[#42C0CE] text-transparent bg-clip-text">
-              Gotowy na swojego Championa?
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-6 uppercase tracking-[0.18em]">
+              <span className="text-zinc-900">Gotowy na swojego</span>{" "}
+              <span className="text-[#A68E4E]">Championa?</span>
             </h2>
             <p className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto font-display italic leading-relaxed">
               Przeglądaj naszą ekskluzywną kolekcję i znajdź swój klucz do

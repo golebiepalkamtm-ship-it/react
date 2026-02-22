@@ -76,7 +76,7 @@
   position: relative;
   font-weight: 800;
   color: #d4af37; /* Gold */
-  text-shadow: 0 0 20px rgba(0,0,0,0.5);
+  text-shadow: none;
 }
 
 /* Backgrounds */

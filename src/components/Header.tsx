@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, User, Shield, CheckCircle, AlertCircle, Gavel } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  Shield,
+  CheckCircle,
+  AlertCircle,
+  Gavel,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import UserPanel from "./UserPanel";
 import AdminPanel from "./AdminPanel";
@@ -306,11 +314,11 @@ const Header = () => {
             </motion.div>
             <div className="flex flex-col">
               <motion.span
-                className={`font-display text-lg md:text-xl font-semibold tracking-wide text-white`}
+                className={`font-display text-lg md:text-xl font-semibold tracking-wide text-zinc-900`}
                 initial={{ backgroundPosition: "0% 50%" }}
                 whileHover={{
                   backgroundImage:
-                    "linear-gradient(90deg, #ffffff, #D4AF37, #ffffff)",
+                    "linear-gradient(90deg, #18181b, #D4AF37, #18181b)",
                   backgroundSize: "200% 100%",
                   backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                   transition: { duration: 1.5, repeat: Infinity },
@@ -402,12 +410,12 @@ const Header = () => {
                   visible: { opacity: 1, y: 0 },
                 }}
               >
-                {link.href.startsWith("/#") ? (
+                {link.href?.startsWith("/#") ? (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      const anchor = link.href.split("#")[1];
-                      scrollToAnchor(anchor);
+                      const anchor = (link.href || "").split("#")[1];
+                      if (anchor) scrollToAnchor(anchor);
                     }}
                     className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
                   >
@@ -415,7 +423,7 @@ const Header = () => {
                   </button>
                 ) : (
                   <RouterLink
-                    to={link.href}
+                    to={link.href || "/"}
                     className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
                   >
                     {link.label}
@@ -697,14 +705,14 @@ const Header = () => {
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {link.href.startsWith("/#") ? (
+                    {link.href?.startsWith("/#") ? (
                       <a
                         href={link.href}
                         className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary block"
                         onClick={(e) => {
                           e.preventDefault();
-                          const anchor = link.href.split("#")[1];
-                          scrollToAnchor(anchor);
+                          const anchor = (link.href || "").split("#")[1];
+                          if (anchor) scrollToAnchor(anchor);
                         }}
                         ref={
                           link.label === navLinks[0]?.label
@@ -718,7 +726,7 @@ const Header = () => {
                       </a>
                     ) : (
                       <RouterLink
-                        to={link.href}
+                        to={link.href || "/"}
                         className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary block"
                         onClick={closeMobileMenu}
                         ref={

@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { iconMicro } from "@/components/motion";
 import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
+import { useGSAP } from "@gsap/react";
 
 const Footer = () => {
   const footerRef = useRef<HTMLElement>(null);
@@ -42,142 +43,128 @@ const Footer = () => {
     ],
   };
 
-  useEffect(() => {
-    // Global GSAP handles the cinema reveals via data-attributes
-  }, []);
+  useGSAP(() => {
+    // 1. Initial States
+    gsap.set(".footer-column", { opacity: 0, y: 50, filter: "blur(5px)" });
+    gsap.set(".footer-bottom", { opacity: 0, scaleX: 0.9, filter: "blur(5px)" });
+
+    // 2. Animation Timeline
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: footerRef.current,
+        start: "top 85%",
+        toggleActions: "play none none reverse",
+      }
+    });
+
+    tl.to(".footer-column", {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      duration: 1,
+      stagger: 0.15,
+      ease: "power3.out",
+      clearProps: "filter, opacity, transform" // Usunięcie filtrów po zakończeniu
+    })
+    .to(".footer-bottom", {
+      opacity: 1,
+      scaleX: 1,
+      filter: "blur(0px)",
+      duration: 1.2,
+      ease: "expo.out",
+      clearProps: "filter, opacity, transform" // Usunięcie filtrów po zakończeniu
+    }, "-=0.6");
+
+  }, { scope: footerRef });
 
   return (
     <footer
       ref={footerRef}
       id="footer"
-      className="relative isolate overflow-hidden py-32 border-t-[8px] border-[#D4AF37] text-[#D4AF37]"
-      style={{
-        perspective: "1200px",
-        background:
-          "linear-gradient(135deg, #D4AF37 0%, #1A1A1A 50%, #000000 100%)",
-      }}
-      data-section-reveal
+      className="relative isolate overflow-hidden py-24 border-t border-gold/30 bg-champion-teal text-zinc-400"
     >
       {/* Ekstremalnie mocna złota linia i poświata */}
-      <div className="absolute top-0 left-0 w-full h-[40px] bg-gradient-to-b from-[#D4AF37]/70 to-transparent pointer-events-none blur-3xl opacity-80" />
-      <div className="absolute top-0 left-0 w-full h-[4px] bg-[#D4AF37] shadow-[0_0_60px_rgba(212,175,55,1),0_0_120px_rgba(212,175,55,0.4)]" />
+      <div className="absolute top-0 left-0 w-full h-[40px] bg-gradient-to-b from-[#A68E4E]/70 to-transparent pointer-events-none opacity-90" />
+      <div className="absolute top-0 left-0 w-full h-[4px] bg-[#A68E4E] shadow-[0_0_60px_rgba(166,142,78,1),0_0_120px_rgba(166,142,78,0.4)]" />
 
-      <div
-        className="container mx-auto px-4 relative z-10"
-        data-stagger-container
-      >
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
-          <div
-            className="footer-brand lg:col-span-2"
-            style={{ transformStyle: "preserve-3d" }}
-            data-stagger-item
-          >
-            <div className="flex items-center gap-3 mb-3 relative z-10">
-              <div className="w-12 h-12 rounded-full bg-[#A68E4E] flex items-center justify-center shadow-lg shadow-gold/30">
-                <Trophy className="w-6 h-6 text-black" />
+          <div className="lg:col-span-2 footer-column">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-[#A68E4E] flex items-center justify-center shadow-xl shadow-gold/10">
+                <Trophy className="w-7 h-7 text-zinc-950" />
               </div>
               <div>
-                <span className="font-display text-lg text-[#A68E4E] font-bold uppercase tracking-tight">
+                <h3 className="font-display text-2xl text-zinc-900 font-bold uppercase tracking-tighter">
                   MTM Pałka
-                </span>
-                <span className="block text-xs text-[#A68E4E]/80 font-bold uppercase tracking-widest">
-                  Gołębie pocztowe
-                </span>
+                </h3>
+                <p className="text-xs text-gold font-bold uppercase tracking-[0.3em]">
+                  Heritage since 1979
+                </p>
               </div>
             </div>
-            <p className="text-[#A68E4E]/90 text-sm leading-relaxed mb-4 max-w-md font-light">
-              Witamy w świecie MTM Pałka – hodowli gołębi pocztowych, której
-              fundamentem jest historia trzech pokoleń, a siłą napędową
-              bezgraniczna miłość do lotu.
+            <p className="text-zinc-400 text-sm leading-relaxed mb-8 max-w-md font-light">
+              Trzy pokolenia pasji, setki sukcesów i bezgraniczna miłość do
+              lotu. Dostarczamy elitarne gołębie pocztowe hodowcom na całym
+              świecie.
             </p>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex items-center gap-2 text-[#A68E4E]/80 text-sm font-medium">
-                <Mail size={16} className="text-[#A68E4E]" />
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3 text-zinc-400 text-sm font-medium">
+                <Mail size={18} className="text-gold" />
                 <span>kontakt@palkamtm.pl</span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              {socialLinks.map((social) => (
-                <motion.a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="social-icon w-10 h-10 rounded-full bg-white/8 backdrop-blur-sm flex items-center justify-center text-white/85 hover:text-gold hover:bg-gold/10 transition-all duration-300"
-                  aria-label={social.label}
-                  variants={iconMicro}
-                  initial="rest"
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  <social.icon className="w-5 h-5" />
-                </motion.a>
-              ))}
-            </div>
           </div>
 
-          <div className="footer-column" data-stagger-item>
-            <h4 className="font-display text-[#A68E4E] font-semibold mb-3">
+          <div className="footer-column">
+            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-8">
               Firma
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <motion.div
-                    whileHover={{ x: 4 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    {link.href.startsWith("/#") ? (
-                      <a
-                        href={link.href}
-                        className="text-[#A68E4E]/80 hover:text-[#A68E4E] transition-colors text-sm font-light uppercase tracking-widest"
-                      >
-                        {link.name}
-                      </a>
-                    ) : (
-                      <Link
-                        to={link.href}
-                        className="text-white/70 hover:text-white transition-colors text-sm font-light uppercase tracking-widest"
-                      >
-                        {link.name}
-                      </Link>
-                    )}
-                  </motion.div>
+                  {link.href.startsWith("/#") ? (
+                    <a
+                      href={link.href}
+                      className="text-zinc-500 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
+                    >
+                      {link.name}
+                    </a>
+                  ) : (
+                    <Link
+                      to={link.href}
+                      className="text-zinc-500 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
+                    >
+                      {link.name}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="footer-column" data-stagger-item>
-            <h4 className="font-display text-[#A68E4E] font-semibold mb-3">
+          <div className="footer-column">
+            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-8">
               Usługi
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
-                  <motion.div
-                    whileHover={{ x: 4 }}
-                    transition={{ type: "spring", stiffness: 300 }}
+                  <Link
+                    to={link.href}
+                    className="text-zinc-500 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
                   >
-                    <Link
-                      to={link.href}
-                      className="text-[#D4AF37]/80 hover:text-[#D4AF37] transition-colors text-sm font-light uppercase tracking-widest"
-                    >
-                      {link.name}
-                    </Link>
-                  </motion.div>
+                    {link.name}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div
-          className="footer-bottom pt-4 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
-          data-stagger-item
-        >
-          <p className="text-[#A68E4E]/60 text-xs text-center md:text-left">
+        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 footer-bottom">
+          <p className="text-zinc-600 text-[10px] uppercase tracking-widest">
             © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
           </p>
           <div className="flex gap-6">

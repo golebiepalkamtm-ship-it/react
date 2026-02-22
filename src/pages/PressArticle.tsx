@@ -66,7 +66,7 @@ const PressArticleDetail = () => {
       <div className="min-h-screen relative isolate flex items-center justify-center bg-transparent">
         <div className="fixed inset-0 bg-gradient-to-br from-black/20 via-black/10 to-black/5 -z-10 pointer-events-none backdrop-blur-[1px]" />
         <div className="text-center">
-          <h1 className="font-display text-4xl md:text-5xl text-white font-bold leading-tight mb-4">
+          <h1 className="font-display text-4xl md:text-5xl text-zinc-900 font-bold leading-tight mb-4">
             Artykuł nie został znaleziony
           </h1>
           <Button asChild>
@@ -127,7 +127,7 @@ const PressArticleDetail = () => {
               </div>
 
               <div className="mx-auto max-w-4xl">
-                <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white font-bold leading-tight mb-4">
+                <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-zinc-900 font-bold leading-tight mb-4">
                   {article.title}
                 </h1>
 

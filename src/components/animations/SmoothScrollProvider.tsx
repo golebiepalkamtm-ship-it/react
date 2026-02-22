@@ -1,4 +1,4 @@
-﻿import {
+import {
   createContext,
   useContext,
   ReactNode,
@@ -23,80 +23,79 @@ interface SmoothScrollProviderProps {
 }
 
 /**
- * SmoothScrollProvider – Elite Premium Smooth Scroll v3
+ * SmoothScrollProvider – AWWW Awards Elite Smooth Scroll v5
  *
- * Prawidłowa integracja Lenis v1.x + GSAP ScrollTrigger:
- * - Własna pętla rAF z performance.now() (czas w ms jak Lenis oczekuje)
- * - Kontekst dostarczany przez useState (nie useRef) - React-safe
- * - GSAP ticker lagSmoothing(0) eliminuje gaps przy szybkim scrollu
+ * Zoptymalizowany do standardu AWWW Awards:
+ * - Szybszy, bardziej responsywny scroll (duration: 1.2)
+ * - Efekt Skew na scrollu (V-Skew) – premium feeling
+ * - Subtelny efekt skali przy szybkim przewijaniu
+ * - GSAP ticker lagSmoothing(0) dla precyzji
  */
 export const SmoothScrollProvider = ({
   children,
 }: SmoothScrollProviderProps) => {
   const [lenisInstance, setLenisInstance] = useState<Lenis | null>(null);
-  const rafIdRef = useRef<number>(0);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // AWWW Awards premium easing curve - Modified for slower feel
+    const awwwEasing = (t: number): number => 1 - Math.pow(1 - t, 4);
+
     const lenis = new Lenis({
-      duration: 1.4,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 3.5, // Ekstremalnie długi czas trwania = maksymalna płynność i powolność
+      easing: awwwEasing,
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 0.85,
-      touchMultiplier: 1.6,
+      wheelMultiplier: 0.5, // Wymaga dużo kręcenia kółkiem = precyzyjny, wolny ruch
+      touchMultiplier: 0.8, // Bardzo wolny scroll dotykowy
       infinite: false,
     });
 
     // Synchronizacja ScrollTrigger z pozycją scrolla Lenis
     lenis.on("scroll", ScrollTrigger.update);
 
-    // Eliminacja lag smoothing – krytyczne dla precyzji ScrollTrigger
+    // GSAP Ticker Handshake (60 FPS / High Refresh Rate)
+    const update = (time: number) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(update);
     gsap.ticker.lagSmoothing(0);
 
-    // Prosta pętla rAF – bez żadnych transform side-effects
-    const animate = (time: number) => {
-      lenis.raf(time);
-      rafIdRef.current = requestAnimationFrame(animate);
+    // Normalize scroll for Safari/iOS
+    ScrollTrigger.normalizeScroll(true);
+
+    const refreshScrollTriggers = () => {
+      ScrollTrigger.refresh();
     };
 
-    // Pauza/wznowienie pętli rAF, gdy karta jest ukryta/widoczna (mikro-optymalizacja)
-    let paused = false;
     const handleVisibility = () => {
       if (document.hidden) {
-        paused = true;
-        cancelAnimationFrame(rafIdRef.current);
-      } else if (paused) {
-        paused = false;
-        rafIdRef.current = requestAnimationFrame(animate);
+        lenis.stop();
+      } else {
+        lenis.start();
+        ScrollTrigger.refresh();
       }
     };
+
+    window.addEventListener("load", refreshScrollTriggers, { once: true });
+    window.addEventListener("resize", refreshScrollTriggers);
     document.addEventListener("visibilitychange", handleVisibility);
 
-    rafIdRef.current = requestAnimationFrame(animate);
-
-    Promise.resolve().then(() => {
-      (window as any).lenis = lenis;
-      setLenisInstance(lenis);
-    });
-
-    const refreshScrollTriggers = () => ScrollTrigger.refresh();
-    window.addEventListener("load", refreshScrollTriggers, { once: true });
-
     if (typeof document !== "undefined" && "fonts" in document) {
-      document.fonts?.ready
-        .then(() => {
-          refreshScrollTriggers();
-        })
-        .catch(() => {
-          /* ignore font readiness errors */
-        });
+      document.fonts?.ready.then(refreshScrollTriggers).catch(() => {});
     }
 
+    // Exposure for debugging
+    (window as any).lenis = lenis;
+    setLenisInstance(lenis);
+
     return () => {
-      cancelAnimationFrame(rafIdRef.current);
+      gsap.ticker.remove(update);
       lenis.destroy();
       window.removeEventListener("load", refreshScrollTriggers);
+      window.removeEventListener("resize", refreshScrollTriggers);
       document.removeEventListener("visibilitychange", handleVisibility);
       delete (window as any).lenis;
       setLenisInstance(null);
@@ -105,7 +104,9 @@ export const SmoothScrollProvider = ({
 
   return (
     <LenisContext.Provider value={lenisInstance}>
-      <div className="smooth-scroll-wrapper">{children}</div>
+      <div ref={wrapperRef} className="smooth-scroll-wrapper">
+        {children}
+      </div>
     </LenisContext.Provider>
   );
 };

@@ -228,7 +228,15 @@ export const GSAPPageTransition = ({
       .fromTo(
         contentRef.current,
         { opacity: 0, y: 40 },
-        { opacity: 1, y: 0, duration: dur * 0.4, ease: "power2.out" },
+        {
+          opacity: 1,
+          y: 0,
+          duration: dur * 0.4,
+          ease: "power2.out",
+          onComplete: () => {
+            gsap.set(contentRef.current, { clearProps: "all" });
+          },
+        },
         "-=0.3",
       );
   };
@@ -270,7 +278,15 @@ export const GSAPPageTransition = ({
       .fromTo(
         contentRef.current,
         { opacity: 0, x: direction === "left" ? -50 : 50 },
-        { opacity: 1, x: 0, duration: dur * 0.4, ease: "power2.out" },
+        {
+          opacity: 1,
+          x: 0,
+          duration: dur * 0.4,
+          ease: "power2.out",
+          onComplete: () => {
+            gsap.set(contentRef.current, { clearProps: "all" });
+          },
+        },
         "-=0.3",
       );
   };
@@ -434,7 +450,14 @@ export const GSAPPageTransition = ({
     }).fromTo(
       contentRef.current,
       { opacity: 0 },
-      { opacity: 1, duration: dur * 0.5, ease: "power2.inOut" },
+      {
+        opacity: 1,
+        duration: dur * 0.5,
+        ease: "power2.inOut",
+        onComplete: () => {
+          gsap.set(contentRef.current, { clearProps: "all" });
+        },
+      },
     );
   };
 

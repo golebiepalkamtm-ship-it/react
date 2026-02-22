@@ -65,21 +65,19 @@ const ContactFormCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-zinc-950/20 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl backdrop-brightness-125 h-full p-8"
+        className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
         style={{
           rotateX,
           rotateY,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.25),transparent_70%)] pointer-events-none" />
         <motion.div
           className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
           style={{
             background:
               "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
           }}
-          animate={{ opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3 }}
+          animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
           transition={{ duration: 2, repeat: Infinity }}
         />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent pointer-events-none" />
@@ -262,11 +260,18 @@ const GoogleMapCard = () => {
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-gold/40 bg-zinc-950/20 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl backdrop-brightness-125 transition-all duration-300"
+        className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300"
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       >
-        <div className="absolute inset-0 bg-emerald-500/10 pointer-events-none z-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.2),transparent_50%)] pointer-events-none z-10" />
+        <motion.div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
+          }}
+          animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2518.801815397259!2d15.2833333157461!3d51.0469444795620!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4708e5d3b0d3b3d3%3A0x3f3b3b3b3b3b3b3b!2sStawowa+6%2C+59-800+Luba%C5%84%2C+Poland!5e0!3m2!1sen!2sus!4v1689264800000"
           width="100%"
@@ -381,7 +386,7 @@ const StyledContactCard = ({
   const cardContent = (
     <motion.div
       ref={cardRef}
-      className="relative overflow-hidden rounded-2xl border border-gold/30 bg-zinc-950/20 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.4)] backdrop-blur-xl backdrop-brightness-125 h-full p-8"
+          className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
       style={{
         rotateX,
         rotateY,
@@ -391,8 +396,15 @@ const StyledContactCard = ({
       whileHover={{ scale: 1.05 }}
       transition={{ scale: { duration: 0.2 } }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(66,192,206,0.2),transparent_70%)] pointer-events-none" />
+      <motion.div
+        className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
+        }}
+        animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
       <div className="relative z-10 flex flex-col items-center text-center h-full">
         <div className="mb-4">
           <info.icon className="w-8 h-8 gold-icon" />
@@ -402,13 +414,7 @@ const StyledContactCard = ({
         <p className="text-white/80 text-xs mt-2 flex-grow">{info.detail}</p>
       </div>
       <motion.div
-        className="absolute -top-10 left-1/2 -translate-x-1/2 w-[150%] h-24 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(212,175,55,0.15) 0%, transparent 60%)",
-        }}
-        animate={{ opacity: isHovered ? [0.4, 0.7, 0.4] : 0.2 }}
-        transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 pointer-events-none"
       />
     </motion.div>
   );
@@ -449,122 +455,98 @@ const ContactSection = () => {
   useEffect(() => {
     // Tworzymy kontekst GSAP dla czystego sprzątania
     const ctx = gsap.context(() => {
-      // Ustawienie początkowych stanów elementów
-      gsap.set(titleRef.current, {
-        opacity: 0,
-        y: 80,
-        rotateX: 45,
-        clipPath: "inset(0% 0% 100% 0%)",
+      // 1. Initial States - Hide everything
+      gsap.set([titleRef.current, descRef.current], { 
+        opacity: 0, 
+        y: 60,
+        filter: "blur(10px)" 
       });
-      gsap.set(descRef.current, { opacity: 0, y: 50 });
 
       cardsRef.current.forEach((card, i) => {
         if (!card) return;
         const direction = i % 2 === 0 ? -1 : 1;
-        const rotateAngle = direction * 10;
         gsap.set(card, {
           opacity: 0,
-          y: 80,
-          x: direction * 20,
-          rotateY: rotateAngle,
-          scale: 0.9,
+          y: 100,
+          x: direction * 50, // Większe przesunięcie
+          rotateY: direction * 15,
+          scale: 0.8,
         });
       });
 
-      // Animacja tytułu - removed scrollTrigger
-      gsap.to(titleRef.current, {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        clipPath: "inset(0% 0% 0% 0%)",
-        duration: 1.2,
-        ease: "expo.out",
-        // scrollTrigger: {
-        //   trigger: sectionRef.current,
-        //   start: 'top bottom',
-        //   end: 'top 60%',
-        //   toggleActions: 'play none none none',
-        //   once: true,
-        //   id: 'contact-title'
-        // }
+      // 2. Title & Description Animation
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: titleRef.current,
+          start: "top 85%",
+          toggleActions: "play none none reverse",
+        }
       });
 
-      // Animacja opisu - removed scrollTrigger
-      gsap.to(descRef.current, {
+      tl.to(titleRef.current, {
         opacity: 1,
         y: 0,
-        duration: 0.9,
-        ease: "power2.out",
-        delay: 0.3,
-        // scrollTrigger: {
-        //   trigger: sectionRef.current,
-        //   start: 'top bottom',
-        //   end: 'top 60%',
-        //   toggleActions: 'play none none none',
-        //   once: true,
-        //   id: 'contact-desc'
-        // }
-      });
+        filter: "blur(0px)",
+        duration: 1,
+        ease: "power3.out"
+      })
+      .to(descRef.current, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 1,
+        ease: "power3.out"
+      }, "-=0.8");
 
-      // Animacje kart kontaktowych
+      // 3. Cards Animation
       cardsRef.current.forEach((card, i) => {
         if (!card) return;
-        const direction = i % 2 === 0 ? -1 : 1;
-        const rotateAngle = direction * 10;
-
+        
         gsap.to(card, {
           opacity: 1,
           y: 0,
           x: 0,
           rotateY: 0,
           scale: 1,
-          duration: 1.0,
+          duration: 1.2,
           ease: "expo.out",
-          delay: i * 0.08,
-          // scrollTrigger: {
-          //   trigger: card,
-          //   start: 'top bottom',
-          //   end: 'top 70%',
-          //   toggleActions: 'play none none none',
-          //   once: true,
-          //   id: `contact-card-${i}`
-          // }
+          delay: i * 0.15, // Większy stagger
+          scrollTrigger: {
+            trigger: card, // Indywidualne triggery dla lepszego efektu przy scrollowaniu
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
         });
       });
 
-      // Animacje formularza kontaktowego
+      // 4. Form Animation
       const formElements = document.querySelectorAll(
         ".contact-form input, .contact-form textarea, .contact-form button",
       );
-      if (formElements.length > 0) {
+      if (formElements.length > 0 && formElements[0]) {
         gsap.fromTo(
           formElements,
-          { opacity: 0, y: 20 },
+          { opacity: 0, x: -30, filter: "blur(5px)" },
           {
             opacity: 1,
-            y: 0,
+            x: 0,
+            filter: "blur(0px)",
             stagger: 0.1,
             duration: 0.8,
             ease: "power2.out",
-            // scrollTrigger: {
-            //   trigger: formElements[0],
-            //   start: 'top bottom',
-            //   end: 'top 70%',
-            //   toggleActions: 'play none none none',
-            //   once: true,
-            //   id: 'contact-form'
-            // }
+            scrollTrigger: {
+              trigger: formElements[0] as HTMLElement,
+              start: "top 85%",
+              toggleActions: "play none none reverse",
+            },
           },
         );
       }
-
-      // Wymuszamy odświeżenie ScrollTrigger - removed
-      // refresh(true);  // Używamy funkcji z hooka dla bezpiecznego odświeżenia
     }, sectionRef);
 
     // Sprzątanie po odmontowaniu komponentu
     return () => ctx.revert();
-  }, []); // Usunięto refresh jako zależność
+  }, []);
 
   const contactInfo: ContactInfoItem[] = [
     {
@@ -639,8 +621,8 @@ const ContactSection = () => {
               backfaceVisibility: "hidden",
             }}
           >
-            <span className="text-zinc-900">Kontakt</span> –{" "}
-            <span className="text-[#A68E4E]">Porozmawiajmy o Mistrzach</span>
+            <span className="heading-black">Kontakt</span> –{" "}
+            <span className="gold-heading">Porozmawiajmy o Mistrzach</span>
           </h2>
           <p
             ref={descRef}

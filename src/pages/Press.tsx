@@ -91,7 +91,7 @@ const PressArticleCard = ({
             rotateY,
             transformStyle: "preserve-3d",
             background:
-              "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
+              "radial-gradient(circle at top, rgba(166, 142, 78, 0.15), transparent 70%), linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(10, 10, 10, 0.96) 50%, rgba(15, 15, 15, 0.95) 100%)",
           }}
           whileHover={{ scale: 1.02 }}
           transition={{ scale: { duration: 0.2 } }}
@@ -123,7 +123,7 @@ const PressArticleCard = ({
               </span>
             </div>
 
-            <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white group-hover:text-gold transition-colors">
+            <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-[#A68E4E] transition-colors">
               {article.title}
             </h3>
 
@@ -317,12 +317,9 @@ const PressPage = () => {
             >
               <Newspaper className="w-12 h-12 md:w-16 md:h-16 gold-icon" />
             </motion.div>
-            <h1
-              data-split-text
-              className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4"
-            >
-              <span className="text-black">Prasa</span>{" "}
-              <span className="text-[#A68E4E]">i Media</span>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4">
+              <span className="heading-black">Prasa</span>{" "}
+              <span className="gold-heading">i Media</span>
             </h1>
             <p className="text-zinc-200 text-lg md:text-xl max-w-2xl mx-auto shadow-sm">
               Przeczytaj, co piszą o nas media branżowe i ogólnopolskie.

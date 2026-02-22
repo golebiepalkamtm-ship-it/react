@@ -4,98 +4,108 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 /**
  * initScrollStory - Elitarna wersja animacji scrolla.
  * Zapewnia premium "look & feel" poprzez głębię, perspektywę i płynne przejścia.
+ * Zoptymalizowano dla: Blur reveals, Curtain wipes i Elite transitions.
  */
 export const initScrollStory = () => {
   const ctx = gsap.context(() => {
-    // 1. ELITARNE WEJŚCIA SEKCJI (Reveal)
-    // Każda sekcja wchodzi z delikatnym obrotem w 3D, skalą i skew
+    // 1. ELITARNE WEJŚCIA SEKCJI (Reveal v2 - High Impact)
+    // Każda sekcja wchodzi z miksem: Blur + Zoom + Slide + RotateX
     gsap.utils.toArray<HTMLElement>(".section-wrapper").forEach((section) => {
-      gsap.fromTo(
-        section,
-        {
-          opacity: 0,
-          y: 80,
-          scale: 0.94,
-          rotateX: 10,
-          perspective: 1200,
+      // Ustawiamy stan początkowy (invisible + deep perspective)
+      gsap.set(section, {
+        opacity: 0,
+        y: 100,
+        scale: 0.9,
+        rotateX: 15,
+        filter: "blur(15px)",
+        perspective: 2000,
+      });
+
+      gsap.to(section, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        rotateX: 0,
+        filter: "blur(0px)",
+        duration: 2.2, // Dłuższa, bardziej filmowa animacja
+        ease: "expo.out",
+        scrollTrigger: {
+          trigger: section,
+          start: "top 92%",
+          toggleActions: "play none none reverse",
         },
+        // Czyszczenie stylów po animacji dla wydajności
+        onComplete: () => {
+          gsap.set(section, { clearProps: "filter,perspective,rotateX" });
+        },
+      });
+    });
+
+    // 2. PARALAKSA DLA ZDJĘĆ (.parallax-img) - Ultra Smooth
+    gsap.utils.toArray<HTMLElement>(".parallax-img").forEach((img) => {
+      gsap.fromTo(
+        img,
+        { yPercent: -15, scale: 1.2 },
         {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          rotateX: 0,
-          duration: 1.4,
-          ease: "expo.out",
+          yPercent: 15,
+          scale: 1.05,
+          ease: "none",
           scrollTrigger: {
-            trigger: section,
-            start: "top 90%",
-            end: "top 20%",
-            toggleActions: "play none none reverse",
-          },
-          // Clear styles AFTER animation to avoid layout issues with fixed elements
-          onComplete: () => {
-            gsap.set(section, { clearProps: "perspective,rotateX,scale" });
+            trigger: img,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1.2,
           },
         },
       );
     });
 
-    // 2. PARALAKSA DLA ZDJĘĆ (.parallax-img)
-    // Efekt głębi wewnątrz kontenerów ze zdjęciami
-    gsap.utils.toArray<HTMLElement>(".parallax-img").forEach((img) => {
-      gsap.to(img, {
-        yPercent: 15,
-        scale: 1.1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: img,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true,
-        },
-      });
-    });
-
-    // 3. KASKADOWE WYJAWIANIE ELEMENTÓW (Stagger)
-    // Dla grup elementów jak karty czy ikony
+    // 3. KASKADOWE WYJAWIANIE ELEMENTÓW (Stagger v2)
+    // Blur reveal dla mniejszych elementów
     gsap.utils.toArray<HTMLElement>(".section-stagger").forEach((container) => {
-      gsap.from(container.children, {
+      const children = container.children;
+      if (!children.length) return;
+
+      gsap.from(children, {
         opacity: 0,
-        y: 40,
-        rotation: 2,
-        duration: 1.2,
+        y: 60,
+        scale: 0.95,
+        filter: "blur(8px)",
+        duration: 1.8,
         stagger: {
-          amount: 0.4,
+          amount: 0.8,
           from: "start",
+          ease: "power2.inOut",
         },
-        ease: "power3.out",
+        ease: "expo.out",
         scrollTrigger: {
           trigger: container,
-          start: "top 80%",
+          start: "top 85%",
           toggleActions: "play none none reverse",
         },
       });
     });
 
-    // 4. WARSTWY TŁA I DEKORACJE (.parallax-layer)
+    // 4. ELITARNE WARSTWY TŁA (Floating Parallax)
     gsap.utils
       .toArray<HTMLElement>(".parallax-layer")
       .forEach((layer, index) => {
+        const direction = index % 2 === 0 ? 1 : -1;
         gsap.to(layer, {
-          y: index % 2 === 0 ? 120 : -100,
-          rotate: index % 2 === 0 ? 4 : -4,
+          y: direction * 150, // Większy zakres ruchu
+          rotate: direction * 5,
+          scale: 1.1,
           ease: "none",
           scrollTrigger: {
             trigger: layer,
             start: "top bottom",
             end: "bottom top",
-            scrub: 1.2,
+            scrub: 2, // Mocniejszy scrub dla płynności
           },
         });
       });
 
-    // 5. ZAWANSOWANE PRZYPINANIE (Pinning)
-    // Sekcje które "zostają" na ekranie podczas gdy ich treść się animuje
+    // 5. ZAAWANSOWANE PRZYPINANIE (Pinning v2 - Deep Depth)
     gsap.utils.toArray<HTMLElement>(".section-pin").forEach((pinSection) => {
       const cards = gsap.utils.toArray<HTMLElement>(
         pinSection.querySelectorAll(".pin-card"),
@@ -106,53 +116,69 @@ export const initScrollStory = () => {
         scrollTrigger: {
           trigger: pinSection,
           start: "top top",
-          end: "+=180%",
+          end: "+=250%", // Dłuższy pin dla lepszego efektu
           pin: true,
-          scrub: 1.5,
+          scrub: 1.8,
           anticipatePin: 1,
         },
       });
 
-      // Delikatne zmniejszenie sekcji przy przypięciu (efekt głębi)
+      // Efekt zagłębiania się w sekcję
       tl.to(
         pinSection,
-        { scale: 0.94, borderRadius: "2.5rem", ease: "power2.inOut" },
+        {
+          scale: 0.9,
+          borderRadius: "3rem",
+          filter: "brightness(0.8)",
+          ease: "power2.inOut",
+        },
         0,
       );
 
       if (overlay) {
-        tl.fromTo(overlay, { opacity: 0 }, { opacity: 0.4, ease: "none" }, 0.2);
+        tl.fromTo(overlay, { opacity: 0 }, { opacity: 0.6, ease: "none" }, 0);
       }
 
       if (cards.length) {
         tl.from(
           cards,
           {
-            x: (index: number) => (index % 2 === 0 ? -60 : 60),
-            y: 30,
-            rotateY: (index: number) => (index % 2 === 0 ? 15 : -15),
+            y: 200,
             opacity: 0,
-            scale: 0.8,
-            stagger: 0.2,
-            ease: "back.out(1.2)",
+            scale: 0.6,
+            rotateX: 45,
+            filter: "blur(20px)",
+            stagger: 0.3,
+            duration: 1.5,
+            ease: "expo.out",
           },
-          0.3,
+          0.2,
+        );
+
+        // Unoszenie się kart
+        tl.to(
+          cards,
+          {
+            y: -50,
+            stagger: 0.2,
+            ease: "power1.inOut",
+          },
+          0.8,
         );
       }
     });
 
-    // 6. PROGRESS BAR / SCROLL INDICATOR SYNC
-    // Jeśli na stronie jest .scroll-progress-inner, synchronizujemy go z całą stroną
+    // 6. PROGRESS BAR SYNC
     const progressBar = document.querySelector(".scroll-progress-inner");
     if (progressBar) {
       gsap.to(progressBar, {
         scaleX: 1,
         ease: "none",
         scrollTrigger: {
-          trigger: document.body,
+          trigger: "body",
           start: "top top",
           end: "bottom bottom",
-          scrub: 0.3,
+          scrub: 0.5,
         },
       });
     }

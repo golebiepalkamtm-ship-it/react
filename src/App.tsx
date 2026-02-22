@@ -43,6 +43,7 @@ import {
   LazyForumTopicList,
   LazyForumTopicDetail,
 } from "@/utils/lazyImports";
+import { CursorFollower } from "@/components/animations/MagneticCursor";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 // GSAP Demo - removed as file does not exist
@@ -79,17 +80,18 @@ const App = () => {
         <ThemeProvider defaultTheme="light" storageKey="champion-pigeon-theme">
           <LocaleProvider>
             <AuthProvider>
-              <SmoothScrollProvider>
-                <UIProviders>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter
-                      future={{
-                        v7_startTransition: true,
-                        v7_relativeSplatPath: true,
-                      }}
-                    >
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true,
+                }}
+              >
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <CursorFollower size={22} color="rgba(166, 142, 78, 0.45)" />
+                  <UIProviders>
+                    <SmoothScrollProvider>
                       <BackgroundWrapper />
                       <GSAPPageTransition
                         defaultStyle="reveal"
@@ -194,14 +196,13 @@ const App = () => {
                               path="/champions"
                               element={<LazyChampionsGallery />}
                             />
-                            <Route path="*" element={<LazyNotFound />} />
                           </Routes>
                         </Suspense>
                       </GSAPPageTransition>
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </UIProviders>
-              </SmoothScrollProvider>
+                    </SmoothScrollProvider>
+                  </UIProviders>
+                </TooltipProvider>
+              </BrowserRouter>
             </AuthProvider>
           </LocaleProvider>
         </ThemeProvider>

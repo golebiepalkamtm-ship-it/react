@@ -9,6 +9,7 @@ import {
   useSpring,
   useScroll,
 } from "framer-motion";
+import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsapConfig";
 import { PressService, PressArticle } from "@/services/pressService";
 import { logger } from "@/lib/logger";
@@ -61,13 +62,11 @@ const PressArticleCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="relative overflow-hidden rounded-2xl border border-white/40 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl h-full flex flex-col"
+        className="relative overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full flex flex-col bg-champion-teal"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d",
-          background:
-            "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
@@ -114,7 +113,7 @@ const PressArticleCard = ({
             </span>
           </div>
 
-          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-white transition-colors">
+          <h3 className="font-display text-xl font-semibold mb-3 line-clamp-2 text-[#A68E4E] transition-colors">
             {article.title}
           </h3>
 
@@ -192,118 +191,57 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
   //   refreshDelay: 200,
   // });
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Force initial states
-      gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
-      gsap.set(titleRef.current, { opacity: 0, y: 60 });
-      gsap.set(descRef.current, { opacity: 0, y: 40 });
+  useGSAP(() => {
+    if (loading || articles.length === 0) return;
 
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return;
-        const angle = (i % 2 === 0 ? -1 : 1) * 5;
-        gsap.set(card, {
-          opacity: 0,
-          y: 100,
-          rotateX: 10,
-          rotateY: angle,
-          scale: 0.9,
-        });
-      });
+    // 1. Force Initial States
+    gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
+    gsap.set(titleRef.current, { opacity: 0, y: 60 });
+    gsap.set(descRef.current, { opacity: 0, y: 40 });
+    
+    if (ctaRef.current) {
+        gsap.set(ctaRef.current, { opacity: 0, y: 40, scale: 0.9, filter: "blur(10px)" });
+    }
 
-      const headerTl = gsap.timeline({
-        // scrollTrigger: {
-        //   trigger: sectionRef.current,
-        //   start: "top bottom",
-        //   end: "top 60%",
-        //   toggleActions: "play none none reverse",
-        //   once: true,
-        // },
-      });
+    const cards = cardsRef.current;
+    
+    // Cards Initial States
+    // Middle (1)
+    if (cards[1]) gsap.set(cards[1], { opacity: 0, y: 100, scale: 0.9 });
+    // Sides (0, 2)
+    if (cards[0]) gsap.set(cards[0], { opacity: 0, x: -100, rotateY: -10 });
+    if (cards[2]) gsap.set(cards[2], { opacity: 0, x: 100, rotateY: 10 });
+    
+    // 2. Master Timeline
+    const tl = gsap.timeline({
+        scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 65%", // Earlier start
+            toggleActions: "play none none reverse",
+        }
+    });
 
-      headerTl
-        .fromTo(
-          badgeRef.current,
-          { opacity: 0, y: 40, scale: 0.9 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" },
-          0,
-        )
-        .fromTo(
-          titleRef.current,
-          { opacity: 0, y: 60, clipPath: "inset(0% 0% 100% 0%)" },
-          {
-            opacity: 1,
-            y: 0,
-            clipPath: "inset(0% 0% 0% 0%)",
-            duration: 1,
-            ease: "expo.out",
-          },
-          0.2,
-        )
-        .fromTo(
-          descRef.current,
-          { opacity: 0, y: 40 },
-          { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" },
-          0.4,
-        );
+    // 3. Header
+    tl.to(badgeRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" })
+      .to(titleRef.current, { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" }, "-=0.6")
+      .to(descRef.current, { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" }, "-=0.7");
 
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return;
+    // 4. Cards: Middle First
+    if (cards[1]) {
+        tl.to(cards[1], { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "expo.out" }, "-=0.5");
+    }
+    
+    // 5. Cards: Sides Next (Flying in from sides)
+    if (cards[0] && cards[2]) {
+        tl.to([cards[0], cards[2]], { opacity: 1, x: 0, rotateY: 0, duration: 1.2, ease: "expo.out" }, "-=0.8");
+    }
 
-        const angle = (i % 2 === 0 ? -1 : 1) * 5;
+    // 6. CTA Button
+    if (ctaRef.current) {
+        tl.to(ctaRef.current, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1, ease: "back.out" }, "-=0.8");
+    }
 
-        gsap.fromTo(
-          card,
-          {
-            opacity: 0,
-            y: 100,
-            rotateX: 10,
-            rotateY: angle,
-            scale: 0.9,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            rotateX: 0,
-            rotateY: 0,
-            scale: 1,
-            duration: 1.0,
-            ease: "expo.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top bottom",
-              end: "top 70%",
-              toggleActions: "play none none reverse",
-              once: true,
-            },
-          },
-        );
-      });
-
-      if (ctaRef.current) {
-        gsap.fromTo(
-          ctaRef.current,
-          { opacity: 0, y: 50, scale: 0.95 },
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: 1,
-            ease: "back.out(1.3)",
-            scrollTrigger: {
-              trigger: ctaRef.current,
-              start: "top bottom",
-              end: "top 70%",
-              toggleActions: "play none none reverse",
-              once: true,
-            },
-          },
-        );
-      }
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
+  }, { dependencies: [loading, articles], scope: sectionRef });
 
   return (
     <section
@@ -315,7 +253,7 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
         transformStyle: "preserve-3d",
       }}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/[0.015] to-transparent pointer-events-none" />
+      
 
       <div className="container mx-auto px-4 relative z-10">
         <div
@@ -340,8 +278,8 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
               backfaceVisibility: "hidden",
             }}
           >
-            <span className="text-black">Pałka MTM w Mediach</span> –{" "}
-            <span className="text-[#A68E4E]">Standard Doskonałości</span>
+            <span className="heading-black">Pałka MTM w Mediach</span> –{" "}
+            <span className="gold-heading">Standard Doskonałości</span>
           </h2>
           <p
             ref={descRef}

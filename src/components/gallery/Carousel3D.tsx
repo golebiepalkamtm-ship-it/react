@@ -77,18 +77,7 @@ export const Carousel3D = () => {
           { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" },
           0,
         )
-        .fromTo(
-          titleRef.current,
-          { opacity: 0, y: 60, clipPath: "inset(0% 0% 100% 0%)" },
-          {
-            opacity: 1,
-            y: 0,
-            clipPath: "inset(0% 0% 0% 0%)",
-            duration: 1.1,
-            ease: "expo.out",
-          },
-          0.2,
-        )
+        // Title handled globally via data-split="chars"
         .fromTo(
           imageContainerRef.current,
           { opacity: 0, scale: 0.9, rotateY: -15 },
@@ -221,7 +210,8 @@ export const Carousel3D = () => {
             Galeria chwilowo niedostępna
           </h2>
           <p className="text-muted-foreground">
-            Nie udało się załadować danych championów. Sprawdź połączenie lub spróbuj ponownie.
+            Nie udało się załadować danych championów. Sprawdź połączenie lub
+            spróbuj ponownie.
           </p>
           <div className="flex items-center justify-center gap-3">
             <button
@@ -285,6 +275,7 @@ export const Carousel3D = () => {
 
             <h2
               ref={titleRef}
+              data-split="chars"
               className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.2em] mb-10"
               style={{
                 transformStyle: "preserve-3d",
@@ -432,7 +423,9 @@ export const Carousel3D = () => {
                     {/* Ring number at the top */}
                     <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2">
                       <p className="font-body text-sm uppercase tracking-widest text-[#C8AE68] font-medium">
-                        {activeChampion.ringNumber || activeChampion.records?.[0] || "Champion"}
+                        {activeChampion.ringNumber ||
+                          activeChampion.records?.[0] ||
+                          "Champion"}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -440,7 +433,9 @@ export const Carousel3D = () => {
                         {(activeChampion.achievements ?? [])
                           .slice(
                             0,
-                            Math.ceil((activeChampion.achievements ?? []).length / 2),
+                            Math.ceil(
+                              (activeChampion.achievements ?? []).length / 2,
+                            ),
                           )
                           .map((achievement, i) => (
                             <li
@@ -462,7 +457,9 @@ export const Carousel3D = () => {
                       <ul className="space-y-2">
                         {(activeChampion.achievements ?? [])
                           .slice(
-                            Math.ceil((activeChampion.achievements ?? []).length / 2),
+                            Math.ceil(
+                              (activeChampion.achievements ?? []).length / 2,
+                            ),
                           )
                           .map((achievement, i) => (
                             <li
@@ -477,7 +474,8 @@ export const Carousel3D = () => {
                                     0.4 +
                                     (i +
                                       Math.ceil(
-                                        (activeChampion.achievements ?? []).length / 2,
+                                        (activeChampion.achievements ?? [])
+                                          .length / 2,
                                       )) *
                                       0.1,
                                 }}

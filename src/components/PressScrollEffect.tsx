@@ -1,9 +1,9 @@
-import React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Newspaper, Calendar, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { PressArticle } from '@/services/pressService';
+import React from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Newspaper, Calendar, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { PressArticle } from "@/services/pressService";
 
 interface PressScrollEffectProps {
   articles: PressArticle[];
@@ -12,7 +12,7 @@ interface PressScrollEffectProps {
 const PressScrollEffect: React.FC<PressScrollEffectProps> = ({ articles }) => {
   if (articles.length === 0) return null;
 
-  const article = articles[0];
+  const article = articles[0] as PressArticle;
 
   return (
     <>
@@ -42,11 +42,11 @@ const PressScrollEffect: React.FC<PressScrollEffectProps> = ({ articles }) => {
             viewport={{ amount: 0.5 }}
             transition={{ duration: 1 }}
           />
-          
+
           {/* Story overlay */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center text-center"
-            style={{ background: 'rgba(0, 0, 0, 0.5)' }}
+            style={{ background: "rgba(0, 0, 0, 0.5)" }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ amount: 0.5 }}
@@ -59,8 +59,10 @@ const PressScrollEffect: React.FC<PressScrollEffectProps> = ({ articles }) => {
               viewport={{ amount: 0.5 }}
               transition={{ duration: 1 }}
             >
-              <h2 className="text-4xl font-bold mb-4">{article.title}</h2>
-              <h4 className="text-lg text-white/80">{article.excerpt}</h4>
+              <h2 className="text-4xl font-bold mb-4 text-[#A68E4E]">
+                {article.title}
+              </h2>
+              <p className="text-lg text-white/80">{article.excerpt}</p>
             </motion.div>
           </motion.div>
         </div>
@@ -78,11 +80,11 @@ const PressScrollEffect: React.FC<PressScrollEffectProps> = ({ articles }) => {
             viewport={{ amount: 0.5 }}
             transition={{ duration: 1 }}
           />
-          
+
           {/* Story overlay (scaled down) */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center text-center"
-            style={{ background: 'rgba(0, 0, 0, 0.5)' }}
+            style={{ background: "rgba(0, 0, 0, 0.5)" }}
             initial={{ opacity: 1 }}
             whileInView={{ opacity: 0 }}
             viewport={{ amount: 0.5 }}
@@ -95,15 +97,17 @@ const PressScrollEffect: React.FC<PressScrollEffectProps> = ({ articles }) => {
               viewport={{ amount: 0.5 }}
               transition={{ duration: 1 }}
             >
-              <h2 className="text-4xl font-bold mb-4">{article.title}</h2>
-              <h4 className="text-lg text-white/80">{article.excerpt}</h4>
+              <h2 className="text-4xl font-bold mb-4 text-[#A68E4E]">
+                {article.title}
+              </h2>
+              <p className="text-lg text-white/80">{article.excerpt}</p>
             </motion.div>
           </motion.div>
 
           {/* Actor/Details overlay */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center text-center"
-            style={{ background: 'rgba(0, 0, 0, 0.5)' }}
+            style={{ background: "rgba(0, 0, 0, 0.5)" }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ amount: 0.5 }}
@@ -117,21 +121,25 @@ const PressScrollEffect: React.FC<PressScrollEffectProps> = ({ articles }) => {
               transition={{ duration: 1 }}
             >
               <li className="inline-block align-top mr-10">
-                <h2 className="text-2xl font-bold mb-2">Publikacja</h2>
+                <h2 className="text-2xl font-bold mb-2 text-[#A68E4E]">
+                  Publikacja
+                </h2>
                 <h4 className="text-lg flex items-center gap-2">
                   <Newspaper className="w-5 h-5" />
                   {article.publication}
                 </h4>
               </li>
               <li className="inline-block align-top mr-10">
-                <h2 className="text-2xl font-bold mb-2">Data</h2>
+                <h2 className="text-2xl font-bold mb-2 text-[#A68E4E]">Data</h2>
                 <h4 className="text-lg flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  {new Date(article.date).toLocaleDateString('pl-PL')}
+                  {new Date(article.date).toLocaleDateString("pl-PL")}
                 </h4>
               </li>
               <li className="inline-block align-top">
-                <h2 className="text-2xl font-bold mb-2">Akcja</h2>
+                <h2 className="text-2xl font-bold mb-2 text-[#A68E4E]">
+                  Akcja
+                </h2>
                 <Button
                   variant="outline"
                   size="sm"
