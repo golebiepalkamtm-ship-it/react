@@ -7,44 +7,51 @@
  * synchronizacją Ticker Handshake (Lenis) oraz optymalizacją pod Mobile/Safari.
  */
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { registerCustomEasings } from "@/lib/customEasings";
 import { ArrowRight, Trophy, Zap, Users, Star } from "lucide-react";
-import { Carousel3D } from "@/components/gallery/Carousel3D";
-import AboutSection from "@/components/AboutSection";
-import PressSection from "@/components/PressSection";
 import { MagneticElement } from "@/components/animations";
-import ContactSection from "@/components/ContactSection";
-import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+
+const Carousel3D = lazy(() => import("@/components/gallery/Carousel3D"));
+const AboutSection = lazy(() => import("@/components/AboutSection"));
+const PressSection = lazy(() => import("@/components/PressSection"));
+const ContactSection = lazy(() => import("@/components/ContactSection"));
+const Footer = lazy(() => import("@/components/Footer"));
 
 // Rejestracja wtyczek bezpośrednio tutaj
 gsap.registerPlugin(ScrollTrigger);
 registerCustomEasings();
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 // ============================================================================
 // HERO PREMIUM - Czysty, Jasny i Profesjonalny
 // ============================================================================
 
-const SplitText = ({
+const SplitText = React.memo(({
   children,
   className,
 }: {
   children: string;
   className?: string;
 }) => (
-  <span className={className}>
+  <span className={className} aria-label={children}>
     {children.split("").map((char, i) => (
-      <span key={i} className="char-premium inline-block will-change-transform">
+      <span
+        key={i}
+        className="char-premium inline-block will-change-transform"
+        aria-hidden="true"
+        style={{ backfaceVisibility: "hidden" }}
+      >
         {char === " " ? "\u00A0" : char}
       </span>
     ))}
   </span>
-);
+));
 
 const HeroPremium = () => {
   const heroRef = useRef<HTMLElement>(null);
@@ -65,10 +72,11 @@ const HeroPremium = () => {
           duration: 0.8,
           ease: "power2.out",
           stagger: 0.05,
+          force3D: true,
         })
         .to(
           ".hero-scroll-indicator",
-          { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" },
+          { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out", force3D: true },
           0.3,
         );
 
@@ -95,14 +103,16 @@ const HeroPremium = () => {
         };
       });
 
+      gsap.set(chars, { willChange: "transform, opacity, filter" });
+
       const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: heroRef.current,
           start: "top top",
-          end: "bottom top", // Animacja trwa dokładnie tyle, ile wjazd następnej sekcji
-          scrub: true, // Płynne powiązanie ze scrollem
+          end: "bottom top",
+          scrub: 1.2,
           pin: true,
-          pinSpacing: false, // KLUCZOWE: Następna sekcja wjeżdża NA Hero (overlay)
+          pinSpacing: false,
           anticipatePin: 1,
           fastScrollEnd: true,
           preventOverlaps: true,
@@ -112,11 +122,11 @@ const HeroPremium = () => {
       mainTl
         .to(
           ".hero-scroll-indicator",
-          { autoAlpha: 0, y: 50, duration: 0.05 },
+          { autoAlpha: 0, y: 50, duration: 0.05, force3D: true },
           0,
         )
         // 1. Badge i Button znikają szybko
-        .to([badge, button], { autoAlpha: 0, y: -50, duration: 0.2 }, 0)
+        .to([badge, button], { autoAlpha: 0, y: -50, duration: 0.2, force3D: true }, 0)
         // 2. Napisy wybuchają
         .to(
           chars,
@@ -126,26 +136,27 @@ const HeroPremium = () => {
             z: (i) => charAnimations[i]!.z,
             scale: (i) => charAnimations[i]!.scale,
             rotation: (i) => charAnimations[i]!.rotation,
-            opacity: 0, // Zanikanie w trakcie rozchodzenia
+            opacity: 0,
             filter: "blur(12px)",
             stagger: { amount: 0.1, from: "random" },
-            ease: "power2.inOut", // Liniowy, płynny rozpad zsynchronizowany z wjazdem sekcji
-            willChange: "transform, opacity, filter",
+            ease: "power1.inOut",
+            force3D: true,
           },
           0,
         );
 
       // SEKCJE
-      const sections = document.querySelectorAll(".home-section");
-      sections.forEach((sec, i) => {
+      const sections = gsap.utils.toArray<HTMLElement>(".home-section");
+      sections.forEach((sec) => {
         gsap.fromTo(
           sec,
-          { autoAlpha: 0, y: 50 },
+          { autoAlpha: 0, y: 50, willChange: "transform, opacity" },
           {
             autoAlpha: 1,
             y: 0,
             duration: 1,
             ease: "power2.out",
+            force3D: true,
             scrollTrigger: {
               trigger: sec,
               start: "top 85%",
@@ -162,6 +173,7 @@ const HeroPremium = () => {
     <section
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent"
+      style={{ perspective: "1000px", contain: "layout paint" }}
     >
       {/* Particle System - USUNIĘTE */}
       <div
@@ -429,35 +441,37 @@ export const HomePagePremium = () => {
 
         <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold to-transparent" />
 
-        <div className="home-section smooth-content">
-          <AboutSection />
-        </div>
+        <Suspense fallback={<div className="h-screen w-full flex items-center justify-center bg-transparent" />}>
+          <div className="home-section smooth-content">
+            <AboutSection />
+          </div>
 
-        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+          <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
-        <div className="home-section smooth-content">
-          <Carousel3D />
-        </div>
+          <div className="home-section smooth-content">
+            <Carousel3D />
+          </div>
 
-        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+          <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
-        <div className="home-section reveal-cards smooth-content">
-          <CTAFeaturesSection />
-        </div>
+          <div className="home-section reveal-cards smooth-content">
+            <CTAFeaturesSection />
+          </div>
 
-        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+          <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
-        <div className="home-section smooth-content">
-          <PressSection />
-        </div>
+          <div className="home-section smooth-content">
+            <PressSection />
+          </div>
 
-        <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+          <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
 
-        <div className="home-section smooth-content">
-          <ContactSection />
-        </div>
+          <div className="home-section smooth-content">
+            <ContactSection />
+          </div>
 
-        <Footer />
+          <Footer />
+        </Suspense>
       </main>
     </div>
   );

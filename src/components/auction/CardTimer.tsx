@@ -1,14 +1,18 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useServerTime } from '@/providers/TimeProvider';
-import { calculateTimeLeft, type TimeLeftDetails } from '@/utils/auction';
+import React, { useEffect, useState, useMemo } from "react";
+import { useServerTime } from "@/providers/TimeProvider";
+import { calculateTimeLeft, type TimeLeftDetails } from "@/utils/auction";
 
 interface CardTimerProps {
-  endTime?: string;
-  className?: string;
-  endingSoon?: boolean;
+  endTime?: string | undefined;
+  className?: string | undefined;
+  endingSoon?: boolean | undefined;
 }
 
-export const CardTimer: React.FC<CardTimerProps> = ({ endTime, className, endingSoon }) => {
+export const CardTimer: React.FC<CardTimerProps> = ({
+  endTime,
+  className,
+  endingSoon,
+}) => {
   const { offset } = useServerTime();
   const [timeLeft, setTimeLeft] = useState<TimeLeftDetails | null>(null);
 
@@ -48,8 +52,13 @@ export const CardTimer: React.FC<CardTimerProps> = ({ endTime, className, ending
   return (
     <div className={`flex items-center justify-between gap-2 ${className}`}>
       {["days", "hours", "minutes", "seconds"].map((label, idx) => (
-        <div key={label} className="flex flex-col items-center flex-1 bg-white/5 rounded-xl py-2 border border-white/10">
-          <span className={`text-lg font-bold leading-none transition-colors ${endingSoon ? 'text-red-400' : 'text-white'}`}>
+        <div
+          key={label}
+          className="flex flex-col items-center flex-1 bg-white/5 rounded-xl py-2 border border-white/10"
+        >
+          <span
+            className={`text-lg font-bold leading-none transition-colors ${endingSoon ? "text-red-400" : "text-white"}`}
+          >
             {timeMeta.isEnded ? "00" : (timeMeta as any)[label]}
           </span>
           <span className="text-[9px] uppercase tracking-wider text-white/40 mt-1">

@@ -64,23 +64,23 @@ const GOLD_LINE_BASE_STYLE: CSSProperties = {
 type UnifiedAuctionCardProps = {
   id: string;
   title: string;
-  image?: string;
-  currentBid?: number;
-  startingPrice?: number;
-  buyNowPrice?: number;
-  endTime?: string;
-  ringNumber?: string;
-  gender?: string;
-  color?: string;
-  category?: string;
-  location?: string;
-  watchCount?: number;
-  viewsCount?: number;
-  bidsCount?: number;
-  featured?: boolean;
-  imageFit?: "cover" | "contain";
-  highlight?: boolean;
-  nowMs?: number;
+  image?: string | undefined;
+  currentBid?: number | undefined;
+  startingPrice?: number | undefined;
+  buyNowPrice?: number | undefined;
+  endTime?: string | undefined;
+  ringNumber?: string | undefined;
+  gender?: string | undefined;
+  color?: string | undefined;
+  category?: string | undefined;
+  location?: string | undefined;
+  watchCount?: number | undefined;
+  viewsCount?: number | undefined;
+  bidsCount?: number | undefined;
+  featured?: boolean | undefined;
+  imageFit?: "cover" | "contain" | undefined;
+  highlight?: boolean | undefined;
+  nowMs?: number | undefined;
 };
 
 const CONTENT_BACKGROUND =

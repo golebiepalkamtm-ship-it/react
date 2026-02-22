@@ -63,8 +63,12 @@ export const SmoothScrollProvider = ({
     gsap.ticker.add(update);
     gsap.ticker.lagSmoothing(0);
 
-    // Normalize scroll for Safari/iOS
-    ScrollTrigger.normalizeScroll(true);
+    ScrollTrigger.normalizeScroll({
+      allowNestedScroll: true,
+      lockAxis: false,
+      momentum: (self) => Math.min(3, self.velocityY / 1000),
+      type: "touch,wheel",
+    });
 
     const refreshScrollTriggers = () => {
       ScrollTrigger.refresh();

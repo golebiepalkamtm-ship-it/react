@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { usePreciseAuctionTimer } from "@/hooks/useAuctions";
 
 interface AuctionCountDownProps {
-  endTime?: string;
+  endTime?: string | undefined;
 }
 
 export const AuctionCountDown: React.FC<AuctionCountDownProps> = memo(

@@ -154,47 +154,39 @@ const AboutSection = () => {
         once: true,
       });
 
-      // Setup Cards Animation - Kinowy Parallax
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return;
+      // Setup Cards Animation - płynne, symetryczne wejście
+      const cards = cardsRef.current.filter((card): card is HTMLDivElement => !!card);
 
-        // Karty startują z różnych wysokości (staggered start position)
-        const startY = 250 + (i * 50); 
-        gsap.set(card, { autoAlpha: 0, y: startY });
-        
-        ScrollTrigger.create({
-          trigger: card,
-          start: "top 120%", // Triggerujemy zanim w ogóle wejdą w ekran
-          onEnter: () => {
-            gsap.to(card, {
+      if (cards.length) {
+        gsap.set(cards, { autoAlpha: 0, y: 160 });
+
+        ScrollTrigger.batch(cards, {
+          start: "top 90%",
+          onEnter: (batch) => {
+            gsap.to(batch, {
               autoAlpha: 1,
               y: 0,
-              duration: 2.5, // Ekstremalnie wolny wjazd (slow motion)
-              ease: "expo.out", // Bardzo miękkie lądowanie na końcu
-              overwrite: "auto",
+              duration: 1.8,
+              stagger: 0.18,
+              ease: "power3.out",
+              overwrite: true,
             });
           },
           once: true,
         });
 
-        // 2. Parallax Effect (Lenis Style)
-        // Right column (odd index) moves slightly faster/slower than left
-        // creating a depth effect during scroll
-        const speed = i % 2 === 0 ? 0 : 50;
-
-        if (speed > 0) {
-          gsap.to(card, {
-            y: -speed,
-            ease: "none",
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-        }
-      });
+        // Delikatny, taki sam parallax dla WSZYSTKICH kart
+        gsap.to(cards, {
+          y: -40,
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+      }
     },
     { scope: sectionRef },
   );
