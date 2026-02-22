@@ -44,13 +44,13 @@ interface AdminAnalyticsProps {
 }
 
 const COLORS = [
-  "#D4AF37",
-  "#3b82f6",
-  "#10b981",
-  "#8b5cf6",
-  "#f43f5e",
-  "#ec4899",
-  "#f97316",
+  "#A68E4E", // Gold
+  "#C5A059", // Light Gold
+  "#8C7335", // Dark Gold
+  "#E6C87C", // Pale Gold
+  "#6D5826", // Deep Gold
+  "#F2D68E", // Very Light Gold
+  "#4A3B18", // Darkest Gold
 ];
 
 const AnalyticsCard = ({
@@ -70,12 +70,12 @@ const AnalyticsCard = ({
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className={`p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl flex flex-col ${className}`}
+    className={`p-6 rounded-3xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-xl flex flex-col ${className}`}
   >
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-gold/10">
-          <Icon className="w-5 h-5 text-gold" />
+        <div className="p-2 rounded-xl bg-[#A68E4E]/10">
+          <Icon className="w-5 h-5 text-[#A68E4E]" />
         </div>
         {title}
       </h3>
@@ -97,13 +97,13 @@ const MiniStat = ({
   icon: any;
   color?: string;
 }) => (
-  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
+  <div className="p-4 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 flex items-center justify-between">
     <div className="flex items-center gap-3">
-      <div className={`p-2 rounded-lg bg-${color}/10`}>
-        <Icon className={`w-4 h-4 text-${color}`} />
+      <div className={`p-2 rounded-lg bg-[#A68E4E]/10`}>
+        <Icon className={`w-4 h-4 text-[#A68E4E]`} />
       </div>
       <div>
-        <p className="text-xs text-white/40 uppercase tracking-wider">
+        <p className="text-xs text-[#A68E4E]/60 uppercase tracking-wider">
           {label}
         </p>
         <p className="text-xl font-bold text-white">{value}</p>
@@ -113,7 +113,7 @@ const MiniStat = ({
       <div
         className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
           trend >= 0
-            ? "bg-green-500/10 text-green-400"
+            ? "bg-[#A68E4E]/20 text-[#A68E4E]"
             : "bg-red-500/10 text-red-400"
         }`}
       >
@@ -181,7 +181,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           value={stats.totalUsers}
           trend={15}
           icon={Users}
-          color="blue-400"
+          color="gold"
         />
         <MiniStat
           label="Aktywne Aukcje"
@@ -195,14 +195,14 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           value={`${stats.totalVolume.toLocaleString("pl-PL")} zł`}
           trend={24}
           icon={DollarSign}
-          color="green-400"
+          color="gold"
         />
         <MiniStat
           label="Średnia Cena"
           value={`${(stats.averagePrice || 0).toLocaleString("pl-PL")} zł`}
           trend={5}
           icon={Target}
-          color="purple-400"
+          color="gold"
         />
       </div>
 
@@ -217,41 +217,42 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             <AreaChart data={userData}>
               <defs>
                 <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#A68E4E" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#A68E4E" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
+                stroke="rgba(166, 142, 78, 0.1)"
                 vertical={false}
               />
               <XAxis
                 dataKey="date"
-                stroke="rgba(255,255,255,0.4)"
+                stroke="rgba(166, 142, 78, 0.4)"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="rgba(255,255,255,0.4)"
+                stroke="rgba(166, 142, 78, 0.4)"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#0A0B14",
-                  border: "1px solid rgba(212,175,55,0.2)",
+                  backgroundColor: "#0A0F1C",
+                  border: "1px solid rgba(166, 142, 78, 0.2)",
                   borderRadius: "16px",
+                  color: "#A68E4E",
                 }}
-                itemStyle={{ color: "#D4AF37" }}
+                itemStyle={{ color: "#A68E4E" }}
               />
               <Area
                 type="monotone"
                 dataKey="value"
                 name="Nowi użytkownicy"
-                stroke="#D4AF37"
+                stroke="#A68E4E"
                 strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorUsers)"
@@ -282,8 +283,8 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#0A0B14",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  backgroundColor: "#0A0F1C",
+                  border: "1px solid rgba(166, 142, 78, 0.2)",
                   borderRadius: "12px",
                 }}
               />
@@ -296,7 +297,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
-                <span className="text-[10px] text-white/60 uppercase">
+                <span className="text-[10px] text-[#A68E4E]/80 uppercase">
                   {item.name}
                 </span>
                 <span className="text-[10px] text-white font-bold">
@@ -317,18 +318,18 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             <BarChart data={volumeData}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
+                stroke="rgba(166, 142, 78, 0.1)"
                 vertical={false}
               />
               <XAxis
                 dataKey="date"
-                stroke="rgba(255,255,255,0.4)"
+                stroke="rgba(166, 142, 78, 0.4)"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="rgba(255,255,255,0.4)"
+                stroke="rgba(166, 142, 78, 0.4)"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
@@ -336,10 +337,12 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#0A0B14",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  backgroundColor: "#0A0F1C",
+                  border: "1px solid rgba(166, 142, 78, 0.2)",
                   borderRadius: "16px",
+                  color: "#A68E4E",
                 }}
+                itemStyle={{ color: "#A68E4E" }}
                 formatter={(val: any) => [
                   `${Number(val || 0).toLocaleString()} zł`,
                   "Obrót",
@@ -347,7 +350,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               />
               <Bar
                 dataKey="value"
-                fill="#3b82f6"
+                fill="#A68E4E"
                 radius={[6, 6, 0, 0]}
                 maxBarSize={40}
               />
@@ -361,36 +364,38 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             <LineChart data={bidsCountData}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
+                stroke="rgba(166, 142, 78, 0.1)"
                 vertical={false}
               />
               <XAxis
                 dataKey="date"
-                stroke="rgba(255,255,255,0.4)"
+                stroke="rgba(166, 142, 78, 0.4)"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="rgba(255,255,255,0.4)"
+                stroke="rgba(166, 142, 78, 0.4)"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#0A0B14",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  backgroundColor: "#0A0F1C",
+                  border: "1px solid rgba(166, 142, 78, 0.2)",
                   borderRadius: "12px",
+                  color: "#A68E4E",
                 }}
+                itemStyle={{ color: "#A68E4E" }}
               />
               <Line
                 type="step"
                 dataKey="value"
                 name="Liczba ofert"
-                stroke="#10b981"
+                stroke="#A68E4E"
                 strokeWidth={2}
-                dot={{ fill: "#10b981", r: 4 }}
+                dot={{ fill: "#A68E4E", r: 4 }}
                 activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}
               />
             </LineChart>
@@ -400,19 +405,19 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Sprzedawcy */}
-        <div className="p-8 rounded-3xl bg-white/5 border border-white/10">
+        <div className="p-8 rounded-3xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20">
           <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Medal className="w-6 h-6 text-gold" />
+            <Medal className="w-6 h-6 text-[#A68E4E]" />
             Top Sprzedawcy (Ranking)
           </h3>
           <div className="space-y-4">
             {(stats.topSellers || []).map((seller: any, idx: number) => (
               <div
                 key={seller.sellerId}
-                className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/5"
+                className="flex items-center justify-between p-4 rounded-2xl bg-[#A68E4E]/5 border border-[#A68E4E]/10"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold">
+                  <div className="w-10 h-10 rounded-full bg-[#A68E4E]/20 flex items-center justify-center text-[#A68E4E] font-bold">
                     #{idx + 1}
                   </div>
                   <div>
@@ -421,16 +426,16 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                       {seller.user?.last_name ||
                         seller.user?.email?.split("@")[0]}
                     </p>
-                    <p className="text-xs text-white/40">
+                    <p className="text-xs text-[#A68E4E]/60">
                       {seller._count.id} aukcji zakończonych
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-gold font-bold">
+                  <p className="text-[#A68E4E] font-bold">
                     {Number(seller._sum.currentPrice || 0).toLocaleString()} zł
                   </p>
-                  <p className="text-[10px] text-white/40 uppercase tracking-widest">
+                  <p className="text-[10px] text-[#A68E4E]/40 uppercase tracking-widest">
                     Wolumen
                   </p>
                 </div>
@@ -440,19 +445,19 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         </div>
 
         {/* Top Licytujący */}
-        <div className="p-8 rounded-3xl bg-white/5 border border-white/10">
+        <div className="p-8 rounded-3xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20">
           <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Star className="w-6 h-6 text-blue-400" />
+            <Star className="w-6 h-6 text-[#A68E4E]" />
             Najaktywniejsi Licytanci
           </h3>
           <div className="space-y-4">
             {(stats.topBidders || []).map((bidder: any, idx: number) => (
               <div
                 key={bidder.bidderId}
-                className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/5"
+                className="flex items-center justify-between p-4 rounded-2xl bg-[#A68E4E]/5 border border-[#A68E4E]/10"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
+                  <div className="w-10 h-10 rounded-full bg-[#A68E4E]/20 flex items-center justify-center text-[#A68E4E] font-bold">
                     #{idx + 1}
                   </div>
                   <div>
@@ -461,16 +466,16 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                       {bidder.user?.last_name ||
                         bidder.user?.email?.split("@")[0]}
                     </p>
-                    <p className="text-xs text-white/40">
+                    <p className="text-xs text-[#A68E4E]/60">
                       {bidder._count.id} złożonych ofert
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-blue-400 font-bold">
+                  <p className="text-[#A68E4E] font-bold">
                     {Number(bidder._sum.amount || 0).toLocaleString()} zł
                   </p>
-                  <p className="text-[10px] text-white/40 uppercase tracking-widest">
+                  <p className="text-[10px] text-[#A68E4E]/40 uppercase tracking-widest">
                     Łączna kwota
                   </p>
                 </div>
@@ -482,26 +487,26 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Płatności Summary */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-green-500/10 to-emerald-900/10 border border-green-500/20">
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-[#A68E4E]/10 to-[#0A0F1C] border border-[#A68E4E]/20">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-xl bg-green-500/20">
-              <CreditCard className="w-6 h-6 text-green-400" />
+            <div className="p-2 rounded-xl bg-[#A68E4E]/20">
+              <CreditCard className="w-6 h-6 text-[#A68E4E]" />
             </div>
             <h4 className="text-white font-semibold">Płatności</h4>
           </div>
           <p className="text-3xl font-bold text-white">
             {(stats.payments?.total || 0).toLocaleString()} zł
           </p>
-          <p className="text-sm text-white/40 mt-1">
+          <p className="text-sm text-[#A68E4E]/60 mt-1">
             {stats.payments?.count || 0} pomyślnych transakcji
           </p>
         </div>
 
         {/* Engagement Card */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-500/10 to-indigo-900/10 border border-blue-500/20">
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-[#A68E4E]/15 to-[#0A0F1C] border border-[#A68E4E]/20">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-xl bg-blue-500/20">
-              <Zap className="w-6 h-6 text-blue-400" />
+            <div className="p-2 rounded-xl bg-[#A68E4E]/20">
+              <Zap className="w-6 h-6 text-[#A68E4E]" />
             </div>
             <h4 className="text-white font-semibold">Zaangażowanie</h4>
           </div>
@@ -510,14 +515,14 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               ? (stats.totalUsers / stats.totalAuctions).toFixed(1)
               : 0}
           </p>
-          <p className="text-sm text-white/40 mt-1">Użytkowników na aukcję</p>
+          <p className="text-sm text-[#A68E4E]/60 mt-1">Użytkowników na aukcję</p>
         </div>
 
         {/* Global Success Rate */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-fuchsia-900/10 border border-purple-500/20">
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-[#A68E4E]/20 to-[#0A0F1C] border border-[#A68E4E]/20">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-xl bg-purple-500/20">
-              <Trophy className="w-6 h-6 text-purple-400" />
+            <div className="p-2 rounded-xl bg-[#A68E4E]/20">
+              <Trophy className="w-6 h-6 text-[#A68E4E]" />
             </div>
             <h4 className="text-white font-semibold">Skuteczność</h4>
           </div>
@@ -530,7 +535,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
               : 0}
             %
           </p>
-          <p className="text-sm text-white/40 mt-1">Zakończonych sukcesem</p>
+          <p className="text-sm text-[#A68E4E]/60 mt-1">Zakończonych sukcesem</p>
         </div>
       </div>
     </div>

@@ -32,7 +32,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
           onClick={onClose}
         >
           <motion.div
-            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-white/20 p-6 rounded-2xl w-full max-w-lg shadow-2xl"
+            className="bg-gradient-to-br from-[#0A0F1C] to-[#0A0F1C]/90 border border-[#A68E4E]/20 p-6 rounded-2xl w-full max-w-lg shadow-2xl"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -40,7 +40,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Gavel className="w-5 h-5 text-gold" />
+                <Gavel className="w-5 h-5 text-[#A68E4E]" />
                 Edytuj Aukcję
               </h3>
               <motion.button
@@ -57,7 +57,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   Tytuł
                 </label>
                 <input
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={auction.title}
                   onChange={(e) =>
                     onChange({ ...auction, title: e.target.value })
@@ -69,7 +69,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   Opis
                 </label>
                 <textarea
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white h-20 focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all resize-none"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white h-20 focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all resize-none"
                   value={auction.description || ""}
                   onChange={(e) =>
                     onChange({ ...auction, description: e.target.value })
@@ -83,7 +83,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   </label>
                   <input
                     type="number"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                     value={auction.startingPrice || 0}
                     onChange={(e) =>
                       onChange({
@@ -99,7 +99,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   </label>
                   <input
                     type="number"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                     value={auction.buyNowPrice || 0}
                     onChange={(e) =>
                       onChange({
@@ -115,7 +115,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   Status
                 </label>
                 <select
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={auction.status}
                   onChange={(e) =>
                     onChange({ ...auction, status: e.target.value })
@@ -132,7 +132,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                 </label>
                 <input
                   type="datetime-local"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={(() => {
                     if (!auction.endTime) return "";
                     const date = new Date(auction.endTime);
@@ -156,7 +156,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   </label>
                   <input
                     type="number"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                     value={auction.minBidIncrement || 0}
                     onChange={(e) =>
                       onChange({
@@ -171,7 +171,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                     Kategoria
                   </label>
                   <select
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                     value={auction.category || "PIGEONS"}
                     onChange={(e) =>
                       onChange({ ...auction, category: e.target.value })
@@ -189,7 +189,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   Płeć
                 </label>
                 <select
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={auction.sex || "MALE"}
                   onChange={(e) =>
                     onChange({ ...auction, sex: e.target.value })
@@ -204,13 +204,13 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                   type="button"
                   variant="outline"
                   onClick={onClose}
-                  className="border-white/20"
+                  className="border-[#A68E4E]/20 text-[#A68E4E] hover:bg-[#A68E4E]/10"
                 >
                   Anuluj
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-gold to-gold-dark text-navy"
+                  className="bg-[#A68E4E] text-[#0A0F1C] hover:bg-[#A68E4E]/90"
                 >
                   <Save className="w-4 h-4 mr-2" /> Zapisz
                 </Button>

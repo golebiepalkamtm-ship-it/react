@@ -593,7 +593,7 @@ const AuctionDetail: React.FC = () => {
                   <div className="p-8 border-b-2 border-[#A68E4E] relative bg-white/[0.02]">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className="px-4 py-1.5 rounded-full bg-gold/10 text-gold text-[10px] font-black uppercase tracking-[0.2em] border border-gold/30">
+                        <span className="px-4 py-1.5 rounded-full bg-[#A68E4E]/10 text-[#A68E4E] text-[10px] font-black uppercase tracking-[0.2em] border border-[#A68E4E]/30">
                           {formatCategory(dAuction.category)}
                         </span>
                         {isEnded ? (
@@ -601,8 +601,8 @@ const AuctionDetail: React.FC = () => {
                             Zakończona
                           </span>
                         ) : (
-                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/20 text-green-500 text-[10px] font-black uppercase tracking-[0.2em] border border-green-500/30">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#A68E4E]/20 text-[#A68E4E] text-[10px] font-black uppercase tracking-[0.2em] border border-[#A68E4E]/30">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#A68E4E] animate-pulse" />
                             Aktywna
                           </div>
                         )}
@@ -612,19 +612,19 @@ const AuctionDetail: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {dAuction.startingPrice != null && (
                             <div className="flex items-center gap-2">
-                              <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">
+                              <span className="text-[9px] text-[#A68E4E]/60 uppercase tracking-widest font-black">
                                 Ofert:
                               </span>
-                              <span className="text-[11px] font-bold text-white">
+                              <span className="text-[11px] font-bold text-[#A68E4E]">
                                 {dAuction._count?.bids || 0}
                               </span>
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">
+                            <span className="text-[9px] text-[#A68E4E]/60 uppercase tracking-widest font-black">
                               Obserwują:
                             </span>
-                            <span className="text-[11px] font-bold text-white">
+                            <span className="text-[11px] font-bold text-[#A68E4E]">
                               {dAuction._count?.watchlist || 0}
                             </span>
                           </div>
@@ -633,7 +633,7 @@ const AuctionDetail: React.FC = () => {
 
                       <button
                         onClick={toggleWatch}
-                        className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all ${isWatched ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-white/5 border-white/10 text-white/40 hover:text-white"}`}
+                        className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all ${isWatched ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-[#A68E4E]/5 border-[#A68E4E]/20 text-[#A68E4E]/60 hover:text-[#A68E4E]"}`}
                       >
                         <Heart
                           className={`w-3 h-3 ${isWatched ? "fill-current" : ""}`}
@@ -658,12 +658,12 @@ const AuctionDetail: React.FC = () => {
                             : "Cena"}
                         </p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-4xl md:text-5xl font-black text-gold tracking-tighter">
+                          <span className="text-4xl md:text-5xl font-black text-[#A68E4E] tracking-tighter">
                             {dAuction.currentPrice
                               ? dAuction.currentPrice.toLocaleString("pl-PL")
                               : "0"}
                           </span>
-                          <span className="text-sm font-bold text-gold/60 uppercase tracking-widest mb-1">
+                          <span className="text-sm font-bold text-[#A68E4E]/60 uppercase tracking-widest mb-1">
                             PLN
                           </span>
                         </div>

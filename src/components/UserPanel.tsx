@@ -35,6 +35,7 @@ import {
   Zap,
   Sparkles,
   Plus,
+  Gavel,
 } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";

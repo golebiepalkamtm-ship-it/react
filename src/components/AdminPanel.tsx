@@ -376,16 +376,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   const filteredUsers = users.filter(
     (u) =>
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.username?.toLowerCase().includes(searchQuery.toLowerCase()),
+      (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.first_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.last_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.username || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const filteredAuctions = auctions.filter(
     (a) =>
-      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.seller?.email.toLowerCase().includes(searchQuery.toLowerCase()),
+      (a.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (a.seller?.email || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (!isOpen) return null;
@@ -401,19 +401,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       />
 
       <motion.div
-        className="relative w-full max-w-7xl h-[90vh] bg-gray-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row"
+        className="relative w-full max-w-7xl h-[90vh] bg-gray-950 border border-[#A68E4E]/30 rounded-3xl overflow-hidden shadow-2xl shadow-[#A68E4E]/10 flex flex-col md:flex-row"
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
       >
         {/* Sidebar */}
-        <div className="w-full md:w-64 bg-white/5 border-r border-white/10 p-6 flex flex-col gap-8">
+        <div className="w-full md:w-64 bg-[#0A0F1C]/95 border-r border-[#A68E4E]/20 p-6 flex flex-col gap-8">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gold/20">
-              <Shield className="w-6 h-6 text-gold" />
+            <div className="p-2 rounded-xl bg-[#A68E4E]/20 border border-[#A68E4E]/30">
+              <Shield className="w-6 h-6 text-[#A68E4E]" />
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">
-              AdminPanel
+              Admin<span className="text-[#A68E4E]">Panel</span>
             </h1>
           </div>
 
@@ -428,13 +428,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                   activeTab === tab.id
-                    ? "bg-gold text-navy font-bold"
-                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                    ? "bg-[#A68E4E] text-[#0A0F1C] font-bold shadow-lg shadow-[#A68E4E]/20"
+                    : "text-[#A68E4E]/60 hover:bg-[#A68E4E]/10 hover:text-[#A68E4E] hover:border-[#A68E4E]/30 border border-transparent"
                 }`}
               >
-                <tab.icon className="w-5 h-5" />
+                <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? "text-[#0A0F1C]" : "text-[#A68E4E]"}`} />
                 {tab.label}
               </button>
             ))}
@@ -443,7 +443,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           <div className="mt-auto">
             <Button
               variant="outline"
-              className="w-full justify-start gap-3 border-white/10 text-white/60 hover:text-white hover:bg-white/5"
+              className="w-full justify-start gap-3 border-[#A68E4E]/20 text-[#A68E4E]/60 hover:text-[#A68E4E] hover:bg-[#A68E4E]/10 hover:border-[#A68E4E]/40 transition-all duration-300"
               onClick={onClose}
             >
               <X className="w-5 h-5" /> Zamknij Panel
@@ -452,14 +452,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-20 border-b border-white/10 px-8 flex items-center justify-between gap-4">
+        <div className="flex-1 flex flex-col min-w-0 bg-[#0A0F1C]">
+          <header className="h-20 border-b border-[#A68E4E]/20 px-8 flex items-center justify-between gap-4 bg-[#0A0F1C]/50 backdrop-blur-sm">
             <div className="relative flex-1 max-w-xl group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-gold transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A68E4E]/40 group-focus-within:text-[#A68E4E] transition-colors" />
               <input
                 type="text"
                 placeholder="Szukaj..."
-                className="w-full pl-12 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/20 transition-all"
+                className="w-full pl-12 pr-4 py-2.5 bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl text-white placeholder-[#A68E4E]/30 outline-none focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

@@ -71,13 +71,13 @@ const StatCard = ({
       whileHover={{ y: -8, scale: 1.02 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className={`relative p-6 rounded-2xl ${gradient} border border-white/20 overflow-hidden group cursor-pointer`}
+      className={`relative p-6 rounded-2xl ${gradient} border border-[#A68E4E]/20 overflow-hidden group cursor-pointer`}
     >
       <motion.div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
         style={{
           background:
-            "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%)",
+            "radial-gradient(circle at 50% 50%, rgba(166, 142, 78, 0.1) 0%, transparent 70%)",
         }}
       />
       <div className="relative z-10">
@@ -86,18 +86,18 @@ const StatCard = ({
             animate={{ rotate: isHovered ? [0, -10, 10, 0] : 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Icon className="w-8 h-8 text-white/90" />
+            <Icon className="w-8 h-8 text-[#A68E4E]" />
           </motion.div>
           {trend !== undefined && (
             <div
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${trend >= 0 ? "bg-green-500/30 text-green-300" : "bg-red-500/30 text-red-300"}`}
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${trend >= 0 ? "bg-[#A68E4E]/20 text-[#A68E4E]" : "bg-red-500/20 text-red-300"}`}
             >
               {trend}%
             </div>
           )}
         </div>
         <p className="text-4xl font-bold text-white mb-1">{value}</p>
-        <p className="text-sm text-white/70">{label}</p>
+        <p className="text-sm text-[#A68E4E]/80">{label}</p>
       </div>
     </motion.div>
   );
@@ -133,7 +133,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={Users}
           value={stats.totalUsers}
           label="Użytkowników"
-          gradient="bg-gradient-to-br from-blue-600/40 to-blue-900/40"
+          gradient="bg-gradient-to-br from-[#A68E4E]/10 to-[#0A0F1C]"
           delay={0.1}
           trend={12}
         />
@@ -141,7 +141,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={Gavel}
           value={stats.activeAuctions}
           label="Aktywnych aukcji"
-          gradient="bg-gradient-to-br from-gold/40 to-amber-900/40"
+          gradient="bg-gradient-to-br from-[#A68E4E]/20 to-[#0A0F1C]"
           delay={0.15}
           trend={8}
         />
@@ -149,7 +149,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={DollarSign}
           value={`${stats.totalVolume.toLocaleString("pl-PL")} zł`}
           label="Łączny obrót"
-          gradient="bg-gradient-to-br from-green-600/40 to-emerald-900/40"
+          gradient="bg-gradient-to-br from-[#A68E4E]/15 to-[#0A0F1C]"
           delay={0.2}
           trend={24}
         />
@@ -157,19 +157,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={Database}
           value={stats.totalAuctions}
           label="Wszystkich aukcji"
-          gradient="bg-gradient-to-br from-purple-600/40 to-purple-900/40"
+          gradient="bg-gradient-to-br from-[#A68E4E]/10 to-[#0A0F1C]"
           delay={0.25}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-gold" />
+              <Users className="w-5 h-5 text-[#A68E4E]" />
               Ostatni użytkownicy
             </h3>
-            <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-300">
+            <span className="text-xs px-2 py-1 rounded-full bg-[#A68E4E]/10 text-[#A68E4E]">
               {recentUsers.length} total
             </span>
           </div>
@@ -177,11 +177,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {recentUsers.slice(0, 5).map((user, index) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group"
+                className="flex items-center justify-between p-3 rounded-xl bg-[#A68E4E]/5 hover:bg-[#A68E4E]/10 transition-colors group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold/30 to-gold/10 flex items-center justify-center border border-gold/30">
-                    <span className="text-gold font-medium">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A68E4E]/30 to-[#A68E4E]/10 flex items-center justify-center border border-[#A68E4E]/30">
+                    <span className="text-[#A68E4E] font-medium">
                       {user.first_name?.[0] || user.email?.[0]?.toUpperCase()}
                     </span>
                   </div>
@@ -189,11 +189,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <p className="text-sm font-medium text-white">
                       {user.first_name} {user.last_name}
                     </p>
-                    <p className="text-xs text-white/50">{user.email}</p>
+                    <p className="text-xs text-[#A68E4E]/60">{user.email}</p>
                   </div>
                 </div>
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${user.role === "ADMIN" ? "bg-gold/20 text-gold" : user.role === "USER_FULL_VERIFIED" ? "bg-green-500/20 text-green-400" : "bg-white/10 text-white/60"}`}
+                  className={`text-xs px-2 py-1 rounded-full ${user.role === "ADMIN" ? "bg-[#A68E4E]/20 text-[#A68E4E]" : "bg-[#A68E4E]/10 text-[#A68E4E]/60"}`}
                 >
                   {user.role}
                 </span>
@@ -202,13 +202,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Gavel className="w-5 h-5 text-gold" />
+              <Gavel className="w-5 h-5 text-[#A68E4E]" />
               Ostatnie aukcje
             </h3>
-            <span className="text-xs px-2 py-1 rounded-full bg-gold/20 text-gold">
+            <span className="text-xs px-2 py-1 rounded-full bg-[#A68E4E]/10 text-[#A68E4E]">
               {recentAuctions.length} total
             </span>
           </div>
@@ -216,22 +216,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {recentAuctions.slice(0, 5).map((auction, index) => (
               <div
                 key={auction.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                className="flex items-center justify-between p-3 rounded-xl bg-[#A68E4E]/5 hover:bg-[#A68E4E]/10 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">
                     {auction.title}
                   </p>
-                  <p className="text-xs text-white/50">
+                  <p className="text-xs text-[#A68E4E]/60">
                     {auction.seller?.first_name} {auction.seller?.last_name}
                   </p>
                 </div>
                 <div className="text-right ml-4">
-                  <p className="text-sm font-bold text-gold">
+                  <p className="text-sm font-bold text-[#A68E4E]">
                     {auction.currentPrice?.toLocaleString("pl-PL")} zł
                   </p>
                   <span
-                    className={`text-xs ${auction.status === "ACTIVE" ? "text-green-400" : "text-white/50"}`}
+                    className={`text-xs ${auction.status === "ACTIVE" ? "text-[#A68E4E]" : "text-white/50"}`}
                   >
                     {auction.status === "ACTIVE" ? "Aktywna" : "Zakończona"}
                   </span>
@@ -242,9 +242,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/20">
+      <div className="p-6 rounded-2xl bg-gradient-to-br from-[#A68E4E]/10 to-[#A68E4E]/5 border border-[#A68E4E]/20">
         <div className="flex items-center gap-3 mb-4">
-          <Sparkles className="w-6 h-6 text-gold" />
+          <Sparkles className="w-6 h-6 text-[#A68E4E]" />
           <h3 className="text-lg font-semibold text-white">Szybkie akcje</h3>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -278,20 +278,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <motion.button
               key={item.label}
               onClick={item.action}
-              className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold/30 transition-all duration-300 group"
+              className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-[#0A0F1C]/50 hover:bg-[#A68E4E]/10 border border-[#A68E4E]/10 hover:border-[#A68E4E]/30 transition-all duration-300 group"
               whileHover={{ y: -5, scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center group-hover:bg-gold/20 transition-colors">
+              <div className="w-12 h-12 rounded-full bg-[#A68E4E]/10 flex items-center justify-center group-hover:bg-[#A68E4E]/20 transition-colors">
                 <item.icon
-                  className={`w-6 h-6 text-gold ${item.spin ? "animate-spin" : ""}`}
+                  className={`w-6 h-6 text-[#A68E4E] ${item.spin ? "animate-spin" : ""}`}
                 />
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-white">
                   {item.label}
                 </span>
-                <span className="text-[10px] text-white/40 uppercase tracking-wider">
+                <span className="text-[10px] text-[#A68E4E]/60 uppercase tracking-wider">
                   {item.desc}
                 </span>
               </div>
@@ -301,16 +301,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
-        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
-            <Database className="w-6 h-6 text-gold" />
+            <Database className="w-6 h-6 text-[#A68E4E]" />
             <h3 className="text-lg font-semibold text-white">
               Centrum Pomocy Administratora
             </h3>
           </div>
-          <div className="space-y-4 text-sm text-white/60">
+          <div className="space-y-4 text-sm text-[#A68E4E]/80">
             <div className="flex gap-3">
-              <Users className="w-5 h-5 text-gold shrink-0" />
+              <Users className="w-5 h-5 text-[#A68E4E] shrink-0" />
               <p>
                 <strong className="text-white">
                   Zarządzanie Użytkownikami:
@@ -321,7 +321,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </p>
             </div>
             <div className="flex gap-3">
-              <Gavel className="w-5 h-5 text-orange-400 shrink-0" />
+              <Gavel className="w-5 h-5 text-[#A68E4E] shrink-0" />
               <p>
                 <strong className="text-white">Zarządzanie Aukcjami:</strong>{" "}
                 Umożliwia edycję treści aukcji, przedwczesne zakończenie
@@ -329,28 +329,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </p>
             </div>
             <div className="flex gap-3">
-              <Settings className="w-5 h-5 text-blue-400 shrink-0" />
+              <Settings className="w-5 h-5 text-[#A68E4E] shrink-0" />
               <p>
                 <strong className="text-white">Konfiguracja Systemu:</strong>{" "}
                 Kontroluj dostępność rejestracji, tryb konserwacji oraz
                 parametry globalne platformy.
               </p>
             </div>
-            <div className="mt-4 p-3 rounded-lg bg-gold/5 border border-gold/10 text-xs italic">
+            <div className="mt-4 p-3 rounded-lg bg-[#A68E4E]/5 border border-[#A68E4E]/10 text-xs italic">
               Wskazówka: Najedź kursorem na ikony akcji w tabelach, aby zobaczyć
               szczegółowe opisy poszczególnych przycisków.
             </div>
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle className="w-6 h-6 text-orange-400" />
+            <AlertTriangle className="w-6 h-6 text-[#A68E4E]" />
             <h3 className="text-lg font-semibold text-white">
               Ważne Informacje
             </h3>
           </div>
-          <ul className="space-y-3 text-sm text-white/70">
+          <ul className="space-y-3 text-sm text-[#A68E4E]/80">
             <li className="flex items-start gap-2 italic">
               • Akcje usunięcia są permanentne i nieodwracalne.
             </li>

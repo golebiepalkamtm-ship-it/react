@@ -101,65 +101,15 @@ const PressArticleDetail = () => {
             {/* Back Navigation */}
             <div className="mb-8">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/press">
+                <Link to="/press" className="text-white hover:text-gold hover:bg-white/10">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Wróć do artykułów
                 </Link>
               </Button>
             </div>
 
-            {/* Article Header */}
-            <header className="max-w-4xl mx-auto mb-12">
-              <div className="flex items-center gap-2 text-sm text-zinc-300 mb-4">
-                <Newspaper className="w-4 h-4 text-gold" />
-                <span>{article.publication}</span>
-                {article.author && (
-                  <>
-                    <span>•</span>
-                    <span>{article.author}</span>
-                  </>
-                )}
-                <span>•</span>
-                <Calendar className="w-4 h-4 text-gold" />
-                <time>
-                  {new Date(article.date).toLocaleDateString("pl-PL")}
-                </time>
-              </div>
-
-              <div className="mx-auto max-w-4xl">
-                <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-zinc-900 font-bold leading-tight mb-4">
-                  {article.title}
-                </h1>
-
-                <div className="prose prose-lg max-w-4xl mx-auto text-slate-800">
-                  <p>{article.content}</p>
-                </div>
-
-                <div className="flex items-center justify-between max-w-4xl mx-auto mt-12 text-slate-600">
-                  <div className="flex items-center gap-3">
-                    <ImageIcon className="w-5 h-5 text-gold" />
-                    <span>
-                      {article.images.pages?.length || 0} dodatkowych zdjęć
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Share2 className="w-5 h-5" />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleShare}
-                      className="border-gold/30 hover:bg-gold hover:text-navy"
-                    >
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Udostępnij
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </header>
-
             {/* Featured Image */}
-            <div className="max-w-4xl mx-auto mb-12">
+            <div className="max-w-5xl mx-auto mb-12">
               <div className="rounded-2xl overflow-hidden border border-gold/25 bg-black/20 backdrop-blur-md shadow-[0_18px_48px_rgba(0,0,0,0.12)]">
                 <img
                   src={article.images.main}
@@ -177,7 +127,51 @@ const PressArticleDetail = () => {
             {/* Article Content */}
             <div className="max-w-5xl mx-auto">
               <div className="rounded-2xl border border-white/25 bg-black/60 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-8 md:p-12 mb-12">
-                <div className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground">
+                {/* Article Header Inside Container */}
+                <header className="mb-12 border-b border-white/10 pb-8">
+                  <div className="flex items-center gap-2 text-sm text-zinc-300 mb-4">
+                    <Newspaper className="w-4 h-4 text-gold" />
+                    <span>{article.publication}</span>
+                    {article.author && (
+                      <>
+                        <span>•</span>
+                        <span>{article.author}</span>
+                      </>
+                    )}
+                    <span>•</span>
+                    <Calendar className="w-4 h-4 text-gold" />
+                    <time>
+                      {new Date(article.date).toLocaleDateString("pl-PL")}
+                    </time>
+                  </div>
+
+                  <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white font-bold leading-tight mb-6">
+                    {article.title}
+                  </h1>
+
+                  <div className="flex items-center justify-between text-zinc-300">
+                    <div className="flex items-center gap-3">
+                      <ImageIcon className="w-5 h-5 text-gold" />
+                      <span>
+                        {article.images.pages?.length || 0} dodatkowych zdjęć
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Share2 className="w-5 h-5" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleShare}
+                        className="border-gold/30 hover:bg-gold hover:text-navy text-white hover:text-navy"
+                      >
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Udostępnij
+                      </Button>
+                    </div>
+                  </div>
+                </header>
+
+                <div className="prose prose-lg max-w-none prose-headings:text-white prose-p:text-zinc-300 prose-strong:text-white text-zinc-300">
                   {article.content.split("\n\n").map((paragraph, index) => {
                     if (
                       paragraph.startsWith("**") &&
@@ -193,7 +187,7 @@ const PressArticleDetail = () => {
                       );
                     }
                     return (
-                      <p key={index} className="mb-4 leading-relaxed text-lg">
+                      <p key={index} className="mb-4 leading-relaxed text-lg text-zinc-300">
                         {paragraph.replace(/\*\*/g, "")}
                       </p>
                     );

@@ -30,7 +30,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
           onClick={onClose}
         >
           <motion.div
-            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-white/20 p-6 rounded-2xl w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]"
+            className="bg-gradient-to-br from-[#0A0F1C] to-[#0A0F1C]/90 border border-[#A68E4E]/20 p-6 rounded-2xl w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -38,7 +38,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-gold" />
+                <Plus className="w-5 h-5 text-[#A68E4E]" />
                 Nowy Użytkownik
               </h3>
               <motion.button
@@ -57,7 +57,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                 <input
                   type="email"
                   required
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={user.email || ""}
                   onChange={(e) => onChange({ ...user, email: e.target.value })}
                 />
@@ -69,7 +69,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                 <input
                   type="password"
                   required
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={user.password || ""}
                   onChange={(e) =>
                     onChange({ ...user, password: e.target.value })
@@ -83,7 +83,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                 </label>
                 <input
                   required
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={user.username || ""}
                   onChange={(e) =>
                     onChange({ ...user, username: e.target.value })
@@ -97,7 +97,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                   </label>
                   <input
                     required
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                     value={user.first_name || ""}
                     onChange={(e) =>
                       onChange({ ...user, first_name: e.target.value })
@@ -110,7 +110,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                   </label>
                   <input
                     required
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                    className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                     value={user.last_name || ""}
                     onChange={(e) =>
                       onChange({ ...user, last_name: e.target.value })
@@ -126,16 +126,16 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                   type="tel"
                   required
                   placeholder="+48 000 000 000"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={user.phone || ""}
                   onChange={(e) => onChange({ ...user, phone: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4 py-2">
-                <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
+                <label className="flex items-center gap-3 p-3 bg-[#A68E4E]/5 rounded-xl cursor-pointer hover:bg-[#A68E4E]/10 transition-colors">
                   <input
                     type="checkbox"
-                    className="w-5 h-5 rounded border-white/20 bg-transparent text-gold focus:ring-gold/20"
+                    className="w-5 h-5 rounded border-[#A68E4E]/20 bg-transparent text-[#A68E4E] focus:ring-[#A68E4E]/20"
                     checked={user.isBlocked || false}
                     onChange={(e) =>
                       onChange({ ...user, isBlocked: e.target.checked })
@@ -143,10 +143,10 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                   />
                   <span className="text-sm text-white/90">Zablokowany</span>
                 </label>
-                <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
+                <label className="flex items-center gap-3 p-3 bg-[#A68E4E]/5 rounded-xl cursor-pointer hover:bg-[#A68E4E]/10 transition-colors">
                   <input
                     type="checkbox"
-                    className="w-5 h-5 rounded border-white/20 bg-transparent text-red-500 focus:ring-red-500/20"
+                    className="w-5 h-5 rounded border-[#A68E4E]/20 bg-transparent text-red-500 focus:ring-red-500/20"
                     checked={user.isBanned || false}
                     onChange={(e) =>
                       onChange({ ...user, isBanned: e.target.checked })
@@ -160,7 +160,7 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                   Rola
                 </label>
                 <select
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-gold/50 focus:ring-2 focus:ring-gold/20 outline-none transition-all"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
                   value={user.role || "USER_REGISTERED"}
                   onChange={(e) => onChange({ ...user, role: e.target.value })}
                 >
@@ -179,13 +179,13 @@ export const AdminCreateUserModal: React.FC<AdminCreateUserModalProps> = ({
                   type="button"
                   variant="outline"
                   onClick={onClose}
-                  className="border-white/20"
+                  className="border-[#A68E4E]/20 text-[#A68E4E] hover:bg-[#A68E4E]/10"
                 >
                   Anuluj
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-gold to-gold-dark text-navy"
+                  className="bg-[#A68E4E] text-[#0A0F1C] hover:bg-[#A68E4E]/90"
                 >
                   <Plus className="w-4 h-4 mr-2" /> Utwórz
                 </Button>

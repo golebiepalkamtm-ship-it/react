@@ -67,6 +67,16 @@ const BackgroundWrapper = () => {
 
 import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 const App = () => {
   useEffect(() => {
     trackMetric("SITE").catch(() => {});
@@ -86,6 +96,7 @@ const App = () => {
                   v7_relativeSplatPath: true,
                 }}
               >
+                <ScrollToTop />
                 <TooltipProvider>
                   <Toaster />
                   <Sonner />

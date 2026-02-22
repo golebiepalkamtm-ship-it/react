@@ -27,12 +27,12 @@ export const AuctionCountDown: React.FC<AuctionCountDownProps> = memo(
           <span className="text-[8px] tracking-[0.2em] opacity-40">MIN</span>
         </div>
         <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
-        <div className="flex flex-col items-center text-primary">
+        <div className="flex flex-col items-center text-[#A68E4E]">
           <span className="text-2xl sm:text-3xl">{seconds}</span>
           <span className="text-[8px] tracking-[0.2em] opacity-40">SEK</span>
         </div>
         <span className="text-xl sm:text-2xl opacity-30 -mt-4">:</span>
-        <div className="flex flex-col items-center text-primary/80">
+        <div className="flex flex-col items-center text-[#A68E4E]/80">
           <span className="text-2xl sm:text-3xl">{centiseconds}</span>
           <span className="text-[8px] tracking-[0.2em] opacity-40">SET</span>
         </div>

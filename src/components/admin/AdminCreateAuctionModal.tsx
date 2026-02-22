@@ -28,7 +28,7 @@ export const AdminCreateAuctionModal: React.FC<AdminCreateAuctionModalProps> = (
                     onClick={onClose}
                 >
                     <motion.div
-                        className="bg-gradient-to-br from-slate-800 to-slate-900 border border-white/20 p-6 rounded-2xl w-full max-w-2xl shadow-2xl my-8"
+                        className="bg-gradient-to-br from-[#0A0F1C] to-[#0A0F1C]/90 border border-[#A68E4E]/20 p-6 rounded-2xl w-full max-w-2xl shadow-2xl my-8"
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -36,7 +36,7 @@ export const AdminCreateAuctionModal: React.FC<AdminCreateAuctionModalProps> = (
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Gavel className="w-5 h-5 text-gold" />
+                                <Gavel className="w-5 h-5 text-[#A68E4E]" />
                                 Nowa Aukcja (Admin)
                             </h3>
                             <motion.button onClick={onClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}>
