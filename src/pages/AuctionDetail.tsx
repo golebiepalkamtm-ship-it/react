@@ -1074,7 +1074,7 @@ const AuctionDetail: React.FC = () => {
         onClose={() => setIsImageModalOpen(false)}
         images={displayAuction?.images || []}
         currentIndex={imageModalIndex}
-        title={displayAuction?.title}
+        title={displayAuction?.title || ""}
       />
 
       {dAuction && (

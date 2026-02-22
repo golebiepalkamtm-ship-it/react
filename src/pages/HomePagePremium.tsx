@@ -30,7 +30,13 @@ registerCustomEasings();
 // HERO PREMIUM - Czysty, Jasny i Profesjonalny
 // ============================================================================
 
-const SplitText = ({ children, className }: { children: string; className?: string }) => (
+const SplitText = ({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) => (
   <span className={className}>
     {children.split("").map((char, i) => (
       <span key={i} className="char-premium inline-block will-change-transform">
@@ -49,12 +55,22 @@ const HeroPremium = () => {
       // RESET STANÓW
       gsap.set(".hero-reveal", { autoAlpha: 0, y: 30 });
       gsap.set(".hero-scroll-indicator", { autoAlpha: 0, y: 20 });
-      
+
       // ENTRANCE
       const entranceTl = gsap.timeline({ delay: 0 }); // Brak opóźnienia
       entranceTl
-        .to(".hero-reveal", { autoAlpha: 1, y: 0, duration: 0.8, ease: "power2.out", stagger: 0.05 })
-        .to(".hero-scroll-indicator", { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.3);
+        .to(".hero-reveal", {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          stagger: 0.05,
+        })
+        .to(
+          ".hero-scroll-indicator",
+          { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" },
+          0.3,
+        );
 
       // PINNING & SCROLL ANIMATION
       const chars = gsap.utils.toArray<HTMLElement>(".char-premium");
@@ -62,20 +78,20 @@ const HeroPremium = () => {
       const button = document.querySelector(".hero-reveal a"); // "Zobacz Championy"
       const centerX = window.innerWidth / 2;
       const centerY = window.innerHeight / 2;
-      
+
       // OPTIMIZATION: Pre-calculate ALL random values and positions
       // Avoids calculations during the animation loop
-      const charAnimations = chars.map(char => {
+      const charAnimations = chars.map((char) => {
         const rect = char.getBoundingClientRect();
-        const dx = (rect.left + rect.width / 2) - centerX;
-        const dy = (rect.top + rect.height / 2) - centerY;
-        
+        const dx = rect.left + rect.width / 2 - centerX;
+        const dy = rect.top + rect.height / 2 - centerY;
+
         return {
           x: dx * 3.5, // Target X
           y: dy * 2 + (Math.random() * 200 - 100), // Target Y
           z: Math.random() * 500, // Target Z
           rotation: Math.random() * 90 - 45,
-          scale: Math.random() * 1.5 + 0.5
+          scale: Math.random() * 1.5 + 0.5,
         };
       });
 
@@ -89,32 +105,41 @@ const HeroPremium = () => {
           pinSpacing: false, // KLUCZOWE: Następna sekcja wjeżdża NA Hero (overlay)
           anticipatePin: 1,
           fastScrollEnd: true,
-          preventOverlaps: true
+          preventOverlaps: true,
         },
       });
 
       mainTl
-        .to(".hero-scroll-indicator", { autoAlpha: 0, y: 50, duration: 0.05 }, 0)
+        .to(
+          ".hero-scroll-indicator",
+          { autoAlpha: 0, y: 50, duration: 0.05 },
+          0,
+        )
         // 1. Badge i Button znikają szybko
         .to([badge, button], { autoAlpha: 0, y: -50, duration: 0.2 }, 0)
         // 2. Napisy wybuchają
-        .to(chars, {
-          x: (i) => charAnimations[i].x,
-          y: (i) => charAnimations[i].y,
-          z: (i) => charAnimations[i].z,
-          scale: (i) => charAnimations[i].scale,
-          rotation: (i) => charAnimations[i].rotation,
-          opacity: 0, // Zanikanie w trakcie rozchodzenia
-          filter: "blur(12px)",
-          stagger: { amount: 0.1, from: "random" }, 
-          ease: "power2.inOut", // Liniowy, płynny rozpad zsynchronizowany z wjazdem sekcji
-          willChange: "transform, opacity, filter"
-        }, 0);
+        .to(
+          chars,
+          {
+            x: (i) => charAnimations[i]!.x,
+            y: (i) => charAnimations[i]!.y,
+            z: (i) => charAnimations[i]!.z,
+            scale: (i) => charAnimations[i]!.scale,
+            rotation: (i) => charAnimations[i]!.rotation,
+            opacity: 0, // Zanikanie w trakcie rozchodzenia
+            filter: "blur(12px)",
+            stagger: { amount: 0.1, from: "random" },
+            ease: "power2.inOut", // Liniowy, płynny rozpad zsynchronizowany z wjazdem sekcji
+            willChange: "transform, opacity, filter",
+          },
+          0,
+        );
 
       // SEKCJE
       const sections = document.querySelectorAll(".home-section");
       sections.forEach((sec, i) => {
-        gsap.fromTo(sec,
+        gsap.fromTo(
+          sec,
           { autoAlpha: 0, y: 50 },
           {
             autoAlpha: 1,
@@ -126,12 +151,11 @@ const HeroPremium = () => {
               start: "top 85%",
               toggleActions: "play none none reverse",
             },
-          }
+          },
         );
       });
-
-    }, 
-    { scope: heroRef }
+    },
+    { scope: heroRef },
   );
 
   return (
@@ -157,7 +181,7 @@ const HeroPremium = () => {
               <SplitText>Pałka</SplitText>
             </span>{" "}
             <span className="hero-part-right inline-block text-[#A68E4E]">
-               <SplitText>MTM</SplitText>
+              <SplitText>MTM</SplitText>
             </span>
             <span className="hero-subtitle gold-heading block text-xl md:text-2xl font-light tracking-[0.2em] mt-4 uppercase text-center whitespace-nowrap">
               <SplitText>— Geny Zwycięzców</SplitText>
@@ -165,9 +189,9 @@ const HeroPremium = () => {
           </h1>
 
           <div className="hero-reveal text-xl md:text-2xl heading-black max-w-2xl mb-12 font-bold mx-auto uppercase tracking-widest text-center">
-             <SplitText>Trzy pokolenia pasji. Setki mistrzostw.</SplitText>
-             <br />
-             <SplitText>Elitarne gołębie pocztowe z Dolnego Śląska.</SplitText>
+            <SplitText>Trzy pokolenia pasji. Setki mistrzostw.</SplitText>
+            <br />
+            <SplitText>Elitarne gołębie pocztowe z Dolnego Śląska.</SplitText>
           </div>
 
           <div className="hero-reveal flex justify-center">
@@ -239,13 +263,15 @@ const CTAFeaturesSection = () => {
       gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.92 });
       gsap.set(titleRef.current, { opacity: 0, y: 60 });
       gsap.set(descRef.current, { opacity: 0, y: 40 });
-      
+
       // Cards Initial States
       const cards = cardsRef.current;
       // Zwiększony dystans i rotacja dla bardziej spektakularnego wejścia
-      if (cards[0]) gsap.set(cards[0], { opacity: 0, x: -300, rotateY: -30, scale: 0.8 }); // Left - mocniej z lewej
-      if (cards[1]) gsap.set(cards[1], { opacity: 0, y: 200, scale: 0.6 });    // Middle - startuje niżej i mniejsza
-      if (cards[2]) gsap.set(cards[2], { opacity: 0, x: 300, rotateY: 30, scale: 0.8 });   // Right - mocniej z prawej
+      if (cards[0])
+        gsap.set(cards[0], { opacity: 0, x: -300, rotateY: -30, scale: 0.8 }); // Left - mocniej z lewej
+      if (cards[1]) gsap.set(cards[1], { opacity: 0, y: 200, scale: 0.6 }); // Middle - startuje niżej i mniejsza
+      if (cards[2])
+        gsap.set(cards[2], { opacity: 0, x: 300, rotateY: 30, scale: 0.8 }); // Right - mocniej z prawej
 
       // 2. Master Timeline
       const tl = gsap.timeline({
@@ -257,49 +283,83 @@ const CTAFeaturesSection = () => {
       });
 
       // 3. Header Animation
-      tl.to(badgeRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" })
-        .to(titleRef.current, { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.6")
-        .to(descRef.current, { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.7");
+      tl.to(badgeRef.current, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        ease: "back.out(1.5)",
+      })
+        .to(
+          titleRef.current,
+          { opacity: 1, y: 0, duration: 1, ease: "power3.out" },
+          "-=0.6",
+        )
+        .to(
+          descRef.current,
+          { opacity: 1, y: 0, duration: 1, ease: "power3.out" },
+          "-=0.7",
+        );
 
       // 4. Cards Animation
       // Left & Right fly in together first - BARDZIEJ WIDOCZNE
       if (cards[0] && cards[2]) {
-        tl.to([cards[0], cards[2]], {
-          opacity: 1, 
-          x: 0, 
-          rotateY: 0, 
-          scale: 1,
-          duration: 1.8, 
-          ease: "power4.out" // Bardziej dynamiczne wyhamowanie
-        }, "-=0.5");
+        tl.to(
+          [cards[0], cards[2]],
+          {
+            opacity: 1,
+            x: 0,
+            rotateY: 0,
+            scale: 1,
+            duration: 1.8,
+            ease: "power4.out", // Bardziej dynamiczne wyhamowanie
+          },
+          "-=0.5",
+        );
       }
-      
+
       // Middle card enters last - MAJESTATYCZNIE
       if (cards[1]) {
-        tl.to(cards[1], {
-          opacity: 1, 
-          y: 0, 
-          scale: 1, 
-          duration: 1.8, 
-          ease: "elastic.out(1, 0.75)" // Lekkie "odbicie" dla efektu
-        }, "-=1.4");
+        tl.to(
+          cards[1],
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 1.8,
+            ease: "elastic.out(1, 0.75)", // Lekkie "odbicie" dla efektu
+          },
+          "-=1.4",
+        );
       }
     },
     { scope: sectionRef },
   );
 
   return (
-    <section ref={sectionRef} className="min-h-screen flex flex-col items-center justify-center py-24 px-4 bg-transparent relative overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="min-h-screen flex flex-col items-center justify-center py-24 px-4 bg-transparent relative overflow-hidden"
+    >
       <div className="max-w-6xl mx-auto w-full">
         <div className="text-center mb-16">
-          <span ref={badgeRef} className="inline-block px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] font-bold uppercase tracking-[0.2em] mb-6 shadow-lg shadow-gold/20">
+          <span
+            ref={badgeRef}
+            className="inline-block px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] font-bold uppercase tracking-[0.2em] mb-6 shadow-lg shadow-gold/20"
+          >
             Dlaczego my
           </span>
-          <h2 ref={titleRef} className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 uppercase tracking-tighter font-display">
+          <h2
+            ref={titleRef}
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 uppercase tracking-tighter font-display"
+          >
             <span className="text-zinc-900">Zostań Właścicielem</span> <br />
             <span className="text-[#A68E4E]">Wybitnego Championa</span>
           </h2>
-          <p ref={descRef} className="text-lg md:text-xl text-white mb-10 max-w-4xl mx-auto font-light leading-relaxed">
+          <p
+            ref={descRef}
+            className="text-lg md:text-xl text-white mb-10 max-w-4xl mx-auto font-light leading-relaxed"
+          >
             Dołącz do elitarnego grona hodowców. Nasze aukcje to jedyna okazja,
             aby zdobyć gołębie o tak wybitnym potencjale genetycznym.
           </p>
@@ -353,14 +413,14 @@ export const HomePagePremium = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     return () => {
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      ScrollTrigger.getAll().forEach((st) => st.kill());
     };
   }, []);
 
   return (
     <div ref={containerRef} className="min-h-screen bg-transparent">
       <Header />
-      
+
       <main>
         {/* Intro Section - Hero Wrapper */}
         <div id="hero-section-pin" className="relative w-full min-h-screen">
