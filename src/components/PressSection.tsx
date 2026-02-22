@@ -62,11 +62,13 @@ const PressArticleCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="relative overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full flex flex-col bg-champion-teal"
+        className="relative overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full flex flex-col"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d",
+          background:
+            "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}

@@ -581,7 +581,7 @@ const AuctionDetail: React.FC = () => {
                   className="glass-vault rounded-[2.5rem] overflow-hidden relative group h-full !border-2 !border-[#A68E4E] !shadow-[0_0_50px_rgba(166,142,78,0.5)]"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(166, 142, 78, 0.05), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.4) 0%, rgba(6, 35, 46, 0.3) 45%, rgba(9, 61, 77, 0.2) 100%)",
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
                     border: "2px solid #A68E4E",
                     boxShadow: "0 0 50px rgba(166,142,78,0.5)",
                   }}

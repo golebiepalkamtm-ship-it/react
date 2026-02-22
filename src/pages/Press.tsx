@@ -91,7 +91,7 @@ const PressArticleCard = ({
             rotateY,
             transformStyle: "preserve-3d",
             background:
-              "radial-gradient(circle at top, rgba(166, 142, 78, 0.15), transparent 70%), linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(10, 10, 10, 0.96) 50%, rgba(15, 15, 15, 0.95) 100%)",
+              "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
           }}
           whileHover={{ scale: 1.02 }}
           transition={{ scale: { duration: 0.2 } }}

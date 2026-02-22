@@ -691,9 +691,9 @@ export default function Auth() {
 
               {/* Przełącznik - ukryj dla trybów reset/forgot */}
               {["login", "register"].includes(mode) && (
-                <div className="relative bg-slate-100 rounded-xl p-1 mb-4 border border-slate-200">
+                <div className="relative bg-transparent rounded-xl p-1 mb-4 border border-[#A68E4E]/30">
                   <motion.div
-                    className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm border border-gold/30"
+                    className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#A68E4E] rounded-lg shadow-sm border border-[#A68E4E]"
                     animate={{
                       x: mode === "register" ? "calc(100% + 4px)" : 0,
                     }}
@@ -702,14 +702,14 @@ export default function Auth() {
                   <div className="relative flex">
                     <button
                       onClick={() => switchMode("login")}
-                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "login" ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+                      className={`flex-1 py-2.5 text-sm font-bold transition-colors duration-300 rounded-lg relative z-10 ${mode === "login" ? "text-zinc-900" : "text-[#A68E4E] hover:text-[#C5A95D]"}`}
                       type="button"
                     >
                       Logowanie
                     </button>
                     <button
                       onClick={() => switchMode("register")}
-                      className={`flex-1 py-2.5 text-sm font-medium transition-colors duration-300 rounded-lg ${mode === "register" ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+                      className={`flex-1 py-2.5 text-sm font-bold transition-colors duration-300 rounded-lg relative z-10 ${mode === "register" ? "text-zinc-900" : "text-[#A68E4E] hover:text-[#C5A95D]"}`}
                       type="button"
                     >
                       Rejestracja
@@ -722,7 +722,7 @@ export default function Auth() {
               <div className="space-y-2 mb-4">
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-zinc-900 text-sm font-bold border border-slate-200 shadow-sm transition-none bg-white"
+                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-zinc-900 text-sm font-bold border border-slate-200 shadow-sm transition-none bg-white hover:bg-gray-50 relative z-30 !bg-white"
                   style={{ backgroundColor: "#FFFFFF" }}
                   type="button"
                   onClick={() => handleOAuthSignIn("google")}
@@ -757,7 +757,7 @@ export default function Auth() {
 
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-white text-sm font-bold border-0 shadow-md shadow-blue-500/20 transition-none"
+                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-white text-sm font-bold border-0 shadow-md shadow-blue-500/20 transition-none relative z-30"
                   style={{ backgroundColor: "#1877F2" }}
                   type="button"
                   onClick={() => handleOAuthSignIn("facebook")}
@@ -970,9 +970,9 @@ export default function Auth() {
                 <div className="text-center text-sm text-slate-600">
                   {mode === "login" ? (
                     <>
-                      Nie masz konta?{" "}
+                      <span className="text-[#A68E4E] font-medium">Nie masz konta?</span>{" "}
                       <button
-                        className="text-gold hover:underline"
+                        className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
                         onClick={() => switchMode("register")}
                       >
@@ -981,9 +981,9 @@ export default function Auth() {
                     </>
                   ) : mode === "register" ? (
                     <>
-                      Masz już konto?{" "}
+                      <span className="text-[#A68E4E] font-medium">Masz już konto?</span>{" "}
                       <button
-                        className="text-gold hover:underline"
+                        className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
                         onClick={() => switchMode("login")}
                       >
@@ -992,9 +992,9 @@ export default function Auth() {
                     </>
                   ) : mode === "forgot" ? (
                     <>
-                      Pamiętasz hasło?{" "}
+                      <span className="text-[#A68E4E] font-medium">Pamiętasz hasło?</span>{" "}
                       <button
-                        className="text-gold hover:underline"
+                        className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
                         onClick={() => switchMode("login")}
                       >
@@ -1003,9 +1003,9 @@ export default function Auth() {
                     </>
                   ) : (
                     <>
-                      Masz problem?{" "}
+                      <span className="text-[#A68E4E] font-medium">Masz problem?</span>{" "}
                       <button
-                        className="text-gold hover:underline"
+                        className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
                         onClick={() => switchMode("forgot")}
                       >
@@ -1015,7 +1015,7 @@ export default function Auth() {
                   )}
                 </div>
                 <div className="text-center text-xs text-slate-500">
-                  <Link className="hover:underline" to={callbackUrl}>
+                  <Link className="hover:underline text-[#A68E4E] font-medium" to={callbackUrl}>
                     Wróć
                   </Link>
                 </div>
