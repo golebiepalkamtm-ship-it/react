@@ -112,7 +112,7 @@ const AboutSection = () => {
       icon: Award,
       title: "Udowodnione wyniki",
       description:
-        "Konsekwentnie zajmujemy czołowe miejsca w krajowych i międzynarodowych zawodach, rok po roku.",
+        "Konsekwentnie zajmujemy czołowe miejsca w krajowych zawodach, rok po roku, budując pełne zaufanie hodowców.",
     },
   ];
 
@@ -211,26 +211,31 @@ const AboutSection = () => {
               ref={titleRef}
               className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.18em] mb-7"
             >
-              <span className="text-zinc-900">Najwyższa Jakość</span>{" "}
-              <span className="text-[#A68E4E]">Hodowli</span>
+              <span className="text-zinc-900">Zrodzona z charakteru,</span>{" "}
+              <span className="text-[#A68E4E]">prowadzona z pasją.</span>
             </h2>
 
             <p
               ref={paragraph1Ref}
               className="text-white mb-8 max-w-xl leading-relaxed text-lg md:text-xl font-light"
             >
-              Od ponad 50 lat dostarczamy championów hodowcom na całym świecie.
-              Nasze ptaki zdobywają czołowe miejsca w prestiżowych zawodach
-              krajowych i międzynarodowych.
+              Siła tej hodowli to coś więcej niż same wyniki – to niespotykany
+              hart ducha i żywa historia, która hartowała się przez dekady. Jej
+              fundamentem jest wielopokoleniowa pasja i rodzinna więź, która
+              przetrwała najtrudniejsze życiowe próby, zamieniając ból w żelazną
+              determinację. Tutaj każde wypuszczenie gołębi w niebo to hołd dla
+              tradycji i dowód na to, że prawdziwe mistrzostwo rodzi się z
+              charakteru hodowcy.
             </p>
 
             <p
               ref={paragraph2Ref}
               className="text-white mb-8 leading-relaxed text-lg md:text-xl font-light"
             >
-              Nasza hodowla opiera się na starannie wyselekcjonowanych liniach
-              krwi od najlepszych hodowców europejskich. Każdy gołąb w naszym
-              gołębniku to efekt wieloletniego doświadczenia i pasji.
+              Dzięki chirurgicznej selekcji i dekadom doświadczenia stado
+              prezentuje dziś elitarny poziom. To hodowla z duszą, gdzie gen
+              zwycięstwa idzie w parze z wielką rodzinną opowieścią o wierności
+              pasji.
             </p>
 
             <div

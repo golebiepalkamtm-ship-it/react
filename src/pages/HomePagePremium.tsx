@@ -47,7 +47,7 @@ const SplitText = React.memo(({
         aria-hidden="true"
         style={{ backfaceVisibility: "hidden" }}
       >
-        {char === " " ? "\u00A0" : char}
+        {char}
       </span>
     ))}
   </span>
@@ -178,9 +178,9 @@ const HeroPremium = () => {
       {/* Particle System - USUNIĘTE */}
       <div
         ref={contentRef}
-        className="relative z-10 container mx-auto px-4 lg:px-6 text-center flex flex-col items-center gap-6 pt-24 md:pt-32"
+        className="relative z-10 container mx-auto px-6 lg:px-10 text-center flex flex-col items-center pt-24 md:pt-32"
       >
-        <div className="w-full max-w-4xl flex flex-col items-center">
+        <div className="w-full max-w-6xl flex flex-col items-center gap-10">
           <div className="hero-reveal mb-8">
             <span className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/20">
               <Star className="w-3.5 h-3.5 fill-current" />
@@ -188,7 +188,7 @@ const HeroPremium = () => {
             </span>
           </div>
 
-          <h1 className="hero-particle-system mb-6 text-4xl md:text-6xl lg:text-7xl font-bold font-display tracking-tight leading-tight uppercase text-center">
+          <h1 className="hero-particle-system mb-4 text-4xl md:text-6xl lg:text-7xl font-bold font-display tracking-tight leading-snug uppercase text-center">
             <span className="hero-part-left inline-block text-zinc-900">
               <SplitText>Pałka</SplitText>
             </span>{" "}
@@ -200,7 +200,7 @@ const HeroPremium = () => {
             </span>
           </h1>
 
-          <div className="hero-reveal text-xl md:text-2xl heading-black max-w-2xl mb-12 font-bold mx-auto uppercase tracking-widest text-center">
+          <div className="hero-reveal text-lg md:text-2xl heading-black max-w-4xl mb-10 mx-auto text-center leading-relaxed font-display">
             <SplitText>Trzy pokolenia pasji. Setki mistrzostw.</SplitText>
             <br />
             <SplitText>Elitarne gołębie pocztowe z Dolnego Śląska.</SplitText>

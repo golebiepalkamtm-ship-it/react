@@ -632,8 +632,8 @@ const ContactSection = () => {
               backfaceVisibility: "hidden",
             }}
           >
-            Masz pytania lub chcesz dowiedzieć się więcej o naszej hodowli? Nasi
-            eksperci są do Twojej dyspozycji.
+            Masz pytania lub chcesz dowiedzieć się więcej o naszej hodowli?
+            Napisz lub zadzwoń!
           </p>
         </div>
 

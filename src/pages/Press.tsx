@@ -322,7 +322,9 @@ const PressPage = () => {
               <span className="gold-heading">i Media</span>
             </h1>
             <p className="text-zinc-200 text-lg md:text-xl max-w-2xl mx-auto shadow-sm">
-              Przeczytaj, co piszą o nas media branżowe i ogólnopolskie.
+              Naszą odpowiedzią na rozgłos są wyniki. Skupiamy się na pracy w
+              gołębniku, pozwalając, by to osiągnięcia naszych ptaków były naszą
+              wizytówką.
             </p>
           </div>
         </section>

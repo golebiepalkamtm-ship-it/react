@@ -291,9 +291,9 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
               backfaceVisibility: "hidden",
             }}
           >
-            Nasza pasja i rekordowe wyniki są regularnie doceniane przez
-            najbardziej prestiżowe magazyny oraz portale branżowe w całej
-            Europie.
+            Naszą odpowiedzią na rozgłos są wyniki. Skupiamy się na pracy w
+            gołębniku, pozwalając, by to osiągnięcia naszych ptaków były naszą
+            wizytówką.
           </p>
         </div>
 
