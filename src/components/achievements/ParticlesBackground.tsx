@@ -1,6 +1,6 @@
 /**
  * ParticlesBackground — Luxury Aurora Edition (Performance Optimized)
- * 
+ *
  * Multi-layered particle system optimized for smoothness:
  * - Simple floating circles (no expensive shadows/blur)
  * - Reduced count for high FPS
@@ -8,11 +8,11 @@
  */
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, memo } from "react";
 
-const ParticlesBackground = () => {
+const ParticlesBackground = memo(() => {
   // DUST PARTICLES - Reduced to 40 for maximum performance
-  const [particles] = useState(() => 
+  const [particles] = useState(() =>
     Array.from({ length: 40 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -22,11 +22,11 @@ const ParticlesBackground = () => {
       delay: Math.random() * 5,
       opacity: Math.random() * 0.3 + 0.1,
       randomX: Math.random() * 60 - 30,
-    }))
+    })),
   );
 
   // STARS - Reduced to 60
-  const [stars] = useState(() => 
+  const [stars] = useState(() =>
     Array.from({ length: 60 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -34,7 +34,7 @@ const ParticlesBackground = () => {
       size: Math.random() * 3 + 1,
       twinkle: Math.random() * 5 + 2,
       delay: Math.random() * 5,
-    }))
+    })),
   );
 
   return (
@@ -72,7 +72,7 @@ const ParticlesBackground = () => {
             top: `${p.y}%`,
             width: p.size,
             height: p.size,
-            background: '#A68E4E',
+            background: "#A68E4E",
           }}
           animate={{
             y: [0, -300, 0],
@@ -92,19 +92,21 @@ const ParticlesBackground = () => {
       <div
         className="absolute top-[10%] left-[15%] w-[500px] h-[500px] rounded-full opacity-20"
         style={{
-          background: 'radial-gradient(circle, rgba(166, 142, 78, 0.1) 0%, transparent 70%)',
-          filter: 'blur(60px)',
+          background:
+            "radial-gradient(circle, rgba(166, 142, 78, 0.1) 0%, transparent 70%)",
+          filter: "blur(60px)",
         }}
       />
       <div
         className="absolute bottom-[20%] right-[10%] w-[600px] h-[600px] rounded-full opacity-10"
         style={{
-          background: 'radial-gradient(circle, rgba(166, 142, 78, 0.05) 0%, transparent 70%)',
-          filter: 'blur(80px)',
+          background:
+            "radial-gradient(circle, rgba(166, 142, 78, 0.05) 0%, transparent 70%)",
+          filter: "blur(80px)",
         }}
       />
     </div>
   );
-};
+});
 
 export default ParticlesBackground;

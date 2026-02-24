@@ -1,18 +1,19 @@
 /**
  * MedalBadge — Micro-component for achievement rank indicators
- * 
+ *
  * Gold (Mistrz), Silver (Wicemistrz), Bronze (Przodownik)
  * Spring-animated entrance with rank-specific glow
  */
 
 import { motion } from "framer-motion";
+import { memo } from "react";
 
 interface MedalBadgeProps {
   rank: "gold" | "silver" | "bronze" | null;
   index: number;
 }
 
-const MedalBadge = ({ rank, index }: MedalBadgeProps) => {
+const MedalBadge = memo(({ rank, index }: MedalBadgeProps) => {
   if (!rank) {
     return (
       <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground/30 flex-shrink-0" />
@@ -56,6 +57,8 @@ const MedalBadge = ({ rank, index }: MedalBadgeProps) => {
       {symbol}
     </motion.span>
   );
-};
+});
+
+MedalBadge.displayName = "MedalBadge";
 
 export default MedalBadge;

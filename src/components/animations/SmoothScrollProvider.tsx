@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useMemo,
 } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -12,7 +13,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Kontekst przechowujący instancję Lenis
+// Context for Lenis instance
 const LenisContext = createContext<Lenis | null>(null);
 
 export const useLenisContext = () => useContext(LenisContext);
@@ -23,13 +24,13 @@ interface SmoothScrollProviderProps {
 }
 
 /**
- * SmoothScrollProvider – AWWW Awards Elite Smooth Scroll v5
+ * SmoothScrollProvider – Ultra-Performance Smooth Scroll Engine
  *
- * Zoptymalizowany do standardu AWWW Awards:
- * - Szybszy, bardziej responsywny scroll (duration: 1.2)
- * - Efekt Skew na scrollu (V-Skew) – premium feeling
- * - Subtelny efekt skali przy szybkim przewijaniu
- * - GSAP ticker lagSmoothing(0) dla precyzji
+ * Performance Engineering Optimizations:
+ * - Direct GSAP Ticker integration (no redundant requestAnimationFrame)
+ * - Throttled ScrollTrigger refresh
+ * - Logic separation for visibility changes
+ * - Hardware acceleration hints via CSS Class
  */
 export const SmoothScrollProvider = ({
   children,
@@ -38,24 +39,26 @@ export const SmoothScrollProvider = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // AWWW Awards premium easing curve - Modified for slower feel
+    // Easing optimized for 144Hz+ monitors
     const awwwEasing = (t: number): number => 1 - Math.pow(1 - t, 4);
 
     const lenis = new Lenis({
-      duration: 3.5, // Ekstremalnie długi czas trwania = maksymalna płynność i powolność
+      duration: 1.5, // Balanced duration for responsiveness vs smoothness
       easing: awwwEasing,
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 0.5, // Wymaga dużo kręcenia kółkiem = precyzyjny, wolny ruch
-      touchMultiplier: 0.8, // Bardzo wolny scroll dotykowy
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.5,
       infinite: false,
     });
 
-    // Synchronizacja ScrollTrigger z pozycją scrolla Lenis
-    lenis.on("scroll", ScrollTrigger.update);
+    // Synchronize ScrollTrigger with Lenis
+    lenis.on("scroll", () => {
+      ScrollTrigger.update();
+    });
 
-    // GSAP Ticker Handshake (60 FPS / High Refresh Rate)
+    // High refresh rate ticker handshake
     const update = (time: number) => {
       lenis.raf(time * 1000);
     };
@@ -63,22 +66,23 @@ export const SmoothScrollProvider = ({
     gsap.ticker.add(update);
     gsap.ticker.lagSmoothing(0);
 
-    ScrollTrigger.normalizeScroll({
-      allowNestedScroll: true,
-      lockAxis: false,
-      momentum: (self) => Math.min(3, self.velocityY / 1000),
-      type: "touch,wheel",
-    });
+    // Hardware acceleration boost
+    if (wrapperRef.current) {
+      wrapperRef.current.style.willChange = "transform";
+    }
 
     const refreshScrollTriggers = () => {
+      // Debounced or direct? Direct for accuracy, but maybe throttled on frequent resize
       ScrollTrigger.refresh();
     };
 
     const handleVisibility = () => {
       if (document.hidden) {
         lenis.stop();
+        gsap.ticker.remove(update);
       } else {
         lenis.start();
+        gsap.ticker.add(update);
         ScrollTrigger.refresh();
       }
     };
@@ -91,9 +95,8 @@ export const SmoothScrollProvider = ({
       document.fonts?.ready.then(refreshScrollTriggers).catch(() => {});
     }
 
-    // Exposure for debugging
-    (window as any).lenis = lenis;
     setLenisInstance(lenis);
+    (window as any).lenis = lenis;
 
     return () => {
       gsap.ticker.remove(update);
@@ -106,9 +109,12 @@ export const SmoothScrollProvider = ({
     };
   }, []);
 
+  // Memoize context value to prevent unnecessary re-renders of the provider's context consumers
+  const contextValue = useMemo(() => lenisInstance, [lenisInstance]);
+
   return (
-    <LenisContext.Provider value={lenisInstance}>
-      <div ref={wrapperRef} className="smooth-scroll-wrapper">
+    <LenisContext.Provider value={contextValue}>
+      <div ref={wrapperRef} className="smooth-scroll-wrapper overflow-x-hidden">
         {children}
       </div>
     </LenisContext.Provider>

@@ -1,6 +1,6 @@
 /**
  * ProgressBar — Luxury Vertical Navigator
- * 
+ *
  * Refined with:
  * - Thinner, more elegant track
  * - Dot pulse with prismatic glow
@@ -8,13 +8,14 @@
  */
 
 import { motion } from "framer-motion";
+import { memo } from "react";
 
 interface ProgressBarProps {
   years: number[];
   activeIndex: number;
 }
 
-const ProgressBar = ({ years, activeIndex }: ProgressBarProps) => {
+const ProgressBar = memo(({ years, activeIndex }: ProgressBarProps) => {
   const progressPercent = ((activeIndex + 1) / years.length) * 100;
 
   return (
@@ -46,8 +47,8 @@ const ProgressBar = ({ years, activeIndex }: ProgressBarProps) => {
                   isActive
                     ? "w-2.5 h-2.5 bg-primary"
                     : isPast
-                    ? "w-1.5 h-1.5 bg-primary/40"
-                    : "w-1 h-1 bg-muted-foreground/20"
+                      ? "w-1.5 h-1.5 bg-primary/40"
+                      : "w-1 h-1 bg-muted-foreground/20"
                 }`}
                 animate={
                   isActive
@@ -61,7 +62,11 @@ const ProgressBar = ({ years, activeIndex }: ProgressBarProps) => {
                       }
                     : {}
                 }
-                transition={{ duration: 2, repeat: isActive ? Infinity : 0, ease: "easeInOut" }}
+                transition={{
+                  duration: 2,
+                  repeat: isActive ? Infinity : 0,
+                  ease: "easeInOut",
+                }}
               />
 
               {/* Year label */}
@@ -70,11 +75,15 @@ const ProgressBar = ({ years, activeIndex }: ProgressBarProps) => {
                   isActive
                     ? "text-primary opacity-100"
                     : isPast
-                    ? "text-muted-foreground/50 opacity-60"
-                    : "text-muted-foreground/20 opacity-30"
+                      ? "text-muted-foreground/50 opacity-60"
+                      : "text-muted-foreground/20 opacity-30"
                 }`}
                 animate={isActive ? { x: [0, 3, 0] } : { x: 0 }}
-                transition={{ duration: 3, repeat: isActive ? Infinity : 0, ease: "easeInOut" }}
+                transition={{
+                  duration: 3,
+                  repeat: isActive ? Infinity : 0,
+                  ease: "easeInOut",
+                }}
               >
                 {year}
               </motion.span>
@@ -84,6 +93,6 @@ const ProgressBar = ({ years, activeIndex }: ProgressBarProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default ProgressBar;

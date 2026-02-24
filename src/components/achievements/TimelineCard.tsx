@@ -20,7 +20,7 @@ import {
   useMotionValue,
   useInView,
 } from "framer-motion";
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useCallback, useState, useEffect, memo } from "react";
 import MedalBadge from "./MedalBadge";
 
 interface TimelineEvent {
@@ -36,7 +36,7 @@ interface TimelineCardProps {
   isActive: boolean;
 }
 
-const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
+const TimelineCard = memo(({ event, index, isActive }: TimelineCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-100px" });
@@ -365,9 +365,7 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
                         "0 0 12px rgba(166,142,78,0.25), inset 0 0 10px rgba(166,142,78,0.08)",
                     }}
                   >
-                    <motion.span>
-                      {event.year}
-                    </motion.span>
+                    <motion.span>{event.year}</motion.span>
                   </motion.div>
 
                   {/* Title with split-letter reveal */}
@@ -576,6 +574,8 @@ const TimelineCard = ({ event, index, isActive }: TimelineCardProps) => {
       </motion.div>
     </div>
   );
-};
+});
+
+TimelineCard.displayName = "TimelineCard";
 
 export default TimelineCard;

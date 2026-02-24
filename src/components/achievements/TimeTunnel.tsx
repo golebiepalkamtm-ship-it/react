@@ -8,14 +8,8 @@
  * - Luxury glass cards with medal system
  */
 
-import { useRef, useState, useEffect, useMemo } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  AnimatePresence,
-} from "framer-motion";
+import { useRef, useState, useEffect, useMemo, useCallback } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import TimelineCard from "./TimelineCard";
 import ProgressBar from "./ProgressBar";
 import ParticlesBackground from "./ParticlesBackground";
@@ -23,7 +17,7 @@ import StatsHeader from "./StatsHeader";
 import { useLenisContext } from "@/components/animations/SmoothScrollProvider";
 import useParallax from "@/hooks/useParallax";
 
-// --- DATA (unchanged) ---
+// --- DATA ---
 const timelineEvents = [
   {
     year: 2001,
@@ -355,13 +349,32 @@ const timelineEvents = [
     highlight: "16 osiągnięć",
   },
   {
+    year: 2021,
+    title: "Sezon 2021",
+    achievements: [
+      "Okręg Jelenia Góra – Kat A: I V-ce Mistrz PAŁKA MTM (249.85 coeff, 18 kon)",
+    ],
+    highlight: "1 osiągnięcie",
+  },
+  {
+    year: 2022,
+    title: "Sezon 2022",
+    achievements: [
+      "Okręg Jelenia Góra – Kat B: I V-ce Mistrz MTM Pałka (223.05 coeff, 15 kon)",
+      "Okręg Jelenia Góra – Kat A: 4. Przodownik MTM Pałka (247.24 coeff, 18 kon)",
+    ],
+    highlight: "2 osiągnięcia",
+  },
+  {
     year: 2023,
     title: "Sezon 2023",
     achievements: [
       "Oddział Kwisa 0489 – Kat A: MISTRZ Pałka MTM (184.75 coeff, 18 kon)",
       "Oddział Kwisa 0489 – Kat B: I V-ce MISTRZ Pałka MTM (286.13 coeff, 15 kon)",
+      "Okręg Jelenia Góra – Kat A: 3. Przodownik (278.52 coeff, 18 kon)",
+      "Okręg Jelenia Góra – Kat B: 10. Przodownik (344.55 coeff, 15 kon)",
     ],
-    highlight: "2 osiągnięcia",
+    highlight: "4 osiągnięcia",
   },
   {
     year: 2024,
@@ -369,8 +382,19 @@ const timelineEvents = [
     achievements: [
       "Oddział Kwisa 0489 – Kat A: MISTRZ Pałka MTM (124.53 coeff, 18 kon)",
       "Oddział Kwisa 0489 – Kat B: MISTRZ Pałka MTM (245.78 coeff, 15 kon)",
+      "Okręg Jelenia Góra – Kat A: MISTRZ Pałka MTM (85.05 coeff, 18 kon)",
     ],
-    highlight: "2 osiągnięcia",
+    highlight: "3 osiągnięcia",
+  },
+  {
+    year: 2025,
+    title: "Sezon 2025",
+    achievements: [
+      "Oddział Kwisa 0489 – Kat A: MISTRZ Pałka Tadeusz (296.42 coeff, 18 kon)",
+      "Okręg Jelenia Góra – Kat A: 1. Przodownik (296.42 coeff, 18 kon)",
+      "Region V – Kat A: 45. Przodownik (296.42 coeff, 18 kon)",
+    ],
+    highlight: "3 osiągnięcia",
   },
 ];
 
@@ -380,10 +404,9 @@ const TimeTunnel = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const lenis = useLenisContext();
 
-  // Lenis jest już zainicjalizowany przez SmoothScrollProvider w App.tsx
+  // Lenis initialization — optimized to avoid re-renders
   useParallax();
 
-  // 🧈 Maślany scroll — bardzo niskie lerp dla ultra-płynnego efektu
   useEffect(() => {
     if (!lenis) return;
     const prevOptions = { ...lenis.options };
@@ -407,6 +430,8 @@ const TimeTunnel = () => {
     const timer = setTimeout(() => setIsLoaded(true), 300);
     return () => clearTimeout(timer);
   }, []);
+
+  const years = useMemo(() => timelineEvents.map((e) => e.year), []);
 
   const stats = useMemo(() => {
     let mistrz = 0,
@@ -440,21 +465,36 @@ const TimeTunnel = () => {
     [0, 1, 1, 0],
   );
 
+  /**
+   * PERFORMANCE OPTIMIZATION: Intersection Observer
+   * Instead of setting state on every pixel move (scrollYProgress change),
+   * we use an IntersectionObserver to detect which card is active.
+   * This drastically reduces React re-renders.
+   */
   useEffect(() => {
-    const unsubscribe = scrollYProgress.on("change", (value) => {
-      const newIndex = Math.min(
-        Math.floor(value * timelineEvents.length),
-        timelineEvents.length - 1,
-      );
-      setActiveIndex(newIndex);
-    });
-    return () => unsubscribe();
-  }, [scrollYProgress]);
+    const observerOptions = {
+      root: null,
+      rootMargin: "-25% 0% -25% 0%",
+      threshold: 0.1,
+    };
 
-  const years = timelineEvents.map((e) => e.year);
+    const handleIntersect = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const index = parseInt(
+            entry.target.getAttribute("data-index") || "0",
+          );
+          setActiveIndex(index);
+        }
+      });
+    };
 
-  // Split text for hero title
-  const titleChars = "HISTORIA OSIĄGNIĘĆ".split("");
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    const cardElements = document.querySelectorAll(".timeline-card-anchor");
+    cardElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div ref={kontainerRef} className="relative min-h-[400vh] bg-transparent">
@@ -492,7 +532,7 @@ const TimeTunnel = () => {
             left: "20%",
           }}
         />
-        {/* Floating dots */}
+        {/* Floating stars — transformed to absolute positioned for better layer separation */}
         {[
           { top: "15%", left: "25%", size: 4, depth: 0.6 },
           { top: "35%", right: "30%", size: 3, depth: 0.7 },
@@ -510,6 +550,7 @@ const TimeTunnel = () => {
               top: dot.top,
               left: dot.left,
               right: (dot as any).right,
+              willChange: "transform",
             }}
           />
         ))}
@@ -520,7 +561,7 @@ const TimeTunnel = () => {
       {/* Radial center glow */}
       <motion.div
         className="fixed inset-0 -z-5 pointer-events-none"
-        style={{ opacity: tunnelOpacity }}
+        style={{ opacity: tunnelOpacity, willChange: "opacity" }}
       >
         <div
           className="absolute inset-0"
@@ -533,21 +574,16 @@ const TimeTunnel = () => {
 
       <ProgressBar years={years} activeIndex={activeIndex} />
 
-      {/* Tunnel rings - REMOVED */}
+      {/* Tunnel rings - REMOVED for clean aesthetic / performance */}
       <div className="fixed top-0 left-0 right-0 h-screen overflow-hidden tunnel-perspective pointer-events-none">
         <motion.div
           className="absolute inset-0 flex items-center justify-center"
-          style={{ z: perspectiveZ }}
-        >
-          {/* Rings removed */}
-        </motion.div>
+          style={{ z: perspectiveZ, willChange: "transform" }}
+        />
       </div>
 
-      {/* Timeline kontent */}
+      {/* Timeline content */}
       <div className="relative z-10 pt-20 pb-[50vh] px-4 md:px-16 lg:px-24 max-w-7xl mx-auto">
-        {/* ==========================================
-         * HERO SECTION — Cinematic Split-Text Entrance
-         * ========================================== */}
         <motion.div
           className="hero-section text-center mb-40"
           initial={{ opacity: 0 }}
@@ -582,17 +618,11 @@ const TimeTunnel = () => {
           </motion.p>
 
           {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isLoaded ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <StatsHeader
-              mistrz={stats.mistrz}
-              wicemistrz={stats.wicemistrz}
-              przodownik={stats.przodownik}
-            />
-          </motion.div>
+          <StatsHeader
+            mistrz={stats.mistrz}
+            wicemistrz={stats.wicemistrz}
+            przodownik={stats.przodownik}
+          />
 
           {/* Scroll indicator */}
           <motion.div
@@ -622,7 +652,11 @@ const TimeTunnel = () => {
 
         {/* Timeline Cards */}
         {timelineEvents.map((event, index) => (
-          <div key={event.year}>
+          <div
+            key={event.year}
+            className="timeline-card-anchor relative"
+            data-index={index}
+          >
             <TimelineCard
               event={event}
               index={index}
@@ -685,4 +719,3 @@ const TimeTunnel = () => {
 };
 
 export default TimeTunnel;
-
