@@ -41,8 +41,8 @@ const router: Router = express.Router();
 const auctionIdSchema = z.string().uuid("Invalid auction id");
 
 const ALLOWED_CATEGORIES = new Set(["PIGEONS", "SUPPLEMENTS", "ACCESSORIES"]);
-const normalizeCategory = (input?: string) => {
-  const up = (input || "").toUpperCase();
+const normalizeCategory = (input?: any) => {
+  const up = String(input || "").toUpperCase();
   return ALLOWED_CATEGORIES.has(up) ? up : "PIGEONS";
 };
 

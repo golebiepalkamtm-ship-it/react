@@ -1077,7 +1077,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         <Button
                           variant="outline"
                           onClick={() => {
-                            signOut();
+                            signOut().then(() => {
+                              window.location.href = "/";
+                            });
                             onClose();
                           }}
                           className="w-full border-red-500/50 text-red-300 hover:bg-red-500/30 hover:border-red-500/70 transition-all duration-300"

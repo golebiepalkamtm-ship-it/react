@@ -130,14 +130,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const inferredRole =
         supabaseRole === "ADMIN" ? "ADMIN" : existingProfile?.role;
 
-      const userWithVerifications: UserWithVerifications = {
+      const userWithVerifications = {
         id: authUser.id,
         email: authUser.email,
         email_confirmed_at: isEmailConfirmed(authUser) ? "confirmed" : null,
         phone: authUser.phone,
         phone_confirmed_at: (authUser as any).phone_confirmed_at,
         role: inferredRole,
-      };
+      } as UserWithVerifications;
 
       return calculateRole(userWithVerifications);
     },
@@ -189,14 +189,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const roleOverride = supabaseRole === "ADMIN" ? "ADMIN" : undefined;
 
       // If missing (race condition), return temp read-only object
-      const userWithVerifications: UserWithVerifications = {
+      const userWithVerifications = {
         id: authUser.id,
         email: authUser.email,
         email_confirmed_at: isEmailConfirmed(authUser) ? "confirmed" : null,
         phone: authUser.phone,
         phone_confirmed_at: (authUser as any).phone_confirmed_at,
         role: roleOverride ?? "USER_REGISTERED",
-      };
+      } as UserWithVerifications;
 
       const role = calculateRole(userWithVerifications);
 
@@ -438,6 +438,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       email,
       password,
     });
+
+    if (!error && data.user) {
+      await fetchProfile(data.user);
+    }
+
     return { user: data.user, error };
   };
 

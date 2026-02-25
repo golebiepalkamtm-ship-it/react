@@ -67,16 +67,6 @@ const BackgroundWrapper = () => {
 
 import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
 
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
-  return null;
-};
-
 const App = () => {
   useEffect(() => {
     trackMetric("SITE").catch(() => {});
@@ -96,21 +86,14 @@ const App = () => {
                   v7_relativeSplatPath: true,
                 }}
               >
-                <ScrollToTop />
                 <TooltipProvider>
                   <Toaster />
                   <Sonner />
                   <CursorFollower size={22} color="rgba(166, 142, 78, 0.45)" />
                   <UIProviders>
-                    <SmoothScrollProvider>
-                      <BackgroundWrapper />
-                      <GSAPPageTransition
-                        defaultStyle="reveal"
-                        duration={0.9}
-                        primaryColor="#09090b"
-                        accentColor="#A68E4E"
-                        useRouteStyles={false}
-                      >
+                    <GSAPPageTransition duration={0.7} primaryColor="#09090b">
+                      <SmoothScrollProvider>
+                        <BackgroundWrapper />
                         <Suspense fallback={<LoadingSpinner />}>
                           <Routes>
                             <Route path="/" element={<LazyHomePagePremium />} />
@@ -209,8 +192,8 @@ const App = () => {
                             />
                           </Routes>
                         </Suspense>
-                      </GSAPPageTransition>
-                    </SmoothScrollProvider>
+                      </SmoothScrollProvider>
+                    </GSAPPageTransition>
                   </UIProviders>
                 </TooltipProvider>
               </BrowserRouter>

@@ -45,6 +45,7 @@ const getAuthMessage = (user: any, profile: any): AuthMessage | null => {
         title: "Witaj w Pałka MTM!",
         text: `Jesteś zalogowany jako ${profile.email || user.email}. Uzupełnij profil i zweryfikuj telefon, aby licytować.`,
       };
+    default:
       return null;
   }
 };

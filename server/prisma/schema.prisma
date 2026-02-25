@@ -23,39 +23,39 @@ model SavedSearch {
 }
 
 model User {
-  username        String         @unique
-  id              String         @id @db.Uuid
-  email           String?        @unique
-  phone           String?
-  name            String?
-  first_name      String?
-  last_name       String?
-  street          String?
-  postal_code     String?
-  city            String?
-  country         String?
-  isBlocked       Boolean        @default(false) @map("is_blocked")
-  isBanned        Boolean        @default(false) @map("is_banned")
-  blockedUntil    DateTime?      @map("blocked_until")
-  bannedUntil     DateTime?      @map("banned_until")
-  trustScore      Decimal        @default(0.00) @map("trust_score") @db.Decimal(3, 2)
-  avatarUrl       String?        @map("avatar_url")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  role            UserRole       @default(USER_REGISTERED)
-  auctions        Auction[]      @relation("SellerAuctions")
-  wonAuctions     Auction[]      @relation("WinnerAuctions")
-  auditLogs       AuditLog[]     @relation("UserAuditLogs")
-  bids            Bid[]
-  meetings        Meeting[]
-  notifications   Notification[]
-  payments        Payment[]
-  reviewsReceived Review[]       @relation("RevieweeReviews")
-  reviewsGiven    Review[]       @relation("ReviewerReviews")
-  savedSearches   SavedSearch[]
-  watchlist       Watchlist[]
-  sentMessages    Message[]      @relation("SentMessages")
-  receivedMessages Message[]     @relation("ReceivedMessages")
+  username         String         @unique
+  id               String         @id @db.Uuid
+  email            String?        @unique
+  phone            String?
+  name             String?
+  first_name       String?
+  last_name        String?
+  street           String?
+  postal_code      String?
+  city             String?
+  country          String?
+  isBlocked        Boolean        @default(false) @map("is_blocked")
+  isBanned         Boolean        @default(false) @map("is_banned")
+  blockedUntil     DateTime?      @map("blocked_until")
+  bannedUntil      DateTime?      @map("banned_until")
+  trustScore       Decimal        @default(0.00) @map("trust_score") @db.Decimal(3, 2)
+  avatarUrl        String?        @map("avatar_url")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  role             UserRole       @default(USER_REGISTERED)
+  auctions         Auction[]      @relation("SellerAuctions")
+  wonAuctions      Auction[]      @relation("WinnerAuctions")
+  auditLogs        AuditLog[]     @relation("UserAuditLogs")
+  bids             Bid[]
+  meetings         Meeting[]
+  notifications    Notification[]
+  payments         Payment[]
+  reviewsReceived  Review[]       @relation("RevieweeReviews")
+  reviewsGiven     Review[]       @relation("ReviewerReviews")
+  savedSearches    SavedSearch[]
+  watchlist        Watchlist[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
 
   @@map("users")
 }

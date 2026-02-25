@@ -637,8 +637,9 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  signOut();
+                onClick={async () => {
+                  await signOut();
+                  window.location.href = "/";
                   onClose();
                 }}
                 className="px-4 py-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 font-medium rounded-lg transition-all duration-200"

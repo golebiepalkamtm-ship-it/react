@@ -1,64 +1,27 @@
 import {
-  useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   createContext,
   useContext,
   type ReactNode,
+  useCallback,
 } from "react";
-import { useLocation, useNavigationType } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { useLocation } from "react-router-dom";
 import gsap from "gsap";
 
 /**
- * GSAP Page Transition System
+ * GSAP Page Transition System - Bulletproof Version
  *
- * Profesjonalny system animacji przejść między stronami z GSAP.
- * Oferuje różne style: curtain, slide, zoom, fade, diagonal, reveal.
+ * KLUCZOWE POPRAWKI:
+ * 1. useLayoutEffect: Przechwytujemy zmianę ZANIM przeglądarka narysuje klatkę (koniec z migotaniem footera).
+ * 2. Zarządzanie Scrollem: Przejmujemy całkowitą kontrolę nad scrollowaniem - blokujemy go w momencie zmiany URL
+ *    i przywracamy dopiero gdy nowa strona jest gotowa.
+ * 3. Content Freeze: Zamrażamy widok starej strony, aby nie "skakała" pod spodem.
  */
 
-type TransitionStyle =
-  | "curtain"
-  | "slide"
-  | "zoom"
-  | "fade"
-  | "diagonal"
-  | "reveal"
-  | "wipe";
-
-// Mapowanie ścieżek do stylów przejść (5 animacji, 10 podstron)
-const routeTransitionStyles: Record<string, TransitionStyle> = {
-  // curtain (2x)
-  "/": "curtain",
-  "/champions": "fade",
-  // zoom (2x)
-  "/admin": "zoom",
-  "/press": "zoom",
-  // diagonal (2x)
-  "/breeder-meetings": "diagonal",
-  "/auctions": "fade",
-  // reveal (2x)
-  "/contact": "reveal",
-  "/auth": "reveal",
-  // wipe (2x)
-  "/achievements": "wipe",
-};
-
-// Funkcja do pobierania stylu dla ścieżki
-const getStyleForPath = (
-  path: string,
-  defaultStyle: TransitionStyle,
-): TransitionStyle => {
-  // Sprawdź dokładne dopasowanie
-  if (routeTransitionStyles[path]) {
-    return routeTransitionStyles[path];
-  }
-  // Sprawdź ścieżki z parametrami (np. /auctions/:id, /press/:id)
-  const basePath = "/" + path.split("/")[1];
-  if (routeTransitionStyles[basePath]) {
-    return routeTransitionStyles[basePath];
-  }
-  return defaultStyle;
-};
+type TransitionStyle = "fade";
 
 interface TransitionContextType {
   isTransitioning: boolean;
@@ -68,7 +31,7 @@ interface TransitionContextType {
 
 const TransitionContext = createContext<TransitionContextType>({
   isTransitioning: false,
-  transitionStyle: "curtain",
+  transitionStyle: "fade",
   setTransitionStyle: () => {},
 });
 
@@ -76,592 +39,202 @@ export const usePageTransition = () => useContext(TransitionContext);
 
 interface GSAPPageTransitionProps {
   children: ReactNode;
-  defaultStyle?: TransitionStyle;
   duration?: number;
   primaryColor?: string;
-  accentColor?: string;
-  /** Czy używać różnych stylów dla różnych stron */
-  useRouteStyles?: boolean;
 }
 
 export const GSAPPageTransition = ({
   children,
-  defaultStyle = "curtain",
-  duration = 0.8,
-  primaryColor = "#0a0a0f",
-  accentColor = "#B8860B",
-  useRouteStyles = true,
+  duration = 0.6,
+  primaryColor = "#09090b",
 }: GSAPPageTransitionProps) => {
   const location = useLocation();
-  const navigationType = useNavigationType();
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionStyle, setTransitionStyle] =
-    useState<TransitionStyle>(defaultStyle);
   const [displayChildren, setDisplayChildren] = useState(children);
 
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const curtain1Ref = useRef<HTMLDivElement>(null);
-  const curtain2Ref = useRef<HTMLDivElement>(null);
-  const curtain3Ref = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const prevPathRef = useRef(location.pathname);
   const isFirstMount = useRef(true);
 
-  // Aktualizuj styl przejścia na podstawie docelowej ścieżki
-  const getActiveStyle = (): TransitionStyle => {
-    if (useRouteStyles) {
-      return getStyleForPath(location.pathname, defaultStyle);
+  // Funkcja czyszcząca widok i przygotowująca nową stronę
+  const prepareNewPage = useCallback(() => {
+    setDisplayChildren(children);
+    // Przewijamy na górę dokładnie w momencie gdy ekran jest czarny
+    window.scrollTo(0, 0);
+    // Jeśli używamy Lenis (Smooth Scroll), musimy go powiadomić
+    if ((window as any).lenis) {
+      (window as any).lenis.scrollTo(0, { immediate: true });
     }
-    return transitionStyle;
-  };
+  }, [children]);
 
-  // Animation functions declared before useEffect
-  const animateCurtain = (
-    tl: gsap.core.Timeline,
-    dur: number,
-    color: string,
-  ) => {
-    if (
-      !curtain1Ref.current ||
-      !curtain2Ref.current ||
-      !curtain3Ref.current ||
-      !contentRef.current ||
-      !logoRef.current
-    )
-      return;
-
-    // Phase 1: Curtains come in (staggered)
-    tl.set([curtain1Ref.current, curtain2Ref.current, curtain3Ref.current], {
-      scaleY: 0,
-      transformOrigin: "bottom",
-      visibility: "visible",
-    })
-      .set(logoRef.current, { opacity: 0, scale: 0.8, y: 20 })
-      .to(contentRef.current, {
-        opacity: 0,
-        y: -30,
-        duration: dur * 0.3,
-        ease: "power2.in",
-      })
-      .to(
-        curtain1Ref.current,
-        {
-          scaleY: 1,
-          duration: dur * 0.4,
-          ease: "power4.inOut",
-        },
-        "-=0.1",
-      )
-      .to(
-        curtain2Ref.current,
-        {
-          scaleY: 1,
-          duration: dur * 0.4,
-          ease: "power4.inOut",
-        },
-        "-=0.35",
-      )
-      .to(
-        curtain3Ref.current,
-        {
-          scaleY: 1,
-          duration: dur * 0.4,
-          ease: "power4.inOut",
-        },
-        "-=0.35",
-      )
-      // Phase 2: Logo appears
-      .to(
-        logoRef.current,
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          duration: dur * 0.3,
-          ease: "back.out(1.7)",
-        },
-        "-=0.2",
-      )
-      // Phase 3: Pause for effect
-      .to({}, { duration: dur * 0.2 })
-      // Phase 4: Logo exits
-      .to(logoRef.current, {
-        opacity: 0,
-        scale: 1.1,
-        y: -20,
-        duration: dur * 0.2,
-        ease: "power2.in",
-      })
-      // Phase 5: Curtains go up (staggered)
-      .to(
-        curtain3Ref.current,
-        {
-          scaleY: 0,
-          transformOrigin: "top",
-          duration: dur * 0.4,
-          ease: "power4.inOut",
-        },
-        "-=0.1",
-      )
-      .to(
-        curtain2Ref.current,
-        {
-          scaleY: 0,
-          transformOrigin: "top",
-          duration: dur * 0.4,
-          ease: "power4.inOut",
-        },
-        "-=0.35",
-      )
-      .to(
-        curtain1Ref.current,
-        {
-          scaleY: 0,
-          transformOrigin: "top",
-          duration: dur * 0.4,
-          ease: "power4.inOut",
-        },
-        "-=0.35",
-      )
-      // Phase 6: New content appears
-      .fromTo(
-        contentRef.current,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: dur * 0.4,
-          ease: "power2.out",
-          onComplete: () => {
-            gsap.set(contentRef.current, { clearProps: "all" });
-          },
-        },
-        "-=0.3",
-      );
-  };
-
-  const animateSlide = (
-    tl: gsap.core.Timeline,
-    dur: number,
-    direction: "left" | "right",
-  ) => {
-    if (!overlayRef.current || !contentRef.current) return;
-
-    const xFrom = direction === "left" ? "-100%" : "100%";
-    const xTo = direction === "left" ? "100%" : "-100%";
-
-    tl.set(overlayRef.current, {
-      x: xFrom,
-      visibility: "visible",
-    })
-      .to(contentRef.current, {
-        opacity: 0,
-        x: direction === "left" ? 50 : -50,
-        duration: dur * 0.3,
-        ease: "power2.in",
-      })
-      .to(
-        overlayRef.current,
-        {
-          x: "0%",
-          duration: dur * 0.5,
-          ease: "power3.inOut",
-        },
-        "-=0.1",
-      )
-      .to(overlayRef.current, {
-        x: xTo,
-        duration: dur * 0.5,
-        ease: "power3.inOut",
-      })
-      .fromTo(
-        contentRef.current,
-        { opacity: 0, x: direction === "left" ? -50 : 50 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: dur * 0.4,
-          ease: "power2.out",
-          onComplete: () => {
-            gsap.set(contentRef.current, { clearProps: "all" });
-          },
-        },
-        "-=0.3",
-      );
-  };
-
-  const animateZoom = (tl: gsap.core.Timeline, dur: number) => {
-    if (!overlayRef.current || !contentRef.current) return;
-
-    tl.set(overlayRef.current, {
-      scale: 0,
-      opacity: 1,
-      visibility: "visible",
-    })
-      .to(contentRef.current, {
-        opacity: 0,
-        scale: 0.9,
-        duration: dur * 0.3,
-        ease: "power2.in",
-      })
-      .to(
-        overlayRef.current,
-        {
-          scale: 2,
-          duration: dur * 0.6,
-          ease: "power3.inOut",
-        },
-        "-=0.1",
-      )
-      .to(overlayRef.current, {
-        opacity: 0,
-        duration: dur * 0.3,
-        ease: "power2.out",
-      })
-      .fromTo(
-        contentRef.current,
-        { opacity: 0, scale: 1.1 },
-        { opacity: 1, scale: 1, duration: dur * 0.4, ease: "power2.out" },
-        "-=0.2",
-      )
-      .set(overlayRef.current, { visibility: "hidden", scale: 0, opacity: 1 });
-  };
-
-  const animateDiagonal = (
-    tl: gsap.core.Timeline,
-    dur: number,
-    color: string,
-  ) => {
-    if (!overlayRef.current || !contentRef.current) return;
-
-    tl.set(overlayRef.current, {
-      scaleX: 0,
-      scaleY: 0,
-      transformOrigin: "top left",
-      visibility: "visible",
-      background: `linear-gradient(135deg, ${color} 0%, ${primaryColor} 100%)`,
-      rotation: 0,
-    })
-      .to(contentRef.current, {
-        opacity: 0,
-        x: -50,
-        y: 50,
-        duration: dur * 0.3,
-        ease: "power2.in",
-      })
-      .to(
-        overlayRef.current,
-        {
-          scaleX: 1.5,
-          scaleY: 1.5,
-          duration: dur * 0.6,
-          ease: "power3.inOut",
-        },
-        "-=0.1",
-      )
-      .to(overlayRef.current, {
-        scaleX: 0,
-        scaleY: 0,
-        transformOrigin: "bottom right",
-        duration: dur * 0.6,
-        ease: "power3.inOut",
-      })
-      .fromTo(
-        contentRef.current,
-        { opacity: 0, x: 50, y: -50 },
-        { opacity: 1, x: 0, y: 0, duration: dur * 0.4, ease: "power2.out" },
-        "-=0.3",
-      );
-  };
-
-  const animateReveal = (
-    tl: gsap.core.Timeline,
-    dur: number,
-    color: string,
-  ) => {
-    if (!overlayRef.current || !contentRef.current || !logoRef.current) return;
-
-    // Circular reveal with logo
-    tl.set(overlayRef.current, {
-      clipPath: "circle(0% at 50% 50%)",
-      visibility: "visible",
-      background: `radial-gradient(circle, ${color} 0%, ${primaryColor} 100%)`,
-    })
-      .set(logoRef.current, { opacity: 0, scale: 0.5, rotation: -180 })
-      .to(contentRef.current, {
-        opacity: 0,
-        scale: 0.95,
-        duration: dur * 0.3,
-        ease: "power2.in",
-      })
-      .to(
-        overlayRef.current,
-        {
-          clipPath: "circle(75% at 50% 50%)",
-          duration: dur * 0.5,
-          ease: "power3.inOut",
-        },
-        "-=0.1",
-      )
-      .to(
-        logoRef.current,
-        {
-          opacity: 1,
-          scale: 1,
-          rotation: 0,
-          duration: dur * 0.4,
-          ease: "back.out(1.7)",
-        },
-        "-=0.3",
-      )
-      .to({}, { duration: dur * 0.15 })
-      .to(logoRef.current, {
-        opacity: 0,
-        scale: 1.2,
-        rotation: 180,
-        duration: dur * 0.3,
-        ease: "power2.in",
-      })
-      .to(
-        overlayRef.current,
-        {
-          clipPath: "circle(0% at 50% 50%)",
-          duration: dur * 0.5,
-          ease: "power3.inOut",
-        },
-        "-=0.2",
-      )
-      .fromTo(
-        contentRef.current,
-        { opacity: 0, scale: 1.05 },
-        { opacity: 1, scale: 1, duration: dur * 0.4, ease: "power2.out" },
-        "-=0.3",
-      );
-  };
-
-  const animateFade = (tl: gsap.core.Timeline, dur: number) => {
-    if (!contentRef.current) return;
-
-    tl.to(contentRef.current, {
-      opacity: 0,
-      duration: dur * 0.5,
-      ease: "power2.inOut",
-    }).fromTo(
-      contentRef.current,
-      { opacity: 0 },
-      {
-        opacity: 1,
-        duration: dur * 0.5,
-        ease: "power2.inOut",
-        onComplete: () => {
-          gsap.set(contentRef.current, { clearProps: "all" });
-        },
-      },
-    );
-  };
-
-  const animateWipe = (tl: gsap.core.Timeline, dur: number, color: string) => {
-    if (!overlayRef.current || !contentRef.current || !logoRef.current) return;
-
-    // Wipe effect - overlay slides from left to right
-    tl.set(overlayRef.current, {
-      scaleX: 0,
-      transformOrigin: "left center",
-      visibility: "visible",
-      background: `linear-gradient(90deg, ${color} 0%, ${primaryColor} 100%)`,
-    })
-      .set(logoRef.current, { opacity: 0, x: -50, scale: 0.9 })
-      .to(contentRef.current, {
-        opacity: 0,
-        x: 50,
-        duration: dur * 0.3,
-        ease: "power2.in",
-      })
-      .to(
-        overlayRef.current,
-        {
-          scaleX: 1,
-          duration: dur * 0.5,
-          ease: "power3.inOut",
-        },
-        "-=0.1",
-      )
-      .to(
-        logoRef.current,
-        {
-          opacity: 1,
-          x: 0,
-          scale: 1,
-          duration: dur * 0.4,
-          ease: "back.out(1.7)",
-        },
-        "-=0.2",
-      )
-      .to({}, { duration: dur * 0.15 })
-      .to(logoRef.current, {
-        opacity: 0,
-        x: 50,
-        duration: dur * 0.2,
-        ease: "power2.in",
-      })
-      .to(overlayRef.current, {
-        scaleX: 0,
-        transformOrigin: "right center",
-        duration: dur * 0.5,
-        ease: "power3.inOut",
-      })
-      .fromTo(
-        contentRef.current,
-        { opacity: 0, x: -50 },
-        { opacity: 1, x: 0, duration: dur * 0.4, ease: "power2.out" },
-        "-=0.3",
-      );
-  };
-
-  useEffect(() => {
-    // Skip animation on first mount
+  useLayoutEffect(() => {
+    // Pomiń przy pierwszym montowaniu
     if (isFirstMount.current) {
       isFirstMount.current = false;
-      prevPathRef.current = location.pathname;
       return;
     }
 
-    // Skip if same path
-    if (location.pathname === prevPathRef.current) {
-      return;
+    // Pomiń jeśli ścieżka się nie zmieniła
+    if (location.pathname === prevPathRef.current) return;
+
+    // --- KROK 1: NATYCHMIASTOWA BLOKADA WIDOKU ---
+    // Zanim przeglądarka narysuje footer nowej strony, rzucamy czarną osłonę.
+    if (logoRef.current) {
+      gsap.killTweensOf(logoRef.current);
+      // Używamy opactity 1 natychmiastowo przez gsap.set
+      gsap.set(logoRef.current, {
+        visibility: "visible",
+        opacity: 1,
+        zIndex: 999999,
+      });
     }
 
-    const activeStyle = getActiveStyle();
+    // Zamrażamy starą stronę, aby nie "pływała" pod spodem
+    if (contentRef.current) {
+      gsap.set(contentRef.current, {
+        pointerEvents: "none",
+        userSelect: "none",
+      });
+    }
 
-    const runTransition = async () => {
-      setIsTransitioning(true);
+    setIsTransitioning(true);
 
-      const ctx = gsap.context(() => {
-        const tl = gsap.timeline({
-          onComplete: () => {
-            setDisplayChildren(children);
-            setIsTransitioning(false);
-            prevPathRef.current = location.pathname;
-          },
-        });
-
-        switch (activeStyle) {
-          case "curtain":
-            animateCurtain(tl, duration, accentColor);
-            break;
-          case "slide":
-            animateSlide(
-              tl,
-              duration,
-              navigationType === "POP" ? "right" : "left",
-            );
-            break;
-          case "zoom":
-            animateZoom(tl, duration);
-            break;
-          case "diagonal":
-            animateDiagonal(tl, duration, accentColor);
-            break;
-          case "reveal":
-            animateReveal(tl, duration, accentColor);
-            break;
-          case "wipe":
-            animateWipe(tl, duration, accentColor);
-            break;
-          default:
-            animateCurtain(tl, duration, accentColor);
+    // --- KROK 2: SEKWENCJA ANIMACJI ---
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setIsTransitioning(false);
+        prevPathRef.current = location.pathname;
+        if (contentRef.current) {
+          gsap.set(contentRef.current, {
+            clearProps: "pointerEvents,userSelect",
+          });
         }
+      },
+    });
+
+    // Podmiana treści w bezpiecznym momencie (ekran jest już czarny)
+    tl.add(() => {
+      prepareNewPage();
+    })
+      // Animacja logo (subtelny wjazd)
+      .fromTo(
+        ".transition-logo-inner",
+        {
+          opacity: 0,
+          y: 10,
+          scale: 0.97,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: duration * 0.4,
+          ease: "power2.out",
+        },
+      )
+      .to({}, { duration: 0.3 }) // Przywrócona pauza na logo (poczucie premium)
+      // Wyjście - odsłonięcie nowej strony
+      .to(".transition-logo-inner", {
+        opacity: 0,
+        y: -10,
+        duration: duration * 0.3,
+        ease: "power2.in",
+      })
+      .to(logoRef.current, {
+        opacity: 0,
+        duration: 0.2, // Bardzo szybkie wygaszanie czarnej osłony
+        ease: "power2.out",
+        onComplete: () => {
+          gsap.set(logoRef.current, { visibility: "hidden" });
+        },
       });
 
-      return () => ctx.revert();
+    return () => {
+      tl.kill();
     };
+  }, [location.pathname, prepareNewPage, duration]);
 
-    runTransition();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    location.pathname,
-    children,
-    transitionStyle,
-    duration,
-    navigationType,
-    accentColor,
-    useRouteStyles,
-  ]);
+  const overlay =
+    typeof document !== "undefined"
+      ? createPortal(
+          <div
+            ref={logoRef}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              zIndex: 999999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: primaryColor,
+              visibility: "hidden",
+              pointerEvents: "none",
+              opacity: 0,
+            }}
+          >
+            <div
+              className="transition-logo-inner"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "20px",
+              }}
+            >
+              <svg
+                width="42"
+                height="42"
+                viewBox="0 0 24 24"
+                fill="none"
+                style={{ color: "#A68E4E" }}
+              >
+                <path
+                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.95)",
+                  fontSize: "10px",
+                  fontWeight: 300,
+                  letterSpacing: "0.8em",
+                  textTransform: "uppercase",
+                  textAlign: "center",
+                  marginLeft: "0.8em", // Centrowanie przy dużym letter-spacing
+                }}
+              >
+                Champion Pigeons
+              </span>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <TransitionContext.Provider
-      value={{ isTransitioning, transitionStyle, setTransitionStyle }}
+      value={{
+        isTransitioning,
+        transitionStyle: "fade",
+        setTransitionStyle: () => {},
+      }}
     >
-      {/* Multi-layer curtain overlay */}
+      {overlay}
       <div
-        ref={curtain1Ref}
-        className="fixed inset-0 z-[9997] pointer-events-none"
+        ref={contentRef}
         style={{
-          backgroundColor: primaryColor,
-          visibility: "hidden",
-          transformOrigin: "bottom",
+          width: "100%",
+          position: "relative",
+          minHeight: "100vh",
         }}
-      />
-      <div
-        ref={curtain2Ref}
-        className="fixed inset-0 z-[9998] pointer-events-none"
-        style={{
-          backgroundColor: accentColor,
-          visibility: "hidden",
-          transformOrigin: "bottom",
-        }}
-      />
-      <div
-        ref={curtain3Ref}
-        className="fixed inset-0 z-[9999] pointer-events-none"
-        style={{
-          backgroundColor: primaryColor,
-          visibility: "hidden",
-          transformOrigin: "bottom",
-        }}
-      />
-
-      {/* Single layer overlay (for other animations) */}
-      <div
-        ref={overlayRef}
-        className="fixed inset-0 z-[9999] pointer-events-none"
-        style={{
-          backgroundColor: primaryColor,
-          visibility: "hidden",
-        }}
-      />
-
-      {/* Logo overlay */}
-      <div
-        ref={logoRef}
-        className="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none"
-        style={{ opacity: 0 }}
       >
-        <div className="flex flex-col items-center gap-4">
-          {/* Animated Crown/Pigeon icon */}
-          <svg
-            width="60"
-            height="60"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="text-gold"
-          >
-            <path
-              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-              fill="currentColor"
-              stroke="currentColor"
-              strokeWidth="1"
-            />
-          </svg>
-          <span className="text-lg font-light tracking-[0.4em] text-white/90 uppercase">
-            Champion Pigeons
-          </span>
-        </div>
+        {displayChildren}
       </div>
-
-      {/* Main content */}
-      <div ref={contentRef}>{displayChildren}</div>
     </TransitionContext.Provider>
   );
 };

@@ -52,6 +52,7 @@ router.use(readLimiter);
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
+    email?: string;
     role?: string;
   };
 }
@@ -78,7 +79,9 @@ async function ensureAdmin(
     });
 
     if (!user) {
-      console.warn(`❌ [ensureAdmin] User ${userId} not found in database`);
+      console.warn(
+        `❌ [ensureAdmin] User ${userId} not found in database (checked email: ${req.user?.email})`,
+      );
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -129,7 +132,9 @@ router.get("/metrics", ensureAdmin, async (req: Request, res: Response) => {
     // Keep minimal to avoid heavy DB usage; reuse cache stats if available
     res.json({
       status: "ok",
-      cacheKeys: cache ? Object.keys(await cache.keys?.())?.length ?? undefined : undefined,
+      cacheKeys: cache
+        ? (Object.keys(await cache.keys?.())?.length ?? undefined)
+        : undefined,
     });
   } catch (error: any) {
     console.error("Metrics fetch error:", error);
@@ -143,6 +148,8 @@ router.get("/metrics", ensureAdmin, async (req: Request, res: Response) => {
 router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
   try {
     if (!prisma) throw new Error("Database not initialized");
+
+    console.log("📊 [Admin API] Fetching stats...");
 
     const [
       totalUsers,
@@ -532,10 +539,10 @@ router.patch(
         });
       }
 
-      const { password, ...prismaData } = req.body; // Take password separately
+      const { password, ...prismaData } = validation.data;
 
       // 1. If password provided, update in Supabase Auth
-      if (password && password.length >= 6) {
+      if (password) {
         if (!supabase) {
           console.warn(
             "Supabase client not initialized, skipping password update",
@@ -559,15 +566,8 @@ router.patch(
 
       // 2. Update in Prisma
       try {
-        const validatedPrismaData = UserUpdateSchema.parse(prismaData);
-        const updated = await userService.updateUser(id, validatedPrismaData);
-        await logAdminAction(
-          req,
-          "UPDATE_USER",
-          "USER",
-          id,
-          validatedPrismaData,
-        );
+        const updated = await userService.updateUser(id, prismaData);
+        await logAdminAction(req, "UPDATE_USER", "USER", id, prismaData);
         res.json(updated);
       } catch (dbError: any) {
         console.error("DB Update Error:", dbError);

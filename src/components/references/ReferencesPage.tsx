@@ -409,7 +409,7 @@ export function ReferencesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f7f7fb]">
+      <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
         <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
@@ -428,7 +428,7 @@ export function ReferencesPage() {
             />
             <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-gold" />
           </div>
-          <p className="text-slate-600 text-lg">Ładowanie referencji...</p>
+          <p className="text-white/70 text-lg">Ładowanie referencji...</p>
         </motion.div>
       </div>
     );

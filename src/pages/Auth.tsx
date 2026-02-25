@@ -36,7 +36,12 @@ function useQueryParams() {
 }
 
 function sanitizeCallbackUrl(callbackUrl: string | null): string {
-  return callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
+  // Allow internal paths but block protocol-relative redirects like //evil.com
+  return callbackUrl &&
+    callbackUrl.startsWith("/") &&
+    !callbackUrl.startsWith("//")
+    ? callbackUrl
+    : "/";
 }
 
 type Mode = "login" | "register" | "forgot" | "reset";
@@ -126,11 +131,11 @@ export default function Auth() {
 
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), {
     stiffness: 150,
-    damping: 20,
+    damping: 40,
   });
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), {
     stiffness: 150,
-    damping: 20,
+    damping: 40,
   });
 
   const lightX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
@@ -151,14 +156,14 @@ export default function Auth() {
     useTransform(logoMouseY, [-0.5, 0.5], [15, -15]),
     {
       stiffness: 150,
-      damping: 20,
+      damping: 40,
     },
   );
   const logoRotateY = useSpring(
     useTransform(logoMouseX, [-0.5, 0.5], [-15, 15]),
     {
       stiffness: 150,
-      damping: 20,
+      damping: 40,
     },
   );
 
@@ -194,7 +199,7 @@ export default function Auth() {
 
   // Parallax 3D effect (Press-style) - formularz
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current || reduceMotion) return;
+    if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -211,7 +216,7 @@ export default function Auth() {
 
   // Parallax 3D effect (Press-style) - logo Pałka MTM
   const handleLogoMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!logoRef.current || reduceMotion) return;
+    if (!logoRef.current) return;
     const rect = logoRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -229,7 +234,7 @@ export default function Auth() {
   const handleModalConfirm = () => {
     setModalOpen(false);
 
-    if (modalAction === "redirect" && profile?.role !== "ADMIN") {
+    if (modalAction === "redirect") {
       const targetPath =
         callbackUrl &&
         callbackUrl !== "/" &&
@@ -240,17 +245,30 @@ export default function Auth() {
       if (profile?.role === "USER_REGISTERED") {
         navigate("/verify-email", { replace: true });
       } else {
-        // Otwieramy modal TYLKO jeśli user o to prosił (ACCOUNT_MODAL_TRIGGER)
         const isTargetingAccount = callbackUrl === "ACCOUNT_MODAL_TRIGGER";
 
-        navigate(targetPath, {
-          replace: true,
-          state: {
-            openAccount: isTargetingAccount,
-            fromAuth: true,
-          },
-        });
+        // If we are just going to home, a full reload is safest as requested by user
+        if (targetPath === "/" && !isTargetingAccount) {
+          window.location.href = "/";
+        } else {
+          // Navigating with state, then reload to satisfy "refresh" request
+          navigate(targetPath, {
+            replace: true,
+            state: {
+              openAccount: isTargetingAccount,
+              fromAuth: true,
+            },
+          });
+          // Small timeout to allow navigation before reload (if we want to keep state, reload is tricky)
+          // But user explicitly asked for refresh.
+          if (!isTargetingAccount) {
+            setTimeout(() => window.location.reload(), 100);
+          }
+        }
       }
+    } else if (modalAction === "close") {
+      // If we just close (e.g. for ADMIN), we might still want a refresh to see the status
+      window.location.reload();
     }
   };
 
@@ -548,15 +566,15 @@ export default function Auth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7f7fb]">
+      <div className="min-h-screen bg-[#09090b]">
         <Header />
         <main className="pt-28 md:pt-32">
           <div className="container mx-auto px-4">
-            <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_48px_rgba(0,0,0,0.12)] text-center">
+            <div className="mx-auto w-full max-w-md rounded-2xl border border-white/10 bg-[#111114] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.4)] text-center">
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="w-12 h-12 border-4 border-gold/30 border-t-gold rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-900 font-medium">Ładowanie...</p>
-                <p className="text-sm text-slate-600 mt-2">
+                <p className="text-white font-medium">Ładowanie...</p>
+                <p className="text-sm text-white/60 mt-2">
                   Sprawdzanie sesji użytkownika
                 </p>
               </div>
@@ -592,18 +610,18 @@ export default function Auth() {
           <div
             ref={logoRef}
             className="absolute top-20 left-[25%] sm:top-36 sm:left-[30%] z-30 max-w-[240px] sm:max-w-[320px] lg:max-w-[420px]"
-            style={{ perspective: "2000px" }}
+            style={{ perspective: "1000px" }}
             onMouseMove={handleLogoMouseMove}
             onMouseLeave={handleLogoMouseLeave}
           >
             <motion.div
               initial={{
                 opacity: reduceMotion ? 1 : 0,
-                y: reduceMotion ? 0 : 20,
+                y: 0,
               }}
-              animate={{ opacity: 1, y: 0, scale: isLogoHovered ? 1.02 : 1 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: reduceMotion ? 0 : 0.6 }}
-              className="rounded-3xl border-2 border-gold/60 backdrop-blur-2xl px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center text-center overflow-hidden"
+              className="rounded-3xl border-2 border-gold/60 backdrop-blur-2xl px-6 py-5 flex flex-col items-center text-center overflow-hidden"
               style={{
                 rotateX: logoRotateX,
                 rotateY: logoRotateY,
@@ -618,13 +636,6 @@ export default function Auth() {
               <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
               <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
               {/* Dynamic light reflection */}
-              <motion.div
-                className="absolute inset-0 pointer-events-none z-10"
-                style={{
-                  background: logoLightBackground,
-                  opacity: isLogoHovered ? 1 : 0,
-                }}
-              />
               <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-tight text-center whitespace-nowrap relative z-30">
                 Pałka <span className="gold-heading">MTM</span>
               </h1>
@@ -637,27 +648,27 @@ export default function Auth() {
 
         <div className="w-full lg:w-[38%] xl:w-[40%] flex items-center justify-center relative">
           <div
-            ref={cardRef}
             className="w-full max-w-sm relative"
-            style={{ perspective: "2000px" }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
+            style={{ perspective: "1000px" }}
           >
             <motion.div
+              ref={cardRef}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
               initial={{
                 opacity: reduceMotion ? 1 : 0,
-                y: reduceMotion ? 0 : 24,
+                y: 0,
               }}
               animate={{
                 opacity: 1,
                 y: 0,
-                scale: isHovered ? 1.02 : 1,
+                scale: 1,
               }}
               transition={{
                 duration: reduceMotion ? 0 : 0.6,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative z-50 rounded-3xl text-white backdrop-blur-xl shadow-[0_18px_48px_rgba(0,0,0,0.18)] p-5 sm:p-6 border border-gold/40 overflow-hidden"
+              className="relative z-50 rounded-3xl text-white backdrop-blur-xl p-5 sm:p-6 border border-gold/40 overflow-hidden"
               style={{
                 rotateX,
                 rotateY,
@@ -672,13 +683,6 @@ export default function Auth() {
               <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
               <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/60 to-transparent pointer-events-none z-20 rounded-full" />
               {/* Dynamic light reflection */}
-              <motion.div
-                className="absolute inset-0 pointer-events-none z-10"
-                style={{
-                  background: lightBackground,
-                  opacity: isHovered ? 1 : 0,
-                }}
-              />
               <div className="text-center mb-4">
                 <h2 className="font-display text-2xl sm:text-3xl text-white tracking-tight mb-1">
                   {mode === "register" ? "Dołącz do nas" : "Witaj ponownie"}
@@ -725,7 +729,7 @@ export default function Auth() {
               <div className="space-y-2 mb-4">
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-zinc-900 text-sm font-bold border border-slate-200 shadow-sm transition-none bg-white hover:bg-gray-50 relative z-30 !bg-white"
+                  className="w-full flex items-center justify-center gap-3 py-4 px-4 rounded-full text-zinc-900 text-sm font-bold border border-slate-200 shadow-sm transition-none hover:bg-gray-50 relative z-30 !bg-white"
                   style={{ backgroundColor: "#FFFFFF" }}
                   type="button"
                   onClick={() => handleOAuthSignIn("google")}
@@ -805,7 +809,7 @@ export default function Auth() {
                 {mode === "register" && (
                   <div className="space-y-2">
                     <label
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-white/90"
                       htmlFor="username"
                     >
                       Nick (wyświetlana nazwa)
@@ -820,7 +824,7 @@ export default function Auth() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="np. champion-123"
-                        className="pl-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="pl-12 !bg-white !text-black caret-black border border-slate-200 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                     </div>
                   </div>
@@ -844,7 +848,7 @@ export default function Auth() {
                       placeholder="twoj@email.com"
                       autoComplete="email"
                       required
-                      className="pl-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                      className="pl-12 !bg-white !text-black caret-black border border-slate-200 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     />
                   </div>
                 </div>
@@ -853,7 +857,7 @@ export default function Auth() {
                   mode === "reset") && (
                   <div className="space-y-2">
                     <label
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-white/90"
                       htmlFor="password"
                     >
                       Hasło
@@ -872,7 +876,7 @@ export default function Auth() {
                           mode === "login" ? "current-password" : "new-password"
                         }
                         required
-                        className="pl-12 pr-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="pl-12 pr-12 !bg-white !text-black caret-black border border-slate-200 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                       <button
                         type="button"
@@ -891,7 +895,7 @@ export default function Auth() {
                 {(mode === "register" || mode === "reset") && (
                   <div className="space-y-2">
                     <label
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-white/90"
                       htmlFor="confirmPassword"
                     >
                       Potwierdź hasło
@@ -908,7 +912,7 @@ export default function Auth() {
                         placeholder="••••••••"
                         autoComplete="new-password"
                         required
-                        className="pl-12 pr-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="pl-12 pr-12 !bg-white !text-black caret-black border border-slate-200 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                       <button
                         type="button"

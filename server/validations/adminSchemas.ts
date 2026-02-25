@@ -9,12 +9,14 @@ export const UserRoleSchema = z.enum([
 
 export const UserUpdateSchema = z.object({
   email: z.string().email().optional(),
+  password: z.string().min(6).optional(),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
   role: UserRoleSchema.optional(),
   isBlocked: z.boolean().optional(),
   isBanned: z.boolean().optional(),
   username: z.string().min(1).optional(),
+  phone: z.string().optional(),
 });
 
 export const AuctionStatusSchema = z.enum(["ACTIVE", "ENDED", "CANCELLED"]);
