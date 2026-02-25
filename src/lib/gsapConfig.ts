@@ -2,10 +2,11 @@
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { TextPlugin } from "gsap/TextPlugin";
+import { CSSPlugin } from "gsap/CSSPlugin";
 
 // Register plugins
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, TextPlugin);
+  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, TextPlugin, CSSPlugin);
 
   // Global ScrollTrigger defaults - performance optimized
   ScrollTrigger.config({

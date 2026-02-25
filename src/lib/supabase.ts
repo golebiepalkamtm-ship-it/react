@@ -28,10 +28,10 @@ export const missingSupabaseEnv = [
   !supabaseUrl && "VITE_SUPABASE_URL",
   !supabaseAnonKey &&
     !supabasePublishableKey &&
-    "VITE_SUPABASE_ANON_KEY lub VITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SUPABASE_ANON_KEY/VITE_SUPABASE_PUBLISHABLE_KEY",
 ].filter(Boolean) as string[];
 
-export const isSupabaseConfigured = missingSupabaseEnv.length === 0;
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseKey);
 
 if (isSupabaseConfigured && supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey, {
@@ -40,8 +40,7 @@ if (isSupabaseConfigured && supabaseUrl && supabaseKey) {
       persistSession: true,
       detectSessionInUrl: true,
       flowType: "pkce",
-      debug: false,
-      storage: window.localStorage,
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
     },
     global: {
       headers: {
@@ -50,9 +49,11 @@ if (isSupabaseConfigured && supabaseUrl && supabaseKey) {
       },
     },
   });
+  console.log("Supabase client initialized successfully");
 } else {
-  console.warn(
-    "Missing Supabase environment variables - Supabase features will be disabled",
+  console.error(
+    "Supabase initialization failed: missing environment variables",
+    missingSupabaseEnv,
   );
 }
 
