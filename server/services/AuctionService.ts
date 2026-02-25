@@ -1,7 +1,7 @@
 import { prisma } from "../lib/db.js";
 import { getIO } from "../lib/socket.js";
 import NotificationManager from "./NotificationManager.js";
-import { smsService } from "../lib/sms.js";
+import { smsService } from "./SmsService.js";
 import logger from "../lib/logger.js";
 import {
   AuctionErrorCodes,

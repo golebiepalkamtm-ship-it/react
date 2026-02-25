@@ -571,7 +571,10 @@ export default function Auth() {
     <div className="min-h-screen text-slate-900 relative isolate overflow-hidden">
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center"
-        style={{ backgroundImage: "url('/Gemini_Generated_Image_am1cv9am1cv9am1c.png')" }}
+        style={{
+          backgroundImage:
+            "url('/Gemini_Generated_Image_am1cv9am1cv9am1c.png')",
+        }}
       />
       <Header />
 
@@ -817,7 +820,7 @@ export default function Auth() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="np. champion-123"
-                        className="pl-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="pl-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                     </div>
                   </div>
@@ -841,7 +844,7 @@ export default function Auth() {
                       placeholder="twoj@email.com"
                       autoComplete="email"
                       required
-                      className="pl-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                      className="pl-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     />
                   </div>
                 </div>
@@ -869,7 +872,7 @@ export default function Auth() {
                           mode === "login" ? "current-password" : "new-password"
                         }
                         required
-                        className="pl-12 pr-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="pl-12 pr-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                       <button
                         type="button"
@@ -905,7 +908,7 @@ export default function Auth() {
                         placeholder="••••••••"
                         autoComplete="new-password"
                         required
-                        className="pl-12 pr-12 bg-white border border-slate-200 text-slate-900 focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="pl-12 pr-12 !bg-white border border-slate-200 !text-black focus:border-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       />
                       <button
                         type="button"
@@ -970,7 +973,9 @@ export default function Auth() {
                 <div className="text-center text-sm text-slate-600">
                   {mode === "login" ? (
                     <>
-                      <span className="text-[#A68E4E] font-medium">Nie masz konta?</span>{" "}
+                      <span className="text-[#A68E4E] font-medium">
+                        Nie masz konta?
+                      </span>{" "}
                       <button
                         className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
@@ -981,7 +986,9 @@ export default function Auth() {
                     </>
                   ) : mode === "register" ? (
                     <>
-                      <span className="text-[#A68E4E] font-medium">Masz już konto?</span>{" "}
+                      <span className="text-[#A68E4E] font-medium">
+                        Masz już konto?
+                      </span>{" "}
                       <button
                         className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
@@ -992,7 +999,9 @@ export default function Auth() {
                     </>
                   ) : mode === "forgot" ? (
                     <>
-                      <span className="text-[#A68E4E] font-medium">Pamiętasz hasło?</span>{" "}
+                      <span className="text-[#A68E4E] font-medium">
+                        Pamiętasz hasło?
+                      </span>{" "}
                       <button
                         className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
@@ -1003,7 +1012,9 @@ export default function Auth() {
                     </>
                   ) : (
                     <>
-                      <span className="text-[#A68E4E] font-medium">Masz problem?</span>{" "}
+                      <span className="text-[#A68E4E] font-medium">
+                        Masz problem?
+                      </span>{" "}
                       <button
                         className="text-[#A68E4E] hover:underline font-bold"
                         type="button"
@@ -1015,7 +1026,10 @@ export default function Auth() {
                   )}
                 </div>
                 <div className="text-center text-xs text-slate-500">
-                  <Link className="hover:underline text-[#A68E4E] font-medium" to={callbackUrl}>
+                  <Link
+                    className="hover:underline text-[#A68E4E] font-medium"
+                    to={callbackUrl}
+                  >
                     Wróć
                   </Link>
                 </div>
