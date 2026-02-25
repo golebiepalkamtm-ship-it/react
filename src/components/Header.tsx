@@ -261,7 +261,7 @@ const Header = () => {
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-transparent py-4"
+      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-transparent py-2"
     >
       {/* Efekt podświetlenia dla nagłówka */}
       <motion.div
@@ -275,25 +275,9 @@ const Header = () => {
           opacity: headerGlowOpacity,
         }}
       />
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        {/* Logo Section */}
-        <RouterLink to="/" className="flex items-center gap-2 group z-[501]">
-          <div className="w-10 h-10 rounded-xl bg-gold flex items-center justify-center shadow-lg shadow-gold/20 group-hover:scale-110 transition-transform duration-500">
-            <Gavel className="w-5 h-5 text-zinc-950" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-display text-lg text-white font-bold leading-none tracking-tighter">
-              MTM PAŁKA
-            </span>
-            <span className="text-[8px] text-gold font-bold uppercase tracking-[0.2em]">
-              Champion Auctions
-            </span>
-          </div>
-        </RouterLink>
-
-        {/* Desktop Navigation */}
+      <div className="container mx-auto px-4 flex items-center justify-center">
         <motion.nav
-          className="hidden md:flex items-center gap-8"
+          className="hidden md:flex items-center justify-between w-full"
           initial="hidden"
           animate="visible"
           variants={{
@@ -364,10 +348,7 @@ const Header = () => {
               </motion.div>
             );
           })}
-        </motion.nav>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-4">
           {/* User Status Diode - only for logged in users */}
           {user && profile && (
             <div className="flex items-center gap-2">
@@ -465,7 +446,7 @@ const Header = () => {
               </motion.div>
             </div>
           )}
-        </div>
+        </motion.nav>
 
         <AnimatePresence>
           {isAccountModalOpen && (
