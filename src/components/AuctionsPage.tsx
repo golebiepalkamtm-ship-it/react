@@ -304,16 +304,16 @@ const AuctionsPage = () => {
   ];
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-white">
+    <div className="relative isolate min-h-screen overflow-hidden bg-transparent">
       <section
         ref={heroRef}
-        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
+        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-transparent"
       >
         <div className="container mx-auto px-4">
           <div ref={heroContentRef} className="text-left">
             <h1 className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
               <span style={{ color: "#A68E4E" }}>Aukcje</span>{" "}
-              <span className="text-slate-900">Champion Class</span>
+              <span className="text-white">Champion Class</span>
             </h1>
             <div className="mt-8 flex flex-wrap gap-4 justify-start">
               <Button
@@ -500,7 +500,7 @@ const AuctionsPage = () => {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-[580px] rounded-2xl border border-zinc-200 bg-zinc-50/50 animate-pulse transition-all duration-700"
+                  className="h-[580px] rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm animate-pulse"
                 />
               ))}
             </div>

@@ -53,10 +53,31 @@ html.lenis body {
     position: relative;
     margin: 0;
     padding: 0;
-    background: #020617 url("/Gemini_Generated_Image_am1cv9am1cv9am1c.png")
-      center center / cover no-repeat fixed !important;
+    background-color: #020617 !important;
+    background-image:
+      radial-gradient(
+        circle at 15% 15%,
+        rgba(166, 142, 78, 0.07) 0%,
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 85% 20%,
+        rgba(66, 192, 206, 0.07) 0%,
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 50% 80%,
+        rgba(166, 142, 78, 0.05) 0%,
+        transparent 50%
+      ),
+      url("/Gemini_Generated_Image_am1cv9am1cv9am1c.png") !important;
+    background-attachment: fixed !important;
+    background-position: center center !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
     min-height: 100%;
     scroll-behavior: auto;
+    color: #fff;
   }
 
   /* Global background layer to keep image visible everywhere */
