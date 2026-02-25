@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Crown,
   Diamond,
+  Gavel,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -65,7 +66,6 @@ const AuctionsPage = () => {
   const { auctions, isLoading, refetch, error } = useAuctions({
     status: "active",
     sortBy,
-    sellerId: undefined,
   });
   const sanitizedAuctions = useMemo(() => {
     return auctions.filter((auction) => {
@@ -107,16 +107,12 @@ const AuctionsPage = () => {
     message: "",
   });
 
-  const filters = useMemo(
-    () => ({
-      searchTerm,
-      priceMin: priceMin ? parseFloat(priceMin) : undefined,
-      priceMax: priceMax ? parseFloat(priceMax) : undefined,
-      category,
-      gender,
-    }),
-    [searchTerm, priceMin, priceMax, category, gender],
-  );
+  const filters = useMemo(() => {
+    const f: any = { searchTerm, category, gender };
+    if (priceMin) f.priceMin = parseFloat(priceMin);
+    if (priceMax) f.priceMax = parseFloat(priceMax);
+    return f;
+  }, [searchTerm, priceMin, priceMax, category, gender]);
 
   const filteredAuctions = useAuctionFilters(sanitizedAuctions, filters);
   const uiAuctions = useMemo(() => {
@@ -308,10 +304,10 @@ const AuctionsPage = () => {
   ];
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-white">
+    <div className="relative isolate min-h-screen overflow-hidden bg-[#020a13]">
       <section
         ref={heroRef}
-        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
+        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-[#020a13]"
       >
         <div className="container mx-auto px-4">
           <div ref={heroContentRef} className="text-left">
@@ -504,11 +500,15 @@ const AuctionsPage = () => {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-[580px] rounded-2xl bg-transparent border border-gold/20 animate-pulse shadow-[0_18px_48px_rgba(0,0,0,0.12)]"
+                  className="h-[580px] rounded-2xl border border-[#A68E4E]/20 animate-pulse shadow-2xl"
+                  style={{
+                    background:
+                      "linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                  }}
                 />
               ))}
             </div>
-          ) : (
+          ) : uiAuctions.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {uiAuctions.map((auction) => (
                 <UnifiedAuctionCard
@@ -530,6 +530,25 @@ const AuctionsPage = () => {
                   nowMs={now}
                 />
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 px-8 rounded-3xl border border-[#A68E4E]/30 bg-black/40 backdrop-blur-md max-w-2xl mx-auto shadow-2xl">
+              <div className="w-20 h-20 bg-[#A68E4E]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#A68E4E]/20">
+                <Gavel className="w-10 h-10 text-[#A68E4E]" />
+              </div>
+              <h2 className="text-[#A68E4E] text-2xl font-display font-bold mb-3">
+                Aktualnie nie ma żadnych aktywnych aukcji
+              </h2>
+              <p className="text-[#A68E4E]/60 text-lg leading-relaxed mb-8">
+                Wróć do nas niebawem! Stale dodajemy nowe gołębie champion klasy
+                do naszych ofert.
+              </p>
+              <Button
+                onClick={handleCreateAuctionClick}
+                className="rounded-xl bg-[#A68E4E] text-zinc-950 px-8 py-6 text-lg font-bold hover:bg-[#A68E4E]/90 transition-all shadow-[0_0_30px_rgba(166,142,78,0.3)]"
+              >
+                <Plus className="w-5 h-5 mr-2" /> Dodaj własną aukcję
+              </Button>
             </div>
           )}
         </div>
