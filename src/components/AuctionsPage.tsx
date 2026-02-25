@@ -304,10 +304,10 @@ const AuctionsPage = () => {
   ];
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-[#020a13]">
+    <div className="relative isolate min-h-screen overflow-hidden bg-white">
       <section
         ref={heroRef}
-        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-[#020a13]"
+        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
       >
         <div className="container mx-auto px-4">
           <div ref={heroContentRef} className="text-left">
@@ -500,11 +500,7 @@ const AuctionsPage = () => {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-[580px] rounded-2xl border border-[#A68E4E]/20 animate-pulse shadow-2xl"
-                  style={{
-                    background:
-                      "linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-                  }}
+                  className="h-[580px] rounded-2xl border border-zinc-200 bg-zinc-50/50 animate-pulse transition-all duration-700"
                 />
               ))}
             </div>
