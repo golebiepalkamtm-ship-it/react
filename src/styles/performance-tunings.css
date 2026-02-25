@@ -21,10 +21,9 @@
     background-color: rgba(20, 25, 35, 0.95) !important;
   }
 
-  /* Force layer promotion for images */
-  img {
+  /* Force layer promotion only for parallax images that need it */
+  .parallax-img {
     transform: translateZ(0);
-    will-change: transform;
   }
 
   /* Disable expensive patterns */

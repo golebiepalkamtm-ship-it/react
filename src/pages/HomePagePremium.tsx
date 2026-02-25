@@ -32,26 +32,22 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 // HERO PREMIUM - Czysty, Jasny i Profesjonalny
 // ============================================================================
 
-const SplitText = React.memo(({
-  children,
-  className,
-}: {
-  children: string;
-  className?: string;
-}) => (
-  <span className={className} aria-label={children}>
-    {children.split("").map((char, i) => (
-      <span
-        key={i}
-        className="char-premium inline-block will-change-transform"
-        aria-hidden="true"
-        style={{ backfaceVisibility: "hidden" }}
-      >
-        {char}
-      </span>
-    ))}
-  </span>
-));
+const SplitText = React.memo(
+  ({ children, className }: { children: string; className?: string }) => (
+    <span className={className} aria-label={children}>
+      {children.split("").map((char, i) => (
+        <span
+          key={i}
+          className="char-premium inline-block will-change-transform"
+          aria-hidden="true"
+          style={{ backfaceVisibility: "hidden" }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </span>
+      ))}
+    </span>
+  ),
+);
 
 const HeroPremium = () => {
   const heroRef = useRef<HTMLElement>(null);
@@ -76,7 +72,13 @@ const HeroPremium = () => {
         })
         .to(
           ".hero-scroll-indicator",
-          { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out", force3D: true },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.5,
+            ease: "power2.out",
+            force3D: true,
+          },
           0.3,
         );
 
@@ -120,14 +122,13 @@ const HeroPremium = () => {
       });
 
       mainTl
+        // 1. Badge i Button znikają, litery wybuchają
+        .to(".hero-scroll-indicator", { autoAlpha: 0, y: 30, duration: 0.1 }, 0)
         .to(
-          ".hero-scroll-indicator",
-          { autoAlpha: 0, y: 50, duration: 0.05, force3D: true },
+          ".hero-reveal:not(.font-display)", // Tylko badge i przyciski, nie opis
+          { autoAlpha: 0, y: -40, duration: 0.2 },
           0,
         )
-        // 1. Badge i Button znikają szybko
-        .to([badge, button], { autoAlpha: 0, y: -50, duration: 0.2, force3D: true }, 0)
-        // 2. Napisy wybuchają
         .to(
           chars,
           {
@@ -188,19 +189,28 @@ const HeroPremium = () => {
             </span>
           </div>
 
-          <h1 className="hero-particle-system mb-4 text-4xl md:text-6xl lg:text-7xl font-bold font-display tracking-tight leading-snug uppercase text-center">
-            <span className="hero-part-left inline-block text-zinc-900">
+          <h1 className="hero-particle-system mb-4 text-4xl md:text-6xl lg:text-7xl font-bold font-display leading-snug uppercase text-center">
+            <span
+              className="hero-part-left inline-block text-zinc-900"
+              style={{ filter: "drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3))" }}
+            >
               <SplitText>Pałka</SplitText>
             </span>{" "}
-            <span className="hero-part-right inline-block text-[#A68E4E]">
+            <span
+              className="hero-part-right inline-block text-[#A68E4E]"
+              style={{ filter: "drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3))" }}
+            >
               <SplitText>MTM</SplitText>
             </span>
-            <span className="hero-subtitle gold-heading block text-xl md:text-2xl font-light tracking-[0.2em] mt-4 uppercase text-center whitespace-nowrap">
+            <span
+              className="hero-subtitle gold-heading block text-xl md:text-2xl font-bold tracking-[0.2em] mt-4 uppercase text-center whitespace-nowrap"
+              style={{ filter: "drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))" }}
+            >
               <SplitText>— Geny Zwycięzców</SplitText>
             </span>
           </h1>
 
-          <div className="hero-reveal text-lg md:text-2xl heading-black max-w-4xl mb-10 mx-auto text-center leading-relaxed font-display">
+          <div className="hero-reveal text-lg md:text-2xl text-zinc-950 max-w-4xl mb-10 mx-auto text-center leading-relaxed font-display font-bold">
             <SplitText>Trzy pokolenia pasji. Setki mistrzostw.</SplitText>
             <br />
             <SplitText>Elitarne gołębie pocztowe z Dolnego Śląska.</SplitText>
@@ -363,7 +373,7 @@ const CTAFeaturesSection = () => {
           </span>
           <h2
             ref={titleRef}
-            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 uppercase tracking-tighter font-display"
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 uppercase font-display"
           >
             <span className="text-zinc-900">Zostań Właścicielem</span> <br />
             <span className="text-[#A68E4E]">Wybitnego Championa</span>
@@ -397,7 +407,7 @@ const CTAFeaturesSection = () => {
                 <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-gold/20 transition-all duration-500 shadow-xl shadow-gold/20">
                   <feature.icon className="w-7 h-7 text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
                 </div>
-                <h4 className="text-xl font-bold gold-heading mb-3 uppercase tracking-tight text-[#A68E4E]">
+                <h4 className="text-xl font-bold gold-heading mb-3 uppercase text-[#A68E4E]">
                   {feature.title}
                 </h4>
                 <p className="text-white/80 leading-relaxed font-light text-sm">
@@ -435,13 +445,20 @@ export const HomePagePremium = () => {
 
       <main>
         {/* Intro Section - Hero Wrapper */}
-        <div id="hero-section-pin" className="relative w-full min-h-screen">
+        <div
+          id="hero-section-pin"
+          className="relative w-full min-h-screen overflow-hidden z-0"
+        >
           <HeroPremium />
         </div>
 
         <div className="section-divider h-[1px] bg-gradient-to-r from-transparent via-gold to-transparent" />
 
-        <Suspense fallback={<div className="h-screen w-full flex items-center justify-center bg-transparent" />}>
+        <Suspense
+          fallback={
+            <div className="h-screen w-full flex items-center justify-center bg-transparent" />
+          }
+        >
           <div className="home-section smooth-content">
             <AboutSection />
           </div>

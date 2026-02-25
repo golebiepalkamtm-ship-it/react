@@ -45,95 +45,91 @@ const getAuthMessage = (user: any, profile: any): AuthMessage | null => {
         title: "Witaj w Pałka MTM!",
         text: `Jesteś zalogowany jako ${profile.email || user.email}. Uzupełnij profil i zweryfikuj telefon, aby licytować.`,
       };
-    default:
       return null;
   }
 };
 
 const GOLD = "#A68E4E";
 
-const StatCard = ({
-  icon: Icon,
-  value,
-  label,
-}: {
-  icon: React.ElementType<{ className?: string }>;
-  value: string;
-  label: string;
-}) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+const StatCard = memo(
+  ({
+    icon: Icon,
+    value,
+    label,
+  }: {
+    icon: React.ElementType<{ className?: string }>;
+    value: string;
+    label: string;
+  }) => {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), {
-    stiffness: 280,
-    damping: 14,
-  });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), {
-    stiffness: 280,
-    damping: 14,
-  });
-  const translateX = useSpring(useTransform(mouseX, [-0.5, 0.5], [12, -12]), {
-    stiffness: 220,
-    damping: 16,
-  });
-  const translateY = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), {
-    stiffness: 220,
-    damping: 16,
-  });
+    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), {
+      stiffness: 280,
+      damping: 20,
+    });
+    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), {
+      stiffness: 280,
+      damping: 20,
+    });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
+    const handleMouseMove = useCallback(
+      (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        mouseX.set(x);
+        mouseY.set(y);
+      },
+      [mouseX, mouseY],
+    );
 
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
+    const handleMouseLeave = useCallback(() => {
+      mouseX.set(0);
+      mouseY.set(0);
+    }, [mouseX, mouseY]);
 
-  return (
-    <motion.div
-      ref={cardRef}
-      className="p-4 rounded-xl border border-gold/40 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8),0_0_30px_rgba(166,142,78,0.2)] backdrop-blur-xl relative overflow-hidden group"
-      style={{
-        transformStyle: "preserve-3d",
-        rotateX,
-        rotateY,
-        x: translateX,
-        y: translateY,
-        background:
-          "radial-gradient(circle at top, rgba(166, 142, 78, 0.15), transparent 70%), linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(10, 10, 10, 0.96) 50%, rgba(15, 15, 15, 0.95) 100%)",
-      }}
-      whileHover={{ scale: 1.08 }}
-      transition={{ type: "spring", stiffness: 280, damping: 18 }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.4),transparent_75%)] pointer-events-none" />
-      <div className="absolute inset-0 bg-zinc-950/20 pointer-events-none" />
-      <div
-        className="w-10 h-10 mx-auto mb-3 rounded-full flex items-center justify-center border border-gold/30"
+    return (
+      <motion.div
+        ref={cardRef}
+        className="p-4 rounded-xl border border-gold/40 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8),0_0_30px_rgba(166,142,78,0.2)] relative overflow-hidden group"
         style={{
-          backgroundImage:
-            "radial-gradient(circle at 30% 30%, rgba(212,175,55,0.3), rgba(166,142,78,0.85))",
-          boxShadow: `0 0 25px rgba(212, 175, 55, 0.4)`,
+          transformStyle: "preserve-3d",
+          rotateX,
+          rotateY,
+          background:
+            "radial-gradient(circle at top, rgba(166, 142, 78, 0.15), transparent 70%), linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(10, 10, 10, 0.96) 50%, rgba(15, 15, 15, 0.95) 100%)",
         }}
+        whileHover={{ scale: 1.08 }}
+        transition={{ type: "spring", stiffness: 280, damping: 18 }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
-        <Icon className="w-5 h-5 gold-icon" />
-      </div>
-      <div className="text-xl font-bold text-zinc-900 mb-1">{value}</div>
-      <div className="text-muted-foreground text-[9px] uppercase tracking-[0.3em]">
-        {label}
-      </div>
-    </motion.div>
-  );
-};
+        <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.4),transparent_75%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-zinc-950/20 pointer-events-none" />
+        <div
+          className="w-10 h-10 mx-auto mb-3 rounded-full flex items-center justify-center border border-gold/30"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 30% 30%, rgba(212,175,55,0.3), rgba(166,142,78,0.85))",
+            boxShadow: `0 0 25px rgba(212, 175, 55, 0.4)`,
+          }}
+        >
+          <Icon className="w-5 h-5 gold-icon" />
+        </div>
+        <div className="text-xl font-bold text-zinc-900 mb-1">{value}</div>
+        <div className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.3em]">
+          {label}
+        </div>
+      </motion.div>
+    );
+  },
+);
+
+StatCard.displayName = "StatCard";
 
 // Pre-defined static particles for consistent rendering
 const STATIC_PARTICLES = [
@@ -168,12 +164,15 @@ const HeroPremium = memo(() => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-zinc-950">
       {/* Beautiful Aurora Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{ contain: "strict" }}
+      >
         {/* Base gradient - deep dark */}
         <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950" />
 
         {/* Aurora effect - top */}
-        <div className="hero-blur absolute top-0 left-1/4 w-[600px] h-[400px] bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-orange-500/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="hero-blur absolute top-0 left-1/4 w-[600px] h-[400px] bg-gradient-to-r from-amber-500/20 via-yellow-400/15 to-orange-500/20 rounded-full blur-[100px]" />
 
         {/* Aurora effect - middle left */}
         <div className="hero-blur absolute top-1/3 -left-20 w-[500px] h-[500px] bg-gradient-to-br from-yellow-600/15 via-amber-500/10 to-transparent rounded-full blur-[120px]" />
@@ -259,11 +258,21 @@ const HeroPremium = memo(() => {
             hidden: { opacity: 0, y: 40 },
             visible: { opacity: 1, y: 0 },
           }}
-          className="text-3xl md:text-5xl lg:text-6xl font-bold font-display mb-6 tracking-tight"
+          className="text-3xl md:text-5xl lg:text-6xl font-bold font-display mb-6"
+          style={{ wordSpacing: "0.05em" }}
         >
           <span className="heading-black">Pałka</span>{" "}
-          <span className="gold-heading">MTM</span>{" "}
-          <span className="gold-heading">— Geny Zwycięzców</span>
+          <span className="gold-heading">MTM</span>
+          <br />
+          <span
+            className="gold-heading"
+            style={{
+              textShadow:
+                "0 2px 12px rgba(166,142,78,0.5), 0 4px 24px rgba(166,142,78,0.3)",
+            }}
+          >
+            Geny Zwycięzców
+          </span>
         </motion.h1>
 
         <motion.p
@@ -271,10 +280,15 @@ const HeroPremium = memo(() => {
             hidden: { opacity: 0, y: 30 },
             visible: { opacity: 1, y: 0 },
           }}
-          className="text-xs md:text-sm text-slate-100/50 font-display italic max-w-xl mb-12 leading-relaxed tracking-wider"
+          className="text-xs md:text-sm text-slate-100/70 font-display italic max-w-xl mb-12 leading-relaxed tracking-wider"
         >
-          Wyniki budowane przez pokolenia. Topowe gołębie pocztowe z Dolnego
-          Śląska.
+          <span className="font-black text-white">
+            Trzy pokolenia pasji. Setki mistrzostw.
+          </span>
+          <br />
+          <span className="font-medium text-white/80">
+            Elitarne gołębie pocztowe z Dolnego Śląska.
+          </span>
         </motion.p>
 
         <motion.div
@@ -345,7 +359,6 @@ const FeatureCardPremium = memo(
     const cardRef = useRef<HTMLDivElement>(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
-    const [isHovered, setIsHovered] = useState(false);
 
     const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
       stiffness: 160,
@@ -382,14 +395,12 @@ const FeatureCardPremium = memo(
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <motion.div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
+        <div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
           style={{
             background:
               "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
           }}
-          animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
-          transition={{ duration: 2, repeat: Infinity }}
         />
         <div
           className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border border-gold/30"
@@ -443,8 +454,9 @@ const FeaturesSection = () => {
         <span className="inline-block px-4 py-1.5 border border-gold/20 rounded-full text-[10px] tracking-[0.2em] text-gold uppercase mb-4 bg-gold/5 backdrop-blur-sm">
           Wartości
         </span>
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-display mb-6 uppercase tracking-tight">
-          <span className="heading-black">Nasza Filozofia</span> –{" "}
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-display mb-6 uppercase">
+          <span className="heading-black">Nasza Filozofia</span>
+          {" – "}
           <span className="gold-heading">Geny Mistrzów</span>
         </h2>
         <p className="font-display italic text-white/40 text-[11px] md:text-xs max-w-xl mx-auto">

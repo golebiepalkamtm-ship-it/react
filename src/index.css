@@ -417,6 +417,8 @@ html.lenis body {
 }
 
 .section-wrapper {
+  position: relative;
+  overflow: hidden;
   opacity: 0;
   transform: translateY(50px);
   will-change: transform, opacity;
@@ -2019,7 +2021,7 @@ html.lenis body {
 .gold-heading {
   color: #a68e4e !important;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
 .heading-black {
@@ -2053,6 +2055,11 @@ html.lenis body {
 .nav-link-premium {
   position: relative;
   transition: color 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 0 8px rgba(0, 0, 0, 0.3);
+  padding: 6px 0;
+  white-space: nowrap;
 }
 
 .nav-link-premium::after {

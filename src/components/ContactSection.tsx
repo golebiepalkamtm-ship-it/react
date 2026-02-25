@@ -71,14 +71,12 @@ const ContactFormCard = ({
           rotateY,
         }}
       >
-        <motion.div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
+        <div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
           style={{
             background:
               "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
           }}
-          animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
-          transition={{ duration: 2, repeat: Infinity }}
         />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent pointer-events-none" />
 
@@ -263,14 +261,12 @@ const GoogleMapCard = () => {
         className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300"
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       >
-        <motion.div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none z-10"
+        <div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none z-10 opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
           style={{
             background:
               "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
           }}
-          animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
-          transition={{ duration: 2, repeat: Infinity }}
         />
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2518.801815397259!2d15.2833333157461!3d51.0469444795620!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4708e5d3b0d3b3d3%3A0x3f3b3b3b3b3b3b3b!2sStawowa+6%2C+59-800+Luba%C5%84%2C+Poland!5e0!3m2!1sen!2sus!4v1689264800000"
@@ -386,7 +382,7 @@ const StyledContactCard = ({
   const cardContent = (
     <motion.div
       ref={cardRef}
-          className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
+      className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
       style={{
         rotateX,
         rotateY,
@@ -396,14 +392,12 @@ const StyledContactCard = ({
       whileHover={{ scale: 1.05 }}
       transition={{ scale: { duration: 0.2 } }}
     >
-      <motion.div
-        className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
+      <div
+        className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
         style={{
           background:
             "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
         }}
-        animate={{ opacity: isHovered ? [0.4, 0.75, 0.4] : 0.35 }}
-        transition={{ duration: 2, repeat: Infinity }}
       />
       <div className="relative z-10 flex flex-col items-center text-center h-full">
         <div className="mb-4">
@@ -413,9 +407,7 @@ const StyledContactCard = ({
         <p className="text-white text-sm mt-1">{info.value}</p>
         <p className="text-white/80 text-xs mt-2 flex-grow">{info.detail}</p>
       </div>
-      <motion.div
-            className="absolute inset-0 pointer-events-none"
-      />
+      <motion.div className="absolute inset-0 pointer-events-none" />
     </motion.div>
   );
 
@@ -456,10 +448,9 @@ const ContactSection = () => {
     // Tworzymy kontekst GSAP dla czystego sprzątania
     const ctx = gsap.context(() => {
       // 1. Initial States - Hide everything
-      gsap.set([titleRef.current, descRef.current], { 
-        opacity: 0, 
+      gsap.set([titleRef.current, descRef.current], {
+        opacity: 0,
         y: 60,
-        filter: "blur(10px)" 
       });
 
       cardsRef.current.forEach((card, i) => {
@@ -480,28 +471,29 @@ const ContactSection = () => {
           trigger: titleRef.current,
           start: "top 85%",
           toggleActions: "play none none reverse",
-        }
+        },
       });
 
       tl.to(titleRef.current, {
         opacity: 1,
         y: 0,
-        filter: "blur(0px)",
         duration: 1,
-        ease: "power3.out"
-      })
-      .to(descRef.current, {
-        opacity: 1,
-        y: 0,
-        filter: "blur(0px)",
-        duration: 1,
-        ease: "power3.out"
-      }, "-=0.8");
+        ease: "power3.out",
+      }).to(
+        descRef.current,
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power3.out",
+        },
+        "-=0.8",
+      );
 
       // 3. Cards Animation
       cardsRef.current.forEach((card, i) => {
         if (!card) return;
-        
+
         gsap.to(card, {
           opacity: 1,
           y: 0,
@@ -526,11 +518,10 @@ const ContactSection = () => {
       if (formElements.length > 0 && formElements[0]) {
         gsap.fromTo(
           formElements,
-          { opacity: 0, x: -30, filter: "blur(5px)" },
+          { opacity: 0, x: -30 },
           {
             opacity: 1,
             x: 0,
-            filter: "blur(0px)",
             stagger: 0.1,
             duration: 0.8,
             ease: "power2.out",
@@ -621,7 +612,8 @@ const ContactSection = () => {
               backfaceVisibility: "hidden",
             }}
           >
-            <span className="heading-black">Kontakt</span> –{" "}
+            <span className="heading-black">Kontakt</span>
+            {" – "}
             <span className="gold-heading">Porozmawiajmy o Mistrzach</span>
           </h2>
           <p

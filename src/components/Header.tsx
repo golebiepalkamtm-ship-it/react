@@ -261,7 +261,7 @@ const Header = () => {
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-transparent py-0"
+      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-transparent py-4"
     >
       {/* Efekt podświetlenia dla nagłówka */}
       <motion.div
@@ -275,93 +275,9 @@ const Header = () => {
           opacity: headerGlowOpacity,
         }}
       />
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        <motion.div
-          variants={iconMicro}
-          initial="rest"
-          whileHover="hover"
-          whileTap="tap"
-        >
-          <RouterLink to="/" className="flex items-center gap-4 group relative">
-            <motion.div
-              className="w-11 h-11 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center relative z-10"
-              whileHover={{
-                boxShadow: [
-                  "0 0 0 0 rgba(212,175,55,0)",
-                  "0 0 20px 5px rgba(212,175,55,0.5)",
-                  "0 0 0 0 rgba(212,175,55,0)",
-                ],
-                transition: { duration: 1.5, repeat: Infinity },
-              }}
-            >
-              <motion.span
-                className="font-display font-bold text-lg text-white"
-                animate={{
-                  textShadow: [
-                    "0 0 0px rgba(255,255,255,0)",
-                    "0 0 10px rgba(255,255,255,0.8)",
-                    "0 0 0px rgba(255,255,255,0)",
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-              >
-                M
-              </motion.span>
-            </motion.div>
-            <div className="flex flex-col">
-              <motion.span
-                className={`font-display text-lg md:text-xl font-semibold tracking-wide text-zinc-900`}
-                initial={{ backgroundPosition: "0% 50%" }}
-                whileHover={{
-                  backgroundImage:
-                    "linear-gradient(90deg, #18181b, #D4AF37, #18181b)",
-                  backgroundSize: "200% 100%",
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                  transition: { duration: 1.5, repeat: Infinity },
-                }}
-                style={{
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                MTM Pałka
-              </motion.span>
-              <span className="text-xs uppercase tracking-widest text-white/80">
-                Gołębie pocztowe
-              </span>
-            </div>
-
-            {/* Efekt cząsteczek */}
-            <AnimatePresence>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <motion.div
-                  key={`particle-${i}`}
-                  className="absolute w-1 h-1 rounded-full bg-gold/80"
-                  initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                  animate={{
-                    opacity: [0, 0.8, 0],
-                    scale: [0, 1, 0.5],
-                    x: [0, (i - 1) * 15],
-                    y: [0, -10 - i * 5],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    delay: i * 0.2,
-                    repeat: Infinity,
-                    repeatDelay: 2,
-                  }}
-                />
-              ))}
-            </AnimatePresence>
-          </RouterLink>
-        </motion.div>
-
+      <div className="container mx-auto px-4 flex items-center justify-center">
         <motion.nav
-          className="hidden md:flex items-center gap-8"
+          className="hidden md:flex items-center justify-between w-full"
           initial="hidden"
           animate="visible"
           variants={{

@@ -73,16 +73,12 @@ const PressArticleCard = ({
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        <motion.div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none"
+        <div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.3] group-hover:opacity-[0.7] transition-opacity duration-500"
           style={{
             background:
               "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
           }}
-          animate={{
-            opacity: isHovered ? [0.5, 0.8, 0.5] : 0.3,
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
         />
 
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
@@ -193,57 +189,85 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
   //   refreshDelay: 200,
   // });
 
-  useGSAP(() => {
-    if (loading || articles.length === 0) return;
+  useGSAP(
+    () => {
+      if (loading || articles.length === 0) return;
 
-    // 1. Force Initial States
-    gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
-    gsap.set(titleRef.current, { opacity: 0, y: 60 });
-    gsap.set(descRef.current, { opacity: 0, y: 40 });
-    
-    if (ctaRef.current) {
-        gsap.set(ctaRef.current, { opacity: 0, y: 40, scale: 0.9, filter: "blur(10px)" });
-    }
+      // 1. Force Initial States
+      gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
+      gsap.set(titleRef.current, { opacity: 0, y: 60 });
+      gsap.set(descRef.current, { opacity: 0, y: 40 });
 
-    const cards = cardsRef.current;
-    
-    // Cards Initial States
-    // Middle (1)
-    if (cards[1]) gsap.set(cards[1], { opacity: 0, y: 100, scale: 0.9 });
-    // Sides (0, 2)
-    if (cards[0]) gsap.set(cards[0], { opacity: 0, x: -100, rotateY: -10 });
-    if (cards[2]) gsap.set(cards[2], { opacity: 0, x: 100, rotateY: 10 });
-    
-    // 2. Master Timeline
-    const tl = gsap.timeline({
+      if (ctaRef.current) {
+        gsap.set(ctaRef.current, { opacity: 0, y: 40, scale: 0.9 });
+      }
+
+      const cards = cardsRef.current;
+
+      // Cards Initial States
+      // Middle (1)
+      if (cards[1]) gsap.set(cards[1], { opacity: 0, y: 100, scale: 0.9 });
+      // Sides (0, 2)
+      if (cards[0]) gsap.set(cards[0], { opacity: 0, x: -100, rotateY: -10 });
+      if (cards[2]) gsap.set(cards[2], { opacity: 0, x: 100, rotateY: 10 });
+
+      // 2. Master Timeline
+      const tl = gsap.timeline({
         scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 65%", // Earlier start
-            toggleActions: "play none none reverse",
-        }
-    });
+          trigger: sectionRef.current,
+          start: "top 65%", // Earlier start
+          toggleActions: "play none none reverse",
+        },
+      });
 
-    // 3. Header
-    tl.to(badgeRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" })
-      .to(titleRef.current, { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" }, "-=0.6")
-      .to(descRef.current, { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" }, "-=0.7");
+      // 3. Header
+      tl.to(badgeRef.current, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.8,
+        ease: "back.out(1.5)",
+      })
+        .to(
+          titleRef.current,
+          { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" },
+          "-=0.6",
+        )
+        .to(
+          descRef.current,
+          { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" },
+          "-=0.7",
+        );
 
-    // 4. Cards: Middle First
-    if (cards[1]) {
-        tl.to(cards[1], { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "expo.out" }, "-=0.5");
-    }
-    
-    // 5. Cards: Sides Next (Flying in from sides)
-    if (cards[0] && cards[2]) {
-        tl.to([cards[0], cards[2]], { opacity: 1, x: 0, rotateY: 0, duration: 1.2, ease: "expo.out" }, "-=0.8");
-    }
+      // 4. Cards: Middle First
+      if (cards[1]) {
+        tl.to(
+          cards[1],
+          { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "expo.out" },
+          "-=0.5",
+        );
+      }
 
-    // 6. CTA Button
-    if (ctaRef.current) {
-        tl.to(ctaRef.current, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1, ease: "back.out" }, "-=0.8");
-    }
+      // 5. Cards: Sides Next (Flying in from sides)
+      if (cards[0] && cards[2]) {
+        tl.to(
+          [cards[0], cards[2]],
+          { opacity: 1, x: 0, rotateY: 0, duration: 1.2, ease: "expo.out" },
+          "-=0.8",
+        );
+      }
 
-  }, { dependencies: [loading, articles], scope: sectionRef });
+      // 6. CTA Button
+      if (ctaRef.current) {
+        tl.to(
+          ctaRef.current,
+          { opacity: 1, y: 0, scale: 1, duration: 1, ease: "back.out" },
+          "-=0.8",
+        );
+      }
+    },
+    { dependencies: [loading, articles], scope: sectionRef },
+  );
 
   return (
     <section
@@ -255,8 +279,6 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
         transformStyle: "preserve-3d",
       }}
     >
-      
-
       <div className="container mx-auto px-4 relative z-10">
         <div
           className="text-center mb-16"
@@ -280,7 +302,8 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
               backfaceVisibility: "hidden",
             }}
           >
-            <span className="heading-black">Pałka MTM w Mediach</span> –{" "}
+            <span className="heading-black">Pałka MTM w Mediach</span>
+            {" – "}
             <span className="gold-heading">Standard Doskonałości</span>
           </h2>
           <p

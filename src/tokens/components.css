@@ -118,7 +118,7 @@ Każdy komponent to atomowa jednostka z matematyczną precyzją.
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
   font-family: var(--font-display);
 }
 

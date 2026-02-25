@@ -43,39 +43,42 @@ const Footer = () => {
     ],
   };
 
-  useGSAP(() => {
-    // 1. Initial States
-    gsap.set(".footer-column", { opacity: 0, y: 50, filter: "blur(5px)" });
-    gsap.set(".footer-bottom", { opacity: 0, scaleX: 0.9, filter: "blur(5px)" });
+  useGSAP(
+    () => {
+      // 1. Initial States
+      gsap.set(".footer-column", { opacity: 0, y: 50 });
+      gsap.set(".footer-bottom", { opacity: 0, scaleX: 0.9 });
 
-    // 2. Animation Timeline
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: footerRef.current,
-        start: "top 85%",
-        toggleActions: "play none none reverse",
-      }
-    });
+      // 2. Animation Timeline
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: footerRef.current,
+          start: "top 85%",
+          toggleActions: "play none none reverse",
+        },
+      });
 
-    tl.to(".footer-column", {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      duration: 1,
-      stagger: 0.15,
-      ease: "power3.out",
-      clearProps: "filter, opacity, transform" // Usunięcie filtrów po zakończeniu
-    })
-    .to(".footer-bottom", {
-      opacity: 1,
-      scaleX: 1,
-      filter: "blur(0px)",
-      duration: 1.2,
-      ease: "expo.out",
-      clearProps: "filter, opacity, transform" // Usunięcie filtrów po zakończeniu
-    }, "-=0.6");
-
-  }, { scope: footerRef });
+      tl.to(".footer-column", {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        stagger: 0.15,
+        ease: "power3.out",
+        clearProps: "opacity, transform",
+      }).to(
+        ".footer-bottom",
+        {
+          opacity: 1,
+          scaleX: 1,
+          duration: 1.2,
+          ease: "expo.out",
+          clearProps: "opacity, transform",
+        },
+        "-=0.6",
+      );
+    },
+    { scope: footerRef },
+  );
 
   return (
     <footer
