@@ -84,14 +84,14 @@ const Footer = () => {
     <footer
       ref={footerRef}
       id="footer"
-      className="relative isolate overflow-hidden py-24 border-t border-gold/30 bg-champion-teal text-zinc-400"
+      className="relative isolate overflow-hidden py-12 border-t border-gold/30 bg-champion-teal text-zinc-400"
     >
-      {/* Ekstremalnie mocna złota linia i poświata */}
-      <div className="absolute top-0 left-0 w-full h-[40px] bg-gradient-to-b from-[#A68E4E]/70 to-transparent pointer-events-none opacity-90" />
-      <div className="absolute top-0 left-0 w-full h-[4px] bg-[#A68E4E] shadow-[0_0_60px_rgba(166,142,78,1),0_0_120px_rgba(166,142,78,0.4)]" />
+      {/* Bardziej subtelna złota linia i poświata */}
+      <div className="absolute top-0 left-0 w-full h-[20px] bg-gradient-to-b from-[#A68E4E]/40 to-transparent pointer-events-none opacity-90" />
+      <div className="absolute top-0 left-0 w-full h-[2px] bg-[#A68E4E] shadow-[0_0_30px_rgba(166,142,78,0.8)]" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div className="lg:col-span-2 footer-column">
             <div className="flex items-center gap-4 mb-6">
@@ -112,19 +112,37 @@ const Footer = () => {
               lotu. Dostarczamy elitarne gołębie pocztowe hodowcom na całym
               świecie.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col gap-6">
               <div className="flex items-center gap-3 text-zinc-400 text-sm font-medium">
                 <Mail size={18} className="text-gold" />
                 <span>kontakt@palkamtm.pl</span>
+              </div>
+
+              {/* Legal Links & Copyright moved here */}
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  {footerLinks.legal.map((link) => (
+                    <Link
+                      key={link.name}
+                      to={link.href}
+                      className="text-[#A68E4E]/60 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
+                <p className="text-zinc-600 text-[10px] uppercase tracking-widest">
+                  © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
+                </p>
               </div>
             </div>
           </div>
 
           <div className="footer-column">
-            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-8">
+            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-4">
               Firma
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   {link.href.startsWith("/#") ? (
@@ -148,10 +166,10 @@ const Footer = () => {
           </div>
 
           <div className="footer-column">
-            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-8">
+            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-4">
               Usługi
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -163,28 +181,6 @@ const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-
-        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 footer-bottom">
-          <p className="text-zinc-600 text-[10px] uppercase tracking-widest">
-            © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
-          </p>
-          <div className="flex gap-6">
-            {footerLinks.legal.map((link) => (
-              <motion.div
-                key={link.name}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  to={link.href}
-                  className="text-[#A68E4E]/60 hover:text-[#A68E4E] transition-colors text-xs"
-                >
-                  {link.name}
-                </Link>
-              </motion.div>
-            ))}
           </div>
         </div>
       </div>
