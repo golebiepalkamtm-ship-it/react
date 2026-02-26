@@ -2,6 +2,7 @@ import request from 'supertest';
 import { describe, it, expect, beforeAll } from 'vitest';
 import app from '../app.js';
 import { validatedEnv } from '../lib/env.js';
+import jwt from 'jsonwebtoken';
 
 describe('Security Integration Tests', () => {
   describe('CORS', () => {
@@ -86,8 +87,6 @@ describe('Security Integration Tests', () => {
     let token: string;
 
     beforeAll(() => {
-        // Create a dummy token signed with the test secret
-        const jwt = require('jsonwebtoken'); // Lazy load to ensure env is ready
         token = jwt.sign({ sub: 'test-user', role: 'USER' }, validatedEnv.JWT_SECRET, { expiresIn: '1h' });
     });
 

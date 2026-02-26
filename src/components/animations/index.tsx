@@ -1,3 +1,4 @@
+// index.tsx
 import React from "react";
 
 // Basic animations

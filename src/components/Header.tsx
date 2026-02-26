@@ -120,7 +120,6 @@ const Header = () => {
     const baseLinks = [
       { label: "Start", href: "/#home" },
       { label: "Aukcje", href: "/auctions" },
-      // { label: "Forum", href: "/forum" }, // Ukryte
       { label: "Championy", href: "/champions" },
       { label: "Wyniki lotowe", href: "/flight-results" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },

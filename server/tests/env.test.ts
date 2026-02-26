@@ -23,12 +23,12 @@ describe('env config', () => {
       SUPABASE_URL: 'https://example.com',
       SUPABASE_ANON_KEY: 'public-anon-key',
       SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
-      SUPABASE_SECRET_ACCESS_KEY: 'access-key',
-      SUPABASE_SECRET_SECRET_KEY: 'secret-key',
+      SUPABASE_SECRET_ACCESS_KEY: 'test-access-key-not-real',
+      SUPABASE_SECRET_SECRET_KEY: 'test-secret-key-not-real',
       SUPABASE_BUCKET: 'bucket',
       SUPABASE_BUCKET_PUBLIC: 'public-bucket',
       DATABASE_URL: 'postgresql://...',
-      SESSION_SECRET: 'super-secret-session-key-must-be-long',
+      SESSION_SECRET: 'this-is-a-properly-long-test-session-secret-for-unit-tests-only',
       // Mock mandatory fields
     }, () => {
       const cfg = loadConfig()

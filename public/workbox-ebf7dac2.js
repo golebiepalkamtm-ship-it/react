@@ -52,6 +52,7 @@ define(['exports'], function (t) {
     }
     addCacheListener() {
       self.addEventListener('message', t => {
+        if (t.origin !== self.location.origin) return;
         if (t.data && 'CACHE_URLS' === t.data.type) {
           const { payload: e } = t.data,
             s = Promise.all(

@@ -39,9 +39,6 @@ import {
   LazyAuth,
   LazyHomePage,
   LazyHomePagePremium,
-  LazyForumMain,
-  LazyForumTopicList,
-  LazyForumTopicDetail,
   LazyTerms,
   LazyPrivacy,
 } from "@/utils/lazyImports";
@@ -130,15 +127,6 @@ const App = () => {
                             <Route
                               path="/auctions/success"
                               element={<LazyAuctionSuccess />}
-                            />
-                            <Route path="/forum" element={<LazyForumMain />} />
-                            <Route
-                              path="/forum/category/:categoryId"
-                              element={<LazyForumTopicList />}
-                            />
-                            <Route
-                              path="/forum/topic/:topicId"
-                              element={<LazyForumTopicDetail />}
                             />
                             <Route
                               path="/breeder-meetings"

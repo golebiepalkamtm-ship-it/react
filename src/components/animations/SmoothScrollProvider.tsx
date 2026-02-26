@@ -95,6 +95,7 @@ export const SmoothScrollProvider = ({
       document.fonts?.ready.then(refreshScrollTriggers).catch(() => {});
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLenisInstance(lenis);
     (window as any).lenis = lenis;
 

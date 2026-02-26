@@ -98,6 +98,7 @@ export const GSAPPageTransition = ({
       });
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsTransitioning(true);
 
     // --- KROK 2: SEKWENCJA ANIMACJI ---

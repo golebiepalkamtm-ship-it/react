@@ -14,10 +14,13 @@ export default defineConfig({
     video: 'retain-on-failure'
   },
   webServer: {
-    command: 'npm run dev:client',
+    command: 'cmd /c "npm run dev > server_e2e.log 2>&1"',
     url: 'http://localhost:5173',
     reuseExistingServer: true,
-    timeout: 120000
+    timeout: 120000,
+    env: {
+      NODE_ENV: 'test'
+    }
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } }

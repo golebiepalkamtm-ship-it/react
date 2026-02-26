@@ -25,8 +25,10 @@ if (typeof window !== "undefined") {
   });
 
   // GSAP global defaults for performance
+  gsap.config({
+    force3D: true,
+  });
   gsap.defaults({
-    force3D: true, // GPU compositing by default
     overwrite: "auto", // Prevent animation stacking
   });
 }

@@ -43,6 +43,7 @@ const LegalAcknowledgeModal: React.FC<LegalAcknowledgeModalProps> = ({
         <div
           className="flex gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group"
           onClick={() => setChecked1(!checked1)}
+          data-testid="legal-checkbox-1"
         >
           <div
             className={`mt-1 h-6 w-6 shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${checked1 ? "bg-gold border-gold" : "border-white/30 group-hover:border-gold/50"}`}
@@ -80,6 +81,7 @@ const LegalAcknowledgeModal: React.FC<LegalAcknowledgeModalProps> = ({
         <div
           className="flex gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group"
           onClick={() => setChecked2(!checked2)}
+          data-testid="legal-checkbox-2"
         >
           <div
             className={`mt-1 h-6 w-6 shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${checked2 ? "bg-gold border-gold" : "border-white/30 group-hover:border-gold/50"}`}

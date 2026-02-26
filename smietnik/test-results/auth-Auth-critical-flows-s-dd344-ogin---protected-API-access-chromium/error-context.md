@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list
+    - region "Notifications alt+T"
+    - generic [ref=e5]:
+      - banner [ref=e6]:
+        - navigation [ref=e8]:
+          - button "Start" [ref=e10] [cursor=pointer]
+          - link "Aukcje" [ref=e12] [cursor=pointer]:
+            - /url: /auctions
+          - link "Championy" [ref=e14] [cursor=pointer]:
+            - /url: /champions
+          - link "Wyniki lotowe" [ref=e16] [cursor=pointer]:
+            - /url: /flight-results
+          - link "Spotkania z hodowcami" [ref=e18] [cursor=pointer]:
+            - /url: /breeder-meetings
+          - link "Referencje" [ref=e20] [cursor=pointer]:
+            - /url: /references
+          - link "Prasa i media" [ref=e22] [cursor=pointer]:
+            - /url: /press
+          - button "O nas" [ref=e24] [cursor=pointer]
+          - button "Kontakt" [ref=e26] [cursor=pointer]
+          - link "Konto" [ref=e28] [cursor=pointer]:
+            - /url: /auth?mode=login&callbackUrl=ACCOUNT_MODAL_TRIGGER
+      - main [ref=e29]:
+        - generic [ref=e33]:
+          - heading "Pałka MTM" [level=1] [ref=e34]
+          - paragraph [ref=e35]: Mistrzowie sprintu
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - heading "Dołącz do nas" [level=2] [ref=e40]
+            - paragraph [ref=e41]: Stwórz konto i odkryj świat hodowli
+          - generic [ref=e45]:
+            - button "Logowanie" [ref=e46] [cursor=pointer]
+            - button "Rejestracja" [ref=e47] [cursor=pointer]
+          - generic [ref=e48]:
+            - button "Zarejestruj się przez Google" [ref=e49] [cursor=pointer]:
+              - img [ref=e50]
+              - generic [ref=e55]: Zarejestruj się przez Google
+            - button "Zarejestruj się przez Facebook" [ref=e56] [cursor=pointer]:
+              - img [ref=e57]
+              - generic [ref=e59]: Zarejestruj się przez Facebook
+            - paragraph [ref=e60]: Jeśli nie masz konta, zostanie utworzone po pierwszym logowaniu przez Google/Facebook. Pamiętaj o weryfikacji email.
+          - generic [ref=e65]: albo email
+          - generic [ref=e66]:
+            - generic [ref=e67]:
+              - text: Nick (wyświetlana nazwa)
+              - generic [ref=e68]:
+                - img [ref=e69]
+                - textbox "Nick (wyświetlana nazwa)" [ref=e72]:
+                  - /placeholder: np. champion-123
+            - generic [ref=e73]:
+              - text: Email
+              - generic [ref=e74]:
+                - img [ref=e75]
+                - textbox "Email" [ref=e78]:
+                  - /placeholder: twoj@email.com
+                  - text: e2e+1772109293188@example.com
+            - generic [ref=e79]:
+              - text: Hasło
+              - generic [ref=e80]:
+                - img [ref=e81]
+                - textbox "Hasło" [active] [ref=e84]:
+                  - /placeholder: ••••••••
+                  - text: P@ssw0rd!23
+                - button [ref=e85] [cursor=pointer]:
+                  - img [ref=e86]
+            - generic [ref=e89]:
+              - text: Potwierdź hasło
+              - generic [ref=e90]:
+                - img [ref=e91]
+                - textbox "Potwierdź hasło" [ref=e94]:
+                  - /placeholder: ••••••••
+                - button [ref=e95] [cursor=pointer]:
+                  - img [ref=e96]
+            - button "Utwórz konto" [ref=e99] [cursor=pointer]:
+              - text: Utwórz konto
+              - img
+            - generic [ref=e100]:
+              - text: Masz już konto?
+              - button "Zaloguj się" [ref=e101] [cursor=pointer]
+            - link "Wróć" [ref=e103] [cursor=pointer]:
+              - /url: /
+  - generic [ref=e106]:
+    - generic [ref=e108]:
+      - img [ref=e110]
+      - generic [ref=e112]:
+        - heading "Wymagane akceptacje" [level=2] [ref=e113]
+        - paragraph [ref=e114]: Prosimy o zapoznanie się i akceptację poniższych punktów przed kontynuowaniem.
+    - generic [ref=e117]:
+      - paragraph [ref=e121] [cursor=pointer]:
+        - text: Akceptuję
+        - link "Regulamin serwisu" [ref=e122]:
+          - /url: /terms
+        - text: i
+        - link "Politykę Prywatności" [ref=e123]:
+          - /url: /privacy
+        - text: . Rozumiem, że serwis palkamtm.pl jest platformą informacyjno-reklamową.
+      - paragraph [ref=e127] [cursor=pointer]: Oświadczam, że dokonuję zakupu w związku z prowadzoną zawodowo działalnością hodowlaną, rolniczą lub gospodarczą i nie przysługują mi prawa konsumenta, w tym prawo do odstąpienia od umowy w ciągu 14 dni. Wyrażam zgodę na całkowite wyłączenie rękojmi.
+      - paragraph [ref=e128]: Musisz zaznaczyć oba punkty, aby przejść dalej.
+    - generic [ref=e129]:
+      - button "Akceptuję i kontynuuję" [disabled]
+```

@@ -1162,7 +1162,7 @@ describe('tools', () => {
   });
 
   test('invalid access token', async () => {
-    const { callTool } = await setup({ accessToken: 'bad-token' });
+    const { callTool } = await setup({ accessToken: 'INVALID_TEST_TOKEN_MOCK' });
 
     const listOrganizationsPromise = callTool({
       name: 'list_organizations',

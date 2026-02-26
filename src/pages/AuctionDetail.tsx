@@ -42,11 +42,21 @@ const AuctionImage = memo(
     src,
     alt,
     className,
+    onError,
   }: {
     src: string;
     alt: string;
     className: string;
-  }) => <img src={src} alt={alt} className={className} loading="eager" />,
+    onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  }) => (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      loading="eager"
+      onError={onError}
+    />
+  ),
 );
 AuctionImage.displayName = "AuctionImage";
 
@@ -337,7 +347,23 @@ const AuctionDetail: React.FC = () => {
         cancelUrl,
       );
       if (res.url) {
-        window.location.href = res.url;
+        try {
+          const url = new URL(res.url);
+          // Stricter Stripe URL validation
+          const isStripeHost =
+            url.hostname === "checkout.stripe.com" ||
+            (url.hostname.endsWith(".stripe.com") &&
+              !url.hostname.includes("@")); // Extra check for '@' to prevent credential-based bypasses
+
+          if (url.protocol === "https:" && isStripeHost) {
+            // file deepcode ignore OpenRedirect: URL is verified to be a trusted Stripe domain
+            window.location.assign(url.href);
+          } else {
+            console.error("Blocked unsafe checkout URL:", res.url);
+          }
+        } catch (e) {
+          console.error("Malformed checkout URL:", res.url);
+        }
       }
     } catch (err) {
       console.warn("Stripe checkout init failed", err);
@@ -563,9 +589,19 @@ const AuctionDetail: React.FC = () => {
                           className="aspect-square rounded-xl overflow-hidden glass-vault border-white/5 hover:border-gold/50 transition-all duration-500 hover:-translate-y-1"
                         >
                           <AuctionImage
-                            src={img}
-                            alt=""
+                            src={
+                              img && img.startsWith("http")
+                                ? img
+                                : "/placeholder.svg"
+                            }
+                            alt="Pedigree Image"
                             className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                            onError={(
+                              e: React.SyntheticEvent<HTMLImageElement, Event>,
+                            ) => {
+                              (e.target as HTMLImageElement).src =
+                                "/placeholder.svg";
+                            }}
                           />
                         </button>
                       ))}

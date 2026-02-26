@@ -1,0 +1,10 @@
+# Snyk API and CLI configuration
+
+version: v1.23.0
+exclude:
+  - public/workbox-ebf7dac2.js
+  - .kilocode
+  - supabase-mcp
+  - server/tests
+  - server/test-auth.ts
+  - server/test-db.js

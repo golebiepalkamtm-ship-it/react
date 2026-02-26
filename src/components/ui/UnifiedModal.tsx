@@ -314,6 +314,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                     variant="ghost"
                     onClick={cancelButton.onClick}
                     disabled={cancelButton.disabled}
+                    data-testid="modal-cancel"
                     className="h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-black/40 text-white border border-white/10 hover:bg-black/60 hover:text-white hover:border-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {cancelButton.text}
@@ -323,6 +324,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                   <Button
                     onClick={confirmButton.onClick}
                     disabled={confirmButton.disabled}
+                    data-testid="modal-confirm"
                     variant={confirmButton.variant || "default"}
                     className={`h-12 w-full sm:flex-1 rounded-xl text-base font-semibold bg-gradient-to-r ${config.buttonGradient} text-white border-0 shadow-lg ${config.buttonShadow} hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed`}
                   >

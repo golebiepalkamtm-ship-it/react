@@ -1,4 +1,4 @@
-name: e2e: auth
+name: "e2e: auth"
 
 on:
   pull_request:

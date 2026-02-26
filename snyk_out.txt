@@ -1,0 +1,4 @@
+
+> champion-pigeon-auctions@1.0.0 snyk:test
+> snyk code test --exclude="public,.kilocode,supabase-mcp,server/tests,server/test-auth.ts,server/test-db.js" || exit 0
+

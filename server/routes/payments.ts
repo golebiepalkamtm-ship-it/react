@@ -486,14 +486,19 @@ export const stripeWebhookHandler = async (req: any, res: any) => {
     event = stripe.webhooks.constructEvent(req.body, sig, stripeWebhookSecret);
     console.log(`Stripe webhook: Verified event ${event.type}`);
   } catch (err: any) {
+    let bodyInfo = "unknown";
+    if (Buffer.isBuffer(req.body)) {
+      bodyInfo = "Buffer";
+    } else if (typeof req.body === "string") {
+      bodyInfo = "String";
+    } else if (req.body && typeof req.body === "object") {
+      bodyInfo = "Object";
+    }
+
     console.error("Stripe webhook signature verification failed:", {
       error: err.message,
       signature: sig.substring(0, 20) + "...",
-      bodyLength: Buffer.isBuffer(req.body)
-        ? req.body.length
-        : typeof req.body === "string"
-          ? req.body.length
-          : 0,
+      bodyType: bodyInfo,
     });
     return res
       .status(400)

@@ -20,23 +20,23 @@ const baseLimiterConfig = {
 
 // Global rate limiter
 export const globalLimiter = rateLimit({
-  windowMs: validatedEnv.RATE_LIMIT_WINDOW_MS, 
+  windowMs: validatedEnv.RATE_LIMIT_WINDOW_MS,
   max: validatedEnv.RATE_LIMIT_MAX_REQUESTS,
   message: {
-    error: 'Too many requests from this IP, please try again later.',
-    retryAfter: Math.ceil(validatedEnv.RATE_LIMIT_WINDOW_MS / 1000)
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: Math.ceil(validatedEnv.RATE_LIMIT_WINDOW_MS / 1000),
   },
   ...baseLimiterConfig,
   legacyHeaders: true, // Keep legacy headers for backwards compatibility on global
   handler: (req: Request, res: Response) => {
     logger.warn(`Rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
       ip: req.ip,
-      userAgent: req.get('User-Agent'),
+      userAgent: req.get("User-Agent"),
       path: req.path,
-      method: req.method
+      method: req.method,
     });
     res.status(429).json({
-      error: 'Too many requests from this IP, please try again later.',
+      error: "Too many requests from this IP, please try again later.",
       retryAfter: Math.ceil(validatedEnv.RATE_LIMIT_WINDOW_MS / 1000),
     });
   },
@@ -47,7 +47,7 @@ export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 3,
   message: {
-    error: 'Too many login attempts, please try again later.',
+    error: "Too many login attempts, please try again later.",
     retryAfter: 15 * 60,
   },
   ...baseLimiterConfig,
@@ -55,12 +55,12 @@ export const loginLimiter = rateLimit({
   handler: (req: Request, res: Response) => {
     logger.warn(`Login rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
       ip: req.ip,
-      userAgent: req.get('User-Agent'),
+      userAgent: req.get("User-Agent"),
       path: req.path,
       method: req.method,
     });
     res.status(429).json({
-      error: 'Too many login attempts, please try again later.',
+      error: "Too many login attempts, please try again later.",
       retryAfter: 15 * 60,
     });
   },
@@ -71,20 +71,23 @@ export const resetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
   message: {
-    error: 'Too many reset attempts, please try again later.',
+    error: "Too many reset attempts, please try again later.",
     retryAfter: 60 * 60,
   },
   ...baseLimiterConfig,
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
-    logger.warn(`Password reset rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      path: req.path,
-      method: req.method,
-    });
+    logger.warn(
+      `Password reset rate limit exceeded for IP: ${req.ip} on ${req.path}`,
+      {
+        ip: req.ip,
+        userAgent: req.get("User-Agent"),
+        path: req.path,
+        method: req.method,
+      },
+    );
     res.status(429).json({
-      error: 'Too many reset attempts, please try again later.',
+      error: "Too many reset attempts, please try again later.",
       retryAfter: 60 * 60,
     });
   },
@@ -95,22 +98,22 @@ export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // limit each IP to 5 auth requests per windowMs
   message: {
-    error: 'Too many authentication attempts, please try again later.',
-    retryAfter: 15 * 60 // 15 minutes in seconds
+    error: "Too many authentication attempts, please try again later.",
+    retryAfter: 15 * 60, // 15 minutes in seconds
   },
   ...baseLimiterConfig,
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(`Auth rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
       ip: req.ip,
-      userAgent: req.get('User-Agent'),
+      userAgent: req.get("User-Agent"),
       path: req.path,
-      method: req.method
+      method: req.method,
     });
-    
+
     res.status(429).json({
-      error: 'Too many authentication attempts, please try again later.',
-      retryAfter: 15 * 60
+      error: "Too many authentication attempts, please try again later.",
+      retryAfter: 15 * 60,
     });
   },
 });
@@ -124,23 +127,26 @@ export const biddingLimiter = rateLimit({
     return (req as any).user?.id || req.ip;
   },
   message: {
-    error: 'Too many bidding attempts, please slow down.',
-    retryAfter: 60 // 1 minute in seconds
+    error: "Too many bidding attempts, please slow down.",
+    retryAfter: 60, // 1 minute in seconds
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     const identifier = (req as any).user?.id || req.ip;
-    logger.warn(`Bidding rate limit exceeded for: ${identifier} on ${req.path}`, {
-      identifier,
-      userAgent: req.get('User-Agent'),
-      path: req.path,
-      method: req.method
-    });
-    
+    logger.warn(
+      `Bidding rate limit exceeded for: ${identifier} on ${req.path}`,
+      {
+        identifier,
+        userAgent: req.get("User-Agent"),
+        path: req.path,
+        method: req.method,
+      },
+    );
+
     res.status(429).json({
-      error: 'Too many bidding attempts, please slow down.',
-      retryAfter: 60
+      error: "Too many bidding attempts, please slow down.",
+      retryAfter: 60,
     });
   },
   // store: new RedisStore({
@@ -157,23 +163,26 @@ export const uploadLimiter = rateLimit({
     return (req as any).user?.id || req.ip;
   },
   message: {
-    error: 'Too many upload attempts, please try again later.',
-    retryAfter: 60 * 60 // 1 hour in seconds
+    error: "Too many upload attempts, please try again later.",
+    retryAfter: 60 * 60, // 1 hour in seconds
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     const identifier = (req as any).user?.id || req.ip;
-    logger.warn(`Upload rate limit exceeded for: ${identifier} on ${req.path}`, {
-      identifier,
-      userAgent: req.get('User-Agent'),
-      path: req.path,
-      method: req.method
-    });
-    
+    logger.warn(
+      `Upload rate limit exceeded for: ${identifier} on ${req.path}`,
+      {
+        identifier,
+        userAgent: req.get("User-Agent"),
+        path: req.path,
+        method: req.method,
+      },
+    );
+
     res.status(429).json({
-      error: 'Too many upload attempts, please try again later.',
-      retryAfter: 60 * 60
+      error: "Too many upload attempts, please try again later.",
+      retryAfter: 60 * 60,
     });
   },
   // }),
@@ -181,33 +190,60 @@ export const uploadLimiter = rateLimit({
 
 // Webhook limiter - 60 requests per minute per IP (allowing for high volume if needed but preventing flood)
 export const webhookLimiter = rateLimit({
-  windowMs: 60 * 1000, 
-  max: 60, 
+  windowMs: 60 * 1000,
+  max: 60,
   message: {
-    error: 'Too many webhook requests, please try again later.',
-    retryAfter: 60
+    error: "Too many webhook requests, please try again later.",
+    retryAfter: 60,
   },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
-    logger.warn(`Webhook rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      path: req.path,
-      method: req.method
-    });
-    
+    logger.warn(
+      `Webhook rate limit exceeded for IP: ${req.ip} on ${req.path}`,
+      {
+        ip: req.ip,
+        userAgent: req.get("User-Agent"),
+        path: req.path,
+        method: req.method,
+      },
+    );
+
     res.status(429).json({
-      error: 'Too many webhook requests, please try again later.',
-      retryAfter: 60
+      error: "Too many webhook requests, please try again later.",
+      retryAfter: 60,
+    });
+  },
+});
+
+// Data fetch limiter for expensive file/DB read operations
+export const dataFetchLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50, // limit each IP to 50 requests per 5 minutes
+  message: {
+    error: "Too many requests for data, please try again later.",
+    retryAfter: 5 * 60,
+  },
+  ...baseLimiterConfig,
+  handler: (req: Request, res: Response) => {
+    logger.warn(
+      `Data fetch rate limit exceeded for IP: ${req.ip} on ${req.path}`,
+      {
+        ip: req.ip,
+        path: req.path,
+      },
+    );
+    res.status(429).json({
+      error: "Too many requests for data, please try again later.",
+      retryAfter: 5 * 60,
     });
   },
 });
 
 // Trusted IPs whitelist (optional)
 const TRUSTED_IPS = [
-  '127.0.0.1',
-  '::1',
+  "127.0.0.1",
+  "::1",
   // Add your trusted IPs here
 ];
 
@@ -237,14 +273,16 @@ export class RateLimiter {
   isAllowed(key: string): boolean {
     const now = Date.now();
     const requests = this.requests.get(key) || [];
-    
+
     // Remove old requests outside the window
-    const validRequests = requests.filter(timestamp => now - timestamp < this.windowMs);
-    
+    const validRequests = requests.filter(
+      (timestamp) => now - timestamp < this.windowMs,
+    );
+
     if (validRequests.length >= this.maxRequests) {
       return false;
     }
-    
+
     validRequests.push(now);
     this.requests.set(key, validRequests);
     return true;

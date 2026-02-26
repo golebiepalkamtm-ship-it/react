@@ -1,6 +1,7 @@
 import "./env.js"; // Must be first
 import "./tracing.js"; // OpenTelemetry bootstrap — initialize before other imports
-import { createServer } from "http";
+import { createServer as createHttpServer } from "http";
+import { createServer as createHttpsServer } from "https";
 import path from "path";
 import { fileURLToPath } from "url";
 import { setupWebSocketEvents } from "./websocket/bidding.js";
@@ -72,7 +73,28 @@ if (
   }
 }
 
-const server = createServer(app);
+let server: any;
+
+const sslPath = path.join(process.cwd(), "certificates");
+const sslKeyPath = path.join(sslPath, "server.key");
+const sslCertPath = path.join(sslPath, "server.cert");
+
+if (fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath)) {
+  console.log("🔒 SSL Certificates found, starting HTTPS server...");
+  const options = {
+    key: fs.readFileSync(sslKeyPath),
+    cert: fs.readFileSync(sslCertPath),
+  };
+  server = createHttpsServer(options, app);
+} else {
+  if (validatedEnv.NODE_ENV === "production") {
+    console.warn(
+      "⚠️  SSL Certificates not found. Starting HTTP server. (Make sure you are behind a reverse proxy that terminates TLS!)",
+    );
+  }
+  server = createHttpServer(app);
+}
+
 const io = initSocket(server, allowedOrigins());
 setupWebSocketEvents(io);
 
@@ -90,7 +112,8 @@ const findAvailablePort = (
       );
     }
 
-    const testServer = createServer();
+    // file deepcode ignore HTTP_Instead_Of_HTTPS: The API sits behind a reverse proxy that terminates TLS
+    const testServer = createHttpServer();
     testServer.listen(startPort, () => {
       testServer.close(() => {
         resolve(startPort);
@@ -107,8 +130,8 @@ const findAvailablePort = (
 };
 
 const PORT = Number(process.env.PORT) || 8001;
-const isProdStaticPort =
-  process.env.NODE_ENV === "production" &&
+const isStaticPort =
+  (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test") &&
   process.env.FORCE_DYNAMIC_PORT !== "true";
 
 const startServer = (listenPort: number) => {
@@ -121,7 +144,7 @@ const startServer = (listenPort: number) => {
   server.on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {
       console.error(`❌ Port ${listenPort} is already in use!`);
-      if (isProdStaticPort) {
+      if (isStaticPort) {
         process.exit(1);
       } else {
         findAvailablePort(listenPort + 1)
@@ -140,7 +163,7 @@ const startServer = (listenPort: number) => {
   });
 };
 
-if (isProdStaticPort) {
+if (isStaticPort) {
   startServer(PORT);
 } else {
   findAvailablePort(PORT)
@@ -150,4 +173,3 @@ if (isProdStaticPort) {
       process.exit(1);
     });
 }
- 

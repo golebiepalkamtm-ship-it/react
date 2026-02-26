@@ -45,7 +45,9 @@ export const ScrollIndicator: React.FC = () => {
       const limit = (lenis as any).limit ?? 1;
       const progress = (lenis as any).progress ?? scroll / limit;
       onScroll({ scroll, limit, progress });
-    } catch {}
+    } catch {
+      // Ignore errors during initialization
+    }
 
     return () => {
       lenis.off?.("scroll", onScroll);

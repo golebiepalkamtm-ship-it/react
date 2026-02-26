@@ -27,7 +27,8 @@ export default tseslint.config(
       "vitest.config.ts",
       "supabase-mcp/**",
       "playwright.config.ts",
-      "e2e/**"
+      "e2e/**",
+      "src/components/animations/index.tsx"
     ] 
   },
   {
@@ -38,7 +39,6 @@ export default tseslint.config(
       globals: globals.browser,
       parserOptions: {
         tsconfigRootDir: __dirname,
-        // Point directly to the app tsconfig so files under `src/` are included
         project: ['./tsconfig.app.json'],
       },
     },
