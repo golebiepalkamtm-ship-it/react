@@ -48,7 +48,6 @@ const PressArticleDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen relative isolate bg-transparent">
-        <div className="fixed inset-0 bg-gradient-to-br from-black/20 via-black/10 to-black/5 -z-10 pointer-events-none backdrop-blur-[1px]" />
         <Header />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
@@ -64,7 +63,6 @@ const PressArticleDetail = () => {
   if (error || !article) {
     return (
       <div className="min-h-screen relative isolate flex items-center justify-center bg-transparent">
-        <div className="fixed inset-0 bg-gradient-to-br from-black/20 via-black/10 to-black/5 -z-10 pointer-events-none backdrop-blur-[1px]" />
         <div className="text-center">
           <h1 className="font-display text-4xl md:text-5xl text-zinc-900 font-bold leading-tight mb-4">
             Artykuł nie został znaleziony
@@ -92,7 +90,6 @@ const PressArticleDetail = () => {
 
   return (
     <div className="min-h-screen relative isolate bg-transparent">
-      <div className="fixed inset-0 bg-gradient-to-br from-black/20 via-black/10 to-black/5 -z-10 pointer-events-none backdrop-blur-[1px]" />
       <Header />
 
       <main>
@@ -101,7 +98,10 @@ const PressArticleDetail = () => {
             {/* Back Navigation */}
             <div className="mb-8">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/press" className="text-white hover:text-gold hover:bg-white/10">
+                <Link
+                  to="/press"
+                  className="text-white hover:text-gold hover:bg-white/10"
+                >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Wróć do artykułów
                 </Link>
@@ -187,7 +187,10 @@ const PressArticleDetail = () => {
                       );
                     }
                     return (
-                      <p key={index} className="mb-4 leading-relaxed text-lg text-zinc-300">
+                      <p
+                        key={index}
+                        className="mb-4 leading-relaxed text-lg text-zinc-300"
+                      >
                         {paragraph.replace(/\*\*/g, "")}
                       </p>
                     );

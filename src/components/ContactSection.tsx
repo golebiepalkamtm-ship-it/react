@@ -65,20 +65,13 @@ const ContactFormCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
+        className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
         style={{
           rotateX,
           rotateY,
         }}
       >
-        <div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
-          }}
-        />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent pointer-events-none" />
 
         <div className="relative z-20">
           <h3 className="font-display text-2xl font-semibold mb-6 text-[#C8AE68]">
@@ -258,16 +251,9 @@ const GoogleMapCard = () => {
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300"
+        className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300"
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       >
-        <div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none z-10 opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
-          }}
-        />
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2518.801815397259!2d15.2833333157461!3d51.0469444795620!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4708e5d3b0d3b3d3%3A0x3f3b3b3b3b3b3b3b!2sStawowa+6%2C+59-800+Luba%C5%84%2C+Poland!5e0!3m2!1sen!2sus!4v1689264800000"
           width="100%"
@@ -382,7 +368,7 @@ const StyledContactCard = ({
   const cardContent = (
     <motion.div
       ref={cardRef}
-      className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
+      className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60_rgba(0,0,0,0.6)] h-full p-8"
       style={{
         rotateX,
         rotateY,
@@ -392,13 +378,6 @@ const StyledContactCard = ({
       whileHover={{ scale: 1.05 }}
       transition={{ scale: { duration: 0.2 } }}
     >
-      <div
-        className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
-        }}
-      />
       <div className="relative z-10 flex flex-col items-center text-center h-full">
         <div className="mb-4">
           <info.icon className="w-8 h-8 gold-icon" />

@@ -94,6 +94,20 @@ const AuctionsPage = () => {
   const heroRef = useRef<HTMLElement>(null);
   const heroContentRef = useRef<HTMLDivElement>(null);
 
+  const [shouldShowSkeletons, setShouldShowSkeletons] = useState(false);
+
+  useEffect(() => {
+    let timer: any;
+    if (isLoading) {
+      timer = setTimeout(() => {
+        setShouldShowSkeletons(true);
+      }, 400);
+    } else {
+      setShouldShowSkeletons(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
   const [feedbackModal, setFeedbackModal] = useState<{
     isOpen: boolean;
     type: "success" | "error" | "info" | "warning";
@@ -304,10 +318,10 @@ const AuctionsPage = () => {
   ];
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-transparent">
+    <div className="relative isolate min-h-screen overflow-hidden bg-white">
       <section
         ref={heroRef}
-        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-transparent"
+        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
       >
         <div className="container mx-auto px-4">
           <div ref={heroContentRef} className="text-left">
@@ -496,14 +510,16 @@ const AuctionsPage = () => {
       <section className="relative py-10">
         <div className="container mx-auto px-4">
           {isLoading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="h-[580px] rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm animate-pulse"
-                />
-              ))}
-            </div>
+            shouldShowSkeletons && (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[580px] rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm animate-pulse"
+                  />
+                ))}
+              </div>
+            )
           ) : uiAuctions.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {uiAuctions.map((auction) => (

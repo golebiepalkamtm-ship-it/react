@@ -409,7 +409,7 @@ export function ReferencesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
         <motion.div
           className="text-center"
           initial={{ opacity: 0 }}

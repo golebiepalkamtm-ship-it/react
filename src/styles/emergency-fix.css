@@ -2,12 +2,32 @@
 
 /* AWWWARDS Style - Ciemne tło na html - NAJWYŻSZY PRIORYTET */
 html {
-  background: linear-gradient(175deg,
-    hsl(0, 0%, 6%) 0%,
-    hsl(0, 0%, 4%) 30%,
-    hsl(0, 0%, 3%) 60%,
-    hsl(0, 0%, 2%) 100%) !important;
+  background: #0a0a0a !important;
   min-height: 100vh !important;
+}
+
+/* ============================================================
+   GLOBAL BACKGROUND TRANSPARENCY
+   Pozwala WebGL canvas przebić się przez wszystkie strony.
+   Sekcje mające PEŁNOEKRANOWE opaque tła są zerowane.
+   Karty, modale i lokalne tła NIE są dotknięte.
+   ============================================================ */
+
+/* Tailwind utility overrides - only min-h-screen divs lose their bg */
+div.bg-navy.min-h-screen,
+div.bg-background.min-h-screen,
+div.bg-zinc-950.min-h-screen,
+div.bg-zinc-900.min-h-screen,
+div.bg-gray-900.min-h-screen,
+div.bg-slate-900.min-h-screen,
+div.bg-dark-950.min-h-screen,
+section.bg-zinc-950,
+section.bg-navy,
+section.bg-background,
+section.bg-zinc-900,
+section.bg-gray-900 {
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
 /* Body transparent - nie przykrywa */
@@ -22,19 +42,11 @@ body {
   min-height: 100vh !important;
 }
 
-/* Footer - CIEMNE TŁO + BIAŁY TEKST */
+/* Footer - ALLOW INLINE STYLES TO WORK */
 footer,
 footer#footer,
 footer[id="footer"],
 [id="footer"] {
-  background:
-    radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%),
-    linear-gradient(
-      185deg,
-      rgba(2, 10, 19, 0.96) 0%,
-      rgba(6, 35, 46, 0.93) 45%,
-      rgba(9, 61, 77, 0.9) 100%
-    ) !important;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5) !important;
   border-top: 1px solid rgba(255, 215, 0, 0.15) !important;
 }

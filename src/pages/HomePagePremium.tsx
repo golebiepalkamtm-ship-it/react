@@ -401,7 +401,7 @@ const CTAFeaturesSection = () => {
               ref={(el) => {
                 cardsRef.current[index] = el;
               }}
-              className="reveal-card group relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal transition-all duration-500 p-8 h-full shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
+              className="reveal-card group relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal transition-all duration-500 p-8 h-full shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
             >
               <div className="relative z-10">
                 <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-gold/20 transition-all duration-500 shadow-xl shadow-gold/20">

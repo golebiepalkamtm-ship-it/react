@@ -51,19 +51,12 @@ const FeatureCard = React.memo(
         onMouseLeave={handleMouseLeave}
       >
         <motion.div
-          className="relative overflow-hidden rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-6"
+          className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-6"
           style={{
             transformStyle: "preserve-3d",
             rotateX,
           }}
         >
-          <div
-            className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.4] group-hover:opacity-[0.7] transition-opacity duration-500"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
-            }}
-          />
           <div className="w-10 h-10 rounded-xl mb-3 flex items-center justify-center border border-gold/40 bg-gradient-to-br from-gold/20 via-gold/10 to-transparent">
             <feature.icon className="w-5 h-5 text-[#C8AE68] drop-shadow-[0_0_6px_rgba(200,174,104,0.8)]" />
           </div>

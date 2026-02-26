@@ -30,3 +30,5 @@ export const LazyForumTopicList = lazy(() => import("@/pages/ForumTopicList"));
 export const LazyForumTopicDetail = lazy(
   () => import("@/pages/ForumTopicDetail"),
 );
+export const LazyTerms = lazy(() => import("@/pages/Terms"));
+export const LazyPrivacy = lazy(() => import("@/pages/Privacy"));

@@ -7,7 +7,7 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner = ({ className = "" }: LoadingSpinnerProps) => (
   <div
-    className={`flex items-center justify-center min-h-[50vh] bg-[#020617] ${className}`}
+    className={`flex items-center justify-center min-h-[50vh] bg-transparent ${className}`}
   >
     <motion.div
       animate={{ rotate: 360 }}

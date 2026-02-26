@@ -84,78 +84,64 @@ const Footer = () => {
     <footer
       ref={footerRef}
       id="footer"
-      className="relative isolate overflow-hidden py-12 border-t border-gold/30 bg-champion-teal text-zinc-400"
+      className="relative isolate overflow-hidden py-8 border-t border-[#A68E4E]/30 shadow-[0_-24px_60px_rgba(0,0,0,0.6)] text-zinc-400"
+      style={{
+        background:
+          "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+      }}
     >
       {/* Bardziej subtelna złota linia i poświata */}
-      <div className="absolute top-0 left-0 w-full h-[20px] bg-gradient-to-b from-[#A68E4E]/40 to-transparent pointer-events-none opacity-90" />
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-[#A68E4E] shadow-[0_0_30px_rgba(166,142,78,0.8)]" />
+      <div className="absolute top-0 left-0 w-full h-[15px] bg-gradient-to-b from-[#A68E4E]/40 to-transparent pointer-events-none opacity-90" />
+      <div className="absolute top-0 left-0 w-full h-[1.5px] bg-[#A68E4E] shadow-[0_0_20px_rgba(166,142,78,0.8)]" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* Brand */}
-          <div className="lg:col-span-2 footer-column">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-[#A68E4E] flex items-center justify-center shadow-xl shadow-gold/10">
-                <Trophy className="w-7 h-7 text-zinc-950" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 mb-6 items-start">
+          {/* Brand - Left */}
+          <div className="lg:col-span-5 footer-column">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-[#A68E4E] flex items-center justify-center shadow-xl shadow-gold/10">
+                <Trophy className="w-6 h-6 text-zinc-950" />
               </div>
               <div>
-                <h3 className="font-display text-2xl text-zinc-900 font-bold uppercase tracking-tighter">
+                <h3 className="font-display text-xl text-zinc-900 font-bold uppercase tracking-tighter">
                   MTM Pałka
                 </h3>
-                <p className="text-xs text-gold font-bold uppercase tracking-[0.3em]">
+                <p className="text-[10px] text-gold font-bold uppercase tracking-[0.2em]">
                   Heritage since 1979
                 </p>
               </div>
             </div>
-            <p className="text-zinc-400 text-sm leading-relaxed mb-8 max-w-md font-light">
+            <p className="text-zinc-400 text-xs leading-relaxed mb-4 max-w-md font-light">
               Trzy pokolenia pasji, setki sukcesów i bezgraniczna miłość do
               lotu. Dostarczamy elitarne gołębie pocztowe hodowcom na całym
               świecie.
             </p>
-            <div className="flex flex-col gap-6">
-              <div className="flex items-center gap-3 text-zinc-400 text-sm font-medium">
-                <Mail size={18} className="text-gold" />
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium">
+                <Mail size={14} className="text-gold" />
                 <span>kontakt@palkamtm.pl</span>
-              </div>
-
-              {/* Legal Links & Copyright moved here */}
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap gap-x-6 gap-y-2">
-                  {footerLinks.legal.map((link) => (
-                    <Link
-                      key={link.name}
-                      to={link.href}
-                      className="text-[#A68E4E]/60 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
-                </div>
-                <p className="text-zinc-600 text-[10px] uppercase tracking-widest">
-                  © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
-                </p>
               </div>
             </div>
           </div>
 
-          <div className="footer-column">
-            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-4">
-              Firma
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
+          {/* Links Column - Middle/Left */}
+          <div className="lg:col-span-2 footer-column pt-1 lg:pt-0">
+            <ul className="space-y-2">
+              {[...footerLinks.company, ...footerLinks.services].map((link) => (
                 <li key={link.name}>
                   {link.href.startsWith("/#") ? (
                     <a
                       href={link.href}
-                      className="text-zinc-500 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
+                      className="text-zinc-500 hover:text-gold transition-colors text-[10px] font-bold uppercase tracking-widest"
                     >
                       {link.name}
                     </a>
                   ) : (
                     <Link
                       to={link.href}
-                      className="text-zinc-500 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
+                      className="text-zinc-500 hover:text-gold transition-colors text-[10px] font-bold uppercase tracking-widest"
                     >
                       {link.name}
                     </Link>
@@ -165,22 +151,34 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="footer-column">
-            <h4 className="font-display text-[#A68E4E] font-bold uppercase tracking-widest text-sm mb-4">
-              Usługi
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.services.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-zinc-500 hover:text-gold transition-colors text-xs font-bold uppercase tracking-widest"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Legal Disclaimer - Right */}
+          <div className="lg:col-span-5 footer-column lg:text-right">
+            <p className="text-zinc-600 text-[10px] leading-relaxed font-light uppercase tracking-wider max-w-md lg:ml-auto">
+              Serwis palkamtm.pl ma charakter wyłącznie reklamowo-informacyjny.
+              Prezentowane opisy i rodowody gołębi nie stanowią gwarancji ich
+              przyszłych wyników lotowych ani rozpłodowych. Serwis jest
+              skierowany wyłącznie do profesjonalnych hodowców, a sprzedaż
+              realizowana jest na zasadach B2B (z wyłączeniem rękojmi). Ryzyko
+              transportu żywych zwierząt ponosi wyłącznie kupujący.
+            </p>
+          </div>
+        </div>
+
+        {/* Legal Links & Copyright - Full Width Bottom */}
+        <div className="footer-bottom mt-2 pt-2 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-2">
+          <p className="text-zinc-500 text-[10px] md:text-xs uppercase tracking-widest text-center md:text-left font-bold">
+            © 2025 MTM Pałka. Wszystkie prawa zastrzeżone.
+          </p>
+          <div className="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2">
+            {footerLinks.legal.map((link) => (
+              <Link
+                key={link.name}
+                to={link.href}
+                className="text-[#A68E4E]/60 hover:text-gold transition-colors text-[10px] md:text-xs font-bold uppercase tracking-widest"
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

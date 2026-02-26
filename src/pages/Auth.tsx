@@ -15,6 +15,7 @@ import { FloatingElement } from "@/components/animations";
 import AuthMessageModal, {
   type MessageType,
 } from "@/components/auth/AuthSuccessModal";
+import LegalAcknowledgeModal from "@/components/auth/LegalAcknowledgeModal";
 import { isSupabaseConfigured, missingSupabaseEnv } from "@/lib/supabase";
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -178,6 +179,7 @@ export default function Auth() {
 
   // Unified modal state
   const [modalOpen, setModalOpen] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [modalType, setModalType] = useState<MessageType>("success");
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -271,6 +273,14 @@ export default function Auth() {
       window.location.reload();
     }
   };
+
+  useEffect(() => {
+    // Check legal acceptance
+    const accepted = localStorage.getItem("palkamtm_legal_accepted") === "true";
+    if (!accepted && (mode === "login" || mode === "register")) {
+      setLegalModalOpen(true);
+    }
+  }, [mode]);
 
   useEffect(() => {
     // Po OAuth callback - jeśli user jest zalogowany i nie pokazaliśmy jeszcze modalu sukcesu
@@ -566,7 +576,7 @@ export default function Auth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#09090b]">
+      <div className="min-h-screen bg-transparent">
         <Header />
         <main className="pt-28 md:pt-32">
           <div className="container mx-auto px-4">
@@ -587,13 +597,6 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen text-slate-900 relative isolate overflow-hidden">
-      <div
-        className="absolute inset-0 -z-10 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('/Gemini_Generated_Image_am1cv9am1cv9am1c.png')",
-        }}
-      />
       <Header />
 
       <main className="relative flex flex-col lg:flex-row min-h-screen overflow-hidden z-10">
@@ -1048,8 +1051,13 @@ export default function Auth() {
         type={modalType}
         title={modalTitle}
         message={modalMessage}
-        buttonText="OK"
         onConfirm={handleModalConfirm}
+        buttonText={modalAction === "redirect" ? "Przejdź dalej" : "OK"}
+      />
+
+      <LegalAcknowledgeModal
+        isOpen={legalModalOpen}
+        onAccept={() => setLegalModalOpen(false)}
       />
     </div>
   );

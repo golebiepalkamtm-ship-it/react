@@ -62,26 +62,16 @@ const PressArticleCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="relative overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full flex flex-col"
+        className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full flex flex-col"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d",
-          background:
-            "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
       >
-        <div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.3] group-hover:opacity-[0.7] transition-opacity duration-500"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
-          }}
-        />
-
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent pointer-events-none" />
 
         <div className="relative aspect-[16/10] overflow-hidden">
           <img
@@ -96,7 +86,6 @@ const PressArticleCard = ({
                 "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop";
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
 
         <div className="relative p-6 flex-grow flex flex-col justify-between z-30">

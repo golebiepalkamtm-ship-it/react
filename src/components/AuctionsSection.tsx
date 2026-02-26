@@ -19,8 +19,21 @@ const AuctionsSection = () => {
   const { auctions, isLoading } = useAuctions({
     status: "active",
     sortBy: "newest",
-    sellerId: undefined,
   });
+
+  const [shouldShowSkeletons, setShouldShowSkeletons] = useState(false);
+
+  useEffect(() => {
+    let timer: any;
+    if (isLoading) {
+      timer = setTimeout(() => {
+        setShouldShowSkeletons(true);
+      }, 400);
+    } else {
+      setShouldShowSkeletons(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isLoading]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -77,14 +90,16 @@ const AuctionsSection = () => {
 
         {/* Auction Grid */}
         {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={`auction-skeleton-${i}`}
-                className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] h-96 animate-pulse"
-              />
-            ))}
-          </div>
+          shouldShowSkeletons && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={`auction-skeleton-${i}`}
+                  className="rounded-2xl bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] h-96 animate-pulse"
+                />
+              ))}
+            </div>
+          )
         ) : auctions.length > 0 ? (
           <div
             ref={cardsContainerRef}

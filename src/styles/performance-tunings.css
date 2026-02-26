@@ -6,6 +6,7 @@
 
 @layer components {
   /* Optimize glass elements - AGGRESSIVE DISABLE BLUR FOR WINDOWS STABILITY */
+  /* NOTE: background-color uses near-black transparent so WebGL canvas shows through */
   .glass-card,
   .glass-vault,
   .glass-header,
@@ -18,7 +19,7 @@
     contain: layout style;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background-color: rgba(20, 25, 35, 0.95) !important;
+    background-color: rgba(10, 10, 10, 0.82) !important;
   }
 
   /* Force layer promotion only for parallax images that need it */
@@ -45,7 +46,7 @@
   .backdrop-blur-md,
   .backdrop-blur-sm {
     backdrop-filter: none !important;
-    background-color: rgba(10, 15, 25, 0.95) !important;
+    background-color: rgba(10, 10, 10, 0.88) !important;
   }
 
   .glass-card,

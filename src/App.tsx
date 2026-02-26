@@ -42,9 +42,15 @@ import {
   LazyForumMain,
   LazyForumTopicList,
   LazyForumTopicDetail,
+  LazyTerms,
+  LazyPrivacy,
 } from "@/utils/lazyImports";
 import { CursorFollower } from "@/components/animations/MagneticCursor";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { HeroBackground } from "@/styles/HeroBackground";
+
+import VolumetricBackground from "@/components/VolumetricBackground";
+import RippleShockwave from "@/components/RippleShockwave";
 
 // GSAP Demo - removed as file does not exist
 // const GSAPDemo = React.lazy(() => import("@/pages/GSAPDemo"));
@@ -55,14 +61,22 @@ const AwwwardsPrototype = React.lazy(() => import("@/pages/AwwwardsPrototype"));
 const queryClient = new QueryClient();
 
 const BackgroundWrapper = () => {
-  const location = useLocation();
-  const isTimeTunnel =
-    location.pathname === "/wyniki-lotowe" ||
-    location.pathname === "/flight-results";
-
-  if (isTimeTunnel) return null;
-
-  return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        zIndex: -9999,
+        pointerEvents: "none",
+      }}
+    >
+      <VolumetricBackground />
+      <RippleShockwave />
+    </div>
+  );
 };
 
 import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
@@ -90,10 +104,10 @@ const App = () => {
                   <Toaster />
                   <Sonner />
                   <CursorFollower size={22} color="rgba(166, 142, 78, 0.45)" />
+                  <BackgroundWrapper />
                   <UIProviders>
                     <GSAPPageTransition duration={0.7} primaryColor="#09090b">
                       <SmoothScrollProvider>
-                        <BackgroundWrapper />
                         <Suspense fallback={<LoadingSpinner />}>
                           <Routes>
                             <Route path="/" element={<LazyHomePagePremium />} />
@@ -190,6 +204,8 @@ const App = () => {
                               path="/champions"
                               element={<LazyChampionsGallery />}
                             />
+                            <Route path="/terms" element={<LazyTerms />} />
+                            <Route path="/privacy" element={<LazyPrivacy />} />
                           </Routes>
                         </Suspense>
                       </SmoothScrollProvider>

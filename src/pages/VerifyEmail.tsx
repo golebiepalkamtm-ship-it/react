@@ -50,9 +50,7 @@ const VerifyEmail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5 z-0" />
-
+    <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <Header />
 
       {!isVerified && !error && (
@@ -63,9 +61,11 @@ const VerifyEmail = () => {
           className="relative z-10 max-w-md w-full bg-card/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl text-center mt-20"
         >
           <div className="flex justify-center mb-6">
-            <div className="p-4 rounded-full"
+            <div
+              className="p-4 rounded-full"
               style={{
-                backgroundImage: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
+                backgroundImage:
+                  "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
                 boxShadow: "0 0 20px #A68E4E55",
                 border: "1px solid rgba(166,142,78,0.3)",
               }}

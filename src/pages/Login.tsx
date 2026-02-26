@@ -95,7 +95,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative overflow-hidden bg-transparent">
       <Header />
 
       <main className="pt-28 md:pt-32">

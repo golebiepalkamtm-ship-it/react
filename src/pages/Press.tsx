@@ -85,17 +85,16 @@ const PressArticleCard = ({
         onMouseLeave={handleMouseLeave}
       >
         <motion.article
-          className="relative overflow-hidden rounded-2xl border border-white/40 backdrop-blur-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] h-full flex flex-col"
+          className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] h-full flex flex-col"
           style={{
             rotateX,
             rotateY,
             transformStyle: "preserve-3d",
-            background:
-              "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)",
           }}
           whileHover={{ scale: 1.02 }}
           transition={{ scale: { duration: 0.2 } }}
         >
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent pointer-events-none" />
           <div className="relative aspect-[16/10] overflow-hidden bg-transparent">
             <img
               src={article.images.main}
@@ -268,7 +267,7 @@ const PressPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-transparent flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center relative overflow-hidden">
         <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
@@ -294,7 +293,7 @@ const PressPage = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-transparent">
+    <div className="flex flex-col min-h-screen bg-transparent relative overflow-hidden">
       <Header />
 
       <main className="flex-1">
