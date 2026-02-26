@@ -13,7 +13,9 @@ const sanitizeEnvValue = (value: string | undefined) => {
 const normalizeApiBase = (raw?: string) => {
   if (!raw) return raw;
   const trimmed = raw.replace(/\/+$/, ""); // usuń trailing slash
-  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+  // Remove www subdomain to match CSP configuration
+  const normalized = trimmed.replace(/^https?:\/\/www\./, 'https://');
+  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
 };
 
 const DEFAULT_API_BASE = import.meta.env.PROD
@@ -29,7 +31,7 @@ export const API_BASE_URL =
     : "http://localhost:8001/api");
 
 interface RequestConfig extends RequestInit {
-  params?: Record<string, string | number | undefined>;
+  params?: Record<string, string | number | undefined> | undefined;
   signal?: AbortSignal;
 }
 
@@ -243,7 +245,7 @@ class ApiClient {
   async post<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
       method: "POST",
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : null,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   }
@@ -251,7 +253,7 @@ class ApiClient {
   async put<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : null,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   }
@@ -266,7 +268,7 @@ class ApiClient {
   async patch<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PATCH",
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : null,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   }

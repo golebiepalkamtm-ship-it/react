@@ -22,7 +22,9 @@ class WebsocketService {
     const base = sanitizeEnvValue(import.meta.env.VITE_WS_URL)
       || sanitizeEnvValue(import.meta.env.VITE_API_URL)
       || 'http://localhost:8001';
-    this.url = base.replace(/\/api$/, '').replace(/\/$/, '');
+    // Remove www subdomain to match CSP configuration
+    const normalizedBase = base.replace(/^https?:\/\/www\./, 'https://');
+    this.url = normalizedBase.replace(/\/api$/, '').replace(/\/$/, '');
   }
 
   private getReconnectDelay(): number {
