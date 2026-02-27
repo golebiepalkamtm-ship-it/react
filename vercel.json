@@ -4,7 +4,9 @@
   "buildCommand": "npm run build",
   "env": {
     "NPM_CONFIG_IGNORE_SCRIPTS": "1",
-    "npm_config_ignore_scripts": "1"
+    "npm_config_ignore_scripts": "1",
+    "VITE_API_URL": "https://server-production-0e43.up.railway.app/api",
+    "VITE_WS_URL": "wss://server-production-0e43.up.railway.app"
   },
   "rewrites": [
     {
