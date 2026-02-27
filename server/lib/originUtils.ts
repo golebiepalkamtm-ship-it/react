@@ -28,6 +28,7 @@ const STATIC_CLIENT_ORIGINS = [
   "https://react-geqwk32u6-marcins-projects-59088b6e.vercel.app",
   "https://v0-golebiepalkamtm-ship-it-react-6i41shy23.vercel.app",
   "https://react-p4u7zazcv-marcins-projects-59088b6e.vercel.app",
+  "https://react-3986nsrh5-marcins-projects-59088b6e.vercel.app",
   "https://server-production-0e43.up.railway.app",
   ...(validatedEnv.ALLOWED_ORIGINS
     ? validatedEnv.ALLOWED_ORIGINS.split(",").map(normalizeOrigin)
@@ -35,6 +36,11 @@ const STATIC_CLIENT_ORIGINS = [
 ]
   .map(normalizeOrigin)
   .filter(Boolean) as string[];
+
+// Regex patterns for dynamic origins
+const DYNAMIC_ORIGIN_PATTERNS = [
+  /^https:\/\/react-[a-z0-9]+-marcins-projects-59088b6e\.vercel\.app$/,
+];
 
 const SUPABASE_ORIGINS = [
   parseOrigin(validatedEnv.SUPABASE_URL),
@@ -96,7 +102,10 @@ export const isAllowedOrigin = (
   if (normalized && normalized === normalizeOrigin(validatedEnv.CLIENT_URL))
     return true; // Allow self
   if (normalized && allowedOrigins.includes(normalized)) return true;
-  return isDevOrigin(origin);
+  if (isDevOrigin(origin)) return true;
+  
+  // Check dynamic regex patterns
+  return DYNAMIC_ORIGIN_PATTERNS.some(pattern => pattern.test(origin || ''));
 };
 
 export const isAllowedReferer = (referer?: string) => {
