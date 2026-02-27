@@ -17,7 +17,7 @@ import {
   authMiddleware,
   type AuthenticatedRequest,
 } from "../middleware/auth.js";
-import { resetLimiter, loginLimiter } from "../middleware/rateLimiter.js";
+import { resetLimiter, loginLimiter, otpSendLimiter, otpVerifyLimiter } from "../middleware/rateLimiter.js";
 import { validate } from "../middleware/validation.js";
 import { z } from "zod";
 import { prisma } from "../lib/db.js";
@@ -211,6 +211,7 @@ router.delete(
  */
 router.post(
   "/otp/send",
+  otpSendLimiter,
   authMiddleware,
   validate(
     z.object({
@@ -238,6 +239,7 @@ router.post(
  */
 router.post(
   "/otp/verify",
+  otpVerifyLimiter,
   authMiddleware,
   validate(
     z.object({

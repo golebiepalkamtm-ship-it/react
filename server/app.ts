@@ -16,7 +16,6 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import {
   globalLimiter,
-  authLimiter,
   biddingLimiter,
   uploadLimiter,
   webhookLimiter,
@@ -253,7 +252,7 @@ app.use("/api/time", timeRoutes); // Public time sync endpoint
 // Apply CSRF protection for state-changing routes (prod only)
 app.use("/api/upload", uploadLimiter, authMiddleware, uploadRoutes);
 app.use(csrfMiddleware);
-app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/auctions", auctionRoutes);
 app.use("/api/users", authMiddleware, userRoutes);
 app.use("/api/messages", authMiddleware, messageRoutes);

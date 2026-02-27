@@ -163,7 +163,12 @@ class ApiClient {
         const errorData = await response
           .json()
           .catch(() => ({ message: response.statusText }));
-        // Backend returns { error: 'message', details: ... } usually
+        if (response.status === 429) {
+          const msg =
+            (errorData && (errorData.error || errorData.message)) ||
+            "Zbyt wiele żądań. Spróbuj za chwilę.";
+          throw new Error(msg);
+        }
         const errorMessage =
           errorData.error || errorData.message || "Błąd serwera";
         const errorDetails = errorData.details
@@ -207,7 +212,12 @@ class ApiClient {
         const errorData = await response
           .json()
           .catch(() => ({ message: response.statusText }));
-        // Backend returns { error: 'message', details: ... } usually
+        if (response.status === 429) {
+          const msg =
+            (errorData && (errorData.error || errorData.message)) ||
+            "Zbyt wiele żądań. Spróbuj za chwilę.";
+          throw new Error(msg);
+        }
         const errorMessage =
           errorData.error || errorData.message || "Błąd serwera";
         const errorDetails = errorData.details

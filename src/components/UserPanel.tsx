@@ -962,21 +962,31 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         </motion.div>
                         Zmień hasło
                       </h3>
-                      <div className="space-y-4">
+                      <form
+                        className="space-y-4"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          onChangePassword();
+                        }}
+                        noValidate
+                      >
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="userpanel-new-password" className="text-sm font-medium text-white/90 mb-2 block">
                             Nowe hasło
                           </label>
                           <div className="relative">
                             <input
+                              id="userpanel-new-password"
+                              name="newPassword"
                               type={showPassword ? "text" : "password"}
                               value={newPassword}
                               onChange={(e) => setNewPassword(e.target.value)}
                               placeholder="Nowe hasło"
+                              autoComplete="new-password"
                               className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
                             />
                             <button
@@ -997,11 +1007,13 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.25 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="userpanel-confirm-password" className="text-sm font-medium text-white/90 mb-2 block">
                             Potwierdź hasło
                           </label>
                           <div className="relative">
                             <input
+                              id="userpanel-confirm-password"
+                              name="confirmPassword"
                               type={showConfirmPassword ? "text" : "password"}
                               value={confirmPassword}
                               onChange={(e) =>
@@ -1043,15 +1055,15 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           whileTap={{ scale: 0.95 }}
                         >
                           <Button
+                            type="submit"
                             disabled={passSaving}
-                            onClick={onChangePassword}
                             className="w-full bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
                           >
                             <Lock className="w-4 h-4 mr-2" />
                             {passSaving ? "Zmienianie..." : "Zmień hasło"}
                           </Button>
                         </motion.div>
-                      </div>
+                      </form>
                     </motion.div>
 
                     <motion.div

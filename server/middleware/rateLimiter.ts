@@ -93,7 +93,7 @@ export const resetLimiter = rateLimit({
   },
 });
 
-// Auth endpoints limiter - 5 requests per 15 minutes per IP
+// Auth endpoints limiter - for routes that don't have their own (e.g. sensitive ops)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // limit each IP to 5 auth requests per windowMs
@@ -113,6 +113,52 @@ export const authLimiter = rateLimit({
 
     res.status(429).json({
       error: "Too many authentication attempts, please try again later.",
+      retryAfter: 15 * 60,
+    });
+  },
+});
+
+// OTP send - per user/IP, generous so one click = one request (e.g. 8 per 15 min)
+export const otpSendLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  keyGenerator: (req: Request) => (req as any).user?.id ?? req.ip ?? "anon",
+  message: {
+    error: "Zbyt wiele wysłanych kodów. Spróbuj za ok. 15 minut.",
+    retryAfter: 15 * 60,
+  },
+  ...baseLimiterConfig,
+  legacyHeaders: true,
+  handler: (req: Request, res: Response) => {
+    logger.warn(`OTP send rate limit exceeded`, {
+      ip: req.ip,
+      path: req.path,
+    });
+    res.status(429).json({
+      error: "Zbyt wiele wysłanych kodów. Spróbuj za ok. 15 minut.",
+      retryAfter: 15 * 60,
+    });
+  },
+});
+
+// OTP verify - per user/IP (e.g. 15 per 15 min so mistypes don't block)
+export const otpVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  keyGenerator: (req: Request) => (req as any).user?.id ?? req.ip ?? "anon",
+  message: {
+    error: "Zbyt wiele prób weryfikacji. Spróbuj za ok. 15 minut.",
+    retryAfter: 15 * 60,
+  },
+  ...baseLimiterConfig,
+  legacyHeaders: true,
+  handler: (req: Request, res: Response) => {
+    logger.warn(`OTP verify rate limit exceeded`, {
+      ip: req.ip,
+      path: req.path,
+    });
+    res.status(429).json({
+      error: "Zbyt wiele prób weryfikacji. Spróbuj za ok. 15 minut.",
       retryAfter: 15 * 60,
     });
   },
