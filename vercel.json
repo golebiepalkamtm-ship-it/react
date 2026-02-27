@@ -13,7 +13,7 @@
     },
     {
       "source": "/socket.io/(.*)",
-      "destination": "ws://server-production-0e43.up.railway.app/socket.io/$1"
+      "destination": "wss://server-production-0e43.up.railway.app/socket.io/$1"
     },
     {
       "source": "/(.*)",
