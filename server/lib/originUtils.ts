@@ -27,6 +27,7 @@ const STATIC_CLIENT_ORIGINS = [
   "https://champion-pigeon-web.onrender.com",
   "https://react-geqwk32u6-marcins-projects-59088b6e.vercel.app",
   "https://v0-golebiepalkamtm-ship-it-react-6i41shy23.vercel.app",
+  "https://react-p4u7zazcv-marcins-projects-59088b6e.vercel.app",
   "https://server-production-0e43.up.railway.app",
   ...(validatedEnv.ALLOWED_ORIGINS
     ? validatedEnv.ALLOWED_ORIGINS.split(",").map(normalizeOrigin)
