@@ -67,12 +67,19 @@ export function createFrontendConfig(): FrontendConfig {
   const wsUrl =
     env.VITE_WS_URL || (() => {
       const apiUrl = env.VITE_API_URL.replace("/api", "").replace(/\/$/, "");
+      console.log("🔍 Debug VITE_API_URL:", env.VITE_API_URL);
+      console.log("🔍 Debug apiUrl:", apiUrl);
       // Use ws:// for HTTP APIs and wss:// for HTTPS APIs
       if (apiUrl.startsWith("http://")) {
-        return apiUrl.replace("http://", "ws://");
+        const wsUrl = apiUrl.replace("http://", "ws://");
+        console.log("🔍 Generated wsUrl (HTTP):", wsUrl);
+        return wsUrl;
       } else if (apiUrl.startsWith("https://")) {
-        return apiUrl.replace("https://", "wss://");
+        const wsUrl = apiUrl.replace("https://", "wss://");
+        console.log("🔍 Generated wsUrl (HTTPS):", wsUrl);
+        return wsUrl;
       }
+      console.log("🔍 Default wsUrl:", apiUrl);
       return apiUrl;
     })();
 
