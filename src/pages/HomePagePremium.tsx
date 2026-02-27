@@ -34,17 +34,19 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 const SplitText = React.memo(
   ({ children, className }: { children: string; className?: string }) => (
-    <span className={className} aria-label={children}>
-      {children.split("").map((char, i) => (
-        <span
-          key={i}
-          className="char-premium inline-block will-change-transform"
-          aria-hidden="true"
-          style={{ backfaceVisibility: "hidden" }}
-        >
-          {char === " " ? "\u00A0" : char}
-        </span>
-      ))}
+    <span className={className}>
+      <span className="sr-only">{children}</span>
+      <span aria-hidden="true">
+        {children.split("").map((char, i) => (
+          <span
+            key={i}
+            className="char-premium inline-block will-change-transform"
+            style={{ backfaceVisibility: "hidden" }}
+          >
+            {char === " " ? "\u00A0" : char}
+          </span>
+        ))}
+      </span>
     </span>
   ),
 );
@@ -407,9 +409,9 @@ const CTAFeaturesSection = () => {
                 <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-gold/20 transition-all duration-500 shadow-xl shadow-gold/20">
                   <feature.icon className="w-7 h-7 text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
                 </div>
-                <h4 className="text-xl font-bold gold-heading mb-3 uppercase text-[#A68E4E]">
+                <h3 className="text-xl font-bold gold-heading mb-3 uppercase text-[#A68E4E]">
                   {feature.title}
-                </h4>
+                </h3>
                 <p className="text-white/80 leading-relaxed font-light text-sm">
                   {feature.description}
                 </p>

@@ -174,7 +174,7 @@ export default defineConfig(({ mode }) => ({
     include: ["react", "react-dom", "react-router-dom", "socket.io-client"],
   },
   build: {
-    sourcemap: mode !== "production", // Disable source maps in production
+    sourcemap: true, // Enable source maps to fix Lighthouse warning
     rollupOptions: {
       output: {
         manualChunks: (id) => {
