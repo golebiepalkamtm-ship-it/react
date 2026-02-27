@@ -65,7 +65,16 @@ export function createFrontendConfig(): FrontendConfig {
 
   // Automatyczne wykrywanie WS URL jeśli nie podano
   const wsUrl =
-    env.VITE_WS_URL || env.VITE_API_URL.replace("/api", "").replace(/\/$/, "");
+    env.VITE_WS_URL || (() => {
+      const apiUrl = env.VITE_API_URL.replace("/api", "").replace(/\/$/, "");
+      // Use ws:// for HTTP APIs and wss:// for HTTPS APIs
+      if (apiUrl.startsWith("http://")) {
+        return apiUrl.replace("http://", "ws://");
+      } else if (apiUrl.startsWith("https://")) {
+        return apiUrl.replace("https://", "wss://");
+      }
+      return apiUrl;
+    })();
 
   return {
     api: {
