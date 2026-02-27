@@ -36,12 +36,48 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
     message: ''
   });
 
+  const [lastOtpRequest, setLastOtpRequest] = useState<number>(0);
+  const [otpCooldown, setOtpCooldown] = useState<number>(0);
+
   useEffect(() => {
     setPhone(initialPhone ?? '');
   }, [initialPhone]);
 
+  useEffect(() => {
+    if (otpCooldown > 0) {
+      const timer = setTimeout(() => setOtpCooldown(otpCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpCooldown]);
+
+  const checkOtpRateLimit = (): boolean => {
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastOtpRequest;
+    const minInterval = 60000; // 1 minute between requests
+    
+    if (timeSinceLastRequest < minInterval) {
+      const remainingTime = Math.ceil((minInterval - timeSinceLastRequest) / 1000);
+      setOtpCooldown(remainingTime);
+      return false;
+    }
+    
+    setLastOtpRequest(now);
+    return true;
+  };
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!checkOtpRateLimit()) {
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Zbyt wiele zapytań',
+        message: `Poczekaj ${otpCooldown} sekund przed wysłaniem kolejnego kodu.`
+      });
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -98,6 +134,16 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
   };
 
   const handleResendOtp = async () => {
+    if (!checkOtpRateLimit()) {
+      setFeedbackModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Zbyt wiele zapytań',
+        message: `Poczekaj ${otpCooldown} sekund przed wysłaniem kolejnego kodu.`
+      });
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -128,8 +174,8 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
 
   return (
     <motion.div
-      initial={embedded ? undefined : { opacity: 0, scale: 0.9, y: 20 }}
-      animate={embedded ? undefined : { opacity: 1, scale: 1, y: 0 }}
+      initial={embedded ? { opacity: 1 } : { opacity: 0, scale: 0.9, y: 20 }}
+      animate={embedded ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
       className={containerClasses}
     >
@@ -268,10 +314,13 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ onVerified, initi
             <button
               type="button"
               onClick={handleResendOtp}
-              disabled={loading}
+              disabled={loading || otpCooldown > 0}
               className="w-full py-2 text-green-400 hover:text-green-300 hover:underline disabled:opacity-50 text-sm transition-colors"
             >
-              {t('phone.resend')}
+              {otpCooldown > 0 
+                ? `Poczekaj ${otpCooldown}s`
+                : t('phone.resend')
+              }
             </button>
 
             <button
