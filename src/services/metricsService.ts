@@ -4,10 +4,21 @@ const alreadySent = new Set<string>();
 
 const key = (scope: MetricScope, targetId?: string) => `${scope}:${targetId ?? 'global'}`;
 
+const sanitizeEnvValue = (value: string | undefined) => {
+  if (!value) return value;
+  const trimmed = value.trim();
+  const wrapped = (trimmed.startsWith('`') && trimmed.endsWith('`'))
+    || (trimmed.startsWith('"') && trimmed.endsWith('"'))
+    || (trimmed.startsWith("'") && trimmed.endsWith("'"));
+  return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
+};
+
 const normalizeApiBase = (raw?: string) => {
   if (!raw) return '';
   const trimmed = raw.trim().replace(/\/+$/, '');
-  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+  // Remove www subdomain to match CSP configuration
+  const normalized = trimmed.replace(/^https?:\/\/www\./, 'https://');
+  return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
 };
 
 const appendAlternateLocalhost = (base: string) => {
@@ -26,8 +37,8 @@ const appendAlternateLocalhost = (base: string) => {
 };
 
 const resolveBaseUrls = () => {
-  const envBase = normalizeApiBase(import.meta.env.VITE_API_BASE_URL)
-    || normalizeApiBase(import.meta.env.VITE_API_URL);
+  const envBase = normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL))
+    || normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL));
   if (envBase) return appendAlternateLocalhost(envBase);
   if (typeof window !== 'undefined' && window.location?.origin) {
     return appendAlternateLocalhost(`${window.location.origin}/api`);
