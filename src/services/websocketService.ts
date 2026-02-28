@@ -29,7 +29,7 @@ class WebsocketService {
 
   private getReconnectDelay(): number {
     const delays = [1000, 2000, 4000, 8000, 16000];
-    return this.reconnectAttempts < delays.length ? delays[this.reconnectAttempts] : 30000;
+    return this.reconnectAttempts < delays.length ? delays[this.reconnectAttempts] ?? 30000 : 30000;
   }
 
   private startHeartbeat() {
