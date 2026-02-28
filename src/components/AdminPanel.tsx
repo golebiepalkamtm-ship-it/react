@@ -9,6 +9,10 @@ import {
   Gavel,
   Settings,
   BarChart3,
+  Star,
+  CalendarClock,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -37,8 +41,21 @@ import { AdminUserEditModal } from "./admin/AdminUserEditModal";
 import { AdminAuctionEditModal } from "./admin/AdminAuctionEditModal";
 import { AdminCreateUserModal } from "./admin/AdminCreateUserModal";
 import { AdminCreateAuctionModal } from "./admin/AdminCreateAuctionModal";
+import EditBreederMeetingForm from "@/components/breeder-meetings/EditBreederMeetingForm";
+import { meetingsService, Meeting } from "@/services/meetingsService";
+import referenceService, {
+  Reference,
+  UpdateReferenceRequest,
+} from "@/services/referenceService";
 
-type TabType = "dashboard" | "analytics" | "users" | "auctions" | "settings";
+type TabType =
+  | "dashboard"
+  | "analytics"
+  | "users"
+  | "auctions"
+  | "meetings"
+  | "references"
+  | "settings";
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -52,6 +69,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [users, setUsers] = useState<UserData[]>([]);
   const [auctions, setAuctions] = useState<AuctionData[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [references, setReferences] = useState<Reference[]>([]);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     activeAuctions: 0,
@@ -71,6 +90,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   );
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [isCreatingAuction, setIsCreatingAuction] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
+  const [deletingMeeting, setDeletingMeeting] = useState<Meeting | null>(null);
+  const [editingReference, setEditingReference] = useState<Reference | null>(
+    null,
+  );
+  const [referenceDraft, setReferenceDraft] = useState<UpdateReferenceRequest>(
+    {},
+  );
   const [newUser, setNewUser] = useState<Partial<UserData>>({
     email: "",
     password: "",
@@ -128,6 +155,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         session.access_token,
       );
       setHistoricalStats(historicalData);
+
+      // content: meetings + references
+      try {
+        const ms = await meetingsService.getMeetings(session.access_token);
+        setMeetings(ms || []);
+      } catch (e) {
+        logger.error("Meetings fetch failed", e);
+      }
+      try {
+        const rs = await referenceService.getReferences();
+        setReferences(rs || []);
+      } catch (e) {
+        logger.error("References fetch failed", e);
+      }
     } catch (error) {
       logger.error("❌ Error fetching admin data:", error);
       setFeedbackModal({
@@ -155,6 +196,92 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       document.body.style.overflow = originalOverflow;
     };
   }, [isOpen]);
+
+  const handleMeetingDelete = async () => {
+    if (!deletingMeeting || !session?.access_token) return;
+    try {
+      await meetingsService.deleteMeeting(deletingMeeting.id, session.access_token);
+      setFeedbackModal({
+        isOpen: true,
+        type: "success",
+        title: "Usunięto",
+        message: "Spotkanie zostało usunięte.",
+      });
+      setDeletingMeeting(null);
+      fetchData();
+    } catch (error) {
+      setFeedbackModal({
+        isOpen: true,
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się usunąć spotkania.",
+      });
+    }
+  };
+
+  const handleReferenceSave = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
+    if (!editingReference) return;
+    try {
+      await referenceService.updateReference(editingReference.id, referenceDraft);
+      setFeedbackModal({
+        isOpen: true,
+        type: "success",
+        title: "Zapisano",
+        message: "Referencja została zaktualizowana.",
+      });
+      setEditingReference(null);
+      setReferenceDraft({});
+      fetchData();
+    } catch (error) {
+      setFeedbackModal({
+        isOpen: true,
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się zapisać referencji.",
+      });
+    }
+  };
+
+  const handleReferenceDelete = async (ref: Reference) => {
+    try {
+      await referenceService.deleteReference(ref.id);
+      setFeedbackModal({
+        isOpen: true,
+        type: "success",
+        title: "Usunięto",
+        message: "Referencja została usunięta.",
+      });
+      fetchData();
+    } catch (error) {
+      setFeedbackModal({
+        isOpen: true,
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się usunąć referencji.",
+      });
+    }
+  };
+
+  const handleReferenceApprove = async (ref: Reference) => {
+    try {
+      await referenceService.updateReference(ref.id, { is_approved: true });
+      setFeedbackModal({
+        isOpen: true,
+        type: "success",
+        title: "Zatwierdzono",
+        message: "Referencja została zaakceptowana.",
+      });
+      fetchData();
+    } catch (error) {
+      setFeedbackModal({
+        isOpen: true,
+        type: "error",
+        title: "Błąd",
+        message: "Nie udało się zaakceptować referencji.",
+      });
+    }
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -423,6 +550,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               { id: "analytics", label: "Statystyki", icon: BarChart3 },
               { id: "users", label: "Użytkownicy", icon: Users },
               { id: "auctions", label: "Aukcje", icon: Gavel },
+              { id: "meetings", label: "Spotkania", icon: CalendarClock },
+              { id: "references", label: "Referencje", icon: Star },
               { id: "settings", label: "Ustawienia", icon: Settings },
             ].map((tab) => (
               <button
@@ -520,6 +649,271 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       onAdd={() => setIsCreatingAuction(true)}
                     />
                   )}
+                  {activeTab === "meetings" && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold text-white">
+                            Spotkania z hodowcami
+                          </h2>
+                          <p className="text-sm text-[#A68E4E]/70">
+                            Edytuj treść galerii spotkań i zarządzaj zdjęciami.
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={fetchData}
+                          className="border-[#A68E4E]/40 text-[#A68E4E] hover:bg-[#A68E4E]/10"
+                        >
+                          Odśwież
+                        </Button>
+                      </div>
+                      <div className="grid gap-3">
+                        {meetings.map((m) => (
+                          <div
+                            key={m.id}
+                            className="p-4 bg-white/5 border border-white/10 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-16 h-16 rounded-lg bg-black/40 overflow-hidden shrink-0 border border-white/10">
+                                {m.images?.[0] && (
+                                  <img
+                                    src={m.images[0]}
+                                    alt={m.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-bold text-lg text-white">
+                                  {m.name}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {m.location || "Brak lokalizacji"}
+                                </div>
+                                <div className="text-xs text-[#A68E4E]/70">
+                                  {m.images?.length || 0} zdjęć
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                className="border-white/20 text-white hover:border-[#A68E4E]/40"
+                                onClick={() => setEditingMeeting(m)}
+                              >
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Edytuj
+                              </Button>
+                              <Button
+                                variant="outline"
+                                className="border-red-500/40 text-red-300 hover:bg-red-500/10"
+                                onClick={() => setDeletingMeeting(m)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Usuń
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        {meetings.length === 0 && (
+                          <div className="py-6 text-center text-muted-foreground">
+                            Brak spotkań.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {activeTab === "references" && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold text-white">
+                            Referencje
+                          </h2>
+                          <p className="text-sm text-[#A68E4E]/70">
+                            Edytuj opinie hodowców i akceptuj/ukrywaj wpisy.
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={fetchData}
+                          className="border-[#A68E4E]/40 text-[#A68E4E] hover:bg-[#A68E4E]/10"
+                        >
+                          Odśwież
+                        </Button>
+                      </div>
+                      <div className="grid gap-3">
+                        {references.map((r) => (
+                          <div
+                            key={r.id}
+                            className="p-4 bg-white/5 border border-white/10 rounded-xl"
+                          >
+                            <div className="flex justify-between items-start gap-3">
+                              <div>
+                                <div className="font-bold text-lg text-gold">
+                                  {r.breeder_name}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {r.location || "Brak lokalizacji"}
+                                </div>
+                              </div>
+                              <div className="px-3 py-1 rounded-md bg-black/40 border border-white/10 text-sm">
+                                Ocena: {r.rating}/5
+                              </div>
+                            </div>
+                            {editingReference?.id === r.id ? (
+                              <form
+                                className="mt-3 space-y-3"
+                                onSubmit={handleReferenceSave}
+                              >
+                                <div className="grid md:grid-cols-2 gap-3">
+                                  <input
+                                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white"
+                                    placeholder="Hodowca"
+                                    value={referenceDraft.breeder_name || ""}
+                                    onChange={(e) =>
+                                      setReferenceDraft((prev) => ({
+                                        ...prev,
+                                        breeder_name: e.target.value,
+                                      }))
+                                    }
+                                    required
+                                  />
+                                  <input
+                                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white"
+                                    placeholder="Lokalizacja"
+                                    value={referenceDraft.location || ""}
+                                    onChange={(e) =>
+                                      setReferenceDraft((prev) => ({
+                                        ...prev,
+                                        location: e.target.value,
+                                      }))
+                                    }
+                                    required
+                                  />
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={5}
+                                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white"
+                                    placeholder="Ocena 1-5"
+                                    value={referenceDraft.rating ?? r.rating ?? 5}
+                                    onChange={(e) =>
+                                      setReferenceDraft((prev) => ({
+                                        ...prev,
+                                        rating: Number(e.target.value),
+                                      }))
+                                    }
+                                  />
+                                  <input
+                                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white"
+                                    placeholder="Nazwa gołębia"
+                                    value={referenceDraft.pigeon_name || ""}
+                                    onChange={(e) =>
+                                      setReferenceDraft((prev) => ({
+                                        ...prev,
+                                        pigeon_name: e.target.value,
+                                      }))
+                                    }
+                                  />
+                                </div>
+                                <textarea
+                                  className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white"
+                                  placeholder="Opinia / doświadczenie"
+                                  value={referenceDraft.opinion || referenceDraft.experience || ""}
+                                  onChange={(e) =>
+                                    setReferenceDraft((prev) => ({
+                                      ...prev,
+                                      opinion: e.target.value,
+                                    }))
+                                  }
+                                  rows={3}
+                                />
+                                <div className="flex gap-2">
+                                  <Button type="submit" variant="outline" className="border-[#A68E4E]/40 text-[#A68E4E]">
+                                    Zapisz
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="border-white/20 text-white"
+                                    onClick={() => {
+                                      setEditingReference(null);
+                                      setReferenceDraft({});
+                                    }}
+                                  >
+                                    Anuluj
+                                  </Button>
+                                  {!r.is_approved && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      className="border-green-500/40 text-green-300 hover:bg-green-500/10"
+                                      onClick={() => handleReferenceApprove(r)}
+                                    >
+                                      Akceptuj
+                                    </Button>
+                                  )}
+                                </div>
+                              </form>
+                            ) : (
+                              <>
+                                <p className="text-sm text-white/80 mt-2 line-clamp-3">
+                                  {r.opinion || r.experience || "Brak opisu"}
+                                </p>
+                                <div className="flex gap-2 flex-wrap mt-3">
+                                  <Button
+                                    variant="outline"
+                                    className="border-white/20 text-white hover:border-[#A68E4E]/40"
+                                    onClick={() => {
+                                      setEditingReference(r);
+                                      setReferenceDraft({
+                                        breeder_name: r.breeder_name,
+                                        location: r.location,
+                                        rating: r.rating,
+                                        opinion: r.opinion,
+                                        experience: r.experience,
+                                        achievements: r.achievements,
+                                        pigeon_name: r.pigeon_name,
+                                        images: r.images,
+                                        is_approved: r.is_approved,
+                                      });
+                                    }}
+                                  >
+                                    <Pencil className="w-4 h-4 mr-2" />
+                                    Edytuj
+                                  </Button>
+                                  {!r.is_approved && (
+                                    <Button
+                                      variant="outline"
+                                      className="border-green-500/40 text-green-300 hover:bg-green-500/10"
+                                      onClick={() => handleReferenceApprove(r)}
+                                    >
+                                      Akceptuj
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="outline"
+                                    className="border-red-500/40 text-red-300 hover:bg-red-500/10"
+                                    onClick={() => handleReferenceDelete(r)}
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Usuń
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                        {references.length === 0 && (
+                          <div className="py-6 text-center text-muted-foreground">
+                            Brak referencji.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {activeTab === "settings" && <AdminSettings />}
                 </motion.div>
               )}
@@ -556,6 +950,42 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           isOpen={isCreatingAuction}
           onClose={() => setIsCreatingAuction(false)}
           onSuccess={handleRefresh}
+        />
+
+        {editingMeeting && (
+          <EditBreederMeetingForm
+            meeting={{
+              id: editingMeeting.id,
+              name: editingMeeting.name,
+              location: editingMeeting.location ?? "",
+              date: (editingMeeting as any).date ?? "",
+              description: editingMeeting.description ?? "",
+              images: editingMeeting.images || [],
+            }}
+            onSuccess={() => {
+              setEditingMeeting(null);
+              fetchData();
+            }}
+            onCancel={() => setEditingMeeting(null)}
+          />
+        )}
+
+        <UnifiedModal
+          isOpen={!!deletingMeeting}
+          onClose={() => setDeletingMeeting(null)}
+          type="warning"
+          title="Potwierdź usunięcie"
+          message={`Czy na pewno usunąć spotkanie "${
+            deletingMeeting?.name || ""
+          }"?`}
+          confirmButton={{
+            text: "Usuń",
+            onClick: handleMeetingDelete,
+          }}
+          cancelButton={{
+            text: "Anuluj",
+            onClick: () => setDeletingMeeting(null),
+          }}
         />
 
         <UnifiedModal

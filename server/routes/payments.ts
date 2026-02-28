@@ -74,6 +74,14 @@ router.post(
       }
 
       const amount = Number(auction.buyNowPrice);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return res.status(400).json({ error: "Nieprawidłowa cena Kup Teraz" });
+      }
+      if (amount < 2) {
+        return res
+          .status(400)
+          .json({ error: "Minimalna kwota Stripe to 2.00 PLN" });
+      }
       const commission = Number((amount * commissionRate).toFixed(2));
       const amountCents = Math.round(amount * 100);
       const commissionCents = Math.round(commission * 100);

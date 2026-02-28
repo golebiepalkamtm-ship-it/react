@@ -112,4 +112,54 @@ export const meetingsService = {
       throw error;
     }
   },
+
+  updateMeeting: async (
+    meetingId: string,
+    meetingData: Partial<CreateMeetingRequest> & {
+      newImages?: File[];
+      existingImages?: string[];
+    },
+    token?: string,
+  ) => {
+    try {
+      const body =
+        meetingData.newImages && meetingData.newImages.length > 0
+          ? (() => {
+              const fd = new FormData();
+              fd.append(
+                "data",
+                JSON.stringify({
+                  name: meetingData.name,
+                  description: meetingData.description,
+                  location: meetingData.location,
+                  date: meetingData.date,
+                  existingImages: meetingData.existingImages,
+                }),
+              );
+              meetingData.newImages?.forEach((file) =>
+                fd.append("images", file as Blob),
+              );
+              return fd;
+            })()
+          : meetingData;
+
+      return await apiClient.patch<Meeting>(
+        `/breeder-meetings/${meetingId}`,
+        body as any,
+        token,
+      );
+    } catch (error) {
+      console.error("Error updating breeder meeting via API:", error);
+      throw error;
+    }
+  },
+
+  deleteMeeting: async (meetingId: string, token?: string) => {
+    try {
+      return await apiClient.delete(`/breeder-meetings/${meetingId}`, token);
+    } catch (error) {
+      console.error("Error deleting breeder meeting via API:", error);
+      throw error;
+    }
+  },
 };

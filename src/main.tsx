@@ -5,13 +5,46 @@ import App from "./App.tsx";
 import { FeedbackProvider } from "@/components/ui/feedback/FeedbackProvider";
 import "./index.css";
 import { logger } from "@/lib/logger";
+import { createClient } from "@supabase/supabase-js";
+import { TimeProvider } from "./providers/TimeProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { TimeProvider } from "@/providers/TimeProvider";
-import "@/lib/gsapConfig";
 
-// Debug tools - uruchom w konsoli: window.debugAnimations()
-document.documentElement.classList.add("dark");
+const startTime = performance.now();
+
+// Recover from missing/invalid chunk errors by forcing a fresh reload
+if (typeof window !== "undefined") {
+  const reloadOnChunkError = (reason: any) => {
+    const message =
+      typeof reason === "string"
+        ? reason
+        : reason?.message || reason?.toString() || "";
+    const isChunkError =
+      message.includes("Failed to fetch dynamically imported module") ||
+      message.includes("Importing a module script failed") ||
+      message.includes("preload module script");
+
+    if (isChunkError) {
+      console.warn("Chunk load failed, forcing hard reload to refresh assets.");
+      // Avoid reload loops
+      const alreadyRetried = sessionStorage.getItem("chunk-reload-tried");
+      if (alreadyRetried) return;
+      sessionStorage.setItem("chunk-reload-tried", "1");
+      window.location.reload();
+    }
+  };
+
+  window.addEventListener("error", (event) => reloadOnChunkError(event.error));
+  window.addEventListener("unhandledrejection", (event) =>
+    reloadOnChunkError(event.reason),
+  );
+}
+
+// Initialize Supabase client
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+);
 
 const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
 if (gaId) {

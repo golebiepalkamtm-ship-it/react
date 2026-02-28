@@ -626,6 +626,16 @@ router.post(
             AuctionErrorCodes.INVALID_BID_AMOUNT,
             "Ta aukcja nie ma opcji Kup Teraz.",
           );
+        // Prevent Buy Now if aktualna cena >= Kup Teraz
+        if (
+          typeof auction.currentPrice === "number" &&
+          auction.currentPrice >= Number(auction.buyNowPrice)
+        ) {
+          throw createAuctionError(
+            AuctionErrorCodes.INVALID_BID_AMOUNT,
+            "Cena aktualna jest wyższa lub równa cenie Kup Teraz.",
+          );
+        }
         const amount = Number(auction.buyNowPrice);
 
         const bid = await tx.bid.create({

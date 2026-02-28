@@ -349,28 +349,35 @@ const AuctionDetail: React.FC = () => {
       if (res.url) {
         try {
           const url = new URL(res.url);
-          // Stricter Stripe URL validation
           const isStripeHost =
             url.hostname === "checkout.stripe.com" ||
             (url.hostname.endsWith(".stripe.com") &&
-              !url.hostname.includes("@")); // Extra check for '@' to prevent credential-based bypasses
+              !url.hostname.includes("@"));
 
           if (url.protocol === "https:" && isStripeHost) {
-            // file deepcode ignore OpenRedirect: URL is verified to be a trusted Stripe domain
             window.location.assign(url.href);
-          } else {
-            console.error("Blocked unsafe checkout URL:", res.url);
+            return;
           }
+          console.error("Blocked unsafe checkout URL:", res.url);
         } catch (e) {
           console.error("Malformed checkout URL:", res.url);
         }
       }
-    } catch (err) {
-      console.warn("Stripe checkout init failed", err);
+      // If no URL or invalid -> fallback to direct buy-now endpoint
+      await auctionService.buyNow(id!, token);
+      await refetch();
+    } catch (err: any) {
+      // Stripe minimum amount (<2 PLN) or any 4xx/5xx -> fallback
+      try {
+        await auctionService.buyNow(id!, token);
+        await refetch();
+      } catch (fallbackErr) {
+        console.warn("Buy Now failed", fallbackErr);
+      }
     } finally {
       setIsCheckoutLoading(false);
     }
-  }, [checkAccess, token, dAuction, id, isOwner]);
+  }, [checkAccess, token, dAuction, id, isOwner, refetch]);
 
   const toggleWatch = useCallback(async () => {
     if (!token || !id) return;

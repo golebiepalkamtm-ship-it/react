@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 export type Reference = {
   id: string;
@@ -23,6 +23,11 @@ export type CreateReferenceRequest = {
   opinion?: string;
   achievements?: unknown;
   pigeon_name?: string;
+  images?: string[];
+};
+
+export type UpdateReferenceRequest = Partial<CreateReferenceRequest> & {
+  is_approved?: boolean;
   images?: string[];
 };
 
@@ -235,6 +240,62 @@ export const referenceService = {
     }
 
     return created;
+  },
+
+  async updateReference(id: string, payload: UpdateReferenceRequest): Promise<Reference> {
+    // update local cache
+    const local = readLocalReferences();
+    const idx = local.findIndex((r) => r.id === id);
+    const mergedLocal =
+      idx >= 0
+        ? normalizeReference({ ...local[idx], ...payload, id })
+        : normalizeReference({ ...payload, id });
+    writeLocalReferences([mergedLocal, ...local.filter((r) => r.id !== id)]);
+
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('references')
+          .update({
+            breeder_name: payload.breeder_name,
+            location: payload.location,
+            experience: payload.experience,
+            opinion: payload.opinion ?? payload.testimonial,
+            rating: payload.rating,
+            achievements: payload.achievements,
+            pigeon_name: payload.pigeon_name,
+            images: payload.images,
+            is_approved:
+              typeof payload.is_approved === 'boolean' ? payload.is_approved : undefined,
+          })
+          .eq('id', id)
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          return normalizeReference(data);
+        }
+      } catch (err) {
+        console.error('Supabase update reference failed', err);
+      }
+    }
+
+    // fallback
+    return mergedLocal;
+  },
+
+  async deleteReference(id: string): Promise<void> {
+    const local = readLocalReferences().filter((r) => r.id !== id);
+    writeLocalReferences(local);
+
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('references').delete().eq('id', id);
+        if (error) console.warn('Supabase delete reference error:', error.message);
+      } catch (err) {
+        console.error('Supabase delete reference failed', err);
+      }
+    }
   },
 };
 

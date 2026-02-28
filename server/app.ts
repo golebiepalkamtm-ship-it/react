@@ -50,6 +50,7 @@ import { prisma } from "./lib/db.js";
 
 import { RedisStore } from "connect-redis";
 import redisClient from "./lib/redis.js";
+import { z } from "zod";
 
 let sessionStore;
 if (redisClient) {
@@ -178,9 +179,6 @@ app.get("/api/health", HealthController.readiness);
 app.get("/api", (req, res) => {
   res.json({
     status: "OK",
-    name: "champion-pigeon-api",
-    timestamp: new Date().toISOString(),
-    health: "/api/health",
   });
 });
 
@@ -326,6 +324,93 @@ app.get(
   },
 );
 
+const parseMeetingPayload = (raw: any) => {
+  if (typeof raw?.data === "string") {
+    try {
+      return { ...JSON.parse(raw.data), files: raw.images };
+    } catch {
+      return raw;
+    }
+  }
+  return raw;
+};
+
+app.patch(
+  "/api/breeder-meetings/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    if (!prisma) {
+      return res.status(503).json({ error: "Baza danych jest niedostępna." });
+    }
+    const payload = parseMeetingPayload(req.body);
+    const { id } = req.params;
+
+    const meetingSchema = z
+      .object({
+        name: z.string().min(1).optional(),
+        location: z.string().min(1).optional(),
+        description: z.string().optional(),
+        date: z.string().optional(),
+        images: z.array(z.string()).optional(),
+        existingImages: z.array(z.string()).optional(),
+      })
+      .passthrough();
+
+    const parsed = meetingSchema.safeParse(payload);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Nieprawidłowe dane wejściowe." });
+    }
+
+    const mergedImages =
+      parsed.data.images ||
+      parsed.data.existingImages ||
+      (Array.isArray((payload as any)?.files)
+        ? (payload as any).files
+        : undefined);
+
+    try {
+      const updated = await prisma.meeting.update({
+        where: { id },
+        data: {
+          name: parsed.data.name,
+          location: parsed.data.location,
+          description: parsed.data.description,
+          date: parsed.data.date ? new Date(parsed.data.date) : undefined,
+          images: mergedImages,
+        },
+      });
+      return res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating meeting:", error);
+      return res.status(500).json({
+        error: "Nie udało się zaktualizować spotkania.",
+        details: error?.message,
+      });
+    }
+  },
+);
+
+app.delete(
+  "/api/breeder-meetings/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    if (!prisma) {
+      return res.status(503).json({ error: "Baza danych jest niedostępna." });
+    }
+    const { id } = req.params;
+    try {
+      await prisma.meeting.delete({ where: { id } });
+      return res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting meeting:", error);
+      return res.status(500).json({
+        error: "Nie udało się usunąć spotkania.",
+        details: error?.message,
+      });
+    }
+  },
+);
+
 // API: Breeder Meetings (Add New)
 app.post(
   "/api/breeder-meetings",
@@ -461,6 +546,128 @@ app.get(
       res
         .status(500)
         .json({ error: `Failed to load references data: ${error.message}` });
+    }
+  },
+);
+
+const normalizeReferenceBody = (body: any) => {
+  const src = typeof body?.data === "string" ? JSON.parse(body.data) : body;
+  return {
+    breederName: src.breederName ?? src.breeder_name,
+    location: src.location,
+    rating: Number(src.rating ?? 5),
+    opinion: src.opinion ?? src.testimonial ?? src.experience,
+    experience: src.experience,
+    achievements: src.achievements,
+    pigeonName: src.pigeonName ?? src.pigeon_name,
+    images: Array.isArray(src.images) ? src.images : [],
+    isApproved:
+      typeof src.isApproved === "boolean"
+        ? src.isApproved
+        : typeof src.is_approved === "boolean"
+          ? src.is_approved
+          : false,
+  };
+};
+
+app.post("/api/references", authMiddleware, async (req: Request, res: Response) => {
+  if (!prisma) {
+    return res.status(503).json({ error: "Baza danych jest niedostępna." });
+  }
+  const user = (req as any).user;
+  if (user?.role !== "ADMIN") {
+    return res.status(403).json({ error: "Brak uprawnień." });
+  }
+  const payload = normalizeReferenceBody(req.body);
+
+  if (!payload.breederName || !payload.location) {
+    return res.status(400).json({ error: "breederName i location są wymagane." });
+  }
+
+  try {
+    const created = await prisma.reference.create({
+      data: {
+        breederName: payload.breederName,
+        location: payload.location,
+        rating: payload.rating || 5,
+        opinion: payload.opinion,
+        experience: payload.experience,
+        achievements: payload.achievements,
+        pigeonName: payload.pigeonName,
+        images: payload.images,
+        isApproved: payload.isApproved ?? false,
+      },
+    });
+    return res.status(201).json(created);
+  } catch (error: any) {
+    console.error("Error creating reference:", error);
+    return res.status(500).json({
+      error: "Nie udało się utworzyć referencji.",
+      details: error?.message,
+    });
+  }
+});
+
+app.patch(
+  "/api/references/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    if (!prisma) {
+      return res.status(503).json({ error: "Baza danych jest niedostępna." });
+    }
+    const user = (req as any).user;
+    if (user?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Brak uprawnień." });
+    }
+    const payload = normalizeReferenceBody(req.body);
+    const { id } = req.params;
+    try {
+      const updated = await prisma.reference.update({
+        where: { id },
+        data: {
+          breederName: payload.breederName,
+          location: payload.location,
+          rating: payload.rating || undefined,
+          opinion: payload.opinion,
+          experience: payload.experience,
+          achievements: payload.achievements,
+          pigeonName: payload.pigeonName,
+          images: payload.images,
+          isApproved: payload.isApproved,
+        },
+      });
+      return res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating reference:", error);
+      return res.status(500).json({
+        error: "Nie udało się zaktualizować referencji.",
+        details: error?.message,
+      });
+    }
+  },
+);
+
+app.delete(
+  "/api/references/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    if (!prisma) {
+      return res.status(503).json({ error: "Baza danych jest niedostępna." });
+    }
+    const user = (req as any).user;
+    if (user?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Brak uprawnień." });
+    }
+    const { id } = req.params;
+    try {
+      await prisma.reference.delete({ where: { id } });
+      return res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting reference:", error);
+      return res.status(500).json({
+        error: "Nie udało się usunąć referencji.",
+        details: error?.message,
+      });
     }
   },
 );

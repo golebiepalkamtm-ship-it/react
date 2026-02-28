@@ -102,15 +102,18 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
       meta?: any;
     }) => {
       if (data.auctionId === auctionId) {
+        const price = Number(
+          data.currentPrice ?? data.bid?.amount ?? data.meta?.currentPrice,
+        );
         queryClient.setQueryData(
           ["auction", auctionId],
           (old: Auction | undefined) => {
             if (!old) return old;
             return {
               ...old,
-              currentPrice: data.currentPrice,
+              currentPrice: Number.isFinite(price) ? price : old.currentPrice,
               endTime: data.newEndTime || data.meta?.newEndTime || old.endTime,
-              bids: [data.bid, ...old.bids],
+              bids: [data.bid, ...(old.bids || [])],
               _count: {
                 ...old._count,
                 bids: (old._count?.bids || 0) + 1,
@@ -118,8 +121,11 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
             };
           },
         );
+        const priceFormatted = Number.isFinite(price)
+          ? `${price.toLocaleString("pl-PL")} zł`
+          : null;
         showSuccess({
-          message: `Nowa oferta: ${data.currentPrice.toLocaleString("pl-PL")} zł`,
+          message: priceFormatted ? `Nowa oferta: ${priceFormatted}` : "Nowa oferta",
         });
       }
     },
