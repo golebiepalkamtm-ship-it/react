@@ -169,7 +169,7 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({
     feedback,
     setFeedback,
     submit,
-  } = useAuctionForm({ category, onSuccess });
+  } = useAuctionForm({ category, onSuccess: onSuccess || undefined });
 
   const totalSteps = category === "pigeons" ? 3 : 2;
 
@@ -465,7 +465,7 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({
             files={documentFiles}
             onFilesChange={setDocumentFiles}
             maxFiles={2}
-            accept="image/*,.pdf"
+            accept="image/*,.pdf,application/pdf"
           />
         </div>
         <div className="space-y-3">

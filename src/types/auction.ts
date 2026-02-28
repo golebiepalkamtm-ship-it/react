@@ -25,9 +25,9 @@ export interface Seller {
 }
 
 export interface Pigeon {
-  ringNumber: string;
-  eyeColor: string;
-  pigeonColor: string;
+  ringNumber?: string;
+  eyeColor?: string;
+  pigeonColor?: string;
   construction: string;
   pedigreeUrl?: string;
   vitality: string;
@@ -77,7 +77,7 @@ export interface Auction {
   status: "active" | "ended" | "cancelled";
   reserveMet: boolean;
   category: string;
-  pigeon: Pigeon;
+  pigeon?: Pigeon;
   sex: "MALE" | "FEMALE";
   location: string;
   seller?: Seller;
@@ -124,14 +124,14 @@ export interface BidResponse {
 export interface CreateAuctionRequest {
   title: string;
   description: string;
-  startingPrice?: number;
-  buyNowPrice?: number;
-  reservePrice?: number;
+  startingPrice?: number | undefined;
+  buyNowPrice?: number | undefined;
+  reservePrice?: number | undefined;
   durationDays?: number;
   durationHours?: number;
   endTime: string;
   category: string;
-  pigeon: Partial<Pigeon>;
+  pigeon?: Partial<Pigeon>;
   sex: "MALE" | "FEMALE";
   location: string;
   images: string[];

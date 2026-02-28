@@ -14,7 +14,7 @@ const FileUpload = ({
   onFilesChange, 
   maxFiles = 10, 
   maxSize = 10,
-  accept = "image/jpeg,image/png,image/gif,image/bmp,image/webp,video/mp4,video/avi,video/mov,video/wmv,application/pdf,.psd"
+  accept = "image/jpeg,image/png,image/gif,image/bmp,image/webp,video/mp4,video/avi,video/mov,video/wmv,application/pdf,.psd,.pdf"
 }: FileUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,9 +50,9 @@ const FileUpload = ({
       reader.readAsDataURL(file);
     });
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image();
+      const image = new Image() as HTMLImageElement;
       image.onload = () => resolve(image);
-      image.onerror = reject;
+      image.onerror = () => reject(new Error('Failed to load image'));
       image.src = dataUrl;
     });
     const w = img.naturalWidth || img.width;
@@ -65,11 +65,11 @@ const FileUpload = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return file;
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, mime, quality));
+    const blob: Blob | null = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mime, quality));
     if (!blob) return file;
     const nameBase = file.name.replace(/\.[^/.]+$/, '');
     const ext = mime === 'image/webp' ? 'webp' : 'jpg';
-    const newFile = new File([blob], `${nameBase}.${ext}`, { type: mime, lastModified: Date.now() });
+    const newFile = new File([blob], `${nameBase}.${ext}`, { type: mime, lastModified: Date.now() }) as File;
     return newFile;
   };
 

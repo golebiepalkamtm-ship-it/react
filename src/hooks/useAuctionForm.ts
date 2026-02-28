@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { auctionService } from "@/services/auctionService";
-import { CreateAuctionRequest } from "@/types/auction";
+import { CreateAuctionRequest, Pigeon } from "@/types/auction";
 import { useFileUpload } from "@/hooks/useFileUpload";
 
 interface UseAuctionFormOptions {
   category: "pigeons" | "supplements" | "accessories";
-  onSuccess?: () => void;
+  onSuccess?: (() => void) | undefined;
 }
 
 export const useAuctionForm = ({
@@ -35,22 +35,8 @@ export const useAuctionForm = ({
     durationHours: 0 as any,
     pigeon:
       category === "pigeons"
-        ? {
-            ringNumber: "",
-            colorTraits: [],
-            eyeTraits: [],
-            bodyStructureTraits: [],
-            musculatureTraits: [],
-            wingTraits: [],
-            breedingValueTraits: [],
-            distanceTraits: [],
-            dnaCertificate: false,
-          }
-        : ({
-            vitality: "N/A",
-            endurance: "N/A",
-            gender: "male",
-          } as any),
+        ? ({} as Partial<Pigeon>)
+        : ({} as Partial<Pigeon>),
   });
 
   const [isBidding, setIsBidding] = useState(true);
@@ -73,7 +59,7 @@ export const useAuctionForm = ({
   });
 
   const { uploadFiles, isUploading } = useFileUpload({
-    token: session?.access_token,
+    token: session?.access_token || null,
     onProgress: (msg) =>
       setFeedback((prev) => ({ ...prev, message: msg, isOpen: true })),
   });
@@ -136,8 +122,8 @@ export const useAuctionForm = ({
       const request: CreateAuctionRequest = {
         title: formData.title!,
         description: formData.description || "",
-        startingPrice: isBidding ? Number(formData.startingPrice) : undefined,
-        buyNowPrice: isBuyNow ? Number(formData.buyNowPrice) : undefined,
+        startingPrice: isBidding ? Number(formData.startingPrice) : undefined as number | undefined,
+        buyNowPrice: isBuyNow ? Number(formData.buyNowPrice) : undefined as number | undefined,
         category: formData.category as any,
         sex: formData.sex as any,
         location: formData.location!,
@@ -147,10 +133,7 @@ export const useAuctionForm = ({
         endTime: endTime.toISOString(),
         pigeon:
           category === "pigeons"
-            ? {
-                ...formData.pigeon,
-                ringNumber: formData.pigeon?.ringNumber?.trim(),
-              }
+            ? (formData.pigeon || {})
             : {},
       };
 
