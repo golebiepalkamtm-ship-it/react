@@ -19,6 +19,8 @@ import { GSAPPageTransition } from "@/components/motion";
 import { UIProviders } from "@/components/ui/UIProviders";
 
 import { trackMetric } from "@/services/metricsService";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import {
   LazyIndex,
@@ -106,6 +108,8 @@ const App = () => {
               >
                 <TooltipProvider>
                   <AnalyticsTracker />
+                  <Analytics />
+                  <SpeedInsights />
                   <Toaster />
                   <Sonner />
                   <CursorFollower size={22} color="rgba(166, 142, 78, 0.45)" />
