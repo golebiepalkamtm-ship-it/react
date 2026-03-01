@@ -70,6 +70,7 @@ const AuctionDetail: React.FC = () => {
     isLoading: loading,
     error,
     refetch: refetchAuction,
+    viewersCount,
   } = useAuction({ auctionId: id || "" });
   const { isEnded } = useAuctionTimer(auction?.endTime);
   const [bidAmount, setBidAmount] = useState<string>("");
@@ -365,19 +366,19 @@ const AuctionDetail: React.FC = () => {
       }
       // If no URL or invalid -> fallback to direct buy-now endpoint
       await auctionService.buyNow(id!, token);
-      await refetch();
+      await refetchAuction();
     } catch (err: any) {
       // Stripe minimum amount (<2 PLN) or any 4xx/5xx -> fallback
       try {
         await auctionService.buyNow(id!, token);
-        await refetch();
+        await refetchAuction();
       } catch (fallbackErr) {
         console.warn("Buy Now failed", fallbackErr);
       }
     } finally {
       setIsCheckoutLoading(false);
     }
-  }, [checkAccess, token, dAuction, id, isOwner, refetch]);
+  }, [checkAccess, token, dAuction, id, isOwner, refetchAuction]);
 
   const toggleWatch = useCallback(async () => {
     if (!token || !id) return;
@@ -670,6 +671,17 @@ const AuctionDetail: React.FC = () => {
                             <span className="text-[11px] font-bold text-[#A68E4E]">
                               {dAuction._count?.watchlist || 0}
                             </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] text-green-500/60 uppercase tracking-widest font-black">
+                              Przegląda:
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                              <span className="text-[11px] font-bold text-green-500">
+                                {viewersCount > 0 ? viewersCount : 1}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -9,7 +9,7 @@ import React, {
 import { logger } from "@/lib/logger";
 import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/hooks/use-toast";
 import { apiClient } from "@/services/api";
 import { calculateRole, UserWithVerifications } from "../types/roles.js";
 

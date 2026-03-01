@@ -79,6 +79,7 @@ interface UseAuctionOptions {
 export const useAuction = ({ auctionId }: UseAuctionOptions) => {
   const queryClient = useQueryClient();
   const { success: showSuccess, info: showInfo } = useOptimizedToast();
+  const [viewersCount, setViewersCount] = useState<number>(0);
 
   const {
     data: auction,
@@ -125,7 +126,9 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
           ? `${price.toLocaleString("pl-PL")} zł`
           : null;
         showSuccess({
-          message: priceFormatted ? `Nowa oferta: ${priceFormatted}` : "Nowa oferta",
+          message: priceFormatted
+            ? `Nowa oferta: ${priceFormatted}`
+            : "Nowa oferta",
         });
       }
     },
@@ -156,9 +159,20 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
         });
       }
     },
+    onViewersCount: (data: { auctionId: string; count: number }) => {
+      if (data.auctionId === auctionId) {
+        setViewersCount(data.count);
+      }
+    },
   });
 
-  return { auction, isLoading, error: error as Error | null, refetch };
+  return {
+    auction,
+    isLoading,
+    error: error as Error | null,
+    refetch,
+    viewersCount,
+  };
 };
 
 export function useBid(auctionId: string, currentEndTime?: string) {

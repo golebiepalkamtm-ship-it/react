@@ -1,6 +1,6 @@
 // Scroll reveal - unified implementation (moved to motion/)
-export { RevealOnScroll, Reveal } from '../motion/RevealOnScroll';
-export { default as AnimatedSections } from './AnimatedSections';
+export { RevealOnScroll, Reveal } from "../motion/RevealOnScroll";
+export { default as AnimatedSections } from "./AnimatedSections";
 
 // GSAP scroll animations
 export {
@@ -14,39 +14,38 @@ export {
   GsapCountUp,
   GsapRotateIn,
   GsapBlurIn,
-} from './GsapScrollAnimations';
+} from "./GsapScrollAnimations";
 
-// Hooks
-export { useGsapScroll, useGsapTimeline, gsapUtils } from '../../hooks/useGsapScroll';
+// GSAP scroll animations (exports removed as hooks were unused)
 
 // Living Web Animation System
-export { SmoothScrollProvider, useLenis, useLenisContext } from './SmoothScrollProvider';
-export { SplitText } from './SplitText';
-export { LottieScroll } from './LottieScroll';
+export {
+  SmoothScrollProvider,
+  useLenis,
+  useLenisContext,
+} from "./SmoothScrollProvider";
+export { SplitText } from "./SplitText";
+export { LottieScroll } from "./LottieScroll";
 // ParallaxSection removed - use AdvancedParallax instead
-export { PinnedSection } from './PinnedSection';
+export { PinnedSection } from "./PinnedSection";
 // RevealOnScroll moved to motion/RevealOnScroll - use unified version
-export { HorizontalScroll } from './HorizontalScroll';
+export { HorizontalScroll } from "./HorizontalScroll";
 
 // Premium Animation System - Awwwards Level
-export { VideoBackground, VideoReveal } from './VideoBackground';
-export { 
-  AdvancedParallax, 
-  DepthLayer, 
-  ParallaxImage, 
-  FloatingElement 
-} from './AdvancedParallax';
-export { 
-  MagneticElement, 
-  CursorFollower, 
-  HoverScale 
-} from './MagneticCursor';
-export { 
-  PremiumTextReveal, 
-  TypewriterText, 
-  CountUp, 
-  GradientText 
-} from './PremiumTextReveal';
+export { VideoBackground, VideoReveal } from "./VideoBackground";
+export {
+  AdvancedParallax,
+  DepthLayer,
+  ParallaxImage,
+  FloatingElement,
+} from "./AdvancedParallax";
+export { MagneticElement, CursorFollower, HoverScale } from "./MagneticCursor";
+export {
+  PremiumTextReveal,
+  TypewriterText,
+  CountUp,
+  GradientText,
+} from "./PremiumTextReveal";
 export {
   SeamlessSection,
   PinnedReveal,
@@ -54,4 +53,4 @@ export {
   HorizontalPanel,
   ColorTransitionSection,
   ProgressIndicator,
-} from './SeamlessTransitions';
+} from "./SeamlessTransitions";
