@@ -8,6 +8,7 @@ const router: Router = express.Router();
 const trackSchema = z.object({
   scope: z.enum(["SITE", "AUCTION", "GALLERY_IMAGE"]),
   targetId: z.string().trim().min(1).optional(),
+  path: z.string().optional(),
 });
 
 /**
@@ -19,8 +20,24 @@ router.post("/track", globalLimiter, async (req, res) => {
     if (!parsed.success) {
       return res.status(400).json({ error: "Invalid payload" });
     }
-    const { scope, targetId } = parsed.data;
+    const { scope, targetId, path } = parsed.data;
     const effectiveTargetId = targetId ?? "global";
+
+    // Detect IP and User Agent
+    const ip =
+      (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.ip;
+    const userAgent = req.get("User-Agent");
+
+    // Log to individual page_views table if path is provided
+    if (path) {
+      await prisma.pageView.create({
+        data: {
+          path,
+          ipAddress: ip,
+          userAgent,
+        },
+      });
+    }
 
     // Use correct unique constraint for upsert
     // Note: targetId is TEXT in DB (altered from UUID) to support 'global'

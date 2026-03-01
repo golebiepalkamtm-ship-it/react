@@ -78,9 +78,16 @@ const BackgroundWrapper = () => {
 
 import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
 
-const App = () => {
+const AnalyticsTracker = () => {
+  const location = useLocation();
   useEffect(() => {
     trackMetric("SITE").catch(() => {});
+  }, [location.pathname]);
+  return null;
+};
+
+const App = () => {
+  useEffect(() => {
     // Remove FOUC guard
     document.documentElement.classList.remove("js-loading");
   }, []);
@@ -98,6 +105,7 @@ const App = () => {
                 }}
               >
                 <TooltipProvider>
+                  <AnalyticsTracker />
                   <Toaster />
                   <Sonner />
                   <CursorFollower size={22} color="rgba(166, 142, 78, 0.45)" />

@@ -162,6 +162,9 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
       topSellers,
       topBidders,
       paymentsSummary,
+      totalPageViews,
+      pageViewsByPath,
+      recentVisits,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.auction.count({ where: { status: "ACTIVE" } }),
@@ -195,6 +198,23 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
         _sum: { amount: true },
         _count: { id: true },
         where: { status: "SUCCEEDED" },
+      }),
+      prisma.pageView.count(),
+      prisma.pageView.groupBy({
+        by: ["path"],
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: 20,
+      }),
+      prisma.pageView.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: {
+          path: true,
+          ipAddress: true,
+          userAgent: true,
+          createdAt: true,
+        },
       }),
     ]);
 
@@ -230,6 +250,12 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
       user: b.bidderId ? bidderMap[b.bidderId] : null,
     }));
 
+    // Process page view stats
+    const visitsByPath = pageViewsByPath.map((p) => ({
+      path: p.path,
+      count: p._count.id,
+    }));
+
     res.json({
       totalUsers,
       activeAuctions,
@@ -250,6 +276,11 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
       payments: {
         total: Number(paymentsSummary._sum.amount || 0),
         count: paymentsSummary._count.id,
+      },
+      analytics: {
+        totalPageViews,
+        visitsByPath,
+        recentVisits,
       },
     });
   } catch (error: any) {

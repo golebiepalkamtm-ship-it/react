@@ -341,6 +341,18 @@ model Metric {
   @@map("metrics")
 }
 
+model PageView {
+  id        String   @id @default(uuid()) @db.Uuid
+  path      String
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([path])
+  @@index([createdAt])
+  @@map("page_views")
+}
+
 enum AuctionStatus {
   ACTIVE
   ENDED

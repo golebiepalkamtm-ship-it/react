@@ -5,7 +5,14 @@ import apiClient from "@/services/api";
 import useChampions from "@/hooks/useChampions";
 import { meetingsService, Meeting } from "@/services/meetingsService";
 import referenceService, { Reference } from "@/services/referenceService";
-import { Trophy, Users, Star, UserCog, AlertCircle } from "lucide-react";
+import {
+  Trophy,
+  Users,
+  Star,
+  UserCog,
+  AlertCircle,
+  BarChart2,
+} from "lucide-react";
 
 interface UserItem {
   id: string;
@@ -18,7 +25,7 @@ interface UserItem {
 const AdminPage: React.FC = () => {
   const { profile, session } = useAuth();
   const [activeTab, setActiveTab] = useState<
-    "users" | "champions" | "meetings" | "references"
+    "users" | "champions" | "meetings" | "references" | "analytics"
   >("users");
 
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -138,7 +145,7 @@ const AdminPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <div className="bg-black/40 border border-white/5 p-4 rounded-xl backdrop-blur-md">
           <div className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
             Aukcje
@@ -149,10 +156,10 @@ const AdminPage: React.FC = () => {
         </div>
         <div className="bg-black/40 border border-white/5 p-4 rounded-xl backdrop-blur-md">
           <div className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
-            Aktywne
+            Odwiedziny
           </div>
-          <div className="text-2xl font-bold text-green-500">
-            {stats?.activeAuctions ?? "..."}
+          <div className="text-2xl font-bold text-blue-400">
+            {stats?.analytics?.totalPageViews ?? "..."}
           </div>
         </div>
         <div className="bg-black/40 border border-white/5 p-4 rounded-xl backdrop-blur-md">
@@ -163,10 +170,18 @@ const AdminPage: React.FC = () => {
         </div>
         <div className="bg-black/40 border border-gold/20 p-4 rounded-xl backdrop-blur-md shadow-[0_0_15px_rgba(212,175,55,0.1)]">
           <div className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
-            Wolumen całkowity
+            Wolumen
           </div>
           <div className="text-2xl font-bold text-gold">
-            {stats?.totalVolume ?? "..."} PLN
+            {stats?.totalVolume ?? "..."}
+          </div>
+        </div>
+        <div className="bg-black/40 border border-white/5 p-4 rounded-xl backdrop-blur-md">
+          <div className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
+            Aktywne
+          </div>
+          <div className="text-2xl font-bold text-green-500">
+            {stats?.activeAuctions ?? "..."}
           </div>
         </div>
       </div>
@@ -195,6 +210,12 @@ const AdminPage: React.FC = () => {
           className={`whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === "references" ? "bg-gold/10 text-gold border border-gold/30" : "bg-transparent text-white/60 hover:text-white hover:bg-white/5 border border-transparent"}`}
         >
           <Star className="w-4 h-4" /> Referencje
+        </button>
+        <button
+          onClick={() => setActiveTab("analytics")}
+          className={`whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === "analytics" ? "bg-gold/10 text-gold border border-gold/30" : "bg-transparent text-white/60 hover:text-white hover:bg-white/5 border border-transparent"}`}
+        >
+          <BarChart2 className="w-4 h-4" /> Wizyty
         </button>
       </div>
 
@@ -420,7 +441,7 @@ const AdminPage: React.FC = () => {
                     </div>
                   </div>
                   <p className="text-sm text-white/80 line-clamp-3 mb-4 italic">
-                    "{r.opinion || r.testimonial}"
+                    "{r.opinion}"
                   </p>
 
                   {r.images && r.images.length > 0 && (
@@ -475,6 +496,101 @@ const AdminPage: React.FC = () => {
                   Baza referencji jest pusta
                 </div>
               )}
+            </div>
+          </section>
+        )}
+        {/* ANALYTICS TAB */}
+        {activeTab === "analytics" && (
+          <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <h2 className="font-medium text-xl mb-6 text-white">
+              Analityka odwiedzin (IP Tracking)
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
+                  Najpopularniejsze Podstrony
+                </h3>
+                <div className="space-y-4">
+                  {stats?.analytics?.visitsByPath?.map((v: any, i: number) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between group"
+                    >
+                      <div className="text-sm text-white/80 group-hover:text-gold transition-colors truncate max-w-[200px] sm:max-w-none">
+                        {v.path}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-1.5 w-24 bg-white/5 rounded-full overflow-hidden hidden sm:block">
+                          <div
+                            className="h-full bg-gold/50"
+                            style={{
+                              width: `${Math.min(100, (v.count / (stats.analytics.visitsByPath[0]?.count || 1)) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-gold">
+                          {v.count}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {(!stats?.analytics?.visitsByPath ||
+                    stats.analytics.visitsByPath.length === 0) && (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                      Brak danych o odwiedzinach
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-5 bg-white/5 border border-white/10 rounded-xl">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4 border-b border-white/5 pb-2">
+                  Ostatnie wejścia
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px] text-white/60">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40">
+                        <th className="pb-2 font-medium">Czas (Local)</th>
+                        <th className="pb-2 font-medium">Ścieżka</th>
+                        <th className="pb-2 font-medium">IP Użytkownika</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {stats?.analytics?.recentVisits?.map(
+                        (v: any, i: number) => (
+                          <tr
+                            key={i}
+                            className="hover:bg-white/5 transition-colors"
+                          >
+                            <td className="py-2.5">
+                              {new Date(v.createdAt).toLocaleTimeString()}
+                            </td>
+                            <td className="py-2.5 text-white/80 truncate max-w-[120px]">
+                              {v.path}
+                            </td>
+                            <td className="py-2.5 font-mono text-gold/70">
+                              {v.ipAddress || "Unknown"}
+                            </td>
+                          </tr>
+                        ),
+                      )}
+                      {(!stats?.analytics?.recentVisits ||
+                        stats.analytics.recentVisits.length === 0) && (
+                        <tr>
+                          <td
+                            colSpan={3}
+                            className="py-8 text-center text-muted-foreground"
+                          >
+                            Brak ostatnich wejść
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </section>
         )}

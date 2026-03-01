@@ -1,35 +1,38 @@
-type MetricScope = 'SITE' | 'AUCTION' | 'GALLERY_IMAGE';
+type MetricScope = "SITE" | "AUCTION" | "GALLERY_IMAGE";
 
 const alreadySent = new Set<string>();
 
-const key = (scope: MetricScope, targetId?: string) => `${scope}:${targetId ?? 'global'}`;
+const key = (scope: MetricScope, targetId?: string, path?: string) =>
+  `${scope}:${targetId ?? "global"}:${path ?? ""}`;
 
 const sanitizeEnvValue = (value: string | undefined) => {
   if (!value) return value;
   const trimmed = value.trim();
-  const wrapped = (trimmed.startsWith('`') && trimmed.endsWith('`'))
-    || (trimmed.startsWith('"') && trimmed.endsWith('"'))
-    || (trimmed.startsWith("'") && trimmed.endsWith("'"));
+  const wrapped =
+    (trimmed.startsWith("`") && trimmed.endsWith("`")) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"));
   return wrapped ? trimmed.slice(1, -1).trim() : trimmed;
 };
 
 const normalizeApiBase = (raw?: string) => {
-  if (!raw) return '';
-  const trimmed = raw.trim().replace(/\/+$/, '');
+  if (!raw) return "";
+  const trimmed = raw.trim().replace(/\/+$/, "");
   // Remove www subdomain to match CSP configuration
-  const normalized = trimmed.replace(/^https?:\/\/www\./, 'https://');
-  return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
+  const normalized = trimmed.replace(/^https?:\/\/www\./, "https://");
+  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
 };
 
 const appendAlternateLocalhost = (base: string) => {
   try {
     const url = new URL(base);
-    if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') return [base];
-    const port = url.port || (url.protocol === 'https:' ? '443' : '80');
-    const nextPort = port === '8001' ? '8002' : port === '8002' ? '8001' : null;
+    if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1")
+      return [base];
+    const port = url.port || (url.protocol === "https:" ? "443" : "80");
+    const nextPort = port === "8001" ? "8002" : port === "8002" ? "8001" : null;
     if (!nextPort) return [base];
     url.port = nextPort;
-    const alternate = url.toString().replace(/\/$/, '');
+    const alternate = url.toString().replace(/\/$/, "");
     return [base, alternate];
   } catch {
     return [base];
@@ -37,16 +40,17 @@ const appendAlternateLocalhost = (base: string) => {
 };
 
 const resolveBaseUrls = () => {
-  const envBase = normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL))
-    || normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL));
+  const envBase =
+    normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_BASE_URL)) ||
+    normalizeApiBase(sanitizeEnvValue(import.meta.env.VITE_API_URL));
   if (envBase) return appendAlternateLocalhost(envBase);
-  if (typeof window !== 'undefined' && window.location?.origin) {
+  if (typeof window !== "undefined" && window.location?.origin) {
     return appendAlternateLocalhost(`${window.location.origin}/api`);
   }
   return [];
 };
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let isServerAvailable = true;
 let lastCheck = 0;
@@ -62,7 +66,9 @@ const probeHealth = async (baseUrl: string): Promise<boolean> => {
     return false;
   }
   try {
-    const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/health`, { method: 'GET' });
+    const res = await fetch(`${baseUrl.replace(/\/+$/, "")}/health`, {
+      method: "GET",
+    });
     return res.ok;
   } catch {
     lastFailedAt[baseUrl] = now;
@@ -70,8 +76,16 @@ const probeHealth = async (baseUrl: string): Promise<boolean> => {
   }
 };
 
-export async function trackMetric(scope: MetricScope, targetId?: string) {
-  const memoKey = key(scope, targetId);
+export async function trackMetric(
+  scope: MetricScope,
+  targetId?: string,
+  customPath?: string,
+) {
+  const path =
+    customPath ||
+    (typeof window !== "undefined" ? window.location.pathname : undefined);
+
+  const memoKey = key(scope, targetId, path);
   if (alreadySent.has(memoKey)) return;
 
   const now = Date.now();
@@ -86,12 +100,12 @@ export async function trackMetric(scope: MetricScope, targetId?: string) {
   const send = async (baseUrl: string, attempt: number): Promise<void> => {
     try {
       const res = await fetch(`${baseUrl}/metrics/track`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ scope, targetId }),
-        credentials: 'include',
+        body: JSON.stringify({ scope, targetId, path }),
+        credentials: "include",
         keepalive: true,
       });
 
@@ -107,7 +121,7 @@ export async function trackMetric(scope: MetricScope, targetId?: string) {
         isServerAvailable = false;
         lastCheck = now;
         if (import.meta.env.DEV) {
-          console.warn('Metrics track error:', res.status);
+          console.warn("Metrics track error:", res.status);
         }
       }
     } catch (error) {
@@ -119,23 +133,26 @@ export async function trackMetric(scope: MetricScope, targetId?: string) {
       isServerAvailable = false;
       lastCheck = now;
       if (import.meta.env.DEV) {
-        console.warn('Metrics track error', error);
+        console.warn("Metrics track error", error);
       }
     }
   };
 
   // Prefer previously successful base
-  const candidates = preferredBaseUrl ? [preferredBaseUrl, ...baseUrls.filter(b => b !== preferredBaseUrl)] : baseUrls;
+  const candidates = preferredBaseUrl
+    ? [preferredBaseUrl, ...baseUrls.filter((b) => b !== preferredBaseUrl)]
+    : baseUrls;
   // Quick health probe to choose a working base
   let workingBase: string | null = null;
   for (const baseUrl of candidates) {
-    const healthy = await probeHealth(baseUrl.replace(/\/metrics\/?$/, ''));
+    const healthy = await probeHealth(baseUrl.replace(/\/metrics\/?$/, ""));
     if (healthy) {
       workingBase = baseUrl;
       break;
     }
   }
   const targetBase = workingBase ?? candidates[0];
+  if (!targetBase) return;
   await send(targetBase, 0);
   if (isServerAvailable) {
     preferredBaseUrl = targetBase;
