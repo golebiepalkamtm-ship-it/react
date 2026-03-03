@@ -188,7 +188,7 @@ export const NeonCursor = () => {
 
     const RADIUS1 = 5;
     const RADIUS2 = 30;
-    const CURVE_LERP = 0.5;
+    const CURVE_LERP = 0.85;
     const VEL_THRESHOLD = 10;
     const SLEEP_RX = 100;
     const SLEEP_RY = 100;
@@ -315,13 +315,13 @@ export const NeonCursor = () => {
         const r2 = (SLEEP_RY * wWidth) / width;
         curvePoints[0]!.x = r1 * Math.cos(t1);
         curvePoints[0]!.y = r2 * Math.sin(t2);
-        colorR = 0.5 + 0.5 * Math.cos(time * 0.0015);
-        colorG = 0;
-        colorB = 1 - colorR;
+        colorR = 1.0;
+        colorG = 1.0;
+        colorB = 1.0;
       } else {
-        colorR = velZ;
-        colorG = 0;
-        colorB = 1 - velZ;
+        colorR = 1.0;
+        colorG = 1.0;
+        colorB = 1.0;
         velX *= 0.95;
         velY *= 0.95;
         velZ *= 0.95;
