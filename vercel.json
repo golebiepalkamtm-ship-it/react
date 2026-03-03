@@ -18,7 +18,7 @@
       "destination": "https://server-production-0e43.up.railway.app/socket.io/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
   ],
