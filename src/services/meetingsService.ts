@@ -83,10 +83,12 @@ export const meetingsService = {
 
       if (data && Array.isArray(data) && data.length > 0) {
         // Merge API data with static data, prioritizing API data (newest first)
-        // Filter out any static meetings that might be duplicated by ID in the API data
+        // Filter out any static meetings that might be duplicated by ID or Name in the API data
         const apiIds = new Set(data.map((m) => m.id));
+        const apiNames = new Set(data.map((m) => m.name.toLowerCase()));
+
         const uniqueStatic = staticBreederMeetings.filter(
-          (m) => !apiIds.has(m.id),
+          (m) => !apiIds.has(m.id) && !apiNames.has(m.name.toLowerCase()),
         );
         return [...data, ...uniqueStatic];
       }

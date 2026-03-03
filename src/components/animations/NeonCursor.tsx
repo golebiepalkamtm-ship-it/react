@@ -188,7 +188,7 @@ export const NeonCursor = () => {
 
     const RADIUS1 = 5;
     const RADIUS2 = 30;
-    const CURVE_LERP = 0.85;
+    const CURVE_LERP = 0.9; // Faster following (0.0 to 1.0);
     const VEL_THRESHOLD = 10;
     const SLEEP_RX = 100;
     const SLEEP_RY = 100;
