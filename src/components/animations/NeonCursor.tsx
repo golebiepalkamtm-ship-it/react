@@ -1,35 +1,40 @@
 import { useEffect, useRef } from "react";
 
 /**
- * NeonCursor — Three.js neon trail effect (threejs-toys)
+ * NeonCursor — Three.js neon trail (threejs-toys)
  *
- * Creates a dedicated container div with proper z-index so the
- * WebGL canvas sits ABOVE the VolumetricBackground but BELOW page content.
- * Pointer events pass through so the page remains interactive.
+ * The library creates a <canvas> inside the `el` element and
+ * listens for pointer events on that same `el`.
+ *
+ * We pass `document.body` as `el` so the library can:
+ *  1. capture mouse events (needs pointer-events enabled)
+ *  2. size the canvas to body dimensions
+ *
+ * After init we style the created canvas with a high z-index
+ * and pointer-events:none so it renders above everything
+ * without blocking clicks.
  */
 
-// Dynamic import — Vite resolves "three" from node_modules at bundle time.
-// threejs-toys/src/export.js re-exports the neonCursor default function.
 const loadNeonCursor = () =>
   import("threejs-toys/src/cursors/neon/index").then((m) => m.default);
 
 export const NeonCursor = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (initializedRef.current) return; // guard against StrictMode double-mount
-    const container = containerRef.current;
-    if (!container) return;
+    if (initializedRef.current) return;
+
+    // Snapshot existing canvases so we can identify the new one
+    const existingCanvases = new Set(document.body.querySelectorAll("canvas"));
 
     let cancelled = false;
 
     loadNeonCursor().then((neonCursor) => {
-      if (cancelled || !container) return;
+      if (cancelled) return;
       initializedRef.current = true;
 
       neonCursor({
-        el: container,
+        el: document.body,
         shaderPoints: 16,
         curvePoints: 80,
         curveLerp: 0.5,
@@ -42,17 +47,22 @@ export const NeonCursor = () => {
         sleepTimeCoefY: 0.0025,
       });
 
-      // The library creates a <canvas> inside `container`.
-      // Ensure it fills the viewport and doesn't block clicks.
-      const canvas = container.querySelector("canvas");
-      if (canvas) {
-        canvas.style.position = "fixed";
-        canvas.style.inset = "0";
-        canvas.style.width = "100vw";
-        canvas.style.height = "100vh";
-        canvas.style.pointerEvents = "none";
-        canvas.style.zIndex = "9998"; // above background, below UI
-      }
+      // Find the newly created canvas (the one not in our snapshot)
+      requestAnimationFrame(() => {
+        const allCanvases = document.body.querySelectorAll(":scope > canvas");
+        allCanvases.forEach((canvas) => {
+          if (!existingCanvases.has(canvas)) {
+            const c = canvas as HTMLCanvasElement;
+            c.style.position = "fixed";
+            c.style.top = "0";
+            c.style.left = "0";
+            c.style.width = "100vw";
+            c.style.height = "100vh";
+            c.style.zIndex = "9998";
+            c.style.pointerEvents = "none";
+          }
+        });
+      });
     });
 
     return () => {
@@ -60,19 +70,5 @@ export const NeonCursor = () => {
     };
   }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      id="neon-cursor-container"
-      style={{
-        position: "fixed",
-        inset: 0,
-        width: "100vw",
-        height: "100vh",
-        pointerEvents: "none",
-        zIndex: 9998,
-        overflow: "hidden",
-      }}
-    />
-  );
+  return null;
 };
