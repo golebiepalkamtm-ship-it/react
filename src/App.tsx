@@ -43,7 +43,7 @@ import {
   LazyTerms,
   LazyPrivacy,
 } from "@/utils/lazyImports";
-import { NeonCursor } from "@/components/animations/NeonCursor";
+// NeonCursor loaded via index.html script tag (threejs-toys CDN)
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { HeroBackground } from "@/styles/HeroBackground";
 
@@ -110,7 +110,7 @@ const App = () => {
                   <Analytics />
                   <SpeedInsights />
                   <Toaster />
-                  <NeonCursor />
+                  {/* NeonCursor is loaded via index.html */}
                   <BackgroundWrapper />
                   <UIProviders>
                     <GSAPPageTransition duration={0.7} primaryColor="#09090b">
