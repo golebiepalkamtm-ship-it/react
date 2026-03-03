@@ -43,7 +43,7 @@ import {
   LazyTerms,
   LazyPrivacy,
 } from "@/utils/lazyImports";
-import { CursorFollower } from "@/components/animations/MagneticCursor";
+import { NeonCursor } from "@/components/animations/NeonCursor";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { HeroBackground } from "@/styles/HeroBackground";
 
@@ -110,7 +110,7 @@ const App = () => {
                   <Analytics />
                   <SpeedInsights />
                   <Toaster />
-                  <CursorFollower size={22} color="rgba(166, 142, 78, 0.45)" />
+                  <NeonCursor />
                   <BackgroundWrapper />
                   <UIProviders>
                     <GSAPPageTransition duration={0.7} primaryColor="#09090b">

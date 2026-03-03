@@ -72,11 +72,10 @@ const FRAGMENT_SHADER = `
     float rim = smoothstep(0.6, 0.2, rimDist) * smoothstep(0.05, 0.15, rimDist) * 0.15;
 
     // Combine
-    float lum = base + surface + spotlight + ambientGlow + rim;
+    float lum = base + surface + ambientGlow;
 
-    // Subtle silver tint on highlights
+    // Subtle silver tint
     vec3 color = vec3(lum);
-    color += vec3(0.02, 0.02, 0.03) * spotlight * 2.0; // cool silver on spotlight
     color *= vignette;
 
     // Film grain (very subtle)
@@ -133,7 +132,7 @@ const VolumetricBackground = () => {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-      gl.STATIC_DRAW
+      gl.STATIC_DRAW,
     );
     const pos = gl.getAttribLocation(program, "position");
     gl.enableVertexAttribArray(pos);
