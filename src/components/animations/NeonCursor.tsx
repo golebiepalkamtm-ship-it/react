@@ -90,7 +90,7 @@ const FRAG = `
     col = 1.0 - exp(-col);
     col = pow(col, vec3(0.4545));
 
-    gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(col, max(col.r, max(col.g, col.b)));
   }
 `;
 
@@ -134,6 +134,10 @@ export const NeonCursor = () => {
     gl.attachShader(program, fs);
     gl.linkProgram(program);
     gl.useProgram(program);
+
+    // Enable alpha blending so transparent areas show page content
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     // Fullscreen quad
     const buf = gl.createBuffer();
@@ -224,8 +228,8 @@ export const NeonCursor = () => {
       hover = true;
       const nx = (e.clientX / width) * 2 - 1;
       const ny = -((e.clientY / height) * 2 - 1);
-      curvePoints[0].x = 0.5 * nx * ratioX;
-      curvePoints[0].y = 0.5 * ny * ratioY;
+      curvePoints[0]!.x = 0.5 * nx * ratioX;
+      curvePoints[0]!.y = 0.5 * ny * ratioY;
 
       const dx = Math.abs(e.movementX || 0);
       const dy = Math.abs(e.movementY || 0);
@@ -257,10 +261,10 @@ export const NeonCursor = () => {
       const i = Math.floor(p);
       const f = p - i;
 
-      const p0 = pts[Math.max(0, i - 1)];
-      const p1 = pts[i];
-      const p2 = pts[Math.min(n, i + 1)];
-      const p3 = pts[Math.min(n, i + 2)];
+      const p0 = pts[Math.max(0, i - 1)]!;
+      const p1 = pts[i]!;
+      const p2 = pts[Math.min(n, i + 1)]!;
+      const p3 = pts[Math.min(n, i + 2)]!;
 
       const t2 = f * f;
       const t3 = t2 * f;
@@ -290,15 +294,15 @@ export const NeonCursor = () => {
 
       // Lerp curve points toward head
       for (let i = 1; i < CURVE_POINTS; i++) {
-        curvePoints[i].x +=
-          (curvePoints[i - 1].x - curvePoints[i].x) * CURVE_LERP;
-        curvePoints[i].y +=
-          (curvePoints[i - 1].y - curvePoints[i].y) * CURVE_LERP;
+        curvePoints[i]!.x +=
+          (curvePoints[i - 1]!.x - curvePoints[i]!.x) * CURVE_LERP;
+        curvePoints[i]!.y +=
+          (curvePoints[i - 1]!.y - curvePoints[i]!.y) * CURVE_LERP;
       }
 
       // Sample spline into shader points
       for (let i = 0; i < SHADER_POINTS; i++) {
-        getSplinePoint(curvePoints, i / (SHADER_POINTS - 1), shaderPts[i]);
+        getSplinePoint(curvePoints, i / (SHADER_POINTS - 1), shaderPts[i]!);
       }
 
       // Color logic
@@ -309,8 +313,8 @@ export const NeonCursor = () => {
         const wWidth = width >= height ? 1 : width / height;
         const r1 = (SLEEP_RX * wWidth) / width;
         const r2 = (SLEEP_RY * wWidth) / width;
-        curvePoints[0].x = r1 * Math.cos(t1);
-        curvePoints[0].y = r2 * Math.sin(t2);
+        curvePoints[0]!.x = r1 * Math.cos(t1);
+        curvePoints[0]!.y = r2 * Math.sin(t2);
         colorR = 0.5 + 0.5 * Math.cos(time * 0.0015);
         colorG = 0;
         colorB = 1 - colorR;
@@ -336,7 +340,7 @@ export const NeonCursor = () => {
       gl.uniform3f(uColor, colorR, colorG, colorB);
 
       for (let i = 0; i < SHADER_POINTS; i++) {
-        gl.uniform2f(uPointsLocs[i], shaderPts[i].x, shaderPts[i].y);
+        gl.uniform2f(uPointsLocs[i]!, shaderPts[i]!.x, shaderPts[i]!.y);
       }
 
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
