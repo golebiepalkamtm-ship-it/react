@@ -19,12 +19,10 @@ const Footer = () => {
   const socialLinks = [
     {
       icon: Facebook,
-      href: "https://www.facebook.com/PalkaGolebiepl/?locale=pl_PL",
+      href: "https://www.facebook.com/PalkaGolebiepl/",
       label: "Facebook",
     },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Youtube, href: "#", label: "YouTube" },
-    { icon: Twitter, href: "#", label: "Twitter" },
+    // Leaving out placeholders for now, unless you want them. User asked to add FB link.
   ];
 
   const footerLinks = {
@@ -122,6 +120,20 @@ const Footer = () => {
               <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium">
                 <Mail size={14} className="text-gold" />
                 <span>kontakt@palkamtm.pl</span>
+              </div>
+              <div className="flex items-center gap-4 mt-2">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-[#A68E4E] hover:border-[#A68E4E]/50 hover:bg-[#A68E4E]/10 transition-all"
+                    aria-label={social.label}
+                  >
+                    <social.icon size={14} />
+                  </a>
+                ))}
               </div>
             </div>
           </div>

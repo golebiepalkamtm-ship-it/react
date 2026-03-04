@@ -8,6 +8,7 @@ import {
   Navigation,
   Copy,
   Check,
+  Facebook,
 } from "lucide-react";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { contactService } from "@/services/contactService";
@@ -565,6 +566,13 @@ const ContactSection = () => {
       label: "Godziny pracy",
       value: "9:00 - 17:00",
       detail: "Poniedziałek - Piątek",
+    },
+    {
+      icon: Facebook,
+      label: "Facebook",
+      value: "MTM Pałka",
+      detail: "Obserwuj nasz profil",
+      href: "https://www.facebook.com/PalkaGolebiepl/",
     },
   ];
 

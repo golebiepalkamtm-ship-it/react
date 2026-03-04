@@ -292,15 +292,7 @@ const CTAFeaturesSection = () => {
 
   useGSAP(
     () => {
-      // 1. Initial States
-      gsap.set([badgeRef.current, titleRef.current, descRef.current], {
-        opacity: 0,
-        y: 40,
-        scale: 0.95,
-      });
-
       const cards = cardsRef.current.filter(Boolean);
-      gsap.set(cards, { opacity: 0, y: 80, scale: 0.95 });
 
       // 2. Master Timeline
       const tl = gsap.timeline({
@@ -308,21 +300,27 @@ const CTAFeaturesSection = () => {
           trigger: sectionRef.current,
           start: "top 80%", // Start early enough to be seen but not too late
           toggleActions: "play none none reverse",
+          fastScrollEnd: true,
         },
       });
 
-      // 3. Header Animation
-      tl.to(badgeRef.current, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.6,
-        ease: "back.out(1.5)",
-      })
-        .to(
+      // 3. Elements animation with fromTo ensures they are hidden initially
+      tl.fromTo(
+        badgeRef.current,
+        { autoAlpha: 0, y: 40, scale: 0.95 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          ease: "back.out(1.5)",
+        },
+      )
+        .fromTo(
           [titleRef.current, descRef.current],
+          { autoAlpha: 0, y: 40, scale: 0.95 },
           {
-            opacity: 1,
+            autoAlpha: 1,
             y: 0,
             scale: 1,
             duration: 0.8,
@@ -332,10 +330,11 @@ const CTAFeaturesSection = () => {
           "-=0.3",
         )
         // 4. Cards sequential appearance
-        .to(
+        .fromTo(
           cards,
+          { autoAlpha: 0, y: 60, scale: 0.95 },
           {
-            opacity: 1,
+            autoAlpha: 1,
             y: 0,
             scale: 1,
             duration: 1.0,
