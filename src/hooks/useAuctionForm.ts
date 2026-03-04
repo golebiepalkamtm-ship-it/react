@@ -58,11 +58,12 @@ export const useAuctionForm = ({
     message: "",
   });
 
-  const { uploadFiles, isUploading } = useFileUpload({
-    token: session?.access_token || null,
-    onProgress: (msg) =>
-      setFeedback((prev) => ({ ...prev, message: msg, isOpen: true })),
-  });
+  const { uploadFiles, uploadDocumentFiles, uploadVideoFiles, isUploading } =
+    useFileUpload({
+      token: session?.access_token || null,
+      onProgress: (msg) =>
+        setFeedback((prev) => ({ ...prev, message: msg, isOpen: true })),
+    });
 
   const validate = (): boolean => {
     if (!user || !profile) {
@@ -107,10 +108,13 @@ export const useAuctionForm = ({
       const imageUrls = await uploadFiles(imageFiles, "zdjęcia");
 
       // 2. Upload Videos
-      const videoUrls = await uploadFiles(videoFiles, "filmy");
+      const videoUrls = await uploadVideoFiles(videoFiles, "filmy");
 
-      // 3. Upload Documents (Pedigree etc.)
-      const documentUrls = await uploadFiles(documentFiles, "dokumenty");
+      // 3. Upload Documents (Pedigree / Rodowód - PDF or image)
+      const documentUrls = await uploadDocumentFiles(
+        documentFiles,
+        "dokumenty",
+      );
 
       // 4. Prepare Final Request
       const endTime = new Date();
@@ -122,8 +126,12 @@ export const useAuctionForm = ({
       const request: CreateAuctionRequest = {
         title: formData.title!,
         description: formData.description || "",
-        startingPrice: isBidding ? Number(formData.startingPrice) : undefined as number | undefined,
-        buyNowPrice: isBuyNow ? Number(formData.buyNowPrice) : undefined as number | undefined,
+        startingPrice: isBidding
+          ? Number(formData.startingPrice)
+          : (undefined as number | undefined),
+        buyNowPrice: isBuyNow
+          ? Number(formData.buyNowPrice)
+          : (undefined as number | undefined),
         category: formData.category as any,
         sex: formData.sex as any,
         location: formData.location!,
@@ -131,10 +139,7 @@ export const useAuctionForm = ({
         videos: videoUrls,
         documents: documentUrls,
         endTime: endTime.toISOString(),
-        pigeon:
-          category === "pigeons"
-            ? (formData.pigeon || {})
-            : {},
+        pigeon: category === "pigeons" ? formData.pigeon || {} : {},
       };
 
       await auctionService.createAuction(request, session?.access_token ?? "");

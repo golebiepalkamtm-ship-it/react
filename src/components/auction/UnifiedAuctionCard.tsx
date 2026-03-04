@@ -324,17 +324,14 @@ export const UnifiedAuctionCard = memo(
           }
         }}
         onMouseLeave={handleMouseLeave}
-        className="auction-card-shell group relative mx-auto flex h-auto min-h-[580px] w-full flex-col overflow-hidden rounded-2xl border cursor-pointer"
+        className="auction-card-shell group relative mx-auto flex h-auto min-h-[580px] w-full flex-col overflow-hidden rounded-2xl cursor-pointer"
         style={{
-          // transformStyle: "preserve-3d", // Disabled to prevent blur
-          // scale,
-          // rotateX, // Disabled 3D tilt
-          // rotateY, // Disabled 3D tilt
-          // z,       // Disabled 3D lift
           backgroundImage: cardStyles.gradient,
           backgroundColor: cardStyles.base,
-          borderColor: cardStyles.border,
-          // borderWidth: "7px", // Removed to eliminate dark frame effect
+          border: "2px solid",
+          borderColor: "rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
         }}
         // whileHover={{ scale: 1.01 }} // Removed to prevent flickering
         onMouseEnter={() => setIsHovered(true)}
@@ -352,46 +349,58 @@ export const UnifiedAuctionCard = memo(
 
           {/* Status badge - Priority statuses */}
           {timeMeta.endingSoon || featured || timeMeta.ended ? (
-            <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border transition-all">
+            <div
+              className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all"
+              style={{
+                background: "#A68E4E",
+                color: "#000000",
+                boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+                border: "1px solid rgba(166,142,78,0.8)",
+              }}
+            >
               {timeMeta.ended ? (
-                <div className="flex mt-2">
-                  <span className="font-mono text-[11px] tracking-wider text-[#A68E4E] rounded-xl border border-[#A68E4E]/30 bg-[#A68E4E]/10 px-3 py-1 uppercase font-semibold">
-                    {ringBadge}
+                <div className="flex">
+                  <span className="font-mono text-[11px] tracking-wider font-bold text-black">
+                    {ringBadge ?? "Zakończona"}
                   </span>
                 </div>
               ) : timeMeta.endingSoon ? (
                 <>
-                  <Clock className="h-3 w-3 text-red-400 animate-pulse" />
-                  <span className="text-red-200 bg-red-950/60 border-red-500/40 px-2 py-0.5 rounded-full">
-                    Kończy się!
-                  </span>
+                  <Clock className="h-3 w-3 text-black animate-pulse" />
+                  <span className="text-black font-bold">Kończy się!</span>
                 </>
               ) : (
                 <>
-                  <TrendingUp className="h-3 w-3 text-gold" />
-                  <span className="text-gold bg-gold/10 border-gold/40 px-2 py-0.5 rounded-full">
-                    Wyróżniona
-                  </span>
+                  <TrendingUp className="h-3 w-3 text-black" />
+                  <span className="text-black font-bold">Wyróżniona</span>
                 </>
               )}
             </div>
           ) : (
             /* Type identification badge when no main statuses are active */
-            <div className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border border-white/10 transition-all">
+            <div
+              className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all"
+              style={{
+                background: "#A68E4E",
+                color: "#000000",
+                boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+                border: "1px solid rgba(166,142,78,0.8)",
+              }}
+            >
               {!hasBidding && hasBuyNow ? (
                 <>
-                  <Tag className="h-3 w-3 text-gold" />
-                  <span className="text-gold">Tylko Kup Teraz</span>
+                  <Tag className="h-3 w-3 text-black" />
+                  <span className="text-black font-bold">Tylko Kup Teraz</span>
                 </>
               ) : hasBidding && !hasBuyNow ? (
                 <>
-                  <Gavel className="h-3 w-3 text-gold" />
-                  <span className="text-gold">Tylko Licytacja</span>
+                  <Gavel className="h-3 w-3 text-black" />
+                  <span className="text-black font-bold">Tylko Licytacja</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-3 w-3 text-gold" />
-                  <span className="text-gold">Pełna Aukcja</span>
+                  <Sparkles className="h-3 w-3 text-black" />
+                  <span className="text-black font-bold">Pełna Aukcja</span>
                 </>
               )}
             </div>

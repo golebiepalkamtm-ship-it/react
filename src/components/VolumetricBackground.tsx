@@ -46,14 +46,14 @@ const FRAGMENT_SHADER = `
     vec2 pos = uv * aspect;
     vec2 mouse = uMouse * aspect;
 
-    // Base: deep charcoal gradient
-    float vignette = 1.0 - length(uv - 0.5) * 0.8;
-    float base = 0.06 + 0.04 * vignette;
+    // Base: slightly lighter charcoal (subtle lift)
+    float vignette = 1.0 - length(uv - 0.5) * 0.72;
+    float base = 0.11 + 0.05 * vignette;
 
     // Volumetric noise field - slow moving texture
     float n = fbm(pos * 3.0 + uTime * 0.08);
     float n2 = fbm(pos * 5.0 - uTime * 0.05 + 10.0);
-    float surface = n * 0.12 + n2 * 0.06;
+    float surface = n * 0.14 + n2 * 0.07;
 
     // Spotlight - soft radial falloff from mouse
     float dist = length(pos - mouse);
@@ -65,7 +65,7 @@ const FRAGMENT_SHADER = `
       sin(uTime * 0.15) * 0.3,
       cos(uTime * 0.12) * 0.2
     );
-    float ambientGlow = exp(-length(pos - glowCenter) * 1.2) * 0.08 * (0.7 + 0.3 * breath);
+    float ambientGlow = exp(-length(pos - glowCenter) * 1.2) * 0.10 * (0.7 + 0.3 * breath);
 
     // Edge highlight - metallic rim lighting from cursor
     float rimDist = length(pos - mouse);
@@ -79,7 +79,7 @@ const FRAGMENT_SHADER = `
     color *= vignette;
 
     // Film grain (very subtle)
-    float grain = (hash(uv * uTime * 100.0) - 0.5) * 0.015;
+    float grain = (hash(uv * uTime * 100.0) - 0.5) * 0.012;
     color += grain;
 
     gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
