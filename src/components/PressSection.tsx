@@ -207,9 +207,8 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 85%", // Earlier start to fix late feeling
-          end: "top 30%",
-          scrub: 1,
+          start: "top 80%",
+          toggleActions: "play none none reverse",
         },
       });
 

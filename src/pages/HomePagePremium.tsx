@@ -306,9 +306,8 @@ const CTAFeaturesSection = () => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 85%", // Start when entering viewport
-          end: "top 20%", // End animation when scrolled heavily up
-          scrub: 1, // Zsynchronizowanie animacji wprost z ruchem scrolla
+          start: "top 80%", // Start early enough to be seen but not too late
+          toggleActions: "play none none reverse",
         },
       });
 

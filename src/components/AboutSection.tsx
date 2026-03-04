@@ -142,9 +142,8 @@ const AboutSection = () => {
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
-            start: "top 85%",
-            end: "top 30%",
-            scrub: 1.2,
+            start: "top 80%",
+            toggleActions: "play none none reverse",
           },
         },
       );
@@ -165,9 +164,8 @@ const AboutSection = () => {
             ease: "none",
             scrollTrigger: {
               trigger: cards[0] as HTMLDivElement,
-              start: "top 95%",
-              end: "bottom 70%",
-              scrub: 1.2,
+              start: "top 80%",
+              toggleActions: "play none none reverse",
             },
           },
         );
