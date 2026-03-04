@@ -362,10 +362,13 @@ const AuctionsPage = () => {
             {statTiles.map(({ label, value, meta, Icon }) => (
               <div
                 key={label}
-                className="group rounded-2xl px-5 py-6 text-left shadow-xl border border-[#A68E4E]/30 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-gold/20"
+                className="group rounded-2xl px-5 py-6 text-left shadow-xl backdrop-blur-md transition-all hover:scale-[1.02]"
                 style={{
                   background:
                     "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                  border: "2px solid rgba(166,142,78,0.7)",
+                  boxShadow:
+                    "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
                 }}
               >
                 <Icon className="h-5 w-5 text-[#A68E4E] mb-2" />
@@ -385,10 +388,13 @@ const AuctionsPage = () => {
       <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
         <div className="container mx-auto px-4">
           <div
-            className="group rounded-2xl pt-4 px-4 pb-6 space-y-8 sm:px-6 border border-[#A68E4E]/30 shadow-2xl backdrop-blur-md"
+            className="group rounded-2xl pt-4 px-4 pb-6 space-y-8 sm:px-6 shadow-2xl backdrop-blur-md"
             style={{
               background:
                 "radial-gradient(circle at top, rgba(66, 192, 206, 0.12), transparent 60%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+              border: "2px solid rgba(166,142,78,0.7)",
+              boxShadow:
+                "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
             }}
           >
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center">

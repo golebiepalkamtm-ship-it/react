@@ -125,10 +125,16 @@ export const ChampionsGallery = () => {
           <div className="container mx-auto text-center relative z-10">
             <RevealOnScroll direction="up" delay={0}>
               <motion.span
-                className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-gold/20 to-gold-dark/20 border border-gold/30 text-gold text-sm font-medium tracking-widest uppercase mb-8"
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-sm font-bold tracking-widest uppercase mb-8"
+                style={{
+                  background: "#A68E4E",
+                  color: "#000000",
+                  border: "1px solid rgba(166,142,78,0.8)",
+                  boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+                }}
                 whileHover={{
                   scale: 1.05,
-                  boxShadow: "0 0 30px rgba(212,175,55,0.3)",
+                  boxShadow: "0 0 24px rgba(166,142,78,0.6)",
                 }}
               >
                 <motion.div
@@ -142,7 +148,7 @@ export const ChampionsGallery = () => {
                     ease: "easeInOut",
                   }}
                 >
-                  <Star className="w-4 h-4 gold-icon" />
+                  <Star className="w-4 h-4 text-black" />
                 </motion.div>
                 Ekskluzywna Kolekcja
                 <motion.div
@@ -157,7 +163,7 @@ export const ChampionsGallery = () => {
                     delay: 1.25,
                   }}
                 >
-                  <Star className="w-4 h-4 gold-icon" />
+                  <Star className="w-4 h-4 text-black" />
                 </motion.div>
               </motion.span>
             </RevealOnScroll>
@@ -198,15 +204,14 @@ export const ChampionsGallery = () => {
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <div
-                      className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-shadow"
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 transition-shadow"
                       style={{
-                        backgroundImage:
-                          "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
-                        boxShadow: "0 0 20px #A68E4E55",
-                        border: "1px solid rgba(166,142,78,0.3)",
+                        background: "#A68E4E",
+                        boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+                        border: "1px solid rgba(166,142,78,0.8)",
                       }}
                     >
-                      <stat.icon className="w-7 h-7 gold-icon" />
+                      <stat.icon className="w-7 h-7 text-black" />
                     </div>
                     <div className="font-display text-4xl md:text-5xl font-bold text-white mb-1">
                       <CountUp end={stat.value} duration={2} suffix="+" />

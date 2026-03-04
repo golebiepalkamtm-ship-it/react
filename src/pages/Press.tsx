@@ -85,8 +85,11 @@ const PressArticleCard = ({
         onMouseLeave={handleMouseLeave}
       >
         <motion.article
-          className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] h-full flex flex-col"
+          className="relative overflow-hidden rounded-2xl bg-champion-teal shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] h-full flex flex-col"
           style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow:
+              "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 16px 48px -12px rgba(0,0,0,0.8)",
             rotateX,
             rotateY,
             transformStyle: "preserve-3d",
@@ -308,13 +311,12 @@ const PressPage = () => {
             <motion.div
               className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-8"
               style={{
-                backgroundImage:
-                  "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
-                boxShadow: "0 0 20px #A68E4E55",
-                border: "1px solid rgba(166,142,78,0.3)",
+                background: "#A68E4E",
+                boxShadow: "0 2px 16px rgba(166,142,78,0.5)",
+                border: "1px solid rgba(166,142,78,0.8)",
               }}
             >
-              <Newspaper className="w-12 h-12 md:w-16 md:h-16 gold-icon" />
+              <Newspaper className="w-12 h-12 md:w-16 md:h-16 text-black" />
             </motion.div>
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4">
               <span className="heading-black">Prasa</span>{" "}
@@ -331,7 +333,14 @@ const PressPage = () => {
         {/* Wideo YouTube */}
         <section className="relative z-10 py-10 bg-transparent">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto relative overflow-hidden rounded-3xl border border-gold/20 bg-black/20 backdrop-blur-md shadow-[0_18px_48px_rgba(0,0,0,0.12)]">
+            <div
+              className="max-w-4xl mx-auto relative overflow-hidden rounded-3xl bg-black/20 backdrop-blur-md"
+              style={{
+                border: "2px solid rgba(166,142,78,0.7)",
+                boxShadow:
+                  "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
+              }}
+            >
               <div className="absolute inset-0 pointer-events-none" />
               <div className="aspect-video">
                 <iframe

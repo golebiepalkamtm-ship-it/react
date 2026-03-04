@@ -83,7 +83,7 @@ const FRAG = `
 
     float glow = pow(uSize.y / dist, 1.0);
     vec3 col = vec3(0.0);
-    col += 10.0 * vec3(smoothstep(uSize.x, 0.0, dist));
+    col += 5.0 * vec3(smoothstep(uSize.x, 0.0, dist));
     col += glow * uColor;
 
     // Tone mapping
@@ -186,8 +186,8 @@ export const NeonCursor = () => {
     let colorB = 1;
     let time = 0;
 
-    const RADIUS1 = 5;
-    const RADIUS2 = 30;
+    const RADIUS1 = 2;
+    const RADIUS2 = 14;
     const CURVE_LERP = 0.9; // Faster following (0.0 to 1.0);
     const VEL_THRESHOLD = 10;
     const SLEEP_RX = 100;

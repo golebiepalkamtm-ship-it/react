@@ -452,21 +452,20 @@ export function ReferencesPage() {
           <motion.div
             className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-8"
             style={{
-              backgroundImage:
-                "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
-              boxShadow: "0 0 20px #A68E4E55",
-              border: "1px solid rgba(166,142,78,0.3)",
+              background: "#A68E4E",
+              boxShadow: "0 2px 16px rgba(166,142,78,0.5)",
+              border: "1px solid rgba(166,142,78,0.8)",
             }}
             animate={{
               boxShadow: [
-                "0 0 30px rgba(212,175,55,0.2)",
-                "0 0 60px rgba(212,175,55,0.4)",
-                "0 0 30px rgba(212,175,55,0.2)",
+                "0 0 16px rgba(166,142,78,0.4)",
+                "0 0 32px rgba(166,142,78,0.6)",
+                "0 0 16px rgba(166,142,78,0.4)",
               ],
             }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            <MessageSquareQuote className="w-10 h-10 gold-icon" />
+            <MessageSquareQuote className="w-10 h-10 text-black" />
           </motion.div>
 
           <motion.h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-black mb-6">
@@ -503,13 +502,12 @@ export function ReferencesPage() {
                 <div
                   className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-2"
                   style={{
-                    backgroundImage:
-                      "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
-                    boxShadow: "0 0 20px #A68E4E55",
-                    border: "1px solid rgba(166,142,78,0.3)",
+                    background: "#A68E4E",
+                    boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+                    border: "1px solid rgba(166,142,78,0.8)",
                   }}
                 >
-                  <stat.icon className="w-7 h-7 gold-icon" />
+                  <stat.icon className="w-7 h-7 text-black" />
                 </div>
                 <div className="font-display text-3xl md:text-4xl font-bold text-white">
                   {stat.value}
@@ -616,11 +614,16 @@ export function ReferencesPage() {
                   </motion.div>
 
                   <motion.div
-                    className="relative overflow-hidden rounded-2xl border border-gold/30 bg-white p-6 shadow-lg"
+                    className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg"
                     key={`achievements-${currentRef.id}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
+                    style={{
+                      border: "2px solid rgba(166,142,78,0.7)",
+                      boxShadow:
+                        "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+                    }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/30 to-transparent pointer-events-none" />
                     <div className="relative flex items-center gap-3 mb-4">
@@ -637,11 +640,16 @@ export function ReferencesPage() {
 
                 <div className="relative">
                   <motion.div
-                    className="relative rounded-2xl overflow-hidden border border-gold/30 shadow-[0_18px_48px_rgba(0,0,0,0.12)] bg-white"
+                    className="relative rounded-2xl overflow-hidden bg-white"
                     key={`image-${currentRef.id}`}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5 }}
+                    style={{
+                      border: "2px solid rgba(166,142,78,0.7)",
+                      boxShadow:
+                        "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
+                    }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent z-10 pointer-events-none" />
                     {getPrimaryImage(currentRef) ? (

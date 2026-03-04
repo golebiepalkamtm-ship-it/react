@@ -129,18 +129,14 @@ export const ChampionCard = ({
       onClick={() => onSelect?.(champion)}
     >
       <motion.div
-        className="champion-card-inner relative rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.6)] border border-white/10 transition-all duration-300 bg-[#010509]"
+        className="champion-card-inner relative rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300 bg-[#010509]"
         style={{
           transformStyle: "preserve-3d",
+          border: "2px solid rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
         }}
       >
-        {/* Decorative gold lines like in auction card */}
-        <div className="absolute top-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
-        <div className="absolute bottom-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
-        <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
-        <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-transparent via-[#A68E4E]/50 to-transparent pointer-events-none z-20 rounded-full" />
-        {/* Jedna widoczna ramka wokół całej karty */}
-
         {/* Dynamic light reflection */}
         <motion.div
           className="absolute inset-0 pointer-events-none z-10"

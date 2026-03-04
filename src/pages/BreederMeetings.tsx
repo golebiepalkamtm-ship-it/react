@@ -226,13 +226,12 @@ export default function BreederMeetings() {
             <motion.div
               className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-8"
               style={{
-                backgroundImage:
-                  "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(166,142,78,0.85))",
-                boxShadow: "0 0 20px #A68E4E55",
-                border: "1px solid rgba(166,142,78,0.3)",
+                background: "#A68E4E",
+                boxShadow: "0 2px 16px rgba(166,142,78,0.5)",
+                border: "1px solid rgba(166,142,78,0.8)",
               }}
             >
-              <Users className="w-12 h-12 md:w-16 md:h-16 gold-icon" />
+              <Users className="w-12 h-12 md:w-16 md:h-16 text-black" />
             </motion.div>
             <h1
               data-split-text
@@ -270,7 +269,12 @@ export default function BreederMeetings() {
                 breederMeetings.map((meeting, index) => (
                   <div key={meeting.id}>
                     <article
-                      className={`relative rounded-2xl bg-transparent backdrop-blur-2xl backdrop-brightness-125 border border-gold/40 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)] p-6 md:p-8 magictime ${getContainerAnim(index)} animate-meeting-card hover:border-gold/60 transition-all duration-500 stagger-${index % 11} overflow-hidden`}
+                      className={`relative rounded-2xl bg-transparent backdrop-blur-2xl backdrop-brightness-125 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)] p-6 md:p-8 magictime ${getContainerAnim(index)} animate-meeting-card transition-all duration-500 stagger-${index % 11} overflow-hidden`}
+                      style={{
+                        border: "2px solid rgba(166,142,78,0.7)",
+                        boxShadow:
+                          "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 32px 64px -16px rgba(0,0,0,0.4)",
+                      }}
                     >
                       {/* Very thin bright highlights only */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
@@ -287,60 +291,27 @@ export default function BreederMeetings() {
                         <h3 className="text-2xl md:text-3xl font-bold text-center gold-heading">
                           {meeting.name}
                         </h3>
-
-                        {(meeting.location || meeting.date) && (
-                          <div className="flex items-center justify-center gap-4 text-muted-foreground mt-2 mb-4">
-                            {meeting.location && (
-                              <div className="flex items-center gap-1.5">
-                                <MapPin className="w-4 h-4 gold-icon" />
-                                <span className="text-sm">
-                                  {meeting.location}
-                                </span>
-                              </div>
-                            )}
-                            {meeting.date && (
-                              <div className="flex items-center gap-1.5">
-                                <Calendar className="w-4 h-4 gold-icon" />
-                                <span className="text-sm">
-                                  {/* Helper to safely display date */}
-                                  {(() => {
-                                    const d = meeting.date;
-                                    if (!d) return "";
-                                    // Checks basic cases
-                                    if (
-                                      typeof d === "string" &&
-                                      !d.includes("-") &&
-                                      !d.includes("/") &&
-                                      d.length === 4
-                                    ) {
-                                      return d; // Years like "2024"
-                                    }
-                                    const parsed = new Date(d);
-                                    return !isNaN(parsed.getTime())
-                                      ? parsed.toLocaleDateString("pl-PL")
-                                      : String(d);
-                                  })()}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {meeting.description && (
-                          <p className="text-center text-slate-900 font-display italic text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mt-4">
-                            {meeting.description}
-                          </p>
-                        )}
                       </div>
 
-                      <div className="relative grid gap-5 rounded-2xl border border-gold/30 bg-transparent backdrop-brightness-110 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.3)] p-4 md:p-6 mt-6 overflow-hidden">
+                      <div
+                        className="relative grid gap-5 rounded-2xl bg-transparent backdrop-brightness-110 p-4 md:p-6 mt-6 overflow-hidden"
+                        style={{
+                          border: "2px solid rgba(166,142,78,0.7)",
+                          boxShadow:
+                            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
+                        }}
+                      >
                         <div className="absolute inset-0 bg-white/[0.03] pointer-events-none" />
                         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                           {Array.isArray(meeting.images) &&
                             meeting.images.map((image, imageIndex) => (
                               <div
                                 key={imageIndex}
-                                className="relative h-48 overflow-hidden rounded-xl cursor-pointer group border border-gold/25 bg-white shadow"
+                                className="relative h-48 overflow-hidden rounded-xl cursor-pointer group bg-white shadow"
+                                style={{
+                                  border: "2px solid rgba(166,142,78,0.7)",
+                                  boxShadow: "0 0 8px rgba(166,142,78,0.2)",
+                                }}
                                 onClick={() =>
                                   handleImageClick(meeting.id, imageIndex)
                                 }
