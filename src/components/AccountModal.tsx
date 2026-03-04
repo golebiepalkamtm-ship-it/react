@@ -264,7 +264,13 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.06 }}
       >
-        <div className="rounded-xl border border-white/15 bg-black/40 p-4">
+        <div
+          className="rounded-xl bg-black/40 p-4"
+          style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow: "0 0 10px rgba(166,142,78,0.2)",
+          }}
+        >
           <div className="text-muted-foreground flex items-center gap-2">
             <Mail className="w-4 h-4" />
             {t("account.status.email")}
@@ -273,14 +279,26 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             {user?.email ?? ""}
           </div>
         </div>
-        <div className="rounded-xl border border-white/15 bg-black/40 p-4">
+        <div
+          className="rounded-xl bg-black/40 p-4"
+          style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow: "0 0 10px rgba(166,142,78,0.2)",
+          }}
+        >
           <div className="text-muted-foreground flex items-center gap-2">
             <Star className="w-4 h-4" />
             {t("account.status.role")}
           </div>
           <div className="mt-1 text-foreground">{profile.role ?? "-"}</div>
         </div>
-        <div className="rounded-xl border border-white/15 bg-black/40 p-4">
+        <div
+          className="rounded-xl bg-black/40 p-4"
+          style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow: "0 0 10px rgba(166,142,78,0.2)",
+          }}
+        >
           <div className="text-muted-foreground flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             {t("account.status.next")}
@@ -353,7 +371,12 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
-            className="rounded-2xl border border-white/25 bg-black/70 p-4"
+            className="rounded-2xl bg-black/70 p-4"
+            style={{
+              border: "2px solid rgba(166,142,78,0.7)",
+              boxShadow:
+                "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+            }}
           >
             {/* Trust Score */}
             <div className="mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
@@ -547,7 +570,12 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
-            className="rounded-2xl border border-white/25 bg-black/70 p-4"
+            className="rounded-2xl bg-black/70 p-4"
+            style={{
+              border: "2px solid rgba(166,142,78,0.7)",
+              boxShadow:
+                "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+            }}
           >
             <h3 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
               <Shield className="w-5 h-5 text-gold" />
@@ -627,7 +655,12 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
-            className="rounded-2xl border border-white/25 bg-black/70 p-4"
+            className="rounded-2xl bg-black/70 p-4"
+            style={{
+              border: "2px solid rgba(166,142,78,0.7)",
+              boxShadow:
+                "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+            }}
           >
             <h3 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
               <Settings className="w-5 h-5 text-gold" />

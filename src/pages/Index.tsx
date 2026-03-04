@@ -95,13 +95,16 @@ const StatCard = memo(
     return (
       <motion.div
         ref={cardRef}
-        className="p-4 rounded-xl border border-gold/40 shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8),0_0_30px_rgba(166,142,78,0.2)] relative overflow-hidden group"
+        className="p-4 rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] relative overflow-hidden group"
         style={{
           transformStyle: "preserve-3d",
           rotateX,
           rotateY,
           background:
             "radial-gradient(circle at top, rgba(166, 142, 78, 0.15), transparent 70%), linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(10, 10, 10, 0.96) 50%, rgba(15, 15, 15, 0.95) 100%)",
+          border: "2px solid rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 16px 48px -12px rgba(0,0,0,0.8)",
         }}
         whileHover={{ scale: 1.08 }}
         transition={{ type: "spring", stiffness: 280, damping: 18 }}
@@ -112,14 +115,14 @@ const StatCard = memo(
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.4),transparent_75%)] pointer-events-none" />
         <div className="absolute inset-0 bg-zinc-950/20 pointer-events-none" />
         <div
-          className="w-10 h-10 mx-auto mb-3 rounded-full flex items-center justify-center border border-gold/30"
+          className="w-10 h-10 mx-auto mb-3 rounded-full flex items-center justify-center"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 30% 30%, rgba(212,175,55,0.3), rgba(166,142,78,0.85))",
-            boxShadow: `0 0 25px rgba(212, 175, 55, 0.4)`,
+            background: "#A68E4E",
+            boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+            border: "1px solid rgba(166,142,78,0.8)",
           }}
         >
-          <Icon className="w-5 h-5 gold-icon" />
+          <Icon className="w-5 h-5 text-black" />
         </div>
         <div className="text-xl font-bold text-zinc-900 mb-1">{value}</div>
         <div className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.3em]">
@@ -176,14 +179,30 @@ const HeroPremium = memo(() => {
           className="text-3xl md:text-5xl lg:text-6xl font-bold font-display mb-6"
           style={{ wordSpacing: "0.05em" }}
         >
-          <span className="heading-black">Pałka</span>{" "}
-          <span className="gold-heading">MTM</span>
+          <span
+            className="heading-black"
+            style={{
+              textShadow:
+                "0 2px 8px rgba(0,0,0,0.95), 0 4px 24px rgba(0,0,0,0.8), 2px 2px 0px rgba(0,0,0,0.6)",
+            }}
+          >
+            Pałka
+          </span>{" "}
+          <span
+            className="gold-heading"
+            style={{
+              textShadow:
+                "0 2px 14px rgba(166,142,78,0.8), 0 4px 32px rgba(166,142,78,0.5), 0 0 60px rgba(166,142,78,0.25)",
+            }}
+          >
+            MTM
+          </span>
           <br />
           <span
             className="gold-heading"
             style={{
               textShadow:
-                "0 2px 12px rgba(166,142,78,0.5), 0 4px 24px rgba(166,142,78,0.3)",
+                "0 2px 14px rgba(166,142,78,0.8), 0 4px 32px rgba(166,142,78,0.5), 0 0 60px rgba(166,142,78,0.25)",
             }}
           >
             Geny Zwycięzców
@@ -304,9 +323,16 @@ const FeatureCardPremium = memo(
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: index * 0.1 }}
-        className={`h-full flex flex-col p-6 rounded-2xl border border-white/10 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300 relative group overflow-hidden ${className || ""}`}
+        className={`h-full flex flex-col p-6 rounded-2xl bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300 relative group overflow-hidden ${className || ""}`}
         ref={cardRef}
-        style={{ transformStyle: "preserve-3d", rotateX, rotateY }}
+        style={{
+          transformStyle: "preserve-3d",
+          rotateX,
+          rotateY,
+          border: "2px solid rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
+        }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -318,14 +344,14 @@ const FeatureCardPremium = memo(
           }}
         />
         <div
-          className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 border border-gold/30"
+          className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(166,142,78,0.9))",
-            boxShadow: `0 0 20px ${GOLD}55`,
+            background: "#A68E4E",
+            boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+            border: "1px solid rgba(166,142,78,0.8)",
           }}
         >
-          <feature.icon className="w-6 h-6 gold-icon" />
+          <feature.icon className="w-6 h-6 text-black" />
         </div>
         <h3 className="text-lg font-semibold font-display text-[#A68E4E] mb-3">
           {feature.title}

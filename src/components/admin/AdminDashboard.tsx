@@ -71,7 +71,12 @@ const StatCard = ({
       whileHover={{ y: -8, scale: 1.02 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className={`relative p-6 rounded-2xl ${gradient} border border-[#A68E4E]/20 overflow-hidden group cursor-pointer`}
+      className={`relative p-6 rounded-2xl ${gradient} overflow-hidden group cursor-pointer`}
+      style={{
+        border: "2px solid rgba(166,142,78,0.7)",
+        boxShadow:
+          "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
+      }}
     >
       <motion.div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -163,7 +168,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
+        <div
+          className="p-6 rounded-2xl bg-[#0A0F1C]/50 backdrop-blur-sm"
+          style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow:
+              "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-[#A68E4E]" />
@@ -202,7 +214,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
+        <div
+          className="p-6 rounded-2xl bg-[#0A0F1C]/50 backdrop-blur-sm"
+          style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow:
+              "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Gavel className="w-5 h-5 text-[#A68E4E]" />
@@ -242,7 +261,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-[#A68E4E]/10 to-[#A68E4E]/5 border border-[#A68E4E]/20">
+      <div
+        className="p-6 rounded-2xl bg-gradient-to-br from-[#A68E4E]/10 to-[#A68E4E]/5"
+        style={{
+          border: "2px solid rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+        }}
+      >
         <div className="flex items-center gap-3 mb-4">
           <Sparkles className="w-6 h-6 text-[#A68E4E]" />
           <h3 className="text-lg font-semibold text-white">Szybkie akcje</h3>
@@ -301,7 +327,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
-        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
+        <div
+          className="p-6 rounded-2xl bg-[#0A0F1C]/50 backdrop-blur-sm"
+          style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow:
+              "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+          }}
+        >
           <div className="flex items-center gap-3 mb-4">
             <Database className="w-6 h-6 text-[#A68E4E]" />
             <h3 className="text-lg font-semibold text-white">
@@ -343,7 +376,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-sm">
+        <div
+          className="p-6 rounded-2xl bg-[#0A0F1C]/50 backdrop-blur-sm"
+          style={{
+            border: "2px solid rgba(166,142,78,0.7)",
+            boxShadow:
+              "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
+          }}
+        >
           <div className="flex items-center gap-3 mb-4">
             <AlertTriangle className="w-6 h-6 text-[#A68E4E]" />
             <h3 className="text-lg font-semibold text-white">
