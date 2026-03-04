@@ -194,19 +194,28 @@ const HeroPremium = () => {
           <h1 className="hero-particle-system mb-4 text-4xl md:text-6xl lg:text-7xl font-bold font-display leading-snug uppercase text-center">
             <span
               className="hero-part-left inline-block text-zinc-900"
-              style={{ filter: "drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3))" }}
+              style={{
+                textShadow:
+                  "0 2px 8px rgba(0,0,0,0.95), 0 4px 24px rgba(0,0,0,0.85), 2px 2px 0px rgba(0,0,0,0.6)",
+              }}
             >
               <SplitText>Pałka</SplitText>
             </span>{" "}
             <span
               className="hero-part-right inline-block text-[#A68E4E]"
-              style={{ filter: "drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3))" }}
+              style={{
+                textShadow:
+                  "0 2px 14px rgba(166,142,78,0.9), 0 4px 32px rgba(166,142,78,0.6), 0 0 60px rgba(166,142,78,0.3)",
+              }}
             >
               <SplitText>MTM</SplitText>
             </span>
             <span
               className="hero-subtitle gold-heading block text-xl md:text-2xl font-bold tracking-[0.2em] mt-4 uppercase text-center whitespace-nowrap"
-              style={{ filter: "drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))" }}
+              style={{
+                textShadow:
+                  "0 2px 14px rgba(166,142,78,0.9), 0 4px 32px rgba(166,142,78,0.6), 0 0 60px rgba(166,142,78,0.3)",
+              }}
             >
               <SplitText>— Geny Zwycięzców</SplitText>
             </span>
@@ -403,11 +412,23 @@ const CTAFeaturesSection = () => {
               ref={(el) => {
                 cardsRef.current[index] = el;
               }}
-              className="reveal-card group relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal transition-all duration-500 p-8 h-full shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
+              className="reveal-card group relative overflow-hidden rounded-2xl bg-champion-teal transition-all duration-500 p-8 h-full"
+              style={{
+                border: "2px solid rgba(166,142,78,0.7)",
+                boxShadow:
+                  "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
+              }}
             >
               <div className="relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-gold/20 transition-all duration-500 shadow-xl shadow-gold/20">
-                  <feature.icon className="w-7 h-7 text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-500"
+                  style={{
+                    background: "#A68E4E",
+                    boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+                    border: "1px solid rgba(166,142,78,0.8)",
+                  }}
+                >
+                  <feature.icon className="w-7 h-7 text-black" />
                 </div>
                 <h3 className="text-xl font-bold gold-heading mb-3 uppercase text-[#A68E4E]">
                   {feature.title}

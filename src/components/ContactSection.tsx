@@ -65,10 +65,13 @@ const ContactFormCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full p-8"
+        className="relative overflow-hidden rounded-2xl bg-champion-teal h-full p-8"
         style={{
           rotateX,
           rotateY,
+          border: "2px solid rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
         }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent pointer-events-none" />
@@ -251,8 +254,15 @@ const GoogleMapCard = () => {
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300"
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="relative overflow-hidden rounded-2xl bg-champion-teal transition-all duration-300"
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          border: "2px solid rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
+        }}
       >
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2518.801815397259!2d15.2833333157461!3d51.0469444795620!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4708e5d3b0d3b3d3%3A0x3f3b3b3b3b3b3b3b!2sStawowa+6%2C+59-800+Luba%C5%84%2C+Poland!5e0!3m2!1sen!2sus!4v1689264800000"
@@ -368,19 +378,29 @@ const StyledContactCard = ({
   const cardContent = (
     <motion.div
       ref={cardRef}
-      className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60_rgba(0,0,0,0.6)] h-full p-8"
+      className="relative overflow-hidden rounded-2xl bg-champion-teal h-full p-8"
       style={{
         rotateX,
         rotateY,
         transformStyle: "preserve-3d",
+        border: "2px solid rgba(166,142,78,0.7)",
+        boxShadow:
+          "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
       }}
       onMouseLeave={handleMouseLeave}
       whileHover={{ scale: 1.05 }}
       transition={{ scale: { duration: 0.2 } }}
     >
       <div className="relative z-10 flex flex-col items-center text-center h-full">
-        <div className="mb-4">
-          <info.icon className="w-8 h-8 gold-icon" />
+        <div
+          className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center"
+          style={{
+            background: "#A68E4E",
+            boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
+            border: "1px solid rgba(166,142,78,0.8)",
+          }}
+        >
+          <info.icon className="w-7 h-7 text-black" />
         </div>
         <h3 className="font-bold text-lg text-[#C8AE68]">{info.label}</h3>
         <p className="text-white text-sm mt-1">{info.value}</p>

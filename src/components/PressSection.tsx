@@ -62,11 +62,14 @@ const PressArticleCard = ({
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
-        className="relative overflow-hidden rounded-2xl border border-[#A68E4E]/30 bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] h-full flex flex-col"
+        className="relative overflow-hidden rounded-2xl bg-champion-teal h-full flex flex-col"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d",
+          border: "2px solid rgba(166,142,78,0.7)",
+          boxShadow:
+            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ scale: { duration: 0.2 } }}
@@ -318,7 +321,14 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <div className="relative overflow-hidden rounded-2xl border-2 border-[#A68E4E] bg-[#0a0a0a] shadow-[0_40px_100px_rgba(0,0,0,0.9),0_20px_40px_rgba(0,0,0,0.7)]">
+            <div
+              className="relative overflow-hidden rounded-2xl bg-[#0a0a0a]"
+              style={{
+                border: "2px solid rgba(166,142,78,0.7)",
+                boxShadow:
+                  "0 0 16px rgba(166,142,78,0.3), 0 0 40px rgba(166,142,78,0.15), 0 40px 100px rgba(0,0,0,0.9)",
+              }}
+            >
               <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-black/10 pointer-events-none" />
               <div className="relative pb-[56.25%] h-0">
                 <iframe
