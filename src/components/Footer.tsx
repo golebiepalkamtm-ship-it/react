@@ -31,7 +31,7 @@ const Footer = () => {
       { name: "Kontakt", href: "/#contact" },
     ],
     services: [
-      { name: "Champion Pigeon Auctions", href: "/auctions" },
+      { name: "Champions Pigeon Auction", href: "/auctions" },
       { name: "Referencje", href: "/references" },
     ],
     legal: [

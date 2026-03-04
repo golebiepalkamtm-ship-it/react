@@ -67,7 +67,7 @@ const AuctionsSection = () => {
               Aukcje Na Żywo
             </span>
             <h2 className="font-display text-2xl md:text-3xl text-gold font-bold leading-tight">
-              <span className="text-white"> Champion Pigeon Auctions</span>
+              <span className="text-white"> Champions Pigeon Auction</span>
             </h2>
           </div>
           <motion.div
@@ -149,7 +149,7 @@ const AuctionsSection = () => {
           >
             <Link to="/auctions">
               <Button variant="gold" size="lg" className="whitespace-nowrap">
-                Przejdź do Champion Pigeon Auctions
+                Przejdź do Champions Pigeon Auction
               </Button>
             </Link>
           </motion.div>

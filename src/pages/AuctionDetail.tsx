@@ -521,7 +521,7 @@ const AuctionDetail: React.FC = () => {
                     to="/auctions"
                     className="hover:text-primary transition-colors"
                   >
-                    Champion Pigeon Auctions
+                    Champions Pigeon Auction
                   </Link>
                   <span className="opacity-40">/</span>
                   <span className="text-white/70 line-clamp-1 max-w-[200px]">

@@ -378,7 +378,7 @@ const CTAFeaturesSection = () => {
             to="/auctions"
             className="inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-[#A68E4E] text-zinc-900 rounded-full font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gold/20 mb-20"
           >
-            Przejdź do Champion Pigeon Auctions
+            Przejdź do Champions Pigeon Auction
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
