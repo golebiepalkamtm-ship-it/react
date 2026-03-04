@@ -1,8 +1,8 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
-import { validatedEnv } from './env.js'
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+import { validatedEnv } from "./env.js";
 
 // Global interface for Prisma to prevent multiple instances in dev
 declare global {
@@ -15,8 +15,10 @@ let prisma: PrismaClient;
 const hasDbUrl = !!process.env.DATABASE_URL;
 
 try {
-  if (!hasDbUrl && process.env.NODE_ENV === 'production') {
-    console.error('❌ CRITICAL: DATABASE_URL is not set in environment variables!');
+  if (!hasDbUrl && process.env.NODE_ENV === "production") {
+    console.error(
+      "❌ CRITICAL: DATABASE_URL is not set in environment variables!",
+    );
   }
 
   // Auto-patch DATABASE_URL to use Supabase connection pooling (port 6543) if not already set.
@@ -25,16 +27,18 @@ try {
   // For production apps, we should prefer 6543 with pgbouncer=true.
   if (process.env.DATABASE_URL) {
     const url = process.env.DATABASE_URL;
-    
+
     // Check if we are using the direct port 5432 and try to switch to 6543 for pooling if possible
     // (This is a heuristic, verify with your specific Supabase setup)
-    if (url.includes(':5432') && !url.includes('pgbouncer=true')) {
-       console.log('⚠️ Detected direct DB connection (port 5432). Recommendation: Use port 6543 for pooling in production.');
+    if (url.includes(":5432") && !url.includes("pgbouncer=true")) {
+      console.log(
+        "⚠️ Detected direct DB connection (port 5432). Recommendation: Use port 6543 for pooling in production.",
+      );
     }
 
     // Ensure pgbouncer=true is set if we are on the pooler port or if explicitly needed
-    // However, recent Prisma versions handle this better. 
-    // We will re-enable the patch ONLY if we are sure it's missing and causing issues, 
+    // However, recent Prisma versions handle this better.
+    // We will re-enable the patch ONLY if we are sure it's missing and causing issues,
     // but based on logs, the issue is "type AuctionCategory does not exist", which is a MIGRATION/SCHEMA sync issue, not connection.
     // So we leave the patch commented out for now.
   }
@@ -45,10 +49,10 @@ try {
   const adapter = new PrismaPg(pool);
 
   const prismaOptions = {
-    adapter
+    adapter,
   };
 
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     prisma = new PrismaClient(prismaOptions);
   } else {
     if (!global.prisma) {
@@ -56,37 +60,42 @@ try {
     }
     prisma = global.prisma;
   }
-  console.log('✅ Prisma Client initialized with PostgreSQL adapter');
+  console.log("✅ Prisma Client initialized with PostgreSQL adapter");
 } catch (err) {
-  console.error('❌ Prisma client initialization failed critical error:', err);
+  console.error("❌ Prisma client initialization failed critical error:", err);
   prisma = new Proxy({} as PrismaClient, {
     get: (_, prop) => {
-      throw new Error(`Prisma is not initialized. Database connection is unavailable. Original error: ${err}`);
-    }
+      throw new Error(
+        `Prisma is not initialized. Database connection is unavailable. Original error: ${err}`,
+      );
+    },
   });
 }
 
-console.log('📡 Database Connection Check:', {
+console.log("📡 Database Connection Check:", {
   hasDatabaseUrl: !!validatedEnv.DATABASE_URL,
   databaseUrlLength: validatedEnv.DATABASE_URL?.length || 0,
-  databaseUrlPreview: validatedEnv.DATABASE_URL?.substring(0, 30) + '...',
+  databaseUrlPreview: validatedEnv.DATABASE_URL?.substring(0, 30) + "...",
   nodeEnv: process.env.NODE_ENV,
-  prismaInitialized: !!prisma
+  prismaInitialized: !!prisma,
 });
 
 // Fail-fast in production if DATABASE_URL is missing
-if (process.env.NODE_ENV === 'production' && !validatedEnv.DATABASE_URL) {
-  console.error('❌ CRITICAL: DATABASE_URL is required in production but not provided. App will run in degraded mode (DB features unavailable).');
+if (process.env.NODE_ENV === "production" && !validatedEnv.DATABASE_URL) {
+  console.error(
+    "❌ CRITICAL: DATABASE_URL is required in production but not provided. App will run in degraded mode (DB features unavailable).",
+  );
   // Do NOT exit process here, let the app run so it can serve health checks/static files and return proper API 503 errors
-  // process.exit(1); 
+  // process.exit(1);
   if (prisma && !(prisma instanceof Proxy)) {
-      // Force prisma to be undefined/proxy if URL is missing to trigger fallback logic in endpoints
-      (prisma as any) = undefined;
+    // Force prisma to be undefined/proxy if URL is missing to trigger fallback logic in endpoints
+    (prisma as any) = undefined;
   }
 }
 
 // Use validated environment variables
-const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } = validatedEnv;
+const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } =
+  validatedEnv;
 
 // Only create Supabase client if URL and at least one key is provided
 let supabase: SupabaseClient | null = null;
@@ -95,12 +104,12 @@ const keyToUse = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
 if (SUPABASE_URL && keyToUse) {
   supabase = createClient(SUPABASE_URL, keyToUse);
   if (SUPABASE_SERVICE_ROLE_KEY) {
-    console.log('✅ Supabase initialized with Service Role Key');
+    console.log("✅ Supabase initialized with Service Role Key");
   } else {
-    console.log('✅ Supabase initialized with Anon Key');
+    console.log("✅ Supabase initialized with Anon Key");
   }
 } else {
-  console.warn('Supabase keys missing - Supabase client not initialized');
+  console.warn("Supabase keys missing - Supabase client not initialized");
 }
 
-export { prisma, supabase }
+export { prisma, supabase };
