@@ -208,7 +208,8 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top 85%", // Earlier start to fix late feeling
-          toggleActions: "play none none reverse",
+          end: "top 30%",
+          scrub: 1,
         },
       });
 
@@ -265,7 +266,7 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
     <section
       ref={sectionRef}
       id="press-section"
-      className="min-h-screen flex items-center py-20 relative overflow-hidden"
+      className="flex items-center py-24 md:py-32 relative overflow-hidden"
       style={{
         perspective: "2000px",
         transformStyle: "preserve-3d",

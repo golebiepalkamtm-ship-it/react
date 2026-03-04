@@ -162,7 +162,7 @@ const HeroPremium = () => {
             force3D: true,
             scrollTrigger: {
               trigger: sec,
-              start: "top 85%",
+              start: "top 90%",
               toggleActions: "play none none reverse",
             },
           },
@@ -293,25 +293,22 @@ const CTAFeaturesSection = () => {
   useGSAP(
     () => {
       // 1. Initial States
-      gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.92 });
-      gsap.set(titleRef.current, { opacity: 0, y: 60 });
-      gsap.set(descRef.current, { opacity: 0, y: 40 });
+      gsap.set([badgeRef.current, titleRef.current, descRef.current], {
+        opacity: 0,
+        y: 40,
+        scale: 0.95,
+      });
 
-      // Cards Initial States
-      const cards = cardsRef.current;
-      // Zwiększony dystans i rotacja dla bardziej spektakularnego wejścia
-      if (cards[0])
-        gsap.set(cards[0], { opacity: 0, x: -300, rotateY: -30, scale: 0.8 }); // Left - mocniej z lewej
-      if (cards[1]) gsap.set(cards[1], { opacity: 0, y: 200, scale: 0.6 }); // Middle - startuje niżej i mniejsza
-      if (cards[2])
-        gsap.set(cards[2], { opacity: 0, x: 300, rotateY: 30, scale: 0.8 }); // Right - mocniej z prawej
+      const cards = cardsRef.current.filter(Boolean);
+      gsap.set(cards, { opacity: 0, y: 80, scale: 0.95 });
 
       // 2. Master Timeline
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 85%", // Start definitely earlier so it's not late
-          toggleActions: "play none none reverse",
+          start: "top 85%", // Start when entering viewport
+          end: "top 20%", // End animation when scrolled heavily up
+          scrub: 1, // Zsynchronizowanie animacji wprost z ruchem scrolla
         },
       });
 
@@ -320,51 +317,34 @@ const CTAFeaturesSection = () => {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.8,
+        duration: 0.6,
         ease: "back.out(1.5)",
       })
         .to(
-          titleRef.current,
-          { opacity: 1, y: 0, duration: 1, ease: "power3.out" },
-          "-=0.6",
-        )
-        .to(
-          descRef.current,
-          { opacity: 1, y: 0, duration: 1, ease: "power3.out" },
-          "-=0.7",
-        );
-
-      // 4. Cards Animation
-      // Left & Right fly in together first - BARDZIEJ WIDOCZNE
-      if (cards[0] && cards[2]) {
-        tl.to(
-          [cards[0], cards[2]],
-          {
-            opacity: 1,
-            x: 0,
-            rotateY: 0,
-            scale: 1,
-            duration: 1.8,
-            ease: "power4.out", // Bardziej dynamiczne wyhamowanie
-          },
-          "-=0.5",
-        );
-      }
-
-      // Middle card enters last - MAJESTATYCZNIE
-      if (cards[1]) {
-        tl.to(
-          cards[1],
+          [titleRef.current, descRef.current],
           {
             opacity: 1,
             y: 0,
             scale: 1,
-            duration: 1.8,
-            ease: "elastic.out(1, 0.75)", // Lekkie "odbicie" dla efektu
+            duration: 0.8,
+            stagger: 0.15,
+            ease: "power3.out",
           },
-          "-=1.4",
+          "-=0.3",
+        )
+        // 4. Cards sequential appearance
+        .to(
+          cards,
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 1.0,
+            stagger: 0.15,
+            ease: "expo.out",
+          },
+          "-=0.4",
         );
-      }
     },
     { scope: sectionRef },
   );
@@ -372,7 +352,7 @@ const CTAFeaturesSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="min-h-screen flex flex-col items-center justify-center py-24 px-4 bg-transparent relative overflow-hidden"
+      className="flex flex-col items-center justify-center py-24 md:py-32 px-4 bg-transparent relative overflow-hidden"
     >
       <div className="max-w-6xl mx-auto w-full">
         <div className="text-center mb-16">

@@ -132,23 +132,22 @@ const AboutSection = () => {
       ];
 
       // Zaczynamy płynnie od dołu, ale nie aż tak głęboko jak wcześniej
-      gsap.set(textElements, { autoAlpha: 0, y: 60 });
-
-      ScrollTrigger.batch(textElements, {
-        start: "top 85%", // Wcześniejszy trigger
-        end: "bottom 80%",
-        onEnter: (batch) => {
-          gsap.to(batch, {
-            autoAlpha: 1,
-            y: 0,
-            duration: 1.4, // Krócej, by było szybciej na ekranie, ale wciąż majestatycznie
-            stagger: 0.2,
-            ease: "power2.out",
-            overwrite: true,
-          });
+      gsap.fromTo(
+        textElements,
+        { autoAlpha: 0, y: 60 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          stagger: 0.1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 85%",
+            end: "top 30%",
+            scrub: 1.2,
+          },
         },
-        once: true,
-      });
+      );
 
       // Setup Cards Animation - płynne, symetryczne wejście
       const cards = cardsRef.current.filter(
@@ -156,22 +155,22 @@ const AboutSection = () => {
       );
 
       if (cards.length) {
-        gsap.set(cards, { autoAlpha: 0, y: 80 });
-
-        ScrollTrigger.batch(cards, {
-          start: "top 85%",
-          onEnter: (batch) => {
-            gsap.to(batch, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 1.2,
-              stagger: 0.15,
-              ease: "power3.out",
-              overwrite: true,
-            });
+        gsap.fromTo(
+          cards,
+          { autoAlpha: 0, y: 80 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            stagger: 0.1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: cards[0] as HTMLDivElement,
+              start: "top 95%",
+              end: "bottom 70%",
+              scrub: 1.2,
+            },
           },
-          once: true,
-        });
+        );
 
         // Delikatny, taki sam parallax dla WSZYSTKICH kart
         gsap.to(cards, {
@@ -193,9 +192,9 @@ const AboutSection = () => {
     <section
       ref={sectionRef}
       id="about"
-      className="min-h-screen flex items-center py-20 relative z-30 bg-transparent"
+      className="py-24 md:py-32 flex items-center relative z-30 bg-transparent"
     >
-      <div className="container mx-auto px-4 relative z-10 -mt-20">
+      <div className="container mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <span

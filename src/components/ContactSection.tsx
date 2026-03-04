@@ -468,8 +468,9 @@ const ContactSection = () => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: titleRef.current,
-          start: "top 85%",
-          toggleActions: "play none none reverse",
+          start: "top 90%",
+          end: "top 50%",
+          scrub: 1.2,
         },
       });
 
@@ -504,8 +505,9 @@ const ContactSection = () => {
           delay: i * 0.15, // Większy stagger
           scrollTrigger: {
             trigger: card, // Indywidualne triggery dla lepszego efektu przy scrollowaniu
-            start: "top 85%",
-            toggleActions: "play none none reverse",
+            start: "top 90%",
+            end: "top 50%",
+            scrub: 1.2,
           },
         });
       });
@@ -526,8 +528,9 @@ const ContactSection = () => {
             ease: "power2.out",
             scrollTrigger: {
               trigger: formElements[0] as HTMLElement,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
+              start: "top 90%",
+              end: "top 40%",
+              scrub: 1.2,
             },
           },
         );
@@ -590,7 +593,7 @@ const ContactSection = () => {
       id="contact"
       data-section="contact"
       ref={sectionRef}
-      className="min-h-screen flex items-center py-20 sm:py-32 text-foreground relative overflow-hidden"
+      className="flex items-center py-24 md:py-32 text-foreground relative overflow-hidden"
       style={{
         perspective: "2000px",
         transformStyle: "preserve-3d",

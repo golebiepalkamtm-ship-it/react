@@ -64,7 +64,7 @@ export const Carousel3D = () => {
       const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: carouselRef.current,
-          start: "top 85%", // Start earlier
+          start: "top 90%", // Start earlier
           toggleActions: "play none none none",
           once: true,
         },
@@ -241,7 +241,7 @@ export const Carousel3D = () => {
       <section
         ref={carouselRef}
         id="carousel"
-        className="relative min-h-screen flex flex-col justify-center overflow-hidden section-surface"
+        className="relative py-24 md:py-32 flex flex-col justify-center overflow-hidden section-surface"
         onMouseEnter={pauseAutoPlay}
         onMouseMove={handleUserInteraction}
       >
