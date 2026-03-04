@@ -196,7 +196,7 @@ const HeroPremium = () => {
               className="hero-part-left inline-block text-zinc-900"
               style={{
                 textShadow:
-                  "0 2px 8px rgba(0,0,0,0.95), 0 4px 24px rgba(0,0,0,0.85), 2px 2px 0px rgba(0,0,0,0.6)",
+                  "0 2px 6px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)",
               }}
             >
               <SplitText>Pałka</SplitText>
@@ -205,7 +205,7 @@ const HeroPremium = () => {
               className="hero-part-right inline-block text-[#A68E4E]"
               style={{
                 textShadow:
-                  "0 2px 14px rgba(166,142,78,0.9), 0 4px 32px rgba(166,142,78,0.6), 0 0 60px rgba(166,142,78,0.3)",
+                  "0 2px 6px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)",
               }}
             >
               <SplitText>MTM</SplitText>
@@ -214,7 +214,7 @@ const HeroPremium = () => {
               className="hero-subtitle gold-heading block text-xl md:text-2xl font-bold tracking-[0.2em] mt-4 uppercase text-center whitespace-nowrap"
               style={{
                 textShadow:
-                  "0 2px 14px rgba(166,142,78,0.9), 0 4px 32px rgba(166,142,78,0.6), 0 0 60px rgba(166,142,78,0.3)",
+                  "0 2px 6px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)",
               }}
             >
               <SplitText>— Geny Zwycięzców</SplitText>
@@ -310,7 +310,7 @@ const CTAFeaturesSection = () => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 65%", // Start earlier
+          start: "top 85%", // Start definitely earlier so it's not late
           toggleActions: "play none none reverse",
         },
       });

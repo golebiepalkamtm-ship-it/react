@@ -131,19 +131,19 @@ const AboutSection = () => {
         signatureRef.current,
       ];
 
-      // Zaczynamy DUŻO niżej (y: 200) dla długiego, powolnego lotu
-      gsap.set(textElements, { autoAlpha: 0, y: 200 });
+      // Zaczynamy płynnie od dołu, ale nie aż tak głęboko jak wcześniej
+      gsap.set(textElements, { autoAlpha: 0, y: 60 });
 
       ScrollTrigger.batch(textElements, {
-        start: "top 95%", // Wcześniejszy trigger
+        start: "top 85%", // Wcześniejszy trigger
         end: "bottom 80%",
         onEnter: (batch) => {
           gsap.to(batch, {
             autoAlpha: 1,
             y: 0,
-            duration: 2.2, // Bardzo długi czas trwania = majestatyczny ruch
-            stagger: 0.3, // Wyraźne odstępy między elementami
-            ease: "power2.out", // Klasyczny, elegancki ease
+            duration: 1.4, // Krócej, by było szybciej na ekranie, ale wciąż majestatycznie
+            stagger: 0.2,
+            ease: "power2.out",
             overwrite: true,
           });
         },
@@ -156,16 +156,16 @@ const AboutSection = () => {
       );
 
       if (cards.length) {
-        gsap.set(cards, { autoAlpha: 0, y: 160 });
+        gsap.set(cards, { autoAlpha: 0, y: 80 });
 
         ScrollTrigger.batch(cards, {
-          start: "top 90%",
+          start: "top 85%",
           onEnter: (batch) => {
             gsap.to(batch, {
               autoAlpha: 1,
               y: 0,
-              duration: 1.8,
-              stagger: 0.18,
+              duration: 1.2,
+              stagger: 0.15,
               ease: "power3.out",
               overwrite: true,
             });

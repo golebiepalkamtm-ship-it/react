@@ -43,13 +43,13 @@ export const SmoothScrollProvider = ({
     const awwwEasing = (t: number): number => 1 - Math.pow(1 - t, 4);
 
     const lenis = new Lenis({
-      duration: 1.5, // Balanced duration for responsiveness vs smoothness
+      duration: 2.2, // Majestic, slow and smooth duration
       easing: awwwEasing,
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 0.8, // Slightly softer wheel reaction
+      touchMultiplier: 1.2,
       infinite: false,
     });
 

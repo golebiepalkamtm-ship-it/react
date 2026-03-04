@@ -64,7 +64,7 @@ export const Carousel3D = () => {
       const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: carouselRef.current,
-          start: "top 80%",
+          start: "top 85%", // Start earlier
           toggleActions: "play none none none",
           once: true,
         },
