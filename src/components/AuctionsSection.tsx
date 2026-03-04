@@ -67,8 +67,7 @@ const AuctionsSection = () => {
               Aukcje Na Żywo
             </span>
             <h2 className="font-display text-2xl md:text-3xl text-gold font-bold leading-tight">
-              Zdobądź
-              <span className="text-white"> Elitarne Ptaki</span>
+              <span className="text-white"> Champion Pigeon Auctions</span>
             </h2>
           </div>
           <motion.div
@@ -82,7 +81,7 @@ const AuctionsSection = () => {
                 variant="outline"
                 className="mt-6 md:mt-0 group border-gold/50 hover:bg-gold hover:text-navy"
               >
-                Zobacz Wszystkie Aukcje
+                Wejdź na aukcje
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
@@ -150,7 +149,7 @@ const AuctionsSection = () => {
           >
             <Link to="/auctions">
               <Button variant="gold" size="lg" className="whitespace-nowrap">
-                Zobacz Wszystkie Aukcje
+                Przejdź do Champion Pigeon Auctions
               </Button>
             </Link>
           </motion.div>

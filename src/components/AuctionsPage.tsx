@@ -326,10 +326,13 @@ const AuctionsPage = () => {
       >
         <div className="container mx-auto px-4">
           <div ref={heroContentRef} className="text-left">
-            <h1 className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-              <span style={{ color: "#A68E4E" }}>Aukcje</span>{" "}
-              <span className="text-white">Champion Class</span>
+            <h1 className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight uppercase tracking-wide">
+              <span style={{ color: "#A68E4E" }}>Champion Pigeon</span>{" "}
+              <span className="text-white">Auctions</span>
             </h1>
+            <p className="max-w-xl text-zinc-400 mt-4 text-sm uppercase tracking-wider font-light">
+              Ekskluzywny portal aukcyjny
+            </p>
             <div className="mt-8 flex flex-wrap gap-4 justify-start">
               <Button
                 variant="gold"

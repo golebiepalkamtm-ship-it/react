@@ -119,7 +119,7 @@ const Header = () => {
   const navLinks = useMemo(() => {
     const baseLinks = [
       { label: "Start", href: "/#home" },
-      { label: "Aukcje", href: "/auctions" },
+      { label: "Champion Pigeon Auctions", href: "/auctions" },
       { label: "Championy", href: "/champions" },
       { label: "Wyniki lotowe", href: "/flight-results" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
