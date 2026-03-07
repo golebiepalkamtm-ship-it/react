@@ -48,7 +48,7 @@
     "prettier": "3.8.1",
     "prisma": "^7.4.2",
     "rollup-plugin-visualizer": "^6.0.5",
-    "supabase": "^2.76.9",
+    "supabase": "^2.76.15",
     "supertest": "^7.2.2",
     "tailwindcss-3d": "^0.0.1",
     "typescript-eslint": "^8.26.0",
