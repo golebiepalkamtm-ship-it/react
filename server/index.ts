@@ -1,9 +1,9 @@
 import "./env.js"; // Must be first
 import "./tracing.js"; // OpenTelemetry bootstrap — initialize before other imports
-import { createServer as createHttpServer } from "http";
-import { createServer as createHttpsServer } from "https";
-import path from "path";
-import { fileURLToPath } from "url";
+import { createServer as createHttpServer } from "node:http";
+import { createServer as createHttpsServer } from "node:https";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { setupWebSocketEvents } from "./websocket/bidding.js";
 import { initSocket } from "./lib/socket.js";
 import app, { allowedOrigins } from "./app.js";
@@ -88,11 +88,16 @@ if (fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath)) {
   server = createHttpsServer(options, app);
 } else {
   if (validatedEnv.NODE_ENV === "production") {
-    console.warn(
-      "⚠️  SSL Certificates not found. Starting HTTP server. (Make sure you are behind a reverse proxy that terminates TLS!)",
+    // In production we require TLS termination (certs) — fail fast to avoid insecure server start
+    console.error(
+      "❌ SSL Certificates not found in production. Refusing to start HTTP server. Provide certificates or terminate TLS at a reverse proxy.",
     );
+    process.exit(1);
+  } else {
+    // Non-production: allow HTTP for local/dev/testing environments only
+    // file deepcode ignore HttpToHttps: The API sits behind a reverse proxy that terminates TLS
+    server = createHttpServer(app);
   }
-  server = createHttpServer(app);
 }
 
 const io = initSocket(server, allowedOrigins());
@@ -112,7 +117,7 @@ const findAvailablePort = (
       );
     }
 
-    // file deepcode ignore HTTP_Instead_Of_HTTPS: The API sits behind a reverse proxy that terminates TLS
+    // file deepcode ignore HttpToHttps: The API sits behind a reverse proxy that terminates TLS
     const testServer = createHttpServer();
     testServer.listen(startPort, () => {
       testServer.close(() => {

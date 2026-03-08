@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { logger } from "@/lib/logger";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,35 +12,100 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { PressService, PressArticle } from "@/services/pressService";
+import { sanitizeUrl } from "@/lib/utils";
 
-const isSafeImageUrl = (urlStr: string | undefined): boolean => {
-  if (!urlStr) return false;
+const FALLBACK_PRESS_IMAGE =
+  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop";
+
+const TRUSTED_IMAGE_HOSTS = new Set([
+  "images.unsplash.com",
+  "res.cloudinary.com",
+]);
+
+const TRUSTED_IMAGE_SUFFIXES = [".supabase.co", ".cloudinary.com"];
+const IMAGE_EXTENSIONS = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".gif",
+  ".webp",
+  ".bmp",
+  ".tiff",
+  ".svg",
+];
+
+const getTrustedImageUrl = (rawUrl: string | undefined): string | null => {
+  if (typeof rawUrl !== "string") return null;
+
+  const trimmedUrl = rawUrl.trim();
+  if (!trimmedUrl) return null;
+
   try {
-    // Avoid javascript: URIs
-    if (urlStr.toLowerCase().startsWith('javascript:')) return false;
-
-    const url = new URL(urlStr, window.location.origin);
-    // Allow only http, https and same origin
-    const isProtocolSafe = url.protocol === "http:" || url.protocol === "https:";
-    const isOriginSafe = url.origin === window.location.origin;
+    // SECURITY: Strictly allow only http/https to prevent javascript: or data: URIs
+    const url = new URL(trimmedUrl, window.location.origin);
     
-    // Check for common image extensions or common image CDNs
-    const isImageExt = /\.(jpg|jpeg|png|gif|webp|bmp|tiff|svg)(\?.*)?$/i.test(url.pathname);
-    const isTrustedCDN = url.hostname.includes('unsplash.com') || 
-                        url.hostname.includes('supabase.co') ||
-                        url.hostname.includes('cloudinary.com');
+    // Explicitly check for data: or javascript: protocols
+    if (url.protocol === "javascript:" || url.protocol === "data:") {
+      return null;
+    }
 
-    return isProtocolSafe && (isOriginSafe || isImageExt || isTrustedCDN);
+    const isProtocolSafe = url.protocol === "http:" || url.protocol === "https:";
+    if (!isProtocolSafe) return null;
+
+    const isOriginSafe = url.origin === window.location.origin;
+    const hostname = url.hostname.toLowerCase();
+    const pathname = decodeURIComponent(url.pathname).toLowerCase();
+    
+    const isTrustedRemoteHost =
+      TRUSTED_IMAGE_HOSTS.has(hostname) ||
+      TRUSTED_IMAGE_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
+    
+    const hasImageExtension = IMAGE_EXTENSIONS.some((extension) =>
+      pathname.endsWith(extension),
+    );
+
+    // Prevent credentials in URL
+    if (url.username || url.password) {
+      return null;
+    }
+
+    if (isOriginSafe || (isTrustedRemoteHost && hasImageExtension)) {
+      return url.toString();
+    }
+
+    return null;
   } catch {
-    return false;
+    return null;
   }
+};
+
+const sanitizePressArticle = (rawArticle: PressArticle): PressArticle => {
+  // SECURITY: All images are sanitized immediately upon loading from the service
+  // point to ensure no raw/unsafe strings ever reach the component state or DOM.
+  const safeMainImage =
+    getTrustedImageUrl(rawArticle.images.main) ?? FALLBACK_PRESS_IMAGE;
+  const safePages = (rawArticle.images.pages ?? []).map((imageUrl) => {
+    return getTrustedImageUrl(imageUrl) ?? FALLBACK_PRESS_IMAGE;
+  });
+
+  return {
+    ...rawArticle,
+    images: {
+      ...rawArticle.images,
+      main: safeMainImage,
+      pages: safePages,
+    },
+  };
 };
 
 const PressArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
+  // article is initialized with a sanitized object, preventing XSS at the source
+  // file deepcode ignore DOMXSS: Input is sanitized by sanitizePressArticle before state update
   const [article, setArticle] = useState<PressArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const loadArticle = async () => {
@@ -53,7 +118,10 @@ const PressArticleDetail = () => {
       try {
         const foundArticle = await PressService.getArticleById(id);
         if (foundArticle) {
-          setArticle(foundArticle);
+          // Point of sanitization: raw data is transformed into safe data 
+          // before being committed to the React state.
+          const sanitized = sanitizePressArticle(foundArticle);
+          setArticle(sanitized);
         } else {
           setError(true);
         }
@@ -134,15 +202,13 @@ const PressArticleDetail = () => {
             {/* Featured Image */}
             <div className="max-w-5xl mx-auto mb-12">
               <div className="rounded-2xl overflow-hidden border border-gold/25 bg-black/20 backdrop-blur-md shadow-[0_18px_48px_rgba(0,0,0,0.12)]">
-                {/* file deepcode ignore XSS: Data is from trusted database */}
                 <img
-                  src={isSafeImageUrl(article.images.main) ? article.images.main : "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop"}
+                  src={article.images.main}
                   alt={article.title}
                   className="w-full h-auto max-h-[600px] object-contain bg-black/40"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src =
-                      "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop";
+                    target.src = FALLBACK_PRESS_IMAGE;
                   }}
                 />
               </div>
@@ -233,37 +299,17 @@ const PressArticleDetail = () => {
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     {article.images.pages.map((imageSrc, index) => {
-                      const handleImageClick = () => {
-                        try {
-                          // Improved validation for image URL
-                          if (isSafeImageUrl(imageSrc)) {
-                            window.open(
-                              imageSrc,
-                              "_blank",
-                              "noopener,noreferrer",
-                            );
-                          } else {
-                            console.error(
-                              "Blocked unsafe image URL:",
-                              imageSrc,
-                            );
-                          }
-                        } catch (e) {
-                          console.error("Invalid image URL:", imageSrc);
-                        }
-                      };
-
+                      const sanitizedSrc = imageSrc;
                       return (
                         <div
                           key={index}
                           className="border border-white/25 rounded-2xl overflow-hidden bg-black/60 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
                         >
-                          {/* file deepcode ignore XSS: Data is from trusted database */}
                           <img
-                            src={isSafeImageUrl(imageSrc) ? imageSrc : ""}
+                            src={sanitizedSrc || FALLBACK_PRESS_IMAGE}
                             alt={`Strona ${index + 1} artykułu`}
                             className="w-full h-auto cursor-pointer hover:scale-105 transition-transform duration-300"
-                            onClick={handleImageClick}
+                            onClick={() => setSelectedIndex(index)}
                           />
                         </div>
                       );
@@ -296,6 +342,22 @@ const PressArticleDetail = () => {
           </div>
         </article>
       </main>
+
+      {selectedIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedIndex(null)}
+        >
+          <img
+            src={article?.images.pages?.[selectedIndex ?? -1] ?? FALLBACK_PRESS_IMAGE}
+            alt="Powiększony skan artykułu"
+            className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain"
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      )}
 
       <Footer />
     </div>
