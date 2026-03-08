@@ -12,6 +12,22 @@ const __dirname = path.dirname(__filename);
 
 const router: Router = express.Router();
 
+const MEETINGS_CACHE_TTL_MS = 60_000;
+
+type MeetingFileCache = {
+  data: unknown[];
+  expiresAt: number;
+  path: string | null;
+  mtimeMs: number;
+};
+
+let meetingFileCache: MeetingFileCache = {
+  data: [],
+  expiresAt: 0,
+  path: null,
+  mtimeMs: 0,
+};
+
 const getLocalDataPath = (filename: string): string => {
   const possiblePaths = [
     path.join(process.cwd(), "server/data", filename),
@@ -37,6 +53,44 @@ const parseMeetingPayload = (raw: any) => {
   return raw;
 };
 
+const readMeetingsFromFile = async (): Promise<unknown[]> => {
+  const meetingsPath = getLocalDataPath("meetings.json");
+
+  if (!fs.existsSync(meetingsPath)) {
+    meetingFileCache = {
+      data: [],
+      expiresAt: Date.now() + MEETINGS_CACHE_TTL_MS,
+      path: meetingsPath,
+      mtimeMs: 0,
+    };
+    return [];
+  }
+
+  const stats = await fs.promises.stat(meetingsPath);
+  const now = Date.now();
+
+  if (
+    meetingFileCache.path === meetingsPath &&
+    meetingFileCache.expiresAt > now &&
+    meetingFileCache.mtimeMs === stats.mtimeMs
+  ) {
+    return meetingFileCache.data;
+  }
+
+  const meetingsData = await fs.promises.readFile(meetingsPath, "utf-8");
+  const meetings = JSON.parse(meetingsData);
+  const data = Array.isArray(meetings?.meetings) ? meetings.meetings : [];
+
+  meetingFileCache = {
+    data,
+    expiresAt: now + MEETINGS_CACHE_TTL_MS,
+    path: meetingsPath,
+    mtimeMs: stats.mtimeMs,
+  };
+
+  return data;
+};
+
 // GET ALL
 router.get("/", dataFetchLimiter, async (req: Request, res: Response) => {
   try {
@@ -54,12 +108,8 @@ router.get("/", dataFetchLimiter, async (req: Request, res: Response) => {
       }
     }
 
-    const meetingsPath = getLocalDataPath("meetings.json");
-    if (!fs.existsSync(meetingsPath)) return res.json([]);
-
-    const meetingsData = await fs.promises.readFile(meetingsPath, "utf-8");
-    const meetings = JSON.parse(meetingsData);
-    res.json(meetings.meetings || []);
+    const meetings = await readMeetingsFromFile();
+    res.json(meetings);
   } catch (error: any) {
     console.error("Error reading meetings data:", error);
     res

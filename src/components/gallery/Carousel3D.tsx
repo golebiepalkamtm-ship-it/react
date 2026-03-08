@@ -251,7 +251,7 @@ export const Carousel3D = () => {
           <div>
             <span
               ref={badgeRef}
-              className="inline-flex items-center gap-2 font-body text-xs uppercase tracking-[0.3em] text-zinc-900 mb-4"
+              className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] shadow-lg shadow-gold/20 mb-8"
               style={{
                 transformStyle: "preserve-3d",
                 backfaceVisibility: "hidden",

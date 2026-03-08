@@ -18,6 +18,7 @@ import Footer from "@/components/Footer";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { initScrollStory } from "@/lib/initScrollStory";
+import { MagneticButton } from "@/components/effects/MagneticButton";
 
 // ─── Type definitions ─────────────────────────────────────────────────────
 interface AuthMessage {
@@ -65,67 +66,72 @@ const StatCard = memo(
     const cardRef = useRef<HTMLDivElement>(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
+    const spotlightX = useMotionValue(50);
+    const spotlightY = useMotionValue(50);
 
-    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), {
-      stiffness: 280,
-      damping: 20,
+    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+      stiffness: 200,
+      damping: 25,
     });
-    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), {
-      stiffness: 280,
-      damping: 20,
+    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+      stiffness: 200,
+      damping: 25,
     });
 
     const handleMouseMove = useCallback(
       (e: React.MouseEvent<HTMLDivElement>) => {
         if (!cardRef.current) return;
         const rect = cardRef.current.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        mouseX.set(x);
-        mouseY.set(y);
+        const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+        const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+
+        spotlightX.set(xPercent);
+        spotlightY.set(yPercent);
+
+        mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+        mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
       },
-      [mouseX, mouseY],
+      [mouseX, mouseY, spotlightX, spotlightY],
     );
 
     const handleMouseLeave = useCallback(() => {
       mouseX.set(0);
       mouseY.set(0);
+      // Let spotlight stay where it was for a smoother transition
     }, [mouseX, mouseY]);
 
     return (
       <motion.div
         ref={cardRef}
-        className="p-4 rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.8)] relative overflow-hidden group"
-        style={{
-          transformStyle: "preserve-3d",
-          rotateX,
-          rotateY,
-          background:
-            "radial-gradient(circle at top, rgba(166, 142, 78, 0.15), transparent 70%), linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(10, 10, 10, 0.96) 50%, rgba(15, 15, 15, 0.95) 100%)",
-          border: "2px solid rgba(166,142,78,0.7)",
-          boxShadow:
-            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 16px 48px -12px rgba(0,0,0,0.8)",
-        }}
-        whileHover={{ scale: 1.08 }}
-        transition={{ type: "spring", stiffness: 280, damping: 18 }}
+        className="p-3.5 rounded-xl spotlight-card relative group text-center"
+        style={
+          {
+            transformStyle: "preserve-3d",
+            rotateX,
+            rotateY,
+            "--mouse-x": useTransform(spotlightX, (v) => `${v}%`),
+            "--mouse-y": useTransform(spotlightY, (v) => `${v}%`),
+          } as any
+        }
+        whileHover={{ scale: 1.05 }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.4),transparent_75%)] pointer-events-none" />
-        <div className="absolute inset-0 bg-zinc-950/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-gold/5 transition-opacity duration-500 group-hover:opacity-100 opacity-20 pointer-events-none" />
+
         <div
-          className="w-10 h-10 mx-auto mb-3 rounded-full flex items-center justify-center"
+          className="w-9 h-9 mx-auto mb-2.5 rounded-lg flex items-center justify-center relative z-10"
           style={{
             background: "#A68E4E",
-            boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
-            border: "1px solid rgba(166,142,78,0.8)",
+            boxShadow: "0 0 15px rgba(166,142,78,0.4)",
           }}
         >
           <Icon className="w-5 h-5 text-black" />
         </div>
-        <div className="text-xl font-bold text-zinc-900 mb-1">{value}</div>
-        <div className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.3em]">
+        <div className="text-xl font-bold text-white mb-0.5 tracking-tight group-hover:scale-110 transition-transform duration-300">
+          {value}
+        </div>
+        <div className="text-[8px] font-black uppercase tracking-[0.35em] text-white/40 group-hover:text-gold/80 transition-colors">
           {label}
         </div>
       </motion.div>
@@ -142,7 +148,7 @@ const HeroPremium = memo(() => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden premium-mesh-bg">
       <div className="parallax-layer absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
       <div className="parallax-layer absolute -inset-x-20 top-10 h-64 bg-gradient-to-r from-gold/15 via-transparent to-gold/10 blur-3xl pointer-events-none" />
       <motion.div
@@ -176,36 +182,19 @@ const HeroPremium = memo(() => {
             hidden: { opacity: 0, y: 40 },
             visible: { opacity: 1, y: 0 },
           }}
-          className="text-3xl md:text-5xl lg:text-6xl font-bold font-display mb-6"
-          style={{ wordSpacing: "0.05em" }}
+          className="text-4xl md:text-6xl lg:text-7xl font-bold font-display mb-6 tracking-tight"
         >
-          <span
-            className="heading-black"
-            style={{
-              textShadow:
-                "0 2px 8px rgba(0,0,0,0.95), 0 4px 24px rgba(0,0,0,0.8), 2px 2px 0px rgba(0,0,0,0.6)",
-            }}
-          >
-            Pałka
-          </span>{" "}
-          <span
-            className="gold-heading"
-            style={{
-              textShadow:
-                "0 2px 14px rgba(166,142,78,0.8), 0 4px 32px rgba(166,142,78,0.5), 0 0 60px rgba(166,142,78,0.25)",
-            }}
-          >
-            MTM
-          </span>
+          <span className="text-white shimmer-text">Pałka</span>{" "}
+          <span className="text-gold">MTM</span>
           <br />
-          <span
-            className="gold-heading"
-            style={{
-              textShadow:
-                "0 2px 14px rgba(166,142,78,0.8), 0 4px 32px rgba(166,142,78,0.5), 0 0 60px rgba(166,142,78,0.25)",
-            }}
-          >
-            Geny Zwycięzców
+          <span className="relative inline-block mt-2">
+            <span className="text-white/90">Geny Zwycięzców</span>
+            <motion.div
+              className="absolute -bottom-2 left-0 h-[2px] bg-gold"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1, delay: 1 }}
+            />
           </span>
         </motion.h1>
 
@@ -232,13 +221,15 @@ const HeroPremium = memo(() => {
           }}
           className="flex flex-col sm:flex-row items-start justify-start gap-4 mb-20"
         >
-          <Link
-            to="/champions"
-            className="group flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm gold-button"
-          >
-            <span>Eksploruj Championy</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-950" />
-          </Link>
+          <MagneticButton strength={0.2}>
+            <Link
+              to="/champions"
+              className="group flex items-center gap-3 px-8 py-3.5 rounded-full font-bold text-sm bg-gold text-zinc-950 shadow-[0_0_20px_rgba(166,142,78,0.3)] hover:shadow-[0_0_35px_rgba(166,142,78,0.5)] transition-shadow"
+            >
+              <span>Eksploruj Championy</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </Link>
+          </MagneticButton>
         </motion.div>
 
         <motion.div
@@ -293,6 +284,8 @@ const FeatureCardPremium = memo(
     const cardRef = useRef<HTMLDivElement>(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
+    const spotlightX = useMotionValue(50);
+    const spotlightY = useMotionValue(50);
 
     const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
       stiffness: 160,
@@ -306,10 +299,14 @@ const FeatureCardPremium = memo(
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
       if (!cardRef.current) return;
       const rect = cardRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      mouseX.set(x);
-      mouseY.set(y);
+      const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+      const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+
+      spotlightX.set(xPercent);
+      spotlightY.set(yPercent);
+
+      mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+      mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
     };
 
     const handleMouseLeave = () => {
@@ -323,40 +320,33 @@ const FeatureCardPremium = memo(
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: index * 0.1 }}
-        className={`h-full flex flex-col p-6 rounded-2xl bg-champion-teal shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300 relative group overflow-hidden ${className || ""}`}
+        className={`h-full flex flex-col p-6 rounded-2xl spotlight-card transition-all duration-300 relative group overflow-hidden ${className || ""}`}
         ref={cardRef}
-        style={{
-          transformStyle: "preserve-3d",
-          rotateX,
-          rotateY,
-          border: "2px solid rgba(166,142,78,0.7)",
-          boxShadow:
-            "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
-        }}
+        style={
+          {
+            transformStyle: "preserve-3d",
+            rotateX,
+            rotateY,
+            "--mouse-x": useTransform(spotlightX, (v) => `${v}%`),
+            "--mouse-y": useTransform(spotlightY, (v) => `${v}%`),
+          } as any
+        }
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
         <div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[120%] h-24 pointer-events-none opacity-[0.35] group-hover:opacity-[0.65] transition-opacity duration-500"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(212,175,55,0.2) 0%, transparent 60%)",
-          }}
-        />
-        <div
-          className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
+          className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 relative z-10"
           style={{
             background: "#A68E4E",
-            boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
-            border: "1px solid rgba(166,142,78,0.8)",
+            boxShadow: "0 0 15px rgba(166,142,78,0.4)",
           }}
         >
           <feature.icon className="w-6 h-6 text-black" />
         </div>
-        <h3 className="text-lg font-semibold font-display text-[#A68E4E] mb-3">
+        <h3 className="text-xl font-bold font-display text-white mb-3 relative z-10">
           {feature.title}
         </h3>
-        <p className="text-white/60 text-sm leading-relaxed">
+        <p className="text-white/50 text-sm leading-relaxed relative z-10 font-medium">
           {feature.description}
         </p>
       </motion.div>
@@ -485,13 +475,17 @@ const Index = () => {
               Przeglądaj naszą ekskluzywną kolekcję i znajdź swój klucz do
               sukcesu.
             </p>
-            <Link
-              to="/auctions"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-bold text-base gold-button"
-            >
-              Przejdź do Aukcji
-              <ArrowRight className="w-5 h-5 text-zinc-950" />
-            </Link>
+            <div className="flex justify-center">
+              <MagneticButton strength={0.15}>
+                <Link
+                  to="/auctions"
+                  className="inline-flex items-center gap-3 px-10 py-4 rounded-full font-bold text-lg bg-gold text-zinc-950 shadow-[0_0_25px_rgba(166,142,78,0.3)] hover:shadow-[0_0_40px_rgba(166,142,78,0.5)] transition-all"
+                >
+                  Przejdź do Aukcji
+                  <ArrowRight className="w-6 h-6" />
+                </Link>
+              </MagneticButton>
+            </div>
           </motion.div>
         </section>
 

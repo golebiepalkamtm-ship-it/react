@@ -45,8 +45,11 @@ export const ScrollIndicator: React.FC = () => {
       const limit = (lenis as any).limit ?? 1;
       const progress = (lenis as any).progress ?? scroll / limit;
       onScroll({ scroll, limit, progress });
-    } catch {
-      // Ignore errors during initialization
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.debug("[ScrollIndicator] Lenis init snapshot failed", error);
+      }
+      // Ignored in prod
     }
 
     return () => {

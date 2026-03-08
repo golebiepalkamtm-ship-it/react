@@ -45,6 +45,24 @@ html.lenis body {
     /* Firefox (historic support) */
     text-size-adjust: 100%;
     /* Standard property supported by modern browsers */
+    
+    /* 1000% Sharp & Smoothed Typography Settings */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1; 
+    font-variant-ligatures: common-ligatures;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Sharpen images and remove blurriness */
+  img, 
+  video,
+  svg {
+    image-rendering: -webkit-optimize-contrast; /* Chrome/Edge/Blink */
+    image-rendering: high-quality; /* Modern standard */
+    /* Ensure vectors are crisp */
+    shape-rendering: geometricPrecision; 
   }
 
   html,
@@ -191,6 +209,107 @@ html.lenis body {
 
     --sidebar-width: 16rem;
     --sidebar-width-icon: 3rem;
+
+    /* Premium UI Tokens - Restoration to Elite Dark */
+    --neon-gold: #a68e4e;
+    --neon-gold-glow: rgba(166, 142, 78, 0.5);
+    --premium-dark: #050505;
+    --glass-blur: blur(12px);
+  }
+
+  /* Premium Shimmer Effect - Adjusted for Light Background */
+  @keyframes shimmer-premium {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      rgba(166, 142, 78, 1) 0%,
+      rgba(255, 255, 255, 0.8) 50%,
+      rgba(166, 142, 78, 1) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer-premium 4s linear infinite;
+  }
+
+  /* Spotlight Border Utility - Reverted to Dark Glass Aesthetic */
+  .spotlight-card {
+    position: relative;
+    background: rgba(10, 10, 10, 0.6);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(166, 142, 78, 0.15);
+    overflow: hidden;
+  }
+
+  .spotlight-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: radial-gradient(
+      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(166, 142, 78, 0.12),
+      transparent 40%
+    );
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Premium Mesh Background - Dynamic & Evolving */
+  @keyframes mesh-move {
+    0% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(10%, 15%) scale(1.1);
+    }
+    66% {
+      transform: translate(-5%, 8%) scale(0.95);
+    }
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+  }
+
+  .mesh-layer {
+    position: absolute;
+    inset: -50%;
+    opacity: 0.15;
+    filter: blur(100px);
+    pointer-events: none;
+    mix-blend-mode: plus-lighter;
+    animation: mesh-move 20s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .mesh-gold {
+    background: radial-gradient(circle at 50% 50%, #a68e4e 0%, transparent 50%);
+    animation-duration: 25s;
+    animation-delay: -2s;
+  }
+
+  .mesh-white {
+    background: radial-gradient(
+      circle at 30% 70%,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 40%
+    );
+    animation-duration: 30s;
+    animation-delay: -5s;
+  }
+
+  .premium-mesh-bg {
+    background: transparent;
+    position: relative;
+    overflow: hidden;
   }
 
   /* Apply variable font settings to elements marked as data-variable-font */
@@ -1225,33 +1344,7 @@ html.lenis body {
   will-change: clip-path;
 }
 
-/* Custom Magnetic Cursor Styles */
-.custom-cursor-main {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(212, 175, 55, 0.8);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 10000;
-  will-change: transform;
-  mix-blend-mode: difference;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
-.cursor-follower-main {
-  width: 50px;
-  height: 50px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  will-change: transform;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
+/* Custom Magnetic Cursor Styles - Removed by request */
 
 /* Cursor hidden by USER request removed */
 
@@ -2160,32 +2253,7 @@ html.lenis body {
 
 /* Cursor hidden by USER request removed */
 
-.custom-cursor-main {
-  width: 10px;
-  height: 10px;
-  background-color: #d4af37;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 10000;
-  will-change: transform;
-  mix-blend-mode: difference;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
-.cursor-follower-main {
-  width: 40px;
-  height: 40px;
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  will-change: transform;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
+/* Premium Awwwards effects (cursor) removed */
 
 .mask-reveal-overlay {
   position: fixed;

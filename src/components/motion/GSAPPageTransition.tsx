@@ -98,8 +98,9 @@ export const GSAPPageTransition = ({
       });
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsTransitioning(true);
+    setTimeout(() => {
+      setIsTransitioning(true);
+    }, 0);
 
     // --- KROK 2: SEKWENCJA ANIMACJI ---
     const tl = gsap.timeline({

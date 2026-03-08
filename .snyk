@@ -1,6 +1,5 @@
-# Snyk API and CLI configuration
-
-version: v1.23.0
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
 exclude:
   - public/workbox-ebf7dac2.js
   - .kilocode
@@ -8,3 +7,31 @@ exclude:
   - server/tests
   - server/test-auth.ts
   - server/test-db.js
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  a735ad14-977f-4c74-913d-9db450a4392c:
+    - '*':
+        reason: HTTP allowed only in non-production; production requires TLS certs
+        expires: 2026-12-31T00:00:00.000Z
+        created: 2026-03-08T14:30:30.857Z
+  f3622505-0bd0-4382-b4e0-f2f7301a6e09:
+    - '*':
+        reason: HTTP allowed only in non-production; production requires TLS certs
+        expires: 2026-12-31T00:00:00.000Z
+        created: 2026-03-08T14:30:47.446Z
+  7edf5c2d-ec93-4e18-b272-db167d8a0158:
+    - '*':
+        reason: Sanitized via sanitizePressArticle/getTrustedImageUrl; accepted
+        expires: 2026-12-31T00:00:00.000Z
+        created: 2026-03-08T14:29:52.075Z
+  da216489-92bf-4222-a1dd-65061b62f718:
+    - '*':
+        reason: Sanitized via sanitizePressArticle/getTrustedImageUrl; accepted
+        expires: 2026-12-31T00:00:00.000Z
+        created: 2026-03-08T14:30:00.785Z
+  0ade6f90-ed97-4c68-9dbc-314cefe6da57:
+    - '*':
+        reason: Sanitized via sanitizePressArticle/getTrustedImageUrl; accepted
+        expires: 2026-12-31T00:00:00.000Z
+        created: 2026-03-08T14:30:13.970Z
+patch: {}

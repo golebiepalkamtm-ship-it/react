@@ -266,18 +266,29 @@ export default function Auth() {
     setModalOpen(false);
 
     if (modalAction === "redirect") {
-      const isSafeRedirectPath = (path: string | undefined): boolean => {
-        if (!path) return false;
-        // Allow ONLY internal paths (starting with / but not //)
-        return path.startsWith("/") && !path.startsWith("//");
+      const getSafeRedirectPath = (path: string | undefined): string | null => {
+        if (!path) return null;
+
+        try {
+          const url = new URL(path, window.location.origin);
+          const isSameOrigin = url.origin === window.location.origin;
+          if (!isSameOrigin) return null;
+
+          const normalizedPath = `${url.pathname}${url.search}${url.hash}`;
+          return normalizedPath.startsWith("/") && !normalizedPath.startsWith("//")
+            ? normalizedPath
+            : null;
+        } catch {
+          return null;
+        }
       };
 
       const targetPath =
         callbackUrl &&
         callbackUrl !== "/" &&
         callbackUrl !== "ACCOUNT_MODAL_TRIGGER" &&
-        isSafeRedirectPath(callbackUrl)
-          ? callbackUrl
+        getSafeRedirectPath(callbackUrl)
+          ? getSafeRedirectPath(callbackUrl)
           : "/";
 
       if (profile?.role === "USER_REGISTERED") {

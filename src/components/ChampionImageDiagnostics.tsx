@@ -20,28 +20,6 @@ export const ChampionImageDiagnostics = () => {
   const [results, setResults] = useState<DiagnosticResult[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to sanitize URLs for href attributes
-  const getSafeImageUrl = (url: string) => {
-    try {
-      const lowerUrl = url.toLowerCase().trim();
-      if (lowerUrl.startsWith('javascript:') || lowerUrl.startsWith('data:') || lowerUrl.startsWith('vbscript:')) {
-        return '#';
-      }
-      
-      if (url.startsWith('/')) {
-        return url;
-      }
-
-      const parsed = new URL(url, window.location.origin);
-      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-        return parsed.href;
-      }
-      return '#';
-    } catch {
-      return '#';
-    }
-  };
-
   useEffect(() => {
     const runDiagnostics = async () => {
       try {
@@ -103,15 +81,9 @@ export const ChampionImageDiagnostics = () => {
             className={`diagnostics-item ${result.status === "SUCCESS" ? "success" : "fail"}`}
           >
             <strong>{result.status}</strong> - (HTTP {result.statusCode}) -{" "}
-            {/* file deepcode ignore XSS: Internal UI component with safe react state */}
-            <a
-              href={getSafeImageUrl(result.imageUrl)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="diagnostics-link"
-            >
+            <span className="diagnostics-link">
               {result.imageUrl}
-            </a>
+            </span>
           </li>
         ))}
       </ul>

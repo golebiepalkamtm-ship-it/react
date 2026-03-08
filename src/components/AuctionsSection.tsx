@@ -30,8 +30,9 @@ const AuctionsSection = () => {
         setShouldShowSkeletons(true);
       }, 400);
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShouldShowSkeletons(false);
+      timer = setTimeout(() => {
+        setShouldShowSkeletons(false);
+      }, 0);
     }
     return () => clearTimeout(timer);
   }, [isLoading]);

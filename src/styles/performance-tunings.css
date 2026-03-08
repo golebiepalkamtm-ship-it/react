@@ -1,7 +1,18 @@
 /* Performance Tunings - Reduced Layout Thrashing & GPU Redraws */
 
 @layer base {
-  /* .fixed, .absolute { ... } // Disabled potential flickering cause */
+  /* content-visibility: auto skips rendering off-screen sections entirely */
+  section {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 600px;
+  }
+
+  /* Promote fixed elements to their own GPU layer to avoid triggering repaints */
+  canvas.fixed,
+  [style*="position: fixed"],
+  .fixed.inset-0 {
+    transform: translateZ(0);
+  }
 }
 
 @layer components {

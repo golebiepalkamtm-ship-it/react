@@ -407,7 +407,7 @@
 /* Card wrapper spacing */
 .timeline-card-wrapper {
   transform-style: preserve-3d;
-  will-change: transform, opacity;
+  /* will-change removed — only set it transiently via JS before animation starts */
 }
 
 /* Main card container with perspective */
@@ -418,7 +418,6 @@
 /* Card inner — glassmorphism body, sharp and readable */
 .awwwards-card-inner {
   transform-style: preserve-3d;
-  will-change: transform, clip-path;
 }
 
 .awwwards-card-body {

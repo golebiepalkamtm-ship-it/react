@@ -95,18 +95,19 @@ export const SmoothScrollProvider = ({
       document.fonts?.ready.then(refreshScrollTriggers).catch(() => {});
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLenisInstance(lenis);
+    const rafId = requestAnimationFrame(() => {
+      setLenisInstance(lenis);
+    });
     (window as any).lenis = lenis;
 
     return () => {
+      cancelAnimationFrame(rafId);
       gsap.ticker.remove(update);
       lenis.destroy();
       window.removeEventListener("load", refreshScrollTriggers);
       window.removeEventListener("resize", refreshScrollTriggers);
       document.removeEventListener("visibilitychange", handleVisibility);
       delete (window as any).lenis;
-      setLenisInstance(null);
     };
   }, []);
 

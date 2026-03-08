@@ -10,6 +10,14 @@ function formatArgs(args: LogArg[]): LogArg[] {
     if (typeof arg === 'object' && arg !== null) {
       try {
         return JSON.stringify(arg, (key, value) => {
+          if (value instanceof Error) {
+            return {
+              name: value.name,
+              message: value.message,
+              stack: value.stack,
+              code: (value as any).code
+            };
+          }
           const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization', 'cookie'];
           if (typeof key === 'string' && sensitiveFields.includes(key.toLowerCase())) return '***';
           return value;

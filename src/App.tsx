@@ -43,7 +43,6 @@ import {
   LazyTerms,
   LazyPrivacy,
 } from "@/utils/lazyImports";
-import { NeonCursor } from "@/components/animations/NeonCursor";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { HeroBackground } from "@/styles/HeroBackground";
 
@@ -58,7 +57,7 @@ const AwwwardsPrototype = React.lazy(() => import("@/pages/AwwwardsPrototype"));
 
 const queryClient = new QueryClient();
 
-const BackgroundWrapper = () => {
+const BackgroundWrapper = React.memo(() => {
   return (
     <div
       style={{
@@ -75,7 +74,7 @@ const BackgroundWrapper = () => {
       <RippleShockwave />
     </div>
   );
-};
+});
 
 import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
 
@@ -110,7 +109,6 @@ const App = () => {
                   <Analytics />
                   <SpeedInsights />
                   <Toaster />
-                  <NeonCursor />
                   <BackgroundWrapper />
                   <UIProviders>
                     <GSAPPageTransition duration={0.7} primaryColor="#09090b">

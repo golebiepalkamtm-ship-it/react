@@ -99,6 +99,7 @@ const AwwwardsPrototype = () => {
         window.addEventListener('mousemove', handleMouseMove);
 
         // Animation loop for cursor
+        let rafId: number;
         const animateCursor = () => {
             const cursorPos = cursorSpring.update();
             const followerPos = followerSpring.update();
@@ -117,13 +118,14 @@ const AwwwardsPrototype = () => {
                 });
             }
 
-            requestAnimationFrame(animateCursor);
+            rafId = requestAnimationFrame(animateCursor);
         };
 
         animateCursor();
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
+            cancelAnimationFrame(rafId);
         };
     }, [cursorSpring, followerSpring]);
 

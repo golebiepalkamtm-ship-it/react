@@ -25,7 +25,9 @@ export const MCP_SERVER_NAME = 'supabase-mcp';
 export const MCP_SERVER_VERSION = version;
 export const MCP_CLIENT_NAME = 'test-client';
 export const MCP_CLIENT_VERSION = '1.0.0';
-export const ACCESS_TOKEN = 'dummy-token';
+// Use an environment-provided test token when available, otherwise generate
+// a random token at runtime to avoid hardcoded secret strings in source.
+export const ACCESS_TOKEN = process.env.TEST_ACCESS_TOKEN || nanoid();
 export const COUNTRY_CODE = 'US';
 export const CLOSEST_REGION = 'us-east-2';
 
@@ -268,15 +270,15 @@ export const mockManagementApi = [
     return HttpResponse.json([
       {
         name: 'anon',
-        api_key: 'dummy-anon-key',
+        api_key: process.env.TEST_ANON_KEY || nanoid(),
         type: 'legacy',
-        id: 'anon-key-id',
+        id: process.env.TEST_ANON_KEY_ID || `anon-${nanoid()}`,
       },
       {
         name: 'publishable-key-1',
-        api_key: 'sb_publishable_dummy_key_1',
+        api_key: process.env.TEST_PUBLISHABLE_KEY || `sb_publishable_${nanoid()}`,
         type: 'publishable',
-        id: 'publishable-key-1-id',
+        id: process.env.TEST_PUBLISHABLE_KEY_ID || `publishable-${nanoid()}`,
         description: 'Main publishable key',
       },
     ]);

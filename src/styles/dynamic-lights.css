@@ -40,18 +40,28 @@
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
 }
 
-/* Animated shimmer effect for gold elements */
-@keyframes shimmer-glow {
-  0%, 100% {
-    filter: brightness(1) drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
-  }
-  50% {
-    filter: brightness(1.2) drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
-  }
+/* Animated shimmer effect for gold elements — composite-only (opacity on ::after) */
+@keyframes shimmer-glow-opacity {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 .gold-shimmer {
-  animation: shimmer-glow 3s ease-in-out infinite;
+  position: relative;
+  isolation: isolate;
+}
+
+.gold-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 0 0 6px rgba(212, 175, 55, 0.4);
+  opacity: 0.4;
+  pointer-events: none;
+  animation: shimmer-glow-opacity 3s ease-in-out infinite;
+  will-change: opacity;
+  z-index: -1;
 }
 
 /* Hero section enhanced lighting */

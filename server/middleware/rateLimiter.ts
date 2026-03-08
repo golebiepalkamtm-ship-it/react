@@ -9,7 +9,16 @@ const redisStore =
   redis &&
   new RedisStore({
     // rate-limit-redis uses sendCommand signature from ioredis; adapt for node-redis
-    sendCommand: (...args: string[]) => redis.sendCommand(args),
+    sendCommand: async (...args: string[]) => {
+      try {
+        return await redis.sendCommand(args);
+      } catch (e) {
+        logger.error("Redis command failed in rate limiter", {
+          error: e instanceof Error ? e.message : String(e),
+        });
+        throw e;
+      }
+    },
   });
 
 const baseLimiterConfig = {

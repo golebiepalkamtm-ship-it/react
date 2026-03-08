@@ -32,7 +32,7 @@ const FRAGMENT_SHADER = `
   float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
       v += a * noise(p);
       p *= 2.0;
       a *= 0.5;
@@ -77,10 +77,6 @@ const FRAGMENT_SHADER = `
     // Subtle silver tint
     vec3 color = vec3(lum);
     color *= vignette;
-
-    // Film grain (very subtle)
-    float grain = (hash(uv * uTime * 100.0) - 0.5) * 0.012;
-    color += grain;
 
     gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
   }
@@ -153,7 +149,7 @@ const VolumetricBackground = () => {
     const uTime = gl.getUniformLocation(program, "uTime");
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio, 1.5); // Cap DPR for perf
+      const dpr = 1; // Lock to 1x — background doesn't need high DPR
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = window.innerWidth + "px";
@@ -178,16 +174,23 @@ const VolumetricBackground = () => {
     document.addEventListener("visibilitychange", onVisibility);
 
     const startTime = performance.now();
+    const TARGET_FPS = 30;
+    const FRAME_INTERVAL = 1000 / TARGET_FPS;
+    let lastFrame = 0;
 
-    const render = () => {
+    const render = (timestamp: number) => {
       rafRef.current = requestAnimationFrame(render);
       if (!activeRef.current) return;
+
+      // Throttle to 30fps — background doesn't need 60fps
+      if (timestamp - lastFrame < FRAME_INTERVAL) return;
+      lastFrame = timestamp;
 
       // Smooth mouse lerp
       const m = mouseRef.current;
       const t = targetMouseRef.current;
-      m.x += (t.x - m.x) * 0.05;
-      m.y += (t.y - m.y) * 0.05;
+      m.x += (t.x - m.x) * 0.07;
+      m.y += (t.y - m.y) * 0.07;
 
       const time = (performance.now() - startTime) * 0.001;
 
@@ -196,7 +199,7 @@ const VolumetricBackground = () => {
       gl.uniform1f(uTime, time);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
-    render();
+    render(0);
 
     return () => {
       cancelAnimationFrame(rafRef.current);

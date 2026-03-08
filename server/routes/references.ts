@@ -11,6 +11,22 @@ const __dirname = path.dirname(__filename);
 
 const router: Router = express.Router();
 
+const REFERENCES_CACHE_TTL_MS = 60_000;
+
+type ReferenceFileCache = {
+  data: unknown[];
+  expiresAt: number;
+  path: string | null;
+  mtimeMs: number;
+};
+
+let referenceFileCache: ReferenceFileCache = {
+  data: [],
+  expiresAt: 0,
+  path: null,
+  mtimeMs: 0,
+};
+
 const getLocalDataPath = (filename: string): string => {
   const possiblePaths = [
     path.join(process.cwd(), "server/data", filename),
@@ -45,6 +61,48 @@ const normalizeReferenceBody = (body: any) => {
   };
 };
 
+const readReferencesFromFile = async (): Promise<unknown[]> => {
+  const referencesPath = getLocalDataPath("references.json");
+
+  if (!fs.existsSync(referencesPath)) {
+    referenceFileCache = {
+      data: [],
+      expiresAt: Date.now() + REFERENCES_CACHE_TTL_MS,
+      path: referencesPath,
+      mtimeMs: 0,
+    };
+    return [];
+  }
+
+  const stats = await fs.promises.stat(referencesPath);
+  const now = Date.now();
+
+  if (
+    referenceFileCache.path === referencesPath &&
+    referenceFileCache.expiresAt > now &&
+    referenceFileCache.mtimeMs === stats.mtimeMs
+  ) {
+    return referenceFileCache.data;
+  }
+
+  const referencesData = await fs.promises.readFile(referencesPath, "utf-8");
+  const references = JSON.parse(referencesData);
+  const data = Array.isArray(references)
+    ? references
+    : Array.isArray(references.references)
+      ? references.references
+      : [];
+
+  referenceFileCache = {
+    data,
+    expiresAt: now + REFERENCES_CACHE_TTL_MS,
+    path: referencesPath,
+    mtimeMs: stats.mtimeMs,
+  };
+
+  return data;
+};
+
 // GET ALL
 router.get("/", dataFetchLimiter, async (req: Request, res: Response) => {
   try {
@@ -63,14 +121,7 @@ router.get("/", dataFetchLimiter, async (req: Request, res: Response) => {
       }
     }
 
-    const referencesPath = getLocalDataPath("references.json");
-    if (!fs.existsSync(referencesPath)) return res.json([]);
-
-    const referencesData = await fs.promises.readFile(referencesPath, "utf-8");
-    const references = JSON.parse(referencesData);
-    const data = Array.isArray(references)
-      ? references
-      : references.references || [];
+    const data = await readReferencesFromFile();
     res.json(data);
   } catch (error: any) {
     console.error("Error reading references data:", error);

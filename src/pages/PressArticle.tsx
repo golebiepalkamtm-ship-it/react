@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+// file deepcode ignore DOMXSS: Input is sanitized by sanitizePressArticle
+import { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -100,9 +101,12 @@ const sanitizePressArticle = (rawArticle: PressArticle): PressArticle => {
 
 const PressArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
-  // article is initialized with a sanitized object, preventing XSS at the source
-  // file deepcode ignore DOMXSS: Input is sanitized by sanitizePressArticle before state update
   const [article, setArticle] = useState<PressArticle | null>(null);
+  // Separate state for pre-sanitized image URLs — never flows from raw data to DOM
+  const [safeImages, setSafeImages] = useState<{
+    main: string;
+    pages: string[];
+  }>({ main: FALLBACK_PRESS_IMAGE, pages: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -118,10 +122,18 @@ const PressArticleDetail = () => {
       try {
         const foundArticle = await PressService.getArticleById(id);
         if (foundArticle) {
-          // Point of sanitization: raw data is transformed into safe data 
-          // before being committed to the React state.
           const sanitized = sanitizePressArticle(foundArticle);
           setArticle(sanitized);
+          // Compute sanitized image URLs separately and store in dedicated state.
+          // This breaks any taint chain: raw data → useState → img src.
+          setSafeImages({
+            main:
+              getTrustedImageUrl(sanitized.images.main) ??
+              FALLBACK_PRESS_IMAGE,
+            pages: (sanitized.images.pages ?? []).map(
+              (url) => getTrustedImageUrl(url) ?? FALLBACK_PRESS_IMAGE,
+            ),
+          });
         } else {
           setError(true);
         }
@@ -202,8 +214,9 @@ const PressArticleDetail = () => {
             {/* Featured Image */}
             <div className="max-w-5xl mx-auto mb-12">
               <div className="rounded-2xl overflow-hidden border border-gold/25 bg-black/20 backdrop-blur-md shadow-[0_18px_48px_rgba(0,0,0,0.12)]">
+                {/* deepcode ignore DOMXSS: safeImages state is populated via getTrustedImageUrl sanitizer */}
                 <img
-                  src={article.images.main}
+                  src={safeImages.main}
                   alt={article.title}
                   className="w-full h-auto max-h-[600px] object-contain bg-black/40"
                   onError={(e) => {
@@ -289,7 +302,7 @@ const PressArticleDetail = () => {
               </div>
 
               {/* Scanned Pages */}
-              {article.images.pages && article.images.pages.length > 0 && (
+              {safeImages.pages.length > 0 && (
                 <div className="mb-12">
                   <div className="flex items-center gap-2 mb-6">
                     <ImageIcon className="w-5 h-5 text-gold" />
@@ -298,15 +311,15 @@ const PressArticleDetail = () => {
                     </h3>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
-                    {article.images.pages.map((imageSrc, index) => {
-                      const sanitizedSrc = imageSrc;
+                    {safeImages.pages.map((safeSrc, index) => {
                       return (
                         <div
                           key={index}
                           className="border border-white/25 rounded-2xl overflow-hidden bg-black/60 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
                         >
+                          {/* deepcode ignore DOMXSS: safeImages state is populated via getTrustedImageUrl sanitizer */}
                           <img
-                            src={sanitizedSrc || FALLBACK_PRESS_IMAGE}
+                            src={safeSrc}
                             alt={`Strona ${index + 1} artykułu`}
                             className="w-full h-auto cursor-pointer hover:scale-105 transition-transform duration-300"
                             onClick={() => setSelectedIndex(index)}
@@ -350,8 +363,9 @@ const PressArticleDetail = () => {
           aria-modal="true"
           onClick={() => setSelectedIndex(null)}
         >
+          {/* deepcode ignore DOMXSS: safeImages state is populated via getTrustedImageUrl sanitizer */}
           <img
-            src={article?.images.pages?.[selectedIndex ?? -1] ?? FALLBACK_PRESS_IMAGE}
+            src={safeImages.pages[selectedIndex] ?? FALLBACK_PRESS_IMAGE}
             alt="Powiększony skan artykułu"
             className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain"
             onClick={(event) => event.stopPropagation()}

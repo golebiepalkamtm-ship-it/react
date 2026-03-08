@@ -7,15 +7,23 @@
  * synchronizacją Ticker Handshake (Lenis) oraz optymalizacją pod Mobile/Safari.
  */
 
-import React, { useRef, useEffect, lazy, Suspense } from "react";
+import React, {
+  useRef,
+  useEffect,
+  lazy,
+  Suspense,
+  memo,
+  useCallback,
+} from "react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { registerCustomEasings } from "@/lib/customEasings";
 import { ArrowRight, Trophy, Zap, Users, Star } from "lucide-react";
-import { MagneticElement } from "@/components/animations";
+import { MagneticButton } from "@/components/effects/MagneticButton";
 import Header from "@/components/Header";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 const Carousel3D = lazy(() => import("@/components/gallery/Carousel3D"));
 const AboutSection = lazy(() => import("@/components/AboutSection"));
@@ -178,77 +186,57 @@ const HeroPremium = () => {
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent"
       style={{ perspective: "1000px", contain: "layout paint" }}
     >
-      {/* Particle System - USUNIĘTE */}
       <div
         ref={contentRef}
         className="relative z-10 container mx-auto px-6 lg:px-10 text-center flex flex-col items-center pt-24 md:pt-32"
       >
         <div className="w-full max-w-6xl flex flex-col items-center gap-10">
-          <div className="hero-reveal mb-8">
+          <div className="hero-reveal mb-12">
             <span className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-gold/20">
               <Star className="w-3.5 h-3.5 fill-current" />
-              Hodowla Gołębi Pocztowych od 1979
+              <span>Hodowla Gołębi Pocztowych od 1979</span>
             </span>
           </div>
 
-          <h1 className="hero-particle-system mb-4 text-4xl md:text-6xl lg:text-7xl font-bold font-display leading-snug uppercase text-center">
-            <span
-              className="hero-part-left inline-block text-zinc-900"
-              style={{
-                textShadow:
-                  "0 2px 6px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)",
-              }}
-            >
+          <h1 className="hero-particle-system mb-6 text-5xl md:text-7xl lg:text-8xl font-black font-display leading-[1.1] uppercase text-center tracking-tighter">
+            <span className="text-zinc-900">
               <SplitText>Pałka</SplitText>
             </span>{" "}
-            <span
-              className="hero-part-right inline-block text-[#A68E4E]"
-              style={{
-                textShadow:
-                  "0 2px 6px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)",
-              }}
-            >
+            <span className="text-[#A68E4E]">
               <SplitText>MTM</SplitText>
             </span>
-            <span
-              className="hero-subtitle gold-heading block text-xl md:text-2xl font-bold tracking-[0.2em] mt-4 uppercase text-center whitespace-nowrap"
-              style={{
-                textShadow:
-                  "0 2px 6px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)",
-              }}
-            >
-              <SplitText>— Geny Zwycięzców</SplitText>
+            <span className="hero-subtitle block text-lg md:text-2xl font-bold tracking-[0.4em] mt-6 text-[#A68E4E] uppercase text-center">
+              <SplitText>— Geny Zwycięzców —</SplitText>
             </span>
           </h1>
 
-          <div className="hero-reveal text-lg md:text-2xl text-zinc-950 max-w-4xl mb-10 mx-auto text-center leading-relaxed font-display font-bold">
-            <SplitText>Trzy pokolenia pasji. Setki mistrzostw.</SplitText>
-            <br />
-            <SplitText>Elitarne gołębie pocztowe z Dolnego Śląska.</SplitText>
+          <div className="hero-reveal text-base md:text-lg text-white/80 max-w-2xl mb-14 mx-auto text-center leading-relaxed font-display italic tracking-wide">
+            <SplitText>
+              Trzy pokolenia pasji. Setki mistrzostw. Elitarne gołębie pocztowe
+              z Dolnego Śląska.
+            </SplitText>
           </div>
 
-          <div className="hero-reveal flex justify-center">
-            <MagneticElement strength={0.4} ease={0.15}>
-              <Link
-                to="/champions"
-                className="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 text-[#A68E4E] font-bold text-sm md:text-base uppercase tracking-[0.2em] hover:text-white transition-colors cursor-pointer"
-              >
-                Zobacz Championy
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </MagneticElement>
+          <div className="hero-reveal flex flex-col items-center gap-6">
+            <Link
+              to="/champions"
+              className="group flex items-center gap-3 px-8 py-3.5 rounded-full font-bold text-sm bg-[#A68E4E] text-zinc-950 shadow-[0_0_20px_rgba(166,142,78,0.3)] hover:shadow-[0_0_35px_rgba(166,142,78,0.5)] transition-shadow"
+            >
+              <span>Eksploruj Championy</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </Link>
+
+            <div className="flex flex-col items-center gap-3 text-zinc-400">
+              <span className="text-[10px] uppercase tracking-[0.3em] font-medium">
+                Odkryj naszą historię
+              </span>
+              <div className="w-[1px] h-8 bg-[#A68E4E]/50 rounded-full" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 hero-reveal hero-scroll-indicator">
-        <div className="flex flex-col items-center gap-3 text-zinc-400">
-          <span className="text-[10px] uppercase tracking-[0.3em] font-medium">
-            Odkryj naszą historię
-          </span>
-          <div className="w-[1px] h-12 bg-gold/50 rounded-full" />
-        </div>
-      </div>
+      {/* Scroll indicator removed from absolute bottom as it is now under the button */}
     </section>
   );
 };
@@ -262,6 +250,102 @@ interface FeatureData {
   title: string;
   description: string;
 }
+
+const EliteFeatureCard = memo(
+  ({
+    feature,
+    index,
+    className,
+  }: {
+    feature: FeatureData;
+    index: number;
+    className?: string;
+  }) => {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+    const spotlightX = useMotionValue(50);
+    const spotlightY = useMotionValue(50);
+
+    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+      stiffness: 200,
+      damping: 25,
+    });
+    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+      stiffness: 200,
+      damping: 25,
+    });
+
+    const handleMouseMove = useCallback(
+      (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+        const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+
+        spotlightX.set(xPercent);
+        spotlightY.set(yPercent);
+
+        mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+        mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+      },
+      [mouseX, mouseY, spotlightX, spotlightY],
+    );
+
+    const handleMouseLeave = useCallback(() => {
+      mouseX.set(0);
+      mouseY.set(0);
+    }, [mouseX, mouseY]);
+
+    return (
+      <motion.div
+        ref={cardRef}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
+        className={`h-full flex flex-col p-8 rounded-2xl bg-champion-teal transition-all duration-500 relative group overflow-hidden ${className || ""}`}
+        style={
+          {
+            transformStyle: "preserve-3d",
+            rotateX,
+            rotateY,
+            border: "2px solid rgba(166, 142, 78, 0.7)",
+            boxShadow:
+              "0 0 12px rgba(166, 142, 78, 0.25), 0 0 30px rgba(166, 142, 78, 0.1), inset 0 0 0 1px rgba(166, 142, 78, 0.08), 0 24px 60px rgba(0,0,0,0.6)",
+          } as any
+        }
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+          style={{
+            background: `radial-gradient(1000px circle at var(--mouse-x) var(--mouse-y), rgba(166, 142, 78, 0.15), transparent 40%)`,
+          }}
+        />
+
+        <div
+          className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 relative z-10"
+          style={{
+            background: "#A68E4E",
+            boxShadow: "0 0 20px rgba(166,142,78,0.4)",
+          }}
+        >
+          <feature.icon className="w-7 h-7 text-black" />
+        </div>
+        <h3 className="text-2xl font-bold font-display text-white mb-4 relative z-10 group-hover:text-gold transition-colors duration-300">
+          {feature.title}
+        </h3>
+        <p className="text-white/50 text-base leading-relaxed relative z-10 font-medium group-hover:text-white/80 transition-colors duration-300">
+          {feature.description}
+        </p>
+      </motion.div>
+    );
+  },
+);
+
+EliteFeatureCard.displayName = "EliteFeatureCard";
 
 const CTAFeaturesSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -385,37 +469,11 @@ const CTAFeaturesSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div
+            <EliteFeatureCard
               key={feature.title}
-              ref={(el) => {
-                cardsRef.current[index] = el;
-              }}
-              className="reveal-card group relative overflow-hidden rounded-2xl bg-champion-teal transition-all duration-500 p-8 h-full"
-              style={{
-                border: "2px solid rgba(166,142,78,0.7)",
-                boxShadow:
-                  "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
-              }}
-            >
-              <div className="relative z-10">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-500"
-                  style={{
-                    background: "#A68E4E",
-                    boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
-                    border: "1px solid rgba(166,142,78,0.8)",
-                  }}
-                >
-                  <feature.icon className="w-7 h-7 text-black" />
-                </div>
-                <h3 className="text-xl font-bold gold-heading mb-3 uppercase text-[#A68E4E]">
-                  {feature.title}
-                </h3>
-                <p className="text-white/80 leading-relaxed font-light text-sm">
-                  {feature.description}
-                </p>
-              </div>
-            </div>
+              feature={feature}
+              index={index}
+            />
           ))}
         </div>
       </div>

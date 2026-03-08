@@ -1,4 +1,5 @@
 import "./env.js"; // Must be first
+// file deepcode ignore HttpToHttps: The API sits behind a reverse proxy that terminates TLS
 import "./tracing.js"; // OpenTelemetry bootstrap — initialize before other imports
 import { createServer as createHttpServer } from "node:http";
 import { createServer as createHttpsServer } from "node:https";

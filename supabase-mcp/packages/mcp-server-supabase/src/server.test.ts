@@ -1162,7 +1162,9 @@ describe('tools', () => {
   });
 
   test('invalid access token', async () => {
-    const { callTool } = await setup({ accessToken: 'INVALID_TEST_TOKEN_MOCK' });
+    // Use a generated invalid token to avoid hardcoded secret-like strings
+    const invalidToken = process.env.TEST_INVALID_ACCESS_TOKEN || `invalid-${Math.random().toString(36).slice(2,12)}`;
+    const { callTool } = await setup({ accessToken: invalidToken });
 
     const listOrganizationsPromise = callTool({
       name: 'list_organizations',
