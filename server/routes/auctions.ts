@@ -693,13 +693,13 @@ router.put(
       if (data.buyNowPrice)
         updateData.buyNowPrice = new Prisma.Decimal(data.buyNowPrice);
       if (data.endTime) updateData.endTime = new Date(data.endTime);
-
       const updatedAuction = await prisma.auction.update({
         where: { id },
         data: updateData,
       });
 
       cache.invalidateAuctionCache(id);
+      cache.invalidateResource("auctions");
 
       res.json(serializeAuction(updatedAuction as any));
     } catch (error: any) {

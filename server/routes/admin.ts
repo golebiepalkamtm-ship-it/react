@@ -707,6 +707,7 @@ async function updateAuctionHandler(req: AuthenticatedRequest, res: Response) {
     });
 
     cache.invalidateAuctionCache(id);
+    cache.invalidateResource("auctions");
 
     // Broadcast update via WebSocket to all connected clients
     try {
