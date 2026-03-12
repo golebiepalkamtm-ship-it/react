@@ -34,7 +34,13 @@ export const errorHandler = (
   const safeMessage = isProd ? 'Internal server error' : escapeHtml(String(error.message || 'Unknown error'));
 
   // Log the error
-  logger.error('Unhandled error:', { error, traceId, path: req.originalUrl, method: req.method });
+  logger.error('Unhandled error:', { 
+    message: error.message, 
+    stack: error.stack, 
+    traceId, 
+    path: req.originalUrl, 
+    method: req.method 
+  });
 
   res.status(statusCode).json({
     error: safeMessage,
