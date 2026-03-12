@@ -8,3 +8,6 @@ cmds = ["npm run build"]
 
 [start]
 cmd = "node --no-deprecation dist/index.js"
+
+[variables]
+NODE_OPTIONS = "--no-deprecation"
