@@ -136,6 +136,8 @@ app.use(
   }),
 );
 app.use(requestIdMiddleware);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(compression());
 app.use(
   express.json({
@@ -145,12 +147,9 @@ app.use(
 app.use(cspMiddleware);
 
 // Explicit preflight handler for health so tests get 200 (and CORS headers when allowed)
-app.options("/api/health", cors(corsOptions), (req, res) => {
+app.options("/api/health", (req, res) => {
   return res.status(200).send("OK");
 });
-
-app.options("*", cors(corsOptions));
-app.use(cors(corsOptions));
 
 app.post(
   "/api/webhooks/stripe",
