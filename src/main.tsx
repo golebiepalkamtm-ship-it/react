@@ -55,15 +55,7 @@ if (gaId) {
   gtag("config", gaId as any);
 }
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw-vite.js", { scope: "/" })
-      .catch(() => {
-        /* swallow SW registration errors in production */
-      });
-  });
-}
+  // Handled by VitePWA when enabled
 
 // In production, reduce noisy console output from third-party libs
 if (import.meta.env.PROD) {
