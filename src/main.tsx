@@ -5,7 +5,6 @@ import App from "./App.tsx";
 import { FeedbackProvider } from "@/components/ui/feedback/FeedbackProvider";
 import "./index.css";
 import { logger } from "@/lib/logger";
-import { createClient } from "@supabase/supabase-js";
 import { TimeProvider } from "./providers/TimeProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -40,11 +39,7 @@ if (typeof window !== "undefined") {
   );
 }
 
-// Initialize Supabase client
-export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-);
+// Supabase client initialize moved to src/lib/supabase.ts
 
 const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
 if (gaId) {

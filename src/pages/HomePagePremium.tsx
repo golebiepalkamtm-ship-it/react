@@ -226,7 +226,7 @@ const HeroPremium = () => {
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </Link>
 
-            <div className="flex flex-col items-center gap-3 text-zinc-400">
+            <div className="hero-scroll-indicator flex flex-col items-center gap-3 text-zinc-400">
               <span className="text-[10px] uppercase tracking-[0.3em] font-medium">
                 Odkryj naszą historię
               </span>
@@ -352,7 +352,6 @@ const CTAFeaturesSection = () => {
   const badgeRef = useRef<HTMLSpanElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const features: FeatureData[] = [
     {
       icon: Trophy,
@@ -376,8 +375,6 @@ const CTAFeaturesSection = () => {
 
   useGSAP(
     () => {
-      const cards = cardsRef.current.filter(Boolean);
-
       // 2. Master Timeline
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -412,20 +409,6 @@ const CTAFeaturesSection = () => {
             ease: "power3.out",
           },
           "-=0.3",
-        )
-        // 4. Cards sequential appearance
-        .fromTo(
-          cards,
-          { autoAlpha: 0, y: 60, scale: 0.95 },
-          {
-            autoAlpha: 1,
-            y: 0,
-            scale: 1,
-            duration: 1.0,
-            stagger: 0.15,
-            ease: "expo.out",
-          },
-          "-=0.4",
         );
     },
     { scope: sectionRef },

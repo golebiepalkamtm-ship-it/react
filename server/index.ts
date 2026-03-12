@@ -89,11 +89,10 @@ if (fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath)) {
   server = createHttpsServer(options, app);
 } else {
   if (validatedEnv.NODE_ENV === "production") {
-    // In production we require TLS termination (certs) — fail fast to avoid insecure server start
-    console.error(
-      "❌ SSL Certificates not found in production. Refusing to start HTTP server. Provide certificates or terminate TLS at a reverse proxy.",
+    console.log(
+      "⚠️ SSL Certificates not found in production. Starting HTTP server. Make sure TLS is terminated at a reverse proxy (e.g., Railway/Heroku).",
     );
-    process.exit(1);
+    server = createHttpServer(app);
   } else {
     // Non-production: allow HTTP for local/dev/testing environments only
     // file deepcode ignore HttpToHttps: The API sits behind a reverse proxy that terminates TLS
