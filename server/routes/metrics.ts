@@ -30,13 +30,17 @@ router.post("/track", globalLimiter, async (req, res) => {
 
     // Log to individual page_views table if path is provided
     if (path) {
-      await prisma.pageView.create({
-        data: {
-          path,
-          ipAddress: ip,
-          userAgent,
-        },
-      });
+      try {
+        await prisma.pageView.create({
+          data: {
+            path,
+            ipAddress: ip,
+            userAgent,
+          },
+        });
+      } catch (err) {
+        console.warn("[Metrics] Could not log page view - table might be missing:", (err as Error).message);
+      }
     }
 
     // Use correct unique constraint for upsert
@@ -75,14 +79,15 @@ router.post("/track", globalLimiter, async (req, res) => {
 
     return res.json({ ok: true, count: result.count });
   } catch (error) {
-    console.error("❌ Metrics track error:", error);
+    console.error("🚀 Metrics track error:", error);
     // Return more details in dev, generic error in prod
     const message =
       process.env.NODE_ENV === "development"
         ? `Metrics tracking failed: ${(error as Error).message}`
         : "Metrics tracking failed";
 
-    return res.status(500).json({ error: message });
+    // Fail gracefully: don't crash frontend analytics over a missing table
+    return res.status(200).json({ ok: false, error: message });
   }
 });
 
