@@ -205,8 +205,25 @@ app.get("/api", (req, res) => {
 
 // Endpoint CSRF token
 app.use(sessionMiddleware);
-// Apply csurf after cookie parsing and sessions so cookie/session tokens are available
-app.use(csurf({ cookie: true }));
+
+// Create the csurf middleware instance
+const legacyCsurfMiddleware = csurf({ cookie: true });
+
+// Apply csurf conditionally, skipping public paths
+app.use((req, res, next) => {
+  // Pass GET, HEAD, OPTIONS
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+
+  // Skip CSRF for webhooks, proxy, health, and metrics/track
+  const publicPaths = ["/api/webhooks", "/api/proxy", "/api/health", "/api/metrics"];
+  if (publicPaths.some((path) => req.originalUrl.startsWith(path))) {
+    return next();
+  }
+
+  return legacyCsurfMiddleware(req, res, next);
+});
 
 app.get("/api/csrf-token", (req, res) => {
   const token = generateToken(req as any);
