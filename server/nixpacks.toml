@@ -11,4 +11,3 @@ cmd = "node --no-deprecation dist/index.js"
 
 [variables]
 NODE_OPTIONS = "--no-deprecation"
-PRISMA_HIDE_UPDATE_MESSAGE = "true"
