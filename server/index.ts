@@ -66,6 +66,7 @@ if (
     console.log(`✅ Using schema at: ${schemaPath}`);
     const execEnv = { ...process.env };
     delete execEnv.npm_config_production;
+    execEnv.NODE_OPTIONS = (execEnv.NODE_OPTIONS || "") + " --no-deprecation";
 
     execSync(`npx prisma migrate deploy --schema="${schemaPath}"`, {
       stdio: "inherit",
