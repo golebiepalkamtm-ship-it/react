@@ -64,8 +64,12 @@ if (
     }
 
     console.log(`✅ Using schema at: ${schemaPath}`);
+    const execEnv = { ...process.env };
+    delete execEnv.npm_config_production;
+
     execSync(`npx prisma migrate deploy --schema="${schemaPath}"`, {
       stdio: "inherit",
+      env: execEnv
     });
     console.log("✅ Database migrations completed successfully.");
   } catch (error: any) {
