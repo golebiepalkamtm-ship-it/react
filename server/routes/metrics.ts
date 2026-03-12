@@ -12,6 +12,14 @@ const trackSchema = z.object({
 });
 
 /**
+ * Fallback dla błędnych żądań GET na endpoint track (częsty błąd z przeglądarek / crawlerów / Vercela)
+ * Zamiast rzucać głośny błąd "Not Found", delikatnie poinformujemy że endpoint nasłuchuje tylko na POST.
+ */
+router.get("/track", (req, res) => {
+  return res.status(200).json({ ok: false, message: "Use POST method for tracking metrics" });
+});
+
+/**
  * Inkrementacja metryk (bez auth, z rate limitingiem)
  */
 router.post("/track", globalLimiter, async (req, res) => {
