@@ -27,7 +27,7 @@ const createRedisClient = () => {
     url,
     socket: {
       ...socket,
-      reconnectStrategy: (retries) => {
+    reconnectStrategy: (retries: number) => {
         if (retries > 20) {
           logger.error('Redis connection retry exhausted. Giving up.');
           return new Error('Redis connection retry exhausted');
@@ -39,7 +39,7 @@ const createRedisClient = () => {
     password: validatedEnv.REDIS_PASSWORD || undefined
   });
 
-  client.on('error', (err) => {
+  client.on('error', (err: Error) => {
     logger.error('Redis client error', { error: err.message });
     isRedisReady = false;
   });
@@ -60,8 +60,8 @@ const createRedisClient = () => {
 
   client
     .connect()
-    .catch((err) => {
-      logger.error('Redis connection failed', { error: err.message });
+    .catch((err: Error) => {
+      logger.warn('Redis connection failed - Redis features will be disabled', { error: err.message });
       isRedisReady = false;
     });
 
