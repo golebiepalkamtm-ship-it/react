@@ -28,19 +28,25 @@ const createRedisClient = () => {
     socket: {
       ...socket,
     reconnectStrategy: (retries: number) => {
-        if (retries > 20) {
-          logger.error('Redis connection retry exhausted. Giving up.');
-          return new Error('Redis connection retry exhausted');
+        if (retries > 5) {
+          logger.warn('Redis connection retry limit reached. Continuing without Redis.');
+          return false; // Return false to stop reconnecting instead of throwing
         }
-        return Math.min(retries * 100, 3000);
+        return Math.min(retries * 500, 5000);
       }
     },
+    disableOfflineQueue: true, // Fail fast if Redis is down
     username: validatedEnv.REDIS_USERNAME,
     password: validatedEnv.REDIS_PASSWORD || undefined
   });
 
+  // Handle uncaught errors to prevent process crash
   client.on('error', (err: Error) => {
-    logger.error('Redis client error', { error: err.message });
+    if (err.message.includes('ECONNREFUSED') || err.message.includes('ETIMEDOUT')) {
+      logger.warn('Redis connection failed - moving to disabled state', { error: err.message });
+    } else {
+      logger.error('Redis client error', { error: err.message });
+    }
     isRedisReady = false;
   });
 
