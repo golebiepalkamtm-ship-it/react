@@ -55,7 +55,9 @@ const envSchema = z.object({
   // Redis (dla rate limiting)
   
   // Redis (dla rate limiting)
-  REDIS_URL: z.string().url('REDIS_URL must be a valid URL').optional(),
+  REDIS_URL: z.string().optional().refine(val => !val || val.startsWith('redis://') || val.startsWith('rediss://'), {
+    message: 'REDIS_URL must be a valid redis or rediss URL'
+  }),
   REDIS_HOST: z.string().optional(),
   REDIS_PORT: z.string().regex(/^\d+$/, 'REDIS_PORT must be a number').transform(Number).pipe(z.number().min(1).max(65535)).optional(),
   REDIS_PASSWORD: z.string().optional(),
