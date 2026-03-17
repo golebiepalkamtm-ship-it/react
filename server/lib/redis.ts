@@ -28,12 +28,12 @@ const createRedisClient = () => {
     socket: {
       ...socket,
       reconnectStrategy: (retries: number) => {
-        if (retries > 5) {
-          logger.warn('Redis connection retry limit reached. Continuing without Redis.');
-          return false;
-        }
-        return Math.min(retries * 500, 5000);
-      }
+        // Keep trying to reconnect in production, but with backoff
+        // Max delay 10s
+        return Math.min(retries * 500, 10000);
+      },
+      keepAlive: 5000,
+      connectTimeout: 10000,
     },
     disableOfflineQueue: true,
     // Railway REDIS_URL usually contains credentials, don't override if URL is present
