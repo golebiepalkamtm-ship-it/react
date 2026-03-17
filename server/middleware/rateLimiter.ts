@@ -7,27 +7,38 @@ import redis from "../lib/redis.js";
 
 import { isRedisEnabled, getRedisReady } from "../lib/redis.js";
 
-const redisStore =
-  isRedisEnabled()
-    ? new RedisStore({
-        // rate-limit-redis uses sendCommand signature from ioredis; adapt for node-redis
-        sendCommand: async (...args: string[]) => {
-          try {
-            if (!getRedisReady()) {
-              throw new Error("Redis is not ready");
-            }
-            return await redis.sendCommand(args);
-          } catch (e) {
-            if (getRedisReady()) {
-              logger.error("Redis command failed in rate limiter", {
-                error: e instanceof Error ? e.message : String(e),
-              });
-            }
-            throw e;
+let redisStore: any = undefined;
+
+if (isRedisEnabled()) {
+  try {
+    redisStore = new RedisStore({
+      // rate-limit-redis uses sendCommand signature from ioredis; adapt for node-redis
+      sendCommand: async (...args: string[]) => {
+        try {
+          // If we are not ready, we don't want to throw a hard error during initialization
+          // or at runtime that kills the process. express-rate-limit handles store errors.
+          if (!getRedisReady()) {
+            return Promise.reject(new Error("Redis is not ready"));
           }
-        },
-      })
-    : undefined;
+          return await redis.sendCommand(args);
+        } catch (e) {
+          // Only log if it's a real error and redis is supposed to be ready
+          if (getRedisReady() && !(e instanceof Error && e.message.includes("Redis is not ready"))) {
+            logger.error("Redis command failed in rate limiter", {
+              error: e instanceof Error ? e.message : String(e),
+            });
+          }
+          throw e;
+        }
+      },
+    });
+  } catch (error) {
+    logger.warn("Failed to initialize RedisStore for rate limiter, falling back to memory store", {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    redisStore = undefined;
+  }
+}
 
 const baseLimiterConfig = {
   standardHeaders: true,
