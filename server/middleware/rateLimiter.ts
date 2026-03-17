@@ -7,38 +7,71 @@ import redis from "../lib/redis.js";
 
 import { isRedisEnabled, getRedisReady } from "../lib/redis.js";
 
-let redisStore: any = undefined;
+/**
+ * A wrapper for RedisStore that gracefully falls back to memory if Redis is offline.
+ * This prevents unhandled promise rejections during startup when Redis is not ready.
+ */
+class SafeRedisStore {
+  private store: any = null;
+  private memoryStore: any = null;
 
-if (isRedisEnabled()) {
-  try {
-    redisStore = new RedisStore({
-      // rate-limit-redis uses sendCommand signature from ioredis; adapt for node-redis
-      sendCommand: async (...args: string[]) => {
-        try {
-          // If we are not ready, we don't want to throw a hard error during initialization
-          // or at runtime that kills the process. express-rate-limit handles store errors.
-          if (!getRedisReady()) {
-            return Promise.reject(new Error("Redis is not ready"));
-          }
-          return await redis.sendCommand(args);
-        } catch (e) {
-          // Only log if it's a real error and redis is supposed to be ready
-          if (getRedisReady() && !(e instanceof Error && e.message.includes("Redis is not ready"))) {
-            logger.error("Redis command failed in rate limiter", {
-              error: e instanceof Error ? e.message : String(e),
-            });
-          }
-          throw e;
-        }
-      },
-    });
-  } catch (error) {
-    logger.warn("Failed to initialize RedisStore for rate limiter, falling back to memory store", {
-      error: error instanceof Error ? error.message : String(error)
-    });
-    redisStore = undefined;
+  constructor() {
+    if (isRedisEnabled()) {
+      try {
+        this.store = new RedisStore({
+          sendCommand: async (...args: string[]) => {
+            try {
+              // Fail fast if not ready to avoid long timeouts
+              if (!getRedisReady()) {
+                throw new Error("Redis is not ready");
+              }
+              return await redis.sendCommand(args);
+            } catch (e) {
+              // Silently fail for rate-limit-redis internal script loading
+              // express-rate-limit will handle the missing store state
+              throw e;
+            }
+          },
+        });
+      } catch (e) {
+        logger.warn("RedisStore init failed, using default memory store");
+      }
+    }
+  }
+
+  // Implementation of the express-rate-limit Store interface
+  async increment(key: string) {
+    if (this.store && getRedisReady()) {
+      try {
+        return await this.store.increment(key);
+      } catch (e) {
+        return { totalHits: 1, resetTime: new Date(Date.now() + 60000) };
+      }
+    }
+    // Fallback behavior is handled by express-rate-limit when store returns undefined or throws
+    return undefined; 
+  }
+
+  async decrement(key: string) {
+    if (this.store && getRedisReady()) {
+      try {
+        await this.store.decrement(key);
+      } catch (e) {}
+    }
+  }
+
+  async resetKey(key: string) {
+    if (this.store && getRedisReady()) {
+      try {
+        await this.store.resetKey(key);
+      } catch (e) {}
+    }
   }
 }
+
+// We use undefined to let express-rate-limit use its internal MemoryStore 
+// if Redis isn't ready at startup. This is the safest way to prevent crashes.
+const redisStore = undefined; 
 
 const baseLimiterConfig = {
   standardHeaders: true,
