@@ -58,7 +58,7 @@
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^4.0.17"
   },
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID",
   "main": "eslint.config.js",
   "repository": {
