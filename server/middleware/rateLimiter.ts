@@ -8,25 +8,26 @@ import redis from "../lib/redis.js";
 import { isRedisEnabled, getRedisReady } from "../lib/redis.js";
 
 const redisStore =
-  isRedisEnabled() &&
-  new RedisStore({
-    // rate-limit-redis uses sendCommand signature from ioredis; adapt for node-redis
-    sendCommand: async (...args: string[]) => {
-      try {
-        if (!getRedisReady()) {
-          throw new Error("Redis is not ready");
-        }
-        return await redis.sendCommand(args);
-      } catch (e) {
-        if (getRedisReady()) {
-          logger.error("Redis command failed in rate limiter", {
-            error: e instanceof Error ? e.message : String(e),
-          });
-        }
-        throw e;
-      }
-    },
-  });
+  isRedisEnabled()
+    ? new RedisStore({
+        // rate-limit-redis uses sendCommand signature from ioredis; adapt for node-redis
+        sendCommand: async (...args: string[]) => {
+          try {
+            if (!getRedisReady()) {
+              throw new Error("Redis is not ready");
+            }
+            return await redis.sendCommand(args);
+          } catch (e) {
+            if (getRedisReady()) {
+              logger.error("Redis command failed in rate limiter", {
+                error: e instanceof Error ? e.message : String(e),
+              });
+            }
+            throw e;
+          }
+        },
+      })
+    : undefined;
 
 const baseLimiterConfig = {
   standardHeaders: true,
