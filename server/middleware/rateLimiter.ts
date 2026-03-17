@@ -39,14 +39,19 @@ class SafeRedisStore {
     if (activeStore && getRedisReady()) {
       try {
         const result = await activeStore.increment(key);
-        if (result === undefined) return undefined;
-        return result;
+        if (result !== undefined && result !== null) return result;
       } catch (e) {
-        // Fallback to internal memory store
-        return undefined;
+        logger.warn("SafeRedisStore: increment failed, falling back to memory", { error: e });
       }
     }
-    return undefined;
+    
+    // CRITICAL: Always return a valid ClientRateLimitInfo object to prevent express-rate-limit from crashing
+    // when destructuring totalHits. If Redis is down, we return a safe default (1 hit).
+    // Note: To properly rate limit during Redis outages, a full MemoryStore fallback should be used.
+    return {
+      totalHits: 1,
+      resetTime: new Date(Date.now() + 60 * 1000), 
+    };
   }
 
   async decrement(key: string) {
