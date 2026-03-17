@@ -38,7 +38,9 @@ class SafeRedisStore {
     const activeStore = this.getStore();
     if (activeStore && getRedisReady()) {
       try {
-        return await activeStore.increment(key);
+        const result = await activeStore.increment(key);
+        if (result === undefined) return undefined;
+        return result;
       } catch (e) {
         // Fallback to internal memory store
         return undefined;

@@ -27,17 +27,18 @@ const createRedisClient = () => {
     url,
     socket: {
       ...socket,
-    reconnectStrategy: (retries: number) => {
+      reconnectStrategy: (retries: number) => {
         if (retries > 5) {
           logger.warn('Redis connection retry limit reached. Continuing without Redis.');
-          return false; // Return false to stop reconnecting instead of throwing
+          return false;
         }
         return Math.min(retries * 500, 5000);
       }
     },
-    disableOfflineQueue: true, // Fail fast if Redis is down
-    username: validatedEnv.REDIS_USERNAME,
-    password: validatedEnv.REDIS_PASSWORD || undefined
+    disableOfflineQueue: true,
+    // Railway REDIS_URL usually contains credentials, don't override if URL is present
+    username: url ? undefined : (validatedEnv.REDIS_USERNAME || 'default'),
+    password: url ? undefined : (validatedEnv.REDIS_PASSWORD || undefined)
   });
 
   // Handle uncaught errors to prevent process crash
