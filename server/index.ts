@@ -149,6 +149,7 @@ const startServer = (listenPort: number) => {
     console.log(`🚀 Backend server running on port ${listenPort}`);
     console.log(`📊 Health check: http://localhost:${listenPort}/health`);
     console.log(`📡 API endpoint: http://localhost:${listenPort}/api`);
+    console.log(`✅ DEPLOYMENT_VERIFICATION_v1.0.8.7_STABILITY_FIX`);
   });
 
   server.on("error", (err: NodeJS.ErrnoException) => {

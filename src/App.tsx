@@ -109,6 +109,9 @@ const App = () => {
                   <Analytics />
                   <SpeedInsights />
                   <Toaster />
+                  <div className="fixed bottom-0 right-0 z-[9999] p-1 text-[8px] text-white/20 pointer-events-none">
+                    v1.0.8.7-stable
+                  </div>
                   <BackgroundWrapper />
                   <UIProviders>
                     <GSAPPageTransition duration={0.7} primaryColor="#09090b">
