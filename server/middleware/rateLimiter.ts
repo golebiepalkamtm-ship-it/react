@@ -9,37 +9,38 @@ import { isRedisEnabled, getRedisReady } from "../lib/redis.js";
 
 /**
  * A wrapper for RedisStore that gracefully falls back to memory if Redis is offline.
- * This prevents unhandled promise rejections during startup when Redis is not ready.
+ * This prevents unhandled promise rejections during startup by lazy-initializing 
+ * the actual RedisStore only when Redis is confirmed ready.
  */
 class SafeRedisStore {
   private store: any = null;
 
-  constructor() {
-    if (isRedisEnabled()) {
+  private getStore(): any | null {
+    if (this.store) return this.store;
+    
+    if (isRedisEnabled() && getRedisReady()) {
       try {
         this.store = new RedisStore({
           sendCommand: async (...args: string[]) => {
-            try {
-              if (!getRedisReady()) {
-                throw new Error("Redis is not ready");
-              }
-              return await redis.sendCommand(args);
-            } catch (e) {
-              throw e;
-            }
+            return await redis.sendCommand(args);
           },
         });
+        return this.store;
       } catch (e) {
-        logger.warn("RedisStore init failed, using default memory store");
+        logger.warn("SafeRedisStore: Lazy initialization failed", { error: e });
+        return null;
       }
     }
+    return null;
   }
 
   async increment(key: string) {
-    if (this.store && getRedisReady()) {
+    const activeStore = this.getStore();
+    if (activeStore && getRedisReady()) {
       try {
-        return await this.store.increment(key);
+        return await activeStore.increment(key);
       } catch (e) {
+        // Fallback to internal memory store
         return undefined;
       }
     }
@@ -47,17 +48,19 @@ class SafeRedisStore {
   }
 
   async decrement(key: string) {
-    if (this.store && getRedisReady()) {
+    const activeStore = this.getStore();
+    if (activeStore && getRedisReady()) {
       try {
-        await this.store.decrement(key);
+        await activeStore.decrement(key);
       } catch (e) {}
     }
   }
 
   async resetKey(key: string) {
-    if (this.store && getRedisReady()) {
+    const activeStore = this.getStore();
+    if (activeStore && getRedisReady()) {
       try {
-        await this.store.resetKey(key);
+        await activeStore.resetKey(key);
       } catch (e) {}
     }
   }
