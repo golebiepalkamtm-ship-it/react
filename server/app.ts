@@ -197,9 +197,11 @@ app.use(
 app.get("/health", HealthController.liveness);
 app.get("/api/health", HealthController.readiness);
 
-// Ciche odrzucanie próśb o favicon.ico kierowanych bezpośrednio na serwer API (żeby zapobiec error 404 w logach)
+// Silent rejection for browser boilerplate requests to prevent 404 noise in logs
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.get("/api/favicon.ico", (req, res) => res.status(204).end());
+app.get("/robots.txt", (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /api/\nDisallow: /admin/'));
+app.get("/api/robots.txt", (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /api/\nDisallow: /admin/'));
 
 app.get("/api", (req, res) => {
   res.json({

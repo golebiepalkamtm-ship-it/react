@@ -282,20 +282,39 @@ export class NotificationManager {
 
       for (const auction of endingAuctions) {
         const timeLeft = this.formatTimeLeft(auction.endTime);
+        let notifyCount = 0;
         
         // Notify users in watchlist
         if (auction.watchlist && auction.watchlist.length > 0) {
           for (const item of auction.watchlist) {
-            await this.notifyAuctionEnding(
-              item.userId,
-              auction.id,
-              auction.title,
-              timeLeft
-            );
+            // notifyAuctionEnding has internal check if already notified
+            const alreadyNotified = await (prisma as any).notification.findFirst({
+              where: {
+                userId: item.userId,
+                auctionId: auction.id,
+                type: 'AUCTION_ENDING',
+                createdAt: {
+                  gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+                }
+              }
+            });
+
+            if (!alreadyNotified) {
+              await this.createNotification({
+                userId: item.userId,
+                auctionId: auction.id,
+                type: 'AUCTION_ENDING' as NotificationType,
+                title: 'Aukcja kończy się wkrótce!',
+                message: `Aukcja "${auction.title}" kończy się ${timeLeft}.`,
+              });
+              notifyCount++;
+            }
+          }
+          
+          if (notifyCount > 0) {
+            console.log(`Auction ending soon: "${auction.title}" ends ${timeLeft}. Notified ${notifyCount} users.`);
           }
         }
-        
-        console.log(`Auction ending soon: ${auction.title} ends ${timeLeft}. Notified ${auction.watchlist?.length || 0} users.`);
       }
     } catch (error) {
       console.error('Error checking ending auctions:', error);

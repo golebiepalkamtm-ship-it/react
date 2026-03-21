@@ -14,6 +14,22 @@ import { isRedisEnabled, getRedisReady } from "../lib/redis.js";
  */
 class SafeRedisStore {
   private store: any = null;
+  private options: any = null;
+
+  /**
+   * Called by express-rate-limit to initialize the store with windowMs and other options.
+   * This is critical because RedisStore needs windowMs to calculate expiry times in Lua scripts.
+   */
+  init(options: any) {
+    this.options = options;
+    if (this.store) {
+      try {
+        this.store.init(options);
+      } catch (e) {
+        logger.error("SafeRedisStore: Failed to call init on active store", { error: e });
+      }
+    }
+  }
 
   private getStore(): any | null {
     if (this.store) return this.store;
@@ -22,12 +38,21 @@ class SafeRedisStore {
       try {
         this.store = new RedisStore({
           sendCommand: async (...args: string[]) => {
+            // RedisStore v3+ expects sendCommand to accept individual arguments
+            // our redis client (node-redis v4) sendCommand expects an array
             return await redis.sendCommand(args);
           },
         });
+
+        // Initialize the store with previously captured options if they exist
+        if (this.options && typeof this.store.init === 'function') {
+          this.store.init(this.options);
+        }
+        
         return this.store;
       } catch (e) {
         logger.warn("SafeRedisStore: Lazy initialization failed", { error: e });
+        this.store = null;
         return null;
       }
     }
@@ -45,14 +70,18 @@ class SafeRedisStore {
         logger.warn("SafeRedisStore: increment returned invalid result", { result });
       }
     } catch (e) {
-      logger.error("SafeRedisStore: increment critical failure", { error: e instanceof Error ? e.message : e, key });
+      // Log the full error for debugging but don't crash
+      logger.error("SafeRedisStore: increment failed, falling back to memory", { 
+        error: e instanceof Error ? { name: e.name, message: e.message, stack: e.stack } : e,
+        key 
+      });
     }
     
     // ABSOLUTE FALLBACK: Always return a valid ClientRateLimitInfo object
     // This MUST be an object to prevent "Cannot destructure property 'totalHits' of 'undefined'"
     return {
       totalHits: 1,
-      resetTime: new Date(Date.now() + 60 * 1000), 
+      resetTime: new Date(Date.now() + (this.options?.windowMs || 60000)), 
     };
   }
 
@@ -72,6 +101,19 @@ class SafeRedisStore {
         await activeStore.resetKey(key);
       } catch (e) {}
     }
+  }
+
+  // Also proxy the 'get' method which is used by modern express-rate-limit versions
+  async get(key: string) {
+    const activeStore = this.getStore();
+    if (activeStore && getRedisReady()) {
+      try {
+        return await activeStore.get(key);
+      } catch (e) {
+        logger.error("SafeRedisStore: get failed", { error: e, key });
+      }
+    }
+    return undefined;
   }
 }
 
