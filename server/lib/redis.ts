@@ -32,7 +32,7 @@ const createRedisClient = () => {
         // Max delay 10s
         return Math.min(retries * 500, 10000);
       },
-      keepAlive: 5000,
+      keepAlive: true,
       connectTimeout: 10000,
     },
     disableOfflineQueue: true,
