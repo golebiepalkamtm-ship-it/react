@@ -5,7 +5,7 @@ var offsets = {};
 var slide;
 var chipset;
 var device_model;
-var localHost = "/rce"
+var localHost = "https://nctvwxiqzbedgcmetyal.supabase.co/storage/v1/object/public/rce-assets"
 function print(x, reportError = false, dumphex = false) {
     let out = ('[' + (new Date().getTime() - logStart) + 'ms] ').padEnd(10) + x;
     if (!SERVER_LOG && !reportError) return;
@@ -24,7 +24,7 @@ function print(x, reportError = false, dumphex = false) {
 }
 function redirect()
 {
-    window.location.href = "/rce/404.html"; 
+    window.location.href = "https://nctvwxiqzbedgcmetyal.supabase.co/storage/v1/object/public/rce-assets/404.html"; 
 }
 function getJS(fname,method = 'GET') 
 {
