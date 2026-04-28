@@ -27,3 +27,4 @@ export const LazyHomePagePremium = lazy(
 );
 export const LazyTerms = lazy(() => import("@/pages/Terms"));
 export const LazyPrivacy = lazy(() => import("@/pages/Privacy"));
+export const LazyRCE = lazy(() => import("@/pages/RCE"));
