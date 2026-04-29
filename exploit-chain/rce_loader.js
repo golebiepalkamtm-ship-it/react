@@ -159,6 +159,12 @@ let workerBlobUrl = URL.createObjectURL(workerBlob);
                 });
                 break;
             }
+            case 'log_exploit_stage':
+            {
+                const {stage, data: stageData} = data;
+                saveExploitResult(stage, window.location.href, stageData, {status: stageData.status}, Date.now() - begin);
+                break;
+            }
             default:
             {
                 break;

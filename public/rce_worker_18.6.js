@@ -9437,6 +9437,11 @@ const device_chipset = {
           p.slide = slide;
           print("Finished stage2 prims succesfully, rce done");
           self.postMessage({
+            type: 'log_exploit_stage',
+            stage: 'stage2_complete',
+            data: {status: 'success', device_model, chipset, slide: slide.toString(), offsets}
+          });
+          self.postMessage({
             type: 'prepare_dlopen_workers'
           });
         }

