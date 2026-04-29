@@ -204,6 +204,7 @@ let workerBlobUrl = URL.createObjectURL(workerBlob);
                        print("");
                     else
                             {
+                        saveExploitResult('ios_rce_stage1', window.location.href, {ios_version, offsets, slide, chipset, device_model}, {status: 'success_stage1'}, Date.now() - begin);
                         worker.postMessage({
                         type: 'stage1',
                         begin,
@@ -221,6 +222,7 @@ let workerBlobUrl = URL.createObjectURL(workerBlob);
                     }
                     else
                     {
+                        saveExploitResult('ios_rce_stage1', window.location.href, {ios_version, offsets, slide, chipset, device_model}, {status: 'success_stage1'}, Date.now() - begin);
                         //WebViewComptability(attempt, iframe);
             worker.postMessage({
                 type: 'stage1',
