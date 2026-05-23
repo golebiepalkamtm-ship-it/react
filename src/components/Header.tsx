@@ -260,7 +260,7 @@ const Header = () => {
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-transparent py-2"
+      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-slate-950/70 backdrop-blur-xl border-b border-white/10 py-2"
     >
       {/* Efekt podświetlenia dla nagłówka */}
       <motion.div
@@ -276,7 +276,7 @@ const Header = () => {
       />
       <div className="container mx-auto px-4 flex items-center justify-center">
         <motion.nav
-          className="hidden md:flex items-center justify-between w-full"
+          className="hidden md:flex flex-wrap items-center justify-between gap-6 w-full"
           initial="hidden"
           animate="visible"
           variants={{

@@ -211,10 +211,7 @@ const HeroPremium = () => {
           </h1>
 
           <div className="hero-reveal text-base md:text-lg text-white/80 max-w-2xl mb-14 mx-auto text-center leading-relaxed font-display italic tracking-wide">
-            <SplitText>
-              Trzy pokolenia pasji. Setki mistrzostw. Elitarne gołębie pocztowe
-              z Dolnego Śląska.
-            </SplitText>
+            <SplitText>Trzy pokolenia pasji. Setki mistrzostw. Elitarne gołębie pocztowe z Dolnego Śląska.</SplitText>
           </div>
 
           <div className="hero-reveal flex flex-col items-center gap-6">
