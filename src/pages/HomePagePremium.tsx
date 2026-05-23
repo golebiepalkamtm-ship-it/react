@@ -41,22 +41,41 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 // ============================================================================
 
 const SplitText = React.memo(
-  ({ children, className }: { children: string; className?: string }) => (
-    <span className={className}>
-      <span className="sr-only">{children}</span>
-      <span aria-hidden="true">
-        {children.split("").map((char, i) => (
-          <span
-            key={i}
-            className="char-premium inline-block will-change-transform"
-            style={{ backfaceVisibility: "hidden" }}
-          >
-            {char === " " ? "\u00A0" : char}
-          </span>
-        ))}
+  ({
+    children,
+    className,
+    splitBy = "char",
+  }: {
+    children: string;
+    className?: string;
+    splitBy?: "char" | "word";
+  }) => {
+    const units =
+      splitBy === "word"
+        ? children.split(/(\s+)/).filter((unit) => unit.length > 0)
+        : children.split("");
+
+    return (
+      <span className={className}>
+        <span className="sr-only">{children}</span>
+        <span aria-hidden="true">
+          {units.map((unit, i) => (
+            <span
+              key={i}
+              className="char-premium inline-block will-change-transform"
+              style={{ backfaceVisibility: "hidden" }}
+            >
+              {splitBy === "word"
+                ? unit
+                : unit === " "
+                  ? "\u00A0"
+                  : unit}
+            </span>
+          ))}
+        </span>
       </span>
-    </span>
-  ),
+    );
+  },
 );
 
 const HeroPremium = () => {
@@ -205,13 +224,15 @@ const HeroPremium = () => {
             <span className="text-[#A68E4E]">
               <SplitText>MTM</SplitText>
             </span>
-            <span className="hero-subtitle block text-lg md:text-2xl font-bold tracking-[0.4em] mt-6 text-[#A68E4E] uppercase text-center">
-              <SplitText>— Geny Zwycięzców —</SplitText>
+            <span className="hero-subtitle block text-lg md:text-2xl font-bold tracking-[0.4em] mt-6 text-[#A68E4E] uppercase text-center whitespace-nowrap">
+              <SplitText splitBy="word">— Geny Zwycięzców —</SplitText>
             </span>
           </h1>
 
-          <div className="hero-reveal text-base md:text-lg text-white/80 max-w-2xl mb-14 mx-auto text-center leading-relaxed font-display italic tracking-wide">
-            <SplitText>Trzy pokolenia pasji. Setki mistrzostw. Elitarne gołębie pocztowe z Dolnego Śląska.</SplitText>
+          <div className="hero-reveal text-sm sm:text-base md:text-lg text-white/80 mb-14 mx-auto text-center leading-relaxed font-display italic tracking-wide whitespace-nowrap px-4">
+            <SplitText splitBy="word">
+              Trzy pokolenia pasji. Setki mistrzostw. Elitarne gołębie pocztowe z Dolnego Śląska.
+            </SplitText>
           </div>
 
           <div className="hero-reveal flex flex-col items-center gap-6">
