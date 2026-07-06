@@ -73,21 +73,23 @@ const Header = () => {
   }, [user, session]);
 
   const shouldOpenFromLocation = Boolean(location.state?.openAccount);
+  const needsFullVerification = Boolean(location.state?.needsFullVerification);
   const shouldShowVerificationFromLocation = Boolean(
     location.state?.showVerificationSuccess,
   );
   const isAccountModalOpen =
     showAccountModal ||
-    (shouldOpenFromLocation && !shouldShowVerificationFromLocation);
+    (shouldOpenFromLocation && !shouldShowVerificationFromLocation) ||
+    needsFullVerification;
   const isVerificationModalOpen =
     verificationSuccessModalOpen ||
     (shouldOpenFromLocation && shouldShowVerificationFromLocation);
 
   useEffect(() => {
-    if (shouldOpenFromLocation) {
+    if (shouldOpenFromLocation || needsFullVerification) {
       navigate(".", { replace: true, state: undefined });
     }
-  }, [shouldOpenFromLocation, navigate]);
+  }, [shouldOpenFromLocation, needsFullVerification, navigate]);
 
   const handleVerificationModalClose = () => {
     setVerificationSuccessModalOpen(false);

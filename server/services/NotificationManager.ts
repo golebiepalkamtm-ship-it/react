@@ -103,6 +103,21 @@ export class NotificationManager {
     });
   }
 
+  static async notifyCommissionDue(
+    winnerUserId: string,
+    auctionId: string,
+    auctionTitle: string,
+    commissionAmount: number,
+  ): Promise<void> {
+    await this.createNotification({
+      userId: winnerUserId,
+      auctionId,
+      type: 'AUCTION_WON' as NotificationType,
+      title: 'Opłać prowizję serwisu',
+      message: `Wygrałeś aukcję "${auctionTitle}". Opłać prowizję 10% (${commissionAmount} zł) w panelu konta.`,
+    });
+  }
+
   /**
    * Powiadomienie o kończącej się aukcji (dla obserwujących)
    */

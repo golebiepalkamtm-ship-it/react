@@ -34,6 +34,7 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import AccountModal from "@/components/AccountModal";
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
 import { trackMetric } from "@/services/metricsService";
+import { toast } from "@/hooks/use-toast";
 import type { Auction } from "@/types/auction";
 import { formatCategory } from "@/utils/auction";
 
@@ -338,8 +339,7 @@ const AuctionDetail: React.FC = () => {
     if (!token || !dAuction || !dAuction.buyNowPrice) return;
     setIsCheckoutLoading(true);
     try {
-      const clientUrl = window.location.origin;
-      const successUrl = `${clientUrl}/auctions/success`;
+      const successUrl = `${clientUrl}/auctions/success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${clientUrl}/auctions/cancel`;
       const res = await paymentService.createStripeCheckout(
         id!,
@@ -364,17 +364,22 @@ const AuctionDetail: React.FC = () => {
           console.error("Malformed checkout URL:", res.url);
         }
       }
-      // If no URL or invalid -> fallback to direct buy-now endpoint
-      await auctionService.buyNow(id!, token);
-      await refetchAuction();
-    } catch (err: any) {
-      // Stripe minimum amount (<2 PLN) or any 4xx/5xx -> fallback
-      try {
-        await auctionService.buyNow(id!, token);
-        await refetchAuction();
-      } catch (fallbackErr) {
-        console.warn("Buy Now failed", fallbackErr);
-      }
+      toast({
+        title: "Płatność niedostępna",
+        description:
+          "Nie udało się uruchomić płatności Stripe. Spróbuj ponownie lub skontaktuj się z obsługą.",
+        variant: "destructive",
+      });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Nie udało się przejść do płatności.";
+      toast({
+        title: "Błąd płatności",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsCheckoutLoading(false);
     }

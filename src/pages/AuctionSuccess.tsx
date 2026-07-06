@@ -1,94 +1,80 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import {
-  CheckCircle,
-  Clock,
-  Euro,
-  Mail,
-  MapPin,
-  Phone,
-  Star,
-  User,
-} from "lucide-react";
+import { CheckCircle, Clock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { paymentService, type PaymentSessionInfo } from "@/services/paymentService";
 
-interface SuccessData {
-  type: "buy_now" | "auction_won" | "listing_fee";
-  auctionId: string;
-  auctionTitle: string;
-  price: number;
-  seller?: {
-    name: string;
-    id: string;
-    rating: number;
-    salesCount: number;
-    avatar?: string;
-    location: string;
-    phone: string;
-    email: string;
-  };
-  timestamp: string;
-}
+const typeLabels: Record<string, string> = {
+  BUY_NOW: "Zakup zakończony!",
+  LISTING_FEE: "Opłata za wystawienie!",
+  COMMISSION: "Prowizja opłacona!",
+};
 
-import type { FC } from "react";
-const AuctionSuccess: FC = () => {
-  const [successData, setSuccessData] = useState<SuccessData | null>(() => {
-    try {
-      const data = localStorage.getItem("auctionSuccess");
-      if (data) {
-        localStorage.removeItem("auctionSuccess");
-        return JSON.parse(data) as SuccessData;
+const typeDescriptions: Record<string, string> = {
+  BUY_NOW: "Pomyślnie zakupiłeś przedmiot z aukcji.",
+  LISTING_FEE: "Aukcja jest teraz widoczna publicznie.",
+  COMMISSION: "Prowizja serwisu została opłacona.",
+};
+
+const AuctionSuccess = () => {
+  const [searchParams] = useSearchParams();
+  const { session } = useAuth();
+  const sessionId = searchParams.get("session_id");
+  const [data, setData] = useState<PaymentSessionInfo | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(Boolean(sessionId));
+
+  useEffect(() => {
+    if (!sessionId || !session?.access_token) {
+      if (sessionId && !session?.access_token) {
+        setError("Zaloguj się, aby zobaczyć potwierdzenie płatności.");
       }
-    } catch {
-      // ignore
+      setLoading(false);
+      return;
     }
-    return null;
-  });
-  const [isLoading, setIsLoading] = useState(false);
 
-  const formatPrice = (value: number) => `${value.toLocaleString("pl-PL")} EUR`;
+    paymentService
+      .getSessionInfo(sessionId, session.access_token)
+      .then(setData)
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Nie udało się pobrać danych"),
+      )
+      .finally(() => setLoading(false));
+  }, [sessionId, session?.access_token]);
 
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString("pl-PL", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const formatPrice = (value: number) =>
+    `${value.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} PLN`;
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen">
         <Header />
         <div className="min-h-screen flex items-center justify-center pt-20">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Ładowanie...</p>
-          </div>
+          <p className="text-muted-foreground">Ładowanie potwierdzenia...</p>
         </div>
         <Footer />
       </div>
     );
   }
 
-  if (!successData) {
+  if (!sessionId || error || !data) {
     return (
       <div className="min-h-screen">
         <Header />
-        <div className="min-h-screen flex items-center justify-center pt-20">
-          <div className="text-center">
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">
-              Błąd
+        <div className="min-h-screen flex items-center justify-center pt-20 px-4 text-center">
+          <div>
+            <h1 className="font-display text-3xl text-foreground font-bold mb-4">
+              Brak danych transakcji
             </h1>
             <p className="text-muted-foreground mb-6">
-              Nie znaleziono danych o transakcji.
+              {error ||
+                "Otwórz tę stronę po powrocie ze Stripe (parametr session_id)."}
             </p>
             <Link
               to="/auctions"
-              className="inline-block px-6 py-3 rounded-md bg-black/70 backdrop-blur-xl border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] text-foreground hover:border-gold/30 transition-colors"
+              className="inline-block px-6 py-3 rounded-md border border-white/25 text-foreground hover:border-gold/30"
             >
               Powrót do aukcji
             </Link>
@@ -99,132 +85,52 @@ const AuctionSuccess: FC = () => {
     );
   }
 
+  const title = typeLabels[data.type] ?? "Płatność zakończona";
+  const description = typeDescriptions[data.type] ?? "Dziękujemy za płatność.";
+
   return (
     <div className="min-h-screen">
       <Header />
       <div className="min-h-screen py-12 pt-32">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)] p-8 hover:border-gold/30 transition-colors">
-            {/* Ikona sukcesu */}
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="rounded-2xl border border-white/25 bg-black/70 backdrop-blur-xl p-8">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-400" />
-              </div>
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground font-bold leading-tight mb-4">
-                {successData.type === "buy_now"
-                  ? "Zakup zakończony!"
-                  : successData.type === "listing_fee"
-                    ? "Opłata za wystawienie!"
-                    : "Wygrana licytacja!"}
+              <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+              <h1 className="font-display text-3xl text-foreground font-bold mb-2">
+                {title}
               </h1>
-              <p className="text-muted-foreground">
-                {successData.type === "buy_now"
-                  ? "Pomyślnie zakupiłeś gołębia pocztowego"
-                  : successData.type === "listing_fee"
-                    ? "Pomyślnie opłacono wystawienie aukcji"
-                    : "Gratulacje! Wygrałeś licytację"}
-              </p>
+              <p className="text-muted-foreground">{description}</p>
             </div>
 
-            {/* Szczegóły transakcji */}
-            <div className="border-t border-white/15 pt-8">
-              <h2 className="text-xl font-semibold text-foreground mb-6">
-                Szczegóły transakcji
-              </h2>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-white/15">
-                  <div className="flex items-center gap-3">
-                    <Euro className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-muted-foreground">Cena</span>
-                  </div>
-                  <span className="font-semibold text-foreground">
-                    {formatPrice(successData.price)}
-                  </span>
-                </div>
-
-                {successData.type !== "listing_fee" && successData.seller && (
-                  <div className="py-3 border-b border-white/15">
-                    <div className="flex items-center gap-3 mb-3">
-                      <User className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-muted-foreground">Sprzedawca</span>
-                    </div>
-                    <div className="pl-8 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground">
-                          {successData.seller.name}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-gold fill-current" />
-                          <span className="text-sm text-muted-foreground">
-                            {successData.seller.rating} (
-                            {successData.seller.salesCount} sprzedaży)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
-                        <span>{successData.seller.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Phone className="w-4 h-4" />
-                        <span>{successData.seller.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="w-4 h-4" />
-                        <span>{successData.seller.email}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between py-3 border-b border-white/15">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-muted-foreground">Data</span>
-                  </div>
-                  <span className="font-semibold text-foreground">
-                    {formatDate(successData.timestamp)}
-                  </span>
-                </div>
-
-                <div className="py-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-muted-foreground">Gołąb</span>
-                  </div>
-                  <span className="font-semibold text-foreground">
-                    {successData.auctionTitle}
-                  </span>
-                </div>
+            <div className="space-y-4 border-t border-white/15 pt-6">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Kwota</span>
+                <span className="font-semibold">{formatPrice(data.amount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Aukcja</span>
+                <span className="font-semibold">{data.auctionTitle}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <Clock className="w-4 h-4" /> Status
+                </span>
+                <span className="font-semibold">{data.status}</span>
               </div>
             </div>
 
-            {/* Następne kroki */}
-            <div className="mt-8 p-6 bg-blue-500/10 rounded-lg border border-blue-400/20">
-              <h3 className="text-lg font-semibold text-blue-300 mb-3">
-                Następne kroki
-              </h3>
-              <ul className="space-y-2 text-blue-200">
-                <li>• Sprzedawca skontaktuje się z Tobą w ciągu 24 godzin</li>
-                <li>• Uzgodnicie szczegóły dostawy i płatności</li>
-                <li>• Otrzymasz dokumenty i certyfikaty gołębia</li>
-                <li>• Możesz śledzić status transakcji w swoim panelu</li>
-              </ul>
-            </div>
-
-            {/* Przyciski akcji */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Link
-                to="/auctions"
-                className="flex-1 bg-black/70 text-foreground py-3 px-6 rounded-md font-medium backdrop-blur-xl transition-colors text-center border border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] hover:border-gold/30"
+                to={`/auctions/${data.auctionId}`}
+                className="flex-1 text-center py-3 px-6 rounded-md border border-white/25 hover:border-gold/30"
               >
-                Przeglądaj więcej aukcji
+                Zobacz aukcję
               </Link>
               <Link
-                to="/"
-                className="flex-1 bg-gradient-to-r from-gold to-gold-light text-navy py-3 px-6 rounded-md font-medium hover:opacity-90 transition-opacity text-center"
+                to="/auctions"
+                className="flex-1 text-center py-3 px-6 rounded-md bg-gold text-navy font-medium"
               >
-                Strona główna
+                Lista aukcji
               </Link>
             </div>
           </div>

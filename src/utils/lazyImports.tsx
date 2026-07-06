@@ -6,6 +6,7 @@ export const LazyFlightResults = lazy(() => import("@/pages/FlightResults"));
 export const LazyAuctions = lazy(() => import("@/pages/Auctions"));
 export const LazyAuctionDetail = lazy(() => import("@/pages/AuctionDetail"));
 export const LazyAuctionSuccess = lazy(() => import("@/pages/AuctionSuccess"));
+export const LazyAuctionCancel = lazy(() => import("@/pages/AuctionCancel"));
 export const LazyBreederMeetings = lazy(
   () => import("@/pages/BreederMeetings"),
 );

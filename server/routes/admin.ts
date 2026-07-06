@@ -643,6 +643,75 @@ router.delete(
 );
 
 /**
+ * Ban user
+ */
+router.post(
+  "/users/:id/ban",
+  mutationLimiter,
+  ensureAdmin,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!prisma) throw new Error("Database not initialized");
+      const { id } = req.params;
+      const updated = await prisma.user.update({
+        where: { id },
+        data: { isBanned: true, isBlocked: true },
+      });
+      await logAdminAction(req, "BAN_USER", "USER", id);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+);
+
+/**
+ * Unban user
+ */
+router.post(
+  "/users/:id/unban",
+  mutationLimiter,
+  ensureAdmin,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!prisma) throw new Error("Database not initialized");
+      const { id } = req.params;
+      const updated = await prisma.user.update({
+        where: { id },
+        data: { isBanned: false, isBlocked: false, blockedUntil: null },
+      });
+      await logAdminAction(req, "UNBAN_USER", "USER", id);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+);
+
+/**
+ * Admin verify user (full verification override)
+ */
+router.post(
+  "/users/:id/verify",
+  mutationLimiter,
+  ensureAdmin,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!prisma) throw new Error("Database not initialized");
+      const { id } = req.params;
+      const updated = await prisma.user.update({
+        where: { id },
+        data: { role: "USER_FULL_VERIFIED" },
+      });
+      await logAdminAction(req, "VERIFY_USER", "USER", id);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+);
+
+/**
  * Update auction
  */
 router.patch(
@@ -1021,6 +1090,7 @@ router.post(
           buyNowPrice: buyNowPrice || null,
           reservePrice,
           status: status || "ACTIVE",
+          listingFeePaid: true,
           endTime: endTime ? new Date(endTime) : null,
           category: category || "PIGEONS",
           sellerId: finalSellerId,
@@ -1045,5 +1115,60 @@ router.post(
     }
   },
 );
+
+router.get("/payments", ensureAdmin, async (req: Request, res: Response) => {
+  try {
+    if (!prisma) throw new Error("Database not initialized");
+
+    const page = Math.max(1, parseInt((req.query.page as string) || "1"));
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt((req.query.limit as string) || "20")),
+    );
+    const skip = (page - 1) * limit;
+    const status = req.query.status as string | undefined;
+    const type = req.query.type as string | undefined;
+
+    const where: any = {};
+    if (status) where.status = status.toUpperCase();
+    if (type) where.type = type.toUpperCase();
+
+    const [payments, total] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          auction: { select: { id: true, title: true } },
+          user: {
+            select: { id: true, email: true, username: true, first_name: true },
+          },
+        },
+      }),
+      prisma.payment.count({ where }),
+    ]);
+
+    res.json({
+      payments: payments.map((p) => ({
+        id: p.id,
+        amount: Number(p.amount),
+        type: p.type,
+        status: p.status,
+        provider: p.provider,
+        createdAt: p.createdAt,
+        auctionId: p.auctionId,
+        auctionTitle: p.auction?.title ?? null,
+        userEmail: p.user?.email ?? null,
+        username: p.user?.username ?? null,
+      })),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 export default router;

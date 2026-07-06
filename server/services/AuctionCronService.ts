@@ -130,57 +130,72 @@ export class AuctionCronService {
       if (!endingAuctions.length) return;
       logger.info(`Processing ${endingAuctions.length} ending auctions...`);
 
-      for (const auction of endingAuctions) {
-        try {
-          // Krótka transakcja na pojedynczej aukcji z podniesionym timeoutem
-          await prisma.$transaction(async (tx) => {
-            const highestBid = await tx.bid.findFirst({
-              where: { auctionId: auction.id },
-              orderBy: { amount: 'desc' },
-            });
-
-            if (highestBid?.bidderId) {
-              const winnerId = highestBid.bidderId;
-              const finalPrice = highestBid.amount;
-
-              await tx.auction.update({
-                where: { id: auction.id },
-                data: {
-                  status: AuctionStatus.ENDED,
-                  winnerId,
-                  currentPrice: finalPrice
-                }
+      // Process ended auctions concurrently in chunks of 5 to protect pool limit
+      const CHUNK_SIZE = 5;
+      for (let i = 0; i < endingAuctions.length; i += CHUNK_SIZE) {
+        const chunk = endingAuctions.slice(i, i + CHUNK_SIZE);
+        await Promise.allSettled(chunk.map(async (auction) => {
+          try {
+            await prisma.$transaction(async (tx) => {
+              const highestBid = await tx.bid.findFirst({
+                where: { auctionId: auction.id },
+                orderBy: { amount: 'desc' },
               });
 
-              await tx.payment.create({
-                data: {
-                  auctionId: auction.id,
-                  userId: winnerId,
-                  amount: finalPrice,
-                  type: PaymentType.BUY_NOW,
-                  provider: 'P24',
-                  status: PaymentStatus.INITIATED
-                }
-              });
+              if (highestBid?.bidderId) {
+                const winnerId = highestBid.bidderId;
+                const finalPrice = Number(highestBid.amount);
+                const commissionAmount = Number((finalPrice * 0.1).toFixed(2));
 
-              logger.info(`Auction ${auction.id} sold to ${winnerId} for ${finalPrice}`);
-              this.notifyAuctionSold(auction, winnerId, Number(finalPrice));
-            } else {
-              await tx.auction.update({
-                where: { id: auction.id },
-                data: {
-                  status: AuctionStatus.ENDED,
-                  winnerId: null
-                }
-              });
+                await tx.auction.update({
+                  where: { id: auction.id },
+                  data: {
+                    status: AuctionStatus.ENDED,
+                    winnerId,
+                    currentPrice: finalPrice
+                  }
+                });
 
-              logger.info(`Auction ${auction.id} expired without bids`);
-              this.notifyAuctionExpired(auction);
-            }
-          }, { timeout: 15000 }); // allow up to 15s for slow DB
-        } catch (err) {
-          logger.error(`Failed to close auction ${auction.id}:`, err);
-        }
+                const existingCommission = await tx.payment.findFirst({
+                  where: {
+                    auctionId: auction.id,
+                    userId: winnerId,
+                    type: PaymentType.COMMISSION,
+                  },
+                });
+
+                if (!existingCommission && commissionAmount > 0) {
+                  await tx.payment.create({
+                    data: {
+                      auctionId: auction.id,
+                      userId: winnerId,
+                      amount: commissionAmount,
+                      type: PaymentType.COMMISSION,
+                      provider: 'STRIPE',
+                      status: PaymentStatus.INITIATED
+                    }
+                  });
+                }
+
+                logger.info(`Auction ${auction.id} sold to ${winnerId} for ${finalPrice}`);
+                this.notifyAuctionSold(auction, winnerId, finalPrice, commissionAmount);
+              } else {
+                await tx.auction.update({
+                  where: { id: auction.id },
+                  data: {
+                    status: AuctionStatus.ENDED,
+                    winnerId: null
+                  }
+                });
+
+                logger.info(`Auction ${auction.id} expired without bids`);
+                this.notifyAuctionExpired(auction);
+              }
+            }, { timeout: 15000 }); // allow up to 15s for slow DB
+          } catch (err) {
+            logger.error(`Failed to close auction ${auction.id}:`, err);
+          }
+        }));
       }
 
     } catch (error) {
@@ -188,7 +203,7 @@ export class AuctionCronService {
     }
   }
 
-  private async notifyAuctionSold(auction: any, winnerId: string, finalPrice: number) {
+  private async notifyAuctionSold(auction: any, winnerId: string, finalPrice: number, commissionAmount: number) {
     try {
       // Notify Winner
       await NotificationManager.notifyAuctionWon(
@@ -197,6 +212,15 @@ export class AuctionCronService {
         auction.title,
         finalPrice
       );
+
+      if (commissionAmount > 0) {
+        await NotificationManager.notifyCommissionDue(
+          winnerId,
+          auction.id,
+          auction.title,
+          commissionAmount,
+        );
+      }
 
       // Notify Seller
       if (auction.sellerId) {

@@ -83,3 +83,14 @@ export function canSell(userRole: LegacyRole): boolean {
 export function isAdmin(userRole: LegacyRole): boolean {
   return userRole === 'ADMIN';
 }
+
+/** Licytacja i buy-now wymagają pełnej weryfikacji (email + SMS) */
+export function canBid(userRole: LegacyRole | undefined): boolean {
+  if (!userRole) return false;
+  return userRole === 'USER_FULL_VERIFIED' || userRole === 'ADMIN';
+}
+
+/** Wystawianie aukcji wymaga pełnej weryfikacji */
+export function canCreateAuction(userRole: LegacyRole | undefined): boolean {
+  return canBid(userRole);
+}

@@ -45,13 +45,24 @@ const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }:
     }
     try {
       setLoading(true);
-      const successUrl = `${window.location.origin}/auctions/success`;
+      const successUrl = `${window.location.origin}/auctions/success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${window.location.origin}/auctions/cancel`;
 
       const payload =
         type === 'LISTING_FEE'
           ? await paymentService.createListingFeeCheckout(auctionId, session.access_token, successUrl, cancelUrl)
           : await paymentService.createCommissionCheckout(auctionId, session.access_token, successUrl, cancelUrl);
+
+      if ('free' in payload && payload.free) {
+        onClose();
+        setFeedbackModal({
+          isOpen: true,
+          type: 'success',
+          title: 'Opłata pominięta',
+          message: 'Aukcja została opublikowana (konto administratora).',
+        });
+        return;
+      }
 
       if (payload.url) {
         window.location.href = payload.url;

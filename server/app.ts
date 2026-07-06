@@ -139,18 +139,8 @@ app.use(requestIdMiddleware);
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(compression());
-app.use(
-  express.json({
-    limit: "10mb",
-  }),
-);
-app.use(cspMiddleware);
 
-// Explicit preflight handler for health so tests get 200 (and CORS headers when allowed)
-app.options("/api/health", (req, res) => {
-  return res.status(200).send("OK");
-});
-
+// Stripe webhook must receive raw body before JSON parser
 app.post(
   "/api/webhooks/stripe",
   webhookLimiter,
@@ -164,6 +154,18 @@ app.post(
     }
   },
 );
+
+app.use(
+  express.json({
+    limit: "10mb",
+  }),
+);
+app.use(cspMiddleware);
+
+// Explicit preflight handler for health so tests get 200 (and CORS headers when allowed)
+app.options("/api/health", (req, res) => {
+  return res.status(200).send("OK");
+});
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SyntaxError && hasBodyProperty(err)) {

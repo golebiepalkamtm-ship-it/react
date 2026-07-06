@@ -87,6 +87,7 @@ router.get("/", async (req, res) => {
         { description: { contains: String(search), mode: "insensitive" } },
       ];
     }
+    where.listingFeePaid = true;
 
     if (!prisma) {
       console.error("❌ Database connection (Prisma) is not initialized");
@@ -255,7 +256,11 @@ router.get("/:id", async (req, res) => {
 });
 
 // Shared create logic for both dev and prod
-async function performAuctionCreate(req: any, userId: string | null) {
+async function performAuctionCreate(
+  req: any,
+  userId: string | null,
+  options?: { isAdmin?: boolean },
+) {
   const {
     title,
     description,
@@ -431,6 +436,7 @@ async function performAuctionCreate(req: any, userId: string | null) {
       reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
       endTime: new Date(endTime),
       status: "ACTIVE",
+      listingFeePaid: options?.isAdmin ?? false,
       category: auctionCategory as any,
       location: location || "Lubań, Polska",
       sellerId: userId,
@@ -451,7 +457,7 @@ if (validatedEnv.NODE_ENV === "development") {
         return res
           .status(500)
           .json({ error: "Błąd połączenia z bazą danych." });
-      const created = await performAuctionCreate(req, null);
+      const created = await performAuctionCreate(req, null, { isAdmin: false });
       cache.invalidateResource("auctions"); // Invalidate auction lists
       res.status(201).json(serializeAuction(created as any));
     } catch (error) {
@@ -482,7 +488,9 @@ if (validatedEnv.NODE_ENV === "development") {
             .status(500)
             .json({ error: "Błąd połączenia z bazą danych." });
 
-        const created = await performAuctionCreate(req, userId);
+        const created = await performAuctionCreate(req, userId, {
+          isAdmin: role === "ADMIN",
+        });
         cache.invalidateResource("auctions");
         res.status(201).json(serializeAuction(created as any));
       } catch (error) {
@@ -572,6 +580,13 @@ router.post(
   validate(buyNowSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
+      if (process.env.ALLOW_UNPAID_BUY_NOW !== "true") {
+        return res.status(403).json({
+          error:
+            "Kup teraz wymaga płatności przez Stripe. Użyj przycisku płatności na stronie aukcji.",
+        });
+      }
+
       const userId = req.user?.id;
       if (!userId)
         return res

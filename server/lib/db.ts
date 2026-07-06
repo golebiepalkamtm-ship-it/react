@@ -45,7 +45,12 @@ try {
 
   // Create PostgreSQL adapter for Prisma 7.x
   const connectionString = validatedEnv.DATABASE_URL;
-  const pool = new Pool({ connectionString });
+  const pool = new Pool({
+    connectionString,
+    max: process.env.NODE_ENV === "production" ? 15 : 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
   const adapter = new PrismaPg(pool);
 
   const prismaOptions = {

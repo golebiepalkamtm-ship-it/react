@@ -94,6 +94,7 @@ model Auction {
   isExtended            Boolean           @default(false) @map("is_extended")
   status                AuctionStatus     @default(ACTIVE)
   reserveMet            Boolean           @default(false) @map("reserve_met")
+  listingFeePaid        Boolean           @default(false) @map("listing_fee_paid")
   version               Int               @default(1)
   category              AuctionCategory   @default(PIGEONS)
   gender                Sex               @default(MALE) @map("sex")

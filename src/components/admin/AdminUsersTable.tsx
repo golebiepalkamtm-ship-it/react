@@ -103,7 +103,7 @@ export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({
                     >
                       <UserCheck className="w-4 h-4 text-[#A68E4E]" />
                     </button>
-                    {user.role === "BANNED" ? (
+                    {user.isBanned ? (
                       <button
                         className="p-2 rounded-lg bg-[#A68E4E]/5 hover:bg-[#A68E4E]/20 transition-colors"
                         onClick={() => onAction(user.id, "unban")}

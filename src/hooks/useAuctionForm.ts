@@ -7,11 +7,13 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 interface UseAuctionFormOptions {
   category: "pigeons" | "supplements" | "accessories";
   onSuccess?: (() => void) | undefined;
+  onListingFeeRequired?: ((auctionId: string) => void) | undefined;
 }
 
 export const useAuctionForm = ({
   category,
   onSuccess,
+  onListingFeeRequired,
 }: UseAuctionFormOptions) => {
   const { user, profile, session } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -142,7 +144,38 @@ export const useAuctionForm = ({
         pigeon: category === "pigeons" ? formData.pigeon || {} : {},
       };
 
-      await auctionService.createAuction(request, session?.access_token ?? "");
+      const created = await auctionService.createAuction(
+        request,
+        session?.access_token ?? "",
+      );
+
+      if (profile?.role === "ADMIN") {
+        setFeedback({
+          isOpen: true,
+          type: "success",
+          title: "Sukces!",
+          message: "Aukcja została utworzona pomyślnie.",
+        });
+        onSuccess?.();
+        return;
+      }
+
+      if (created?.id) {
+        onListingFeeRequired?.(created.id);
+        window.dispatchEvent(
+          new CustomEvent("listing-fee-required", {
+            detail: { auctionId: created.id },
+          }),
+        );
+        setFeedback({
+          isOpen: true,
+          type: "info",
+          title: "Opłata za wystawienie",
+          message:
+            "Aukcja zapisana. Opłać wystawienie (20 PLN), aby była widoczna publicznie.",
+        });
+        return;
+      }
 
       setFeedback({
         isOpen: true,

@@ -13,6 +13,7 @@ import {
   CalendarClock,
   Trash2,
   Pencil,
+  CreditCard,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,6 +42,7 @@ import { AdminUserEditModal } from "./admin/AdminUserEditModal";
 import { AdminAuctionEditModal } from "./admin/AdminAuctionEditModal";
 import { AdminCreateUserModal } from "./admin/AdminCreateUserModal";
 import { AdminCreateAuctionModal } from "./admin/AdminCreateAuctionModal";
+import { AdminPaymentsTable } from "./admin/AdminPaymentsTable";
 import EditBreederMeetingForm from "@/components/breeder-meetings/EditBreederMeetingForm";
 import { meetingsService, Meeting } from "@/services/meetingsService";
 import referenceService, {
@@ -55,6 +57,7 @@ type TabType =
   | "auctions"
   | "meetings"
   | "references"
+  | "payments"
   | "settings";
 
 interface AdminPanelProps {
@@ -71,6 +74,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [auctions, setAuctions] = useState<AuctionData[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
+  const [adminPayments, setAdminPayments] = useState<any[]>([]);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     activeAuctions: 0,
@@ -168,6 +172,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         setReferences(rs || []);
       } catch (e) {
         logger.error("References fetch failed", e);
+      }
+
+      try {
+        const payData = await apiClient.getWithToken<{ payments: any[] }>(
+          "/admin/payments",
+          { limit: 50 },
+          session.access_token,
+        );
+        setAdminPayments(payData.payments || []);
+      } catch (e) {
+        logger.error("Admin payments fetch failed", e);
       }
     } catch (error) {
       logger.error("❌ Error fetching admin data:", error);
@@ -552,6 +567,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               { id: "auctions", label: "Aukcje", icon: Gavel },
               { id: "meetings", label: "Spotkania", icon: CalendarClock },
               { id: "references", label: "Referencje", icon: Star },
+              { id: "payments", label: "Płatności", icon: CreditCard },
               { id: "settings", label: "Ustawienia", icon: Settings },
             ].map((tab) => (
               <button
@@ -915,6 +931,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     </div>
                   )}
                   {activeTab === "settings" && <AdminSettings />}
+
+                  {activeTab === "payments" && (
+                    <div className="space-y-4">
+                      <h2 className="text-xl font-semibold text-white">
+                        Transakcje ({adminPayments.length})
+                      </h2>
+                      <AdminPaymentsTable payments={adminPayments} loading={loading} />
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

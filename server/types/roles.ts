@@ -49,7 +49,15 @@ export const Role = {
   USER_EMAIL_VERIFIED: 'USER_EMAIL_VERIFIED' as const,
   USER_FULL_VERIFIED: 'USER_FULL_VERIFIED' as const,
   ADMIN: 'ADMIN' as const,
-  // Additional role aliases for compatibility
   SELLER: 'USER_FULL_VERIFIED' as const,
   BUYER: 'USER_REGISTERED' as const,
 };
+
+export function canBid(userRole: UserRole | undefined): boolean {
+  if (!userRole) return false;
+  return userRole === 'USER_FULL_VERIFIED' || userRole === 'ADMIN';
+}
+
+export function canCreateAuction(userRole: UserRole | undefined): boolean {
+  return canBid(userRole);
+}

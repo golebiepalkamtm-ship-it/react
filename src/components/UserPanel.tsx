@@ -47,9 +47,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import PhoneVerification from "@/components/auth/PhoneVerification";
 import { auctionService } from "@/services/auctionService";
+import apiClient from "@/services/api";
 import { Auction } from "@/types/auction";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
+import { UserPaymentsSection } from "@/components/user/UserPaymentsSection";
 
 interface UserPanelProps {
   onClose: () => void;
@@ -96,7 +98,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const layer3Y = useTransform(mouseY, [0, 1], [-45, 45]);
 
   const [activeTab, setActiveTab] = useState<
-    "overview" | "profile" | "security" | "auctions"
+    "overview" | "profile" | "security" | "auctions" | "payments"
   >("overview");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -467,6 +469,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
               { id: "profile", label: "Profil", icon: Settings },
               { id: "security", label: "Bezpieczeństwo", icon: Shield },
               { id: "auctions", label: "Aukcje", icon: Package },
+              { id: "payments", label: "Płatności", icon: CreditCard },
             ].map((tab, index) => (
               <motion.button
                 key={tab.id}
@@ -1067,6 +1070,52 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                     </motion.div>
 
                     <motion.div
+                      className="rounded-2xl border border-red-500/30 bg-red-500/5 p-6 backdrop-blur-xl"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <h4 className="font-display text-xl font-semibold text-red-200 mb-3">
+                        Usuń konto
+                      </h4>
+                      <p className="text-red-300/80 text-sm mb-4">
+                        Trwałe usunięcie konta. Wymaga braku aktywnych aukcji.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="w-full border-red-500/40 text-red-300"
+                        onClick={async () => {
+                          if (
+                            !confirm(
+                              "Na pewno usunąć konto? Tej operacji nie można cofnąć.",
+                            )
+                          )
+                            return;
+                          try {
+                            if (!session?.access_token) return;
+                            await apiClient.delete(
+                              "/auth/account",
+                              session.access_token,
+                            );
+                            await signOut();
+                            window.location.href = "/";
+                          } catch (err) {
+                            setFeedbackType("error");
+                            setFeedbackTitle("Błąd");
+                            setFeedbackMessage(
+                              err instanceof Error
+                                ? err.message
+                                : "Nie udało się usunąć konta.",
+                            );
+                            setFeedbackOpen(true);
+                          }
+                        }}
+                      >
+                        Usuń konto
+                      </Button>
+                    </motion.div>
+
+                    <motion.div
                       className="rounded-2xl border border-red-500/40 bg-gradient-to-br from-red-500/20 to-red-900/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-red-500/60 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -1313,6 +1362,19 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                       </div>
                     </motion.div>
                   </div>
+                </motion.div>
+              )}
+
+              {activeTab === "payments" && (
+                <motion.div
+                  key="payments"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <UserPaymentsSection />
                 </motion.div>
               )}
             </AnimatePresence>

@@ -261,6 +261,21 @@ router.post(
           .json({ error: "Brak wymaganych danych (ID, telefon lub kod)." });
       }
 
+      const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true, email: true },
+      });
+      if (
+        !dbUser ||
+        (dbUser.role !== "USER_EMAIL_VERIFIED" &&
+          dbUser.role !== "USER_FULL_VERIFIED" &&
+          dbUser.role !== "ADMIN")
+      ) {
+        return res.status(403).json({
+          error: "Potwierdź adres email przed weryfikacją SMS.",
+        });
+      }
+
       const isValid = await smsService.verifyCode(phone, code);
       if (!isValid) {
         console.warn(

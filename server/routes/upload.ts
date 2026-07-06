@@ -81,6 +81,8 @@ const hasMagicNumber = (file: Express.Multer.File): boolean => {
       return buf.length > 11 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP';
     case 'image/gif':
       return buf.length > 5 && ['GIF87a', 'GIF89a'].includes(buf.toString('ascii', 0, 6));
+    case 'application/pdf':
+      return startsWith(0x25, 0x50, 0x44, 0x46); // Check '%PDF' signature
     default:
       return false;
   }

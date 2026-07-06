@@ -124,7 +124,9 @@ router.post(
             quantity: 1,
           },
         ],
-        success_url: successUrl || `${clientUrl}/auctions/success`,
+        success_url:
+          successUrl ||
+          `${clientUrl}/auctions/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: cancelUrl || `${clientUrl}/auctions/cancel`,
         metadata: {
           paymentId: payment.id,
@@ -173,8 +175,15 @@ router.post(
       if (!prisma)
         return res.status(500).json({ error: "Database not available" });
 
-      // Admin nie płaci za wystawienie – zwracamy success bez sesji Stripe
+      // Admin nie płaci za wystawienie – oznacz aukcję jako opłaconą
       if (userRole === "ADMIN") {
+        const { auctionId } = req.body;
+        if (auctionId) {
+          await db.auction.update({
+            where: { id: auctionId },
+            data: { listingFeePaid: true },
+          });
+        }
         return res.json({ free: true });
       }
 
@@ -217,7 +226,9 @@ router.post(
             quantity: 1,
           },
         ],
-        success_url: successUrl || `${clientUrl}/auctions/success`,
+        success_url:
+          successUrl ||
+          `${clientUrl}/auctions/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: cancelUrl || `${clientUrl}/auctions/cancel`,
         metadata: {
           paymentId: payment.id,
@@ -297,7 +308,6 @@ router.post(
           auctionId,
           userId,
           amount: commission,
-          currency: currency.toUpperCase(),
           provider: "STRIPE" as any,
           type: "COMMISSION" as any,
           status: "INITIATED" as any,
@@ -319,7 +329,9 @@ router.post(
             quantity: 1,
           },
         ],
-        success_url: successUrl || `${clientUrl}/auctions/success`,
+        success_url:
+          successUrl ||
+          `${clientUrl}/auctions/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: cancelUrl || `${clientUrl}/auctions/cancel`,
         metadata: {
           paymentId: payment.id,
@@ -348,6 +360,92 @@ router.post(
     }
   },
 );
+
+router.get("/history", async (req: any, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!prisma)
+      return res.status(500).json({ error: "Database not available" });
+
+    const page = Math.max(1, parseInt(String(req.query.page || "1"), 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(String(req.query.limit || "20"), 10)),
+    );
+    const skip = (page - 1) * limit;
+
+    const [payments, total] = await Promise.all([
+      db.payment.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          auction: { select: { id: true, title: true } },
+        },
+      }),
+      db.payment.count({ where: { userId } }),
+    ]);
+
+    res.json({
+      payments: payments.map((p: any) => ({
+        id: p.id,
+        amount: Number(p.amount),
+        type: p.type,
+        status: p.status,
+        provider: p.provider,
+        createdAt: p.createdAt,
+        auctionId: p.auctionId,
+        auctionTitle: p.auction?.title ?? null,
+      })),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
+  } catch (error: any) {
+    console.error("Payment history error", error);
+    res.status(500).json({ error: error.message || "Failed to load history" });
+  }
+});
+
+router.get("/session/:sessionId", async (req: any, res) => {
+  try {
+    if (!stripe)
+      return res.status(500).json({ error: "Stripe not configured" });
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const { sessionId } = req.params;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    const paymentId = session.metadata?.paymentId;
+    if (!paymentId) {
+      return res.status(404).json({ error: "Payment not found for session" });
+    }
+
+    const payment = await db.payment.findUnique({
+      where: { id: paymentId },
+      include: { auction: { select: { id: true, title: true } } },
+    });
+
+    if (!payment || payment.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    res.json({
+      type: payment.type,
+      status: payment.status,
+      amount: Number(payment.amount),
+      auctionId: payment.auctionId,
+      auctionTitle: payment.auction?.title ?? "Aukcja",
+      sessionStatus: session.status,
+    });
+  } catch (error: any) {
+    console.error("Payment session lookup error", error);
+    res.status(500).json({ error: error.message || "Failed to load session" });
+  }
+});
 
 export const processStripeEvent = async (
   event: Stripe.Event,
@@ -410,6 +508,10 @@ export const processStripeEvent = async (
               `Auction ${auctionId} commission paid by buyer ${buyerId}`,
             );
           } else if (paymentType === "LISTING_FEE") {
+            await tx.auction.update({
+              where: { id: auctionId },
+              data: { listingFeePaid: true },
+            });
             console.log(
               `Listing fee paid for auction ${auctionId} by user ${buyerId}`,
             );

@@ -109,8 +109,8 @@ const AdminPage: React.FC = () => {
     )
       return;
     try {
-      const r = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
-      if (!r.ok) throw new Error("Failed");
+      if (!session?.access_token) return;
+      await apiClient.delete(`/admin/users/${id}`, session.access_token);
       await fetchData();
     } catch (e) {
       console.error(e);
