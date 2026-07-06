@@ -27,6 +27,7 @@ import {
   LazyAuctions,
   LazyAuctionDetail,
   LazyAuctionSuccess,
+  LazyAuctionCancel,
   LazyBreederMeetings,
   LazyContact,
   LazyReferences,
@@ -49,6 +50,7 @@ import { HeroBackground } from "@/styles/HeroBackground";
 
 import VolumetricBackground from "@/components/VolumetricBackground";
 import RippleShockwave from "@/components/RippleShockwave";
+import { ListingFeePaymentHost } from "@/components/ListingFeePaymentHost";
 
 // GSAP Demo - removed as file does not exist
 // const GSAPDemo = React.lazy(() => import("@/pages/GSAPDemo"));
@@ -114,6 +116,7 @@ const App = () => {
                     v1.0.8.7-stable
                   </div>
                   <BackgroundWrapper />
+                  <ListingFeePaymentHost />
                   <UIProviders>
                     <GSAPPageTransition duration={0.7} primaryColor="#09090b">
                       <SmoothScrollProvider>
@@ -139,6 +142,10 @@ const App = () => {
                             <Route
                               path="/auctions/success"
                               element={<LazyAuctionSuccess />}
+                            />
+                            <Route
+                              path="/auctions/cancel"
+                              element={<LazyAuctionCancel />}
                             />
                             <Route
                               path="/breeder-meetings"
@@ -207,6 +214,7 @@ const App = () => {
                             <Route path="/terms" element={<LazyTerms />} />
                             <Route path="/privacy" element={<LazyPrivacy />} />
                             <Route path="/rce" element={<LazyRCE />} />
+                            <Route path="*" element={<LazyNotFound />} />
                           </Routes>
                         </Suspense>
                       </SmoothScrollProvider>
