@@ -186,6 +186,28 @@ app.get("/api/favicon.ico", (req, res) => res.status(204).end());
 app.get("/robots.txt", (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /api/\nDisallow: /admin/'));
 app.get("/api/robots.txt", (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /api/\nDisallow: /admin/'));
 
+const serveSitemap = (req: Request, res: Response) => {
+  const possiblePaths = [
+    path.join(process.cwd(), "../public/sitemap.xml"),
+    path.join(process.cwd(), "public/sitemap.xml"),
+    path.join(__dirname, "../public/sitemap.xml"),
+    path.join(__dirname, "../../public/sitemap.xml"),
+  ];
+  for (const sitemapPath of possiblePaths) {
+    if (fs.existsSync(sitemapPath)) {
+      return res.type("application/xml").sendFile(sitemapPath);
+    }
+  }
+  return res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.palkamtm.pl/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.palkamtm.pl/auctions</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+</urlset>`);
+};
+
+app.get("/sitemap.xml", serveSitemap);
+app.get("/api/sitemap.xml", serveSitemap);
+
 app.get("/api", (req, res) => {
   res.json({
     status: "OK",
