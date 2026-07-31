@@ -73,7 +73,11 @@ router.get("/", async (req, res) => {
     if (cached) return res.json(cached);
 
     const where: Prisma.AuctionWhereInput = {};
-    if (status && status !== "all") where.status = status.toUpperCase() as any;
+    if (status && status !== "all") {
+      where.status = status.toUpperCase() as any;
+    } else {
+      where.status = { notIn: ["WAITING_FOR_FEE", "DRAFT"] } as any;
+    }
     if (category && category !== "all")
       where.category = normalizeCategory(category) as any;
     if (priceMin || priceMax) {
@@ -87,7 +91,7 @@ router.get("/", async (req, res) => {
         { description: { contains: String(search), mode: "insensitive" } },
       ];
     }
-    where.listingFeePaid = true;
+    // Allow all active auctions to be listed
 
     if (!prisma) {
       console.error("❌ Database connection (Prisma) is not initialized");
@@ -435,8 +439,8 @@ async function performAuctionCreate(
       buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
       reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
       endTime: new Date(endTime),
-      status: "ACTIVE",
-      listingFeePaid: options?.isAdmin ?? false,
+      status: options?.isAdmin ? "ACTIVE" : "WAITING_FOR_FEE",
+      listingFeePaid: options?.isAdmin ? true : false,
       category: auctionCategory as any,
       location: location || "Lubań, Polska",
       sellerId: userId,
@@ -662,7 +666,7 @@ router.post(
           data: {
             currentPrice: amount,
             reserveMet: true,
-            status: "ENDED",
+            status: "ENDED_WAITING_PAYMENT",
             winnerId: userId,
           },
         });

@@ -21,6 +21,11 @@ import {
 import { gsap } from "@/lib/gsapConfig";
 import { CardTimer } from "./CardTimer";
 import { formatCategory } from "@/utils/auction";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const AuctionImage = memo(
   ({
@@ -158,20 +163,20 @@ export const UnifiedAuctionCard = memo(
       damping: 30,
     });
 
-    // const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    //   const card = cardRef.current;
-    //   if (!card) return;
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+      const card = cardRef.current;
+      if (!card) return;
 
-    //   const rect = card.getBoundingClientRect();
-    //   const x = (e.clientX - rect.left) / rect.width - 0.5;
-    //   const y = (e.clientY - rect.top) / rect.height - 0.5;
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
 
-    //   mouseX.set(x);
-    //   mouseY.set(y);
-    //   card.style.setProperty("--mouse-x", `${(x + 0.5) * 100}%`);
-    //   card.style.setProperty("--mouse-y", `${(y + 0.5) * 100}%`);
-    //   setIsHovered(true);
-    // };
+      mouseX.set(x);
+      mouseY.set(y);
+      card.style.setProperty("--mouse-x", `${(x + 0.5) * 100}%`);
+      card.style.setProperty("--mouse-y", `${(y + 0.5) * 100}%`);
+      setIsHovered(true);
+    };
 
     const handleMouseLeave = () => {
       mouseX.set(0);
@@ -323,6 +328,7 @@ export const UnifiedAuctionCard = memo(
             navigate(`/auctions/${id}`);
           }
         }}
+        onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         className="auction-card-shell group relative mx-auto flex h-auto min-h-[580px] w-full flex-col overflow-hidden rounded-2xl cursor-pointer"
         style={{
@@ -333,9 +339,16 @@ export const UnifiedAuctionCard = memo(
           boxShadow:
             "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
         }}
-        // whileHover={{ scale: 1.01 }} // Removed to prevent flickering
         onMouseEnter={() => setIsHovered(true)}
       >
+        {/* Dynamic spotlight background overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl z-10"
+          style={{
+            background: `radial-gradient(500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.16), transparent 60%)`,
+          }}
+        />
+
         {/* Inner container for 3D parallax effect */}
         <div
           className="auction-card-inner relative h-full w-full flex flex-col"
@@ -407,28 +420,34 @@ export const UnifiedAuctionCard = memo(
           )}
 
           {/* Like button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsLiked(!isLiked);
-            }}
-            className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/10 transition-all hover:scale-110 hover:bg-black/70 active:scale-95"
-          >
-            <Heart
-              className={`h-4 w-4 transition-all duration-300 ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white/70 hover:text-white"}`}
-            />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLiked(!isLiked);
+                }}
+                className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/10 transition-all hover:scale-110 hover:bg-black/70 active:scale-95 cursor-pointer"
+              >
+                <Heart
+                  className={`h-4 w-4 transition-all duration-300 ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white/70 hover:text-white"}`}
+                />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+              {isLiked ? "Usuń tę aukcję z obserwowanych" : "Zapisz tę aukcję do obserwowanych"}
+            </TooltipContent>
+          </Tooltip>
 
           {/* Image section */}
           <div
             className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-black"
-            // style={{ transformStyle: "preserve-3d" }} // Disabled to prevent blur
           >
             <AuctionImage
               src={imgSrc}
               alt={title}
               className={`w-full h-full ${imageObjectClass} duration-700 ease-in-out origin-center`}
-              // style={{ transform: "scale(1) translateZ(0px)" }} // Removed inline style to allow CSS hover effect
               onError={handleImageError}
             />
             {/* Gradient overlay */}
@@ -445,22 +464,36 @@ export const UnifiedAuctionCard = memo(
             }}
           >
             {/* Views Counter - Top Right */}
-            <div className="absolute right-4 top-4 flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm z-10 transition-all hover:bg-white/10 group/views">
-              <Eye className="w-3.5 h-3.5 text-white/50 group-hover/views:text-gold transition-colors" />
-              <span className="text-[11px] font-medium text-white/60 tracking-tight">
-                {viewsCount.toLocaleString()}
-              </span>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute right-4 top-4 flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm z-10 transition-all hover:bg-white/10 group/views cursor-help">
+                  <Eye className="w-3.5 h-3.5 text-white/50 group-hover/views:text-gold transition-colors" />
+                  <span className="text-[11px] font-medium text-white/60 tracking-tight">
+                    {viewsCount.toLocaleString()}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                Liczba wyświetleń tej aukcji
+              </TooltipContent>
+            </Tooltip>
 
             {/* Gold guide line under photo */}
             <div className="-mt-4 mb-3" style={GOLD_LINE_BASE_STYLE} />
 
-            {/* Ring number badge above title - always render container for height consistency */}
+            {/* Ring number badge above title */}
             <div className="flex mt-2">
               {ringBadge ? (
-                <span className="font-mono text-[11px] tracking-wider text-[#A68E4E] rounded-xl border border-[#A68E4E]/30 bg-[#A68E4E]/10 px-3 py-1 uppercase font-semibold">
-                  {ringBadge}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="font-mono text-[11px] tracking-wider text-[#A68E4E] rounded-xl border border-[#A68E4E]/30 bg-[#A68E4E]/10 px-3 py-1 uppercase font-semibold cursor-help">
+                      {ringBadge}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                    Oficjalny numer obrączki rodowodowej ptaka
+                  </TooltipContent>
+                </Tooltip>
               ) : (
                 <span className="font-mono text-[11px] tracking-wider text-transparent rounded-xl border border-transparent px-3 py-1 uppercase font-semibold invisible">
                   PLACEHOLDER
@@ -471,7 +504,6 @@ export const UnifiedAuctionCard = memo(
             {/* Title */}
             <h3
               className="font-display text-xl font-bold text-white leading-tight tracking-tight line-clamp-2"
-              // style={{ transform: "translateZ(30px)" }} // Disabled to prevent blur
             >
               {displayTitle}
             </h3>
@@ -557,28 +589,42 @@ export const UnifiedAuctionCard = memo(
                     onClick={(e) => e.stopPropagation()}
                     className="flex-1"
                   >
-                    <Button
-                      className="w-full h-11 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
-                        color: "#0f0f0f",
-                      }}
-                    >
-                      Kup Teraz
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className="w-full h-11 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                          style={{
+                            backgroundImage:
+                              "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                            color: "#0f0f0f",
+                          }}
+                        >
+                          Kup Teraz
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                        Kup natychmiast bez czekania na koniec licytacji
+                      </TooltipContent>
+                    </Tooltip>
                   </Link>
                   <Link
                     to={`/auctions/${id}#bid`}
                     onClick={(e) => e.stopPropagation()}
                     className="flex-1"
                   >
-                    <Button
-                      variant="graphite"
-                      className="w-full h-11 text-sm font-semibold rounded-xl"
-                    >
-                      <Gavel className="h-4 w-4 mr-1.5" /> Licytuj
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="graphite"
+                          className="w-full h-11 text-sm font-semibold rounded-xl"
+                        >
+                          <Gavel className="h-4 w-4 mr-1.5" /> Licytuj
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                        Złóż ofertę przebicia ceny w tej aukcji
+                      </TooltipContent>
+                    </Tooltip>
                   </Link>
                 </div>
               ) : hasBuyNow ? (
@@ -587,16 +633,23 @@ export const UnifiedAuctionCard = memo(
                   onClick={(e) => e.stopPropagation()}
                   className="w-full"
                 >
-                  <Button
-                    className="w-full h-12 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
-                      color: "#0f0f0f",
-                    }}
-                  >
-                    Kup Teraz
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        className="w-full h-11 text-sm font-semibold shadow-lg hover:shadow-gold/30 transition-all rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                        style={{
+                          backgroundImage:
+                            "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                          color: "#0f0f0f",
+                        }}
+                      >
+                        Kup Teraz — {formatNumber(buyNowPrice)}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                      Szybki zakup bez rywalizacji w licytacji
+                    </TooltipContent>
+                  </Tooltip>
                 </Link>
               ) : hasBidding ? (
                 <Link
@@ -604,16 +657,23 @@ export const UnifiedAuctionCard = memo(
                   onClick={(e) => e.stopPropagation()}
                   className="w-full"
                 >
-                  <Button
-                    className="w-full h-12 text-sm font-semibold rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
-                      color: "#0f0f0f",
-                    }}
-                  >
-                    <Gavel className="h-4 w-4 mr-2" /> Licytuj Teraz
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        className="w-full h-11 text-sm font-semibold rounded-xl gold-button text-zinc-950 hover:bg-gold/90 border-0"
+                        style={{
+                          backgroundImage:
+                            "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                          color: "#0f0f0f",
+                        }}
+                      >
+                        <Gavel className="h-4 w-4 mr-2" /> Licytuj Teraz
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                      Otwórz kartę licytacji tej aukcji
+                    </TooltipContent>
+                  </Tooltip>
                 </Link>
               ) : (
                 <Link

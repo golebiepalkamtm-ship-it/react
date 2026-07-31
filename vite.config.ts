@@ -44,6 +44,10 @@ export default defineConfig(({ mode }) => ({
         target: "http://localhost:8001",
         changeOrigin: true,
       },
+      "/uploads": {
+        target: "http://localhost:8001",
+        changeOrigin: true,
+      },
     },
   },
   envPrefix: "VITE_",

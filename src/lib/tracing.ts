@@ -14,12 +14,9 @@ const isProd = import.meta.env.PROD;
 const configuredEndpoint = import.meta.env.VITE_OTEL_EXPORTER_ENDPOINT;
 
 // Tracing logic:
-// 1. If PROD: only enable if VITE_ENABLE_TRACING is "true" AND a VITE_OTEL_EXPORTER_ENDPOINT is provided.
-//    (Prevents "localhost" errors on client machines in production).
-// 2. If DEV: enable unless VITE_ENABLE_TRACING is "false".
-const enabled = isProd 
-  ? (envTracing === 'true' && !!configuredEndpoint)
-  : (envTracing !== 'false');
+// Only enable if VITE_ENABLE_TRACING is "true" AND a VITE_OTEL_EXPORTER_ENDPOINT is provided.
+// (Prevents "localhost:4318" net::ERR_CONNECTION_REFUSED errors in dev mode).
+const enabled = envTracing === "true" && !!configuredEndpoint;
 
 if (enabled) {
   const serviceName = import.meta.env.VITE_OTEL_SERVICE_NAME || 'champion-pigeon-web';

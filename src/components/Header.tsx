@@ -8,6 +8,8 @@ import {
   CheckCircle,
   AlertCircle,
   Gavel,
+  ChevronRight,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import UserPanel from "./UserPanel";
@@ -17,16 +19,19 @@ import {
   AnimatePresence,
   useMotionValue,
   useTransform,
+  useAnimation,
 } from "framer-motion";
 import { fadeInDown, iconMicro } from "@/components/motion";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { NotificationModal } from "@/components/NotificationModal";
-import { Bell } from "lucide-react";
 import { notificationService } from "@/services/notificationService";
 
 const Header = () => {
   const { user, profile, session } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  const headerControls = useAnimation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [isHeaderAdminPanelOpen, setIsHeaderAdminPanelOpen] = useState(false);
@@ -39,7 +44,6 @@ const Header = () => {
   useEffect(() => {
     if (isHeaderAdminPanelOpen) {
       console.log("🔍 Header: Admin Modal OPENED");
-      console.trace("🔍 Stack trace for Admin Modal open:");
     }
   }, [isHeaderAdminPanelOpen]);
 
@@ -58,7 +62,7 @@ const Header = () => {
       window.removeEventListener("showUserPanel", handleShowUserPanel);
   }, []);
 
-  useEffect(() => {
+  const fetchUnreadCount = useCallback(() => {
     if (user && session?.access_token) {
       notificationService
         .getUnreadNotifications(session.access_token)
@@ -71,6 +75,10 @@ const Header = () => {
         });
     }
   }, [user, session]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [fetchUnreadCount, showNotificationModal]);
 
   const shouldOpenFromLocation = Boolean(location.state?.openAccount);
   const needsFullVerification = Boolean(location.state?.needsFullVerification);
@@ -98,30 +106,92 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+    // Lenis zarządza scrollem — podpinamy się przez window.lenis lub fallback
+    const handleScroll = ({ scroll }: { scroll: number }) => {
+      const currentY = scroll;
+      const diff = currentY - lastScrollY.current;
+
+      setIsScrolled(currentY > 50);
+
+      if (currentY < 80) {
+        setIsHidden(false);
+      } else if (diff > 6) {
+        setIsHidden(true);
+      } else if (diff < -4) {
+        setIsHidden(false);
+      }
+
+      lastScrollY.current = currentY;
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    // Poczekaj aż Lenis się zainicjuje
+    const attachLenis = () => {
+      const lenis = (window as any).lenis;
+      if (lenis) {
+        lenis.on("scroll", handleScroll);
+        return () => lenis.off("scroll", handleScroll);
+      }
+      // fallback — natywny scroll
+      const fallback = () => {
+        const currentY = window.scrollY;
+        const diff = currentY - lastScrollY.current;
+        setIsScrolled(currentY > 50);
+        if (currentY < 80) setIsHidden(false);
+        else if (diff > 6) setIsHidden(true);
+        else if (diff < -4) setIsHidden(false);
+        lastScrollY.current = currentY;
+      };
+      window.addEventListener("scroll", fallback, { passive: true });
+      return () => window.removeEventListener("scroll", fallback);
+    };
+
+    // Krótkie opóźnienie żeby Lenis zdążył się zamontować
+    const t = setTimeout(() => {
+      const cleanup = attachLenis();
+      return cleanup;
+    }, 300);
+
+    return () => clearTimeout(t);
   }, []);
+
+  // Animacja wejściowa
+  useEffect(() => {
+    headerControls.start({
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+    });
+  }, [headerControls]);
+
+  // Chowanie/pokazywanie przy scrollu
+  useEffect(() => {
+    if (isHidden) {
+      headerControls.start({
+        y: "-100%",
+        opacity: 0,
+        transition: { duration: 0.28, ease: [0.4, 0, 1, 1] },
+      });
+    } else {
+      headerControls.start({
+        y: "0%",
+        opacity: 1,
+        transition: { duration: 0.32, ease: [0, 0, 0.2, 1] },
+      });
+    }
+  }, [isHidden, headerControls]);
 
   const isHomePage =
     location.pathname === "/" ||
     location.pathname === "/homepage" ||
     location.pathname === "/homepage-premium";
-  const isBreederPage = location.pathname.startsWith("/breeder-meetings");
-  const isAuctionsPage = location.pathname.startsWith("/auctions");
-  const isContactPage = location.pathname.startsWith("/contact");
-  const isReferencesPage = location.pathname.startsWith("/references");
   const isOverlay = useMemo(() => true, []);
   const accountHref = user
     ? "ACCOUNT_MODAL_TRIGGER"
     : "/auth?mode=login&callbackUrl=ACCOUNT_MODAL_TRIGGER";
 
   const navLinks = useMemo(() => {
-    const baseLinks = [
-      { label: "Start", href: "/#home" },
-      { label: "Champions Pigeon Auction", href: "/auctions" },
+    return [
+      { label: "Aukcje", href: "/auctions" },
       { label: "Championy", href: "/champions" },
       { label: "Wyniki lotowe", href: "/flight-results" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
@@ -129,19 +199,8 @@ const Header = () => {
       { label: "Prasa i media", href: "/press" },
       { label: "O nas", href: "/#about" },
       { label: "Kontakt", href: "/#contact" },
-      { label: "Konto", href: accountHref },
     ];
-
-    // Add admin link for admins
-    if (profile?.role === "ADMIN") {
-      baseLinks.splice(baseLinks.length - 1, 0, {
-        label: "Panel admina",
-        href: "/admin",
-      });
-    }
-
-    return baseLinks;
-  }, [profile?.role, accountHref]);
+  }, []);
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen((prev) => !prev);
@@ -244,25 +303,18 @@ const Header = () => {
   };
 
   const setAdminModalWithTrace = (value: boolean) => {
-    if (value) {
-      console.group("🔍 Header: Opening Admin Modal");
-      console.log("Value:", value);
-      console.trace("Stack trace:");
-      console.groupEnd();
-    }
     setIsHeaderAdminPanelOpen(value);
   };
 
   return (
     <motion.header
       ref={headerRef}
-      initial="hidden"
-      animate="visible"
-      variants={fadeInDown}
+      initial={{ y: "-100%", opacity: 0 }}
+      animate={headerControls}
       onMouseEnter={handleHeaderMouseEnter}
       onMouseMove={handleHeaderMouseMove}
       onMouseLeave={handleHeaderMouseLeave}
-      className="fixed top-0 left-0 right-0 z-[500] transition-all duration-500 bg-slate-950/70 backdrop-blur-xl border-b border-white/10 py-2"
+      className="fixed top-0 left-0 right-0 z-[500] bg-slate-950/80 backdrop-blur-xl border-b border-white/10 py-2 shadow-2xl"
     >
       {/* Efekt podświetlenia dla nagłówka */}
       <motion.div
@@ -276,9 +328,29 @@ const Header = () => {
           opacity: headerGlowOpacity,
         }}
       />
-      <div className="container mx-auto px-4 flex items-center justify-center">
+      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-14">
+        {/* Logo / Brand */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex-shrink-0"
+        >
+          <RouterLink
+            to="/"
+            className="flex items-center gap-2 group"
+            aria-label="Strona główna"
+          >
+            <Gavel className="w-6 h-6 text-gold group-hover:rotate-12 transition-transform duration-300" />
+            <span className="text-white font-bold text-sm tracking-wider uppercase hidden xl:block group-hover:text-gold transition-colors duration-300">
+              PigeonAuction
+            </span>
+          </RouterLink>
+        </motion.div>
+
+        {/* Desktop Nav - centered */}
         <motion.nav
-          className="hidden md:flex flex-wrap items-center justify-between gap-6 w-full"
+          className="hidden lg:flex items-center gap-1 xl:gap-2"
           initial="hidden"
           animate="visible"
           variants={{
@@ -288,87 +360,58 @@ const Header = () => {
             },
           }}
         >
-          {navLinks.map((link, index) => {
-            if (link.href === "ACCOUNT_MODAL_TRIGGER") {
-              return (
-                <motion.button
-                  key={link.label}
-                  onClick={() => setShowAccountModal(true)}
-                  className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
-                  variants={{
-                    hidden: { opacity: 0, y: -10 },
-                    visible: { opacity: 1, y: 0 },
+          {navLinks.map((link) => (
+            <motion.div
+              key={link.label}
+              variants={{
+                hidden: { opacity: 0, y: -10 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              {link.href?.startsWith("/#") ? (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const anchor = (link.href || "").split("#")[1];
+                    if (anchor) scrollToAnchor(anchor);
                   }}
+                  className="nav-link-premium text-[11px] font-semibold tracking-wide text-white/80 hover:text-white uppercase px-2 py-1"
                 >
                   {link.label}
-                </motion.button>
-              );
-            }
-            if (link.href === "/admin") {
-              return (
-                <motion.button
-                  key={link.label}
-                  onClick={() => setAdminModalWithTrace(true)}
-                  className="nav-link-premium text-sm font-semibold tracking-widest text-gold hover:text-white uppercase"
-                  variants={{
-                    hidden: { opacity: 0, y: -10 },
-                    visible: { opacity: 1, y: 0 },
-                  }}
+                </button>
+              ) : (
+                <RouterLink
+                  to={link.href || "/"}
+                  className="nav-link-premium text-[11px] font-semibold tracking-wide text-white/80 hover:text-white uppercase px-2 py-1"
                 >
                   {link.label}
-                </motion.button>
-              );
-            }
-            return (
-              <motion.div
-                key={link.label}
-                variants={{
-                  hidden: { opacity: 0, y: -10 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                {link.href?.startsWith("/#") ? (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const anchor = (link.href || "").split("#")[1];
-                      if (anchor) scrollToAnchor(anchor);
-                    }}
-                    className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
-                  >
-                    {link.label}
-                  </button>
-                ) : (
-                  <RouterLink
-                    to={link.href || "/"}
-                    className="nav-link-premium text-sm font-semibold tracking-widest text-white/80 hover:text-white uppercase"
-                  >
-                    {link.label}
-                  </RouterLink>
-                )}
-              </motion.div>
-            );
-          })}
+                </RouterLink>
+              )}
+            </motion.div>
+          ))}
+        </motion.nav>
 
-          {/* User Status Diode - only for logged in users */}
-          {user && profile && (
-            <div className="flex items-center gap-2">
+        {/* Right side: user controls */}
+        <div className="flex-shrink-0 flex items-center gap-2.5">
+          {user && profile ? (
+            <div className="hidden sm:flex items-center gap-2.5">
+              {/* Notification Bell */}
               <motion.button
-                variants={{
-                  hidden: { opacity: 0, y: -10 },
-                  visible: { opacity: 1, y: 0 },
-                }}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setShowNotificationModal(true)}
-                className="relative p-2 rounded-full hover:bg-white/10 transition-colors group"
+                className="relative p-2.5 rounded-xl bg-slate-900/60 border border-[#d4af37]/20 hover:border-[#d4af37]/60 text-white/90 hover:text-white transition-all shadow-lg hover:shadow-[#d4af37]/20 group cursor-pointer backdrop-blur-md"
                 aria-label="Powiadomienia"
               >
                 <div className="relative">
-                  <Bell className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" />
+                  <Bell className="w-4 h-4 text-[#d4af37] group-hover:rotate-12 transition-transform duration-300" />
                   {unreadCount > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-black/50"
+                      className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white ring-2 ring-slate-950 shadow-md"
                     >
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </motion.span>
@@ -376,218 +419,212 @@ const Header = () => {
                 </div>
               </motion.button>
 
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -10 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                className="flex items-center"
-              >
-                <button
+              {/* Admin Panel Button if ADMIN */}
+              {profile.role === "ADMIN" && (
+                <motion.button
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   type="button"
-                  onClick={() => setShowAccountModal(true)}
-                  className="relative group p-2 rounded-full hover:bg-white/5 transition-colors"
-                  title={`Status: ${
-                    profile.role === "ADMIN"
-                      ? "Administrator"
-                      : profile.role === "USER_FULL_VERIFIED"
-                        ? "Konto zweryfikowane"
-                        : profile.role === "USER_EMAIL_VERIFIED"
-                          ? "Uzupełnij profil i zweryfikuj telefon"
-                          : "Zweryfikuj adres email"
-                  }`}
+                  onClick={() => setAdminModalWithTrace(true)}
+                  className="relative group flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-950/80 via-slate-900/90 to-purple-900/80 border border-purple-500/50 hover:border-purple-400 text-purple-200 hover:text-white transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] cursor-pointer backdrop-blur-xl"
+                  title="Otwórz Panel Administratora"
                 >
                   <div className="relative flex items-center justify-center">
-                    {/* Diode Background Glow */}
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.5, 1],
-                        opacity: [0.3, 0.6, 0.3],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                      className={`absolute w-3 h-3 rounded-full blur-[2px] ${
-                        profile.role === "ADMIN"
-                          ? "bg-purple-500"
-                          : profile.role === "USER_FULL_VERIFIED"
-                            ? "bg-green-500"
-                            : profile.role === "USER_EMAIL_VERIFIED"
-                              ? "bg-gold"
-                              : "bg-amber-500"
-                      }`}
-                    />
-                    {/* Main Diode */}
-                    <div
-                      className={`relative w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${
-                        profile.role === "ADMIN"
-                          ? "bg-purple-400"
-                          : profile.role === "USER_FULL_VERIFIED"
-                            ? "bg-green-400"
-                            : profile.role === "USER_EMAIL_VERIFIED"
-                              ? "bg-gold"
-                              : "bg-amber-400"
-                      }`}
-                    />
+                    <Shield className="w-4 h-4 text-purple-400 group-hover:scale-110 group-hover:rotate-6 transition-transform" />
                   </div>
+                  <span className="hidden md:inline text-xs font-bold uppercase tracking-wider text-purple-200 group-hover:text-white">
+                    Panel Admina
+                  </span>
+                </motion.button>
+              )}
 
-                  {/* Tooltip hint on hover */}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-black/80 backdrop-blur-md border border-white/10 rounded text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+              {/* User Panel Button */}
+              <motion.button
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={() => setShowAccountModal(true)}
+                className="relative group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0b1329]/90 via-[#0e1936]/90 to-[#070d1e]/90 border border-[#d4af37]/40 hover:border-[#d4af37] text-white transition-all shadow-[0_0_15px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.3)] cursor-pointer backdrop-blur-xl"
+                title="Otwórz Panel Użytkownika"
+              >
+                <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 text-[#d4af37] shadow-inner">
+                  <User className="w-3.5 h-3.5 text-[#d4af37]" />
+                  <span
+                    className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-slate-950 ${
+                      profile.role === "ADMIN"
+                        ? "bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                        : profile.role === "USER_FULL_VERIFIED"
+                          ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+                          : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"
+                    }`}
+                  />
+                </div>
+
+                <div className="hidden lg:flex flex-col text-left leading-tight">
+                  <span className="text-xs font-bold text-white group-hover:text-[#d4af37] transition-colors max-w-[120px] truncate">
+                    {profile.full_name || user.email?.split("@")[0] || "Użytkownik"}
+                  </span>
+                  <span className="text-[9px] font-black text-[#d4af37]/90 uppercase tracking-widest">
                     {profile.role === "ADMIN"
                       ? "Admin"
                       : profile.role === "USER_FULL_VERIFIED"
                         ? "Zweryfikowany"
-                        : profile.role === "USER_EMAIL_VERIFIED"
-                          ? "Uzupełnij profil"
-                          : "Zweryfikuj email"}
+                        : "Zalogowany"}
                   </span>
-                </button>
-              </motion.div>
+                </div>
+
+                <ChevronRight className="w-3.5 h-3.5 text-[#d4af37]/70 group-hover:text-[#d4af37] group-hover:translate-x-0.5 transition-all hidden md:block" />
+              </motion.button>
             </div>
-          )}
-        </motion.nav>
-
-        <AnimatePresence>
-          {isAccountModalOpen && (
-            <UserPanel onClose={() => setShowAccountModal(false)} />
-          )}
-          {isHeaderAdminPanelOpen && (
-            <AdminPanel
-              key="admin-panel"
-              isOpen={true}
-              onClose={() => setAdminModalWithTrace(false)}
-            />
-          )}
-          {showNotificationModal && (
-            <NotificationModal
-              isOpen={showNotificationModal}
-              onClose={() => setShowNotificationModal(false)}
-              onNotificationsChange={setUnreadCount}
-            />
-          )}
-        </AnimatePresence>
-
-        {user && (
-          <motion.div className="md:hidden relative mr-2">
-            <motion.button
-              className="p-2 text-white/90 relative"
-              onClick={() => setShowNotificationModal(true)}
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Bell size={24} />
+              <RouterLink
+                to="/auth?mode=login"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#b8972e] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] border border-white/40 transition-all"
+              >
+                <User className="w-4 h-4 text-slate-950" />
+                <span>Zaloguj się</span>
+              </RouterLink>
+            </motion.div>
+          )}
+
+          {/* Mobile: Bell button */}
+          {user && (
+            <motion.button
+              className="sm:hidden p-2 text-white/90 relative"
+              onClick={() => setShowNotificationModal(true)}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Powiadomienia"
+            >
+              <Bell size={22} />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white ring-1 ring-black/50">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </motion.button>
-          </motion.div>
-        )}
+          )}
 
-        <motion.button
-          className="md:hidden p-2 text-white relative"
-          onClick={toggleMobileMenu}
-          ref={mobileMenuButtonRef}
-          aria-label={isMobileMenuOpen ? "Zamknij menu" : "Otwórz menu"}
-          aria-expanded={ariaExpanded}
-          aria-controls={mobileNavId}
-          variants={iconMicro}
-          initial="rest"
-          whileHover="hover"
-          whileTap="tap"
-        >
-          <motion.div
-            className="absolute inset-0 rounded-full bg-gold/20"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={
-              isMobileMenuOpen
-                ? { scale: [0, 1.2, 1], opacity: [0, 0.6, 0.2] }
-                : { scale: 0, opacity: 0 }
-            }
-            transition={{ duration: 0.4 }}
-          />
-          <AnimatePresence mode="wait">
-            {isMobileMenuOpen ? (
-              <motion.div
-                key="close"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <X size={24} />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="menu"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Menu size={24} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.button>
+          {/* Hamburger - mobile only (< lg) */}
+          <motion.button
+            className="lg:hidden p-2 text-white relative"
+            onClick={toggleMobileMenu}
+            ref={mobileMenuButtonRef}
+            aria-label={isMobileMenuOpen ? "Zamknij menu" : "Otwórz menu"}
+            aria-expanded={ariaExpanded}
+            aria-controls={mobileNavId}
+            variants={iconMicro}
+            initial="rest"
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <motion.div
+              className="absolute inset-0 rounded-full bg-gold/20"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={
+                isMobileMenuOpen
+                  ? { scale: [0, 1.2, 1], opacity: [0, 0.6, 0.2] }
+                  : { scale: 0, opacity: 0 }
+              }
+              transition={{ duration: 0.4 }}
+            />
+            <AnimatePresence mode="wait">
+              {isMobileMenuOpen ? (
+                <motion.div
+                  key="close"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <X size={24} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="menu"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Menu size={24} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
       </div>
+
+      <AnimatePresence>
+        {isAccountModalOpen && (
+          <UserPanel onClose={() => setShowAccountModal(false)} />
+        )}
+        {isHeaderAdminPanelOpen && (
+          <AdminPanel
+            key="admin-panel"
+            isOpen={true}
+            onClose={() => setAdminModalWithTrace(false)}
+          />
+        )}
+        {showNotificationModal && (
+          <NotificationModal
+            isOpen={showNotificationModal}
+            onClose={() => setShowNotificationModal(false)}
+            onNotificationsChange={setUnreadCount}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            className="md:hidden absolute top-full left-0 right-0 bg-hero-gradient border-t border-primary/20"
-            initial={{ opacity: 0, height: 0, y: -20 }}
+            className="lg:hidden absolute top-full left-0 right-0 bg-slate-950/95 backdrop-blur-xl border-t border-white/10"
+            initial={{ opacity: 0, height: 0, y: -10 }}
             animate={{ opacity: 1, height: "auto", y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -20 }}
+            exit={{ opacity: 0, height: 0, y: -10 }}
             transition={{
-              duration: 0.4,
-              height: {
-                duration: 0.4,
-                type: "spring",
-                stiffness: 500,
-                damping: 30,
-              },
+              duration: 0.35,
+              height: { duration: 0.35, type: "spring", stiffness: 400, damping: 30 },
             }}
           >
             <motion.nav
               id={mobileNavId}
               aria-label="Menu mobilne"
-              className="container mx-auto px-4 py-6 flex flex-col gap-4"
+              className="container mx-auto px-6 py-5 flex flex-col gap-1"
               initial="hidden"
               animate="visible"
               variants={{
                 hidden: {},
                 visible: {
-                  transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+                  transition: { staggerChildren: 0.04, delayChildren: 0.05 },
                 },
               }}
             >
               {navLinks.map((link) => {
+                const mobileLinkClass =
+                  "flex items-center py-3 px-2 text-sm font-medium text-white/80 hover:text-gold hover:bg-white/5 rounded-lg transition-all duration-200 border-b border-white/5";
                 if (link.href === "ACCOUNT_MODAL_TRIGGER") {
                   return (
                     <motion.button
                       key={link.label}
-                      className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary text-left"
-                      onClick={() => {
-                        setShowAccountModal(true);
-                        closeMobileMenu();
-                      }}
-                      ref={
-                        link.label === navLinks[0]?.label
-                          ? (el: HTMLElement | null) => {
-                              firstMobileLinkRef.current = el;
-                            }
-                          : undefined
-                      }
-                      variants={{
-                        hidden: { opacity: 0, x: -20 },
-                        visible: { opacity: 1, x: 0 },
-                      }}
-                      whileHover={{ x: 4 }}
+                      className={mobileLinkClass + " w-full text-left"}
+                      onClick={() => { setShowAccountModal(true); closeMobileMenu(); }}
+                      ref={link.label === navLinks[0]?.label
+                        ? (el: HTMLElement | null) => { firstMobileLinkRef.current = el; }
+                        : undefined}
+                      variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }}
                       whileTap={{ scale: 0.98 }}
                     >
+                      <User className="w-4 h-4 mr-3 text-gold/70" />
                       {link.label}
                     </motion.button>
                   );
@@ -596,18 +633,12 @@ const Header = () => {
                   return (
                     <motion.button
                       key={link.label}
-                      className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary text-left"
-                      onClick={() => {
-                        setAdminModalWithTrace(true);
-                        closeMobileMenu();
-                      }}
-                      variants={{
-                        hidden: { opacity: 0, x: -20 },
-                        visible: { opacity: 1, x: 0 },
-                      }}
-                      whileHover={{ x: 4 }}
+                      className={mobileLinkClass + " w-full text-left text-gold"}
+                      onClick={() => { setAdminModalWithTrace(true); closeMobileMenu(); }}
+                      variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }}
                       whileTap={{ scale: 0.98 }}
                     >
+                      <Shield className="w-4 h-4 mr-3" />
                       {link.label}
                     </motion.button>
                   );
@@ -615,44 +646,32 @@ const Header = () => {
                 return (
                   <motion.div
                     key={link.label}
-                    variants={{
-                      hidden: { opacity: 0, x: -20 },
-                      visible: { opacity: 1, x: 0 },
-                    }}
-                    whileHover={{ x: 4 }}
+                    variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {link.href?.startsWith("/#") ? (
                       <a
                         href={link.href}
-                        className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary block"
+                        className={mobileLinkClass}
                         onClick={(e) => {
                           e.preventDefault();
                           const anchor = (link.href || "").split("#")[1];
                           if (anchor) scrollToAnchor(anchor);
                         }}
-                        ref={
-                          link.label === navLinks[0]?.label
-                            ? (el: HTMLElement | null) => {
-                                firstMobileLinkRef.current = el;
-                              }
-                            : undefined
-                        }
+                        ref={link.label === navLinks[0]?.label
+                          ? (el: HTMLElement | null) => { firstMobileLinkRef.current = el; }
+                          : undefined}
                       >
                         {link.label}
                       </a>
                     ) : (
                       <RouterLink
                         to={link.href || "/"}
-                        className="transition-colors duration-300 text-base font-medium py-2 text-white/90 hover:text-primary block"
+                        className={mobileLinkClass}
                         onClick={closeMobileMenu}
-                        ref={
-                          link.label === navLinks[0]?.label
-                            ? (el: HTMLElement | null) => {
-                                firstMobileLinkRef.current = el;
-                              }
-                            : undefined
-                        }
+                        ref={link.label === navLinks[0]?.label
+                          ? (el: HTMLElement | null) => { firstMobileLinkRef.current = el; }
+                          : undefined}
                       >
                         {link.label}
                       </RouterLink>

@@ -103,29 +103,55 @@ const generateFilePath = (userId: string, folder: string, originalname: string):
   return `${folder}/${userId}/${timestamp}-${hash}.${ext}`;
 };
 
+import fs from 'fs';
+import path from 'path';
+
 /**
- * Wysyła plik do Supabase Storage (S3)
+ * Zapisuje plik lokalnie jako fallback w środowisku deweloperskim / gdy S3 nie jest dostępne
+ */
+const saveLocalFallback = (buffer: Buffer, key: string, contentType: string): string => {
+  try {
+    const localDir = path.join(process.cwd(), 'uploads', path.dirname(key));
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    const fullPath = path.join(process.cwd(), 'uploads', key);
+    fs.writeFileSync(fullPath, buffer);
+    return `/uploads/${key}`;
+  } catch (err) {
+    console.error('Local upload fallback error:', err);
+    const base64 = buffer.toString('base64');
+    return `data:${contentType};base64,${base64}`;
+  }
+};
+
+/**
+ * Wysyła plik do Supabase Storage (S3) z automatycznym fallbackiem lokalnym
  */
 const uploadToS3 = async (
   buffer: Buffer,
   key: string,
   contentType: string
 ): Promise<string> => {
-  const bucket: string = validatedEnv.SUPABASE_BUCKET || 'auction-media';
+  try {
+    const bucket: string = validatedEnv.SUPABASE_BUCKET || 'auction-media';
 
-  await s3Client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-      CacheControl: 'public, max-age=31536000, immutable',
-    })
-  );
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+        CacheControl: 'public, max-age=31536000, immutable',
+      })
+    );
 
-  // Publiczny URL z Supabase Storage
-  const publicUrl = `${validatedEnv.SUPABASE_URL}/storage/v1/object/public/${bucket}/${key}`;
-  return publicUrl;
+    const publicUrl = `${validatedEnv.SUPABASE_URL}/storage/v1/object/public/${bucket}/${key}`;
+    return publicUrl;
+  } catch (error: any) {
+    console.warn(`S3 upload failed (${error.message || 'Error'}), using local storage fallback for ${key}`);
+    return saveLocalFallback(buffer, key, contentType);
+  }
 };
 
 /**
@@ -149,13 +175,7 @@ router.post(
 
       res.json({ url, path: filePath });
     } catch (error: any) {
-      console.error('Image upload error:', {
-        message: error.message,
-        code: error.code,
-        bucket: validatedEnv.SUPABASE_BUCKET || 'auction-media',
-        stack: error.stack,
-        details: error.$metadata
-      });
+      console.error('Image upload error:', error);
       if (error.message?.includes('nie przejdzie') || error.message?.includes('nie zadziała') || error.message?.includes('nie otworzymy')) {
         return res.status(400).json({ error: error.message });
       }

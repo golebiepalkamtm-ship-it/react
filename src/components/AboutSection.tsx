@@ -31,6 +31,10 @@ const FeatureCard = React.memo(
         const rect = cardRef.current.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width - 0.5;
         const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+        cardRef.current.style.setProperty("--mouse-x", `${(x + 0.5) * 100}%`);
+        cardRef.current.style.setProperty("--mouse-y", `${(y + 0.5) * 100}%`);
+
         mouseX.set(x);
         mouseY.set(y);
       },
@@ -55,11 +59,18 @@ const FeatureCard = React.memo(
           style={{
             transformStyle: "preserve-3d",
             rotateX,
+            rotateY,
             border: "2px solid rgba(166,142,78,0.7)",
             boxShadow:
               "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
           }}
         >
+          <div
+            className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl z-0"
+            style={{
+              background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(166, 142, 78, 0.2), transparent 60%)`,
+            }}
+          />
           <div
             className="w-10 h-10 rounded-xl mb-3 flex items-center justify-center"
             style={{

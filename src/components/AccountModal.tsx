@@ -265,45 +265,33 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
         transition={{ delay: 0.06 }}
       >
         <div
-          className="rounded-xl bg-black/40 p-4"
-          style={{
-            border: "2px solid rgba(166,142,78,0.7)",
-            boxShadow: "0 0 10px rgba(166,142,78,0.2)",
-          }}
+          className="rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-950/70 to-[#0e1832] p-4 border border-cyan-500/40 shadow-lg backdrop-blur-md"
         >
-          <div className="text-muted-foreground flex items-center gap-2">
-            <Mail className="w-4 h-4" />
+          <div className="text-cyan-300 font-medium flex items-center gap-2 text-xs uppercase tracking-wider">
+            <Mail className="w-4 h-4 text-cyan-400" />
             {t("account.status.email")}
           </div>
-          <div className="mt-1 text-foreground break-all">
+          <div className="mt-1.5 text-white font-extrabold text-sm md:text-base break-all">
             {user?.email ?? ""}
           </div>
         </div>
         <div
-          className="rounded-xl bg-black/40 p-4"
-          style={{
-            border: "2px solid rgba(166,142,78,0.7)",
-            boxShadow: "0 0 10px rgba(166,142,78,0.2)",
-          }}
+          className="rounded-2xl bg-gradient-to-br from-amber-500/25 via-orange-950/70 to-[#0e1832] p-4 border border-amber-500/40 shadow-lg backdrop-blur-md"
         >
-          <div className="text-muted-foreground flex items-center gap-2">
-            <Star className="w-4 h-4" />
+          <div className="text-amber-300 font-medium flex items-center gap-2 text-xs uppercase tracking-wider">
+            <Star className="w-4 h-4 text-amber-400" />
             {t("account.status.role")}
           </div>
-          <div className="mt-1 text-foreground">{profile.role ?? "-"}</div>
+          <div className="mt-1.5 text-white font-extrabold text-sm md:text-base">{profile.role ?? "-"}</div>
         </div>
         <div
-          className="rounded-xl bg-black/40 p-4"
-          style={{
-            border: "2px solid rgba(166,142,78,0.7)",
-            boxShadow: "0 0 10px rgba(166,142,78,0.2)",
-          }}
+          className="rounded-2xl bg-gradient-to-br from-emerald-500/20 via-teal-950/70 to-[#0e1832] p-4 border border-emerald-500/40 shadow-lg backdrop-blur-md"
         >
-          <div className="text-muted-foreground flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+          <div className="text-emerald-300 font-medium flex items-center gap-2 text-xs uppercase tracking-wider">
+            <Calendar className="w-4 h-4 text-emerald-400" />
             {t("account.status.next")}
           </div>
-          <div className="mt-1 text-foreground">
+          <div className="mt-1.5 text-white font-extrabold text-sm md:text-base">
             {profile.role === "USER_REGISTERED"
               ? t("account.next.verify_email")
               : profile.role === "USER_EMAIL_VERIFIED"
@@ -316,16 +304,20 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
         </div>
       </motion.div>
 
-      <div className="mt-2" role="tablist" aria-label="Account tabs">
-        <div className="flex gap-2">
+      <div className="mt-4" role="tablist" aria-label="Account tabs">
+        <div className="flex flex-wrap gap-2.5">
           <button
             type="button"
             role="tab"
             onClick={() => setActiveTab("profile")}
             aria-selected={activeTab === "profile" ? "true" : "false"}
-            className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === "profile" ? "bg-white/15 text-white" : "bg-black/30 text-white/80 hover:bg-black/40"} border border-white/15`}
+            className={`rounded-xl px-4 py-2.5 text-xs font-extrabold flex items-center gap-2 transition-all duration-200 ${
+              activeTab === "profile"
+                ? "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
+                : "bg-[#121f3d] text-zinc-100 border border-[#A68E4E]/30 hover:bg-[#A68E4E]/30 hover:text-white"
+            }`}
           >
-            <User className="w-4 h-4" />
+            <User className={`w-4 h-4 ${activeTab === "profile" ? "text-white" : "text-cyan-400"}`} />
             Profil
           </button>
           <button
@@ -333,9 +325,13 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             role="tab"
             onClick={() => setActiveTab("security")}
             aria-selected={activeTab === "security" ? "true" : "false"}
-            className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === "security" ? "bg-white/15 text-white" : "bg-black/30 text-white/80 hover:bg-black/40"} border border-white/15`}
+            className={`rounded-xl px-4 py-2.5 text-xs font-extrabold flex items-center gap-2 transition-all duration-200 ${
+              activeTab === "security"
+                ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 scale-[1.02]"
+                : "bg-[#121f3d] text-zinc-100 border border-[#A68E4E]/30 hover:bg-[#A68E4E]/30 hover:text-white"
+            }`}
           >
-            <Shield className="w-4 h-4" />
+            <Shield className={`w-4 h-4 ${activeTab === "security" ? "text-white" : "text-amber-400"}`} />
             Bezpieczeństwo
           </button>
           <button
@@ -343,9 +339,13 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             role="tab"
             onClick={() => setActiveTab("settings")}
             aria-selected={activeTab === "settings" ? "true" : "false"}
-            className={`rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${activeTab === "settings" ? "bg-white/15 text-white" : "bg-black/30 text-white/80 hover:bg-black/40"} border border-white/15`}
+            className={`rounded-xl px-4 py-2.5 text-xs font-extrabold flex items-center gap-2 transition-all duration-200 ${
+              activeTab === "settings"
+                ? "bg-gradient-to-r from-violet-500 via-indigo-500 to-purple-600 text-white shadow-lg shadow-violet-500/30 scale-[1.02]"
+                : "bg-[#121f3d] text-zinc-100 border border-[#A68E4E]/30 hover:bg-[#A68E4E]/30 hover:text-white"
+            }`}
           >
-            <Settings className="w-4 h-4" />
+            <Settings className={`w-4 h-4 ${activeTab === "settings" ? "text-white" : "text-violet-400"}`} />
             Ustawienia
           </button>
         </div>
@@ -371,15 +371,10 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
-            className="rounded-2xl bg-black/70 p-4"
-            style={{
-              border: "2px solid rgba(166,142,78,0.7)",
-              boxShadow:
-                "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1)",
-            }}
+            className="rounded-2xl bg-[#0f1b36] p-6 border-2 border-[#A68E4E]/60 shadow-[0_0_30px_rgba(166,142,78,0.2)]"
           >
             {/* Trust Score */}
-            <div className="mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="mb-6 p-4 bg-[#121f3d] rounded-xl border border-[#A68E4E]/30 shadow-md">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Star className="w-5 h-5 text-gold" />

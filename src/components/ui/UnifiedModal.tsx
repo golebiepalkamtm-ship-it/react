@@ -41,7 +41,7 @@ interface UnifiedModalProps {
     disabled?: boolean;
   };
   children?: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl" | "full";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
   draggable?: boolean;
   bodyScrollable?: boolean;
   containerClassName?: string;
@@ -101,7 +101,8 @@ const sizeConfig = {
   sm: "max-w-md",
   md: "max-w-lg",
   lg: "max-w-2xl",
-  xl: "max-w-2xl md:max-w-2xl",
+  xl: "max-w-5xl md:max-w-6xl max-h-[80vh]",
+  "2xl": "max-w-6xl md:max-w-7xl max-h-[80vh]",
   full: "max-w-full md:max-w-7xl mx-0 md:mx-4 h-full md:h-auto",
 };
 
@@ -225,29 +226,33 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[2000] flex items-center justify-center p-4 md:p-8 overflow-y-auto"
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 md:p-8 overflow-y-auto"
+          data-lenis-prevent="true"
+          data-lenis-prevent-touch="true"
         >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className={`absolute inset-0 bg-black/60 backdrop-blur-md ${backdropClassName}`}
+            className={`absolute inset-0 bg-black/90 backdrop-blur-xl ${backdropClassName}`}
             onClick={closeOnBackdrop ? onClose : undefined}
           />
 
           <motion.div
             ref={modalRef}
-            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{
               type: "spring",
               damping: 30,
               stiffness: 300,
               duration: 0.3,
             }}
-            className={`relative w-full ${sizeConfig[size]} bg-gray-950/95 rounded-2xl shadow-2xl border border-white/20 overflow-visible flex flex-col ${containerClassName} my-auto`}
+            className={`relative w-full ${sizeConfig[size]} bg-[#0c1427] rounded-2xl md:rounded-3xl shadow-[0_0_80px_rgba(166,142,78,0.35)] border-2 border-[#A68E4E]/70 overflow-hidden flex flex-col ${containerClassName} my-auto z-10`}
+            data-lenis-prevent="true"
+            data-lenis-prevent-touch="true"
             style={{
               cursor:
                 draggable && window.innerWidth >= 768 ? "move" : "default",
@@ -270,36 +275,37 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
               />
             )}
 
-            <div className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-white/5 modal-header">
+            <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-[#A68E4E]/40 bg-[#070e1e]/95 backdrop-blur-md modal-header">
               <div className="flex items-center gap-4">
                 {Icon && (
                   <div
-                    className={`p-2 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}
+                    className={`p-2.5 rounded-xl bg-gradient-to-br ${config.iconBg} shadow-lg ${config.iconShadow}`}
                   >
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                 )}
                 <div>
                   {title && (
-                    <h2 className="text-lg md:text-xl font-display font-bold text-white leading-tight tracking-tight">
+                    <h2 className="text-lg md:text-xl font-display font-extrabold text-white leading-tight tracking-tight">
                       {title}
                     </h2>
                   )}
                   {message && (
-                    <p className="text-xs text-white/60 mt-0.5">{message}</p>
+                    <p className="text-xs text-zinc-300 font-medium mt-0.5">{message}</p>
                   )}
                 </div>
               </div>
 
               {showCloseButton && (
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
+                  type="button"
                   onClick={onClose}
-                  className="text-white/40 hover:text-white hover:bg-white/5 transition-all h-8 w-8 rounded-full"
+                  className="p-2 rounded-xl bg-red-500/25 border border-red-500/50 text-red-200 hover:bg-red-500/40 transition-all flex items-center gap-1.5 text-xs font-bold shrink-0 shadow-md shadow-red-950/40"
+                  aria-label="Zamknij"
                 >
-                  <X className="w-4 h-4" />
-                </Button>
+                  <X className="w-4 h-4 text-red-200" />
+                  <span className="hidden sm:inline">Zamknij</span>
+                </button>
               )}
             </div>
 

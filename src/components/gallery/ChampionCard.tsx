@@ -69,31 +69,33 @@ export const ChampionCard = ({
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
 
-    // Direct CSS transforms - bez Framer Motion
     const innerCard = cardRef.current.querySelector(
       ".champion-card-inner",
     ) as HTMLElement;
     if (innerCard) {
-      innerCard.style.transform = `rotateX(${-y * 25}deg) rotateY(${x * 25}deg)`;
+      innerCard.style.transition = "transform 0.1s ease-out";
+      innerCard.style.transform = `rotateX(${-y * 20}deg) rotateY(${x * 20}deg)`;
     }
+
+    cardRef.current.style.setProperty("--mouse-x", `${(x + 0.5) * 100}%`);
+    cardRef.current.style.setProperty("--mouse-y", `${(y + 0.5) * 100}%`);
 
     mouseX.set(x);
     mouseY.set(y);
     setIsHovered(true);
 
-    // Normalizuj dla shadera (0-1)
     setMousePos({
       x: (e.clientX - rect.left) / rect.width,
-      y: 1 - (e.clientY - rect.top) / rect.height, // Odwróć Y dla WebGL
+      y: 1 - (e.clientY - rect.top) / rect.height,
     });
   };
 
   const handleMouseLeave = () => {
-    // Reset CSS transform
     const innerCard = cardRef.current?.querySelector(
       ".champion-card-inner",
     ) as HTMLElement;
     if (innerCard) {
+      innerCard.style.transition = "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)";
       innerCard.style.transform = "rotateX(0deg) rotateY(0deg)";
     }
 

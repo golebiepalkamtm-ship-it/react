@@ -109,6 +109,7 @@ export interface AuctionsResponse {
 export interface BidRequest {
   amount: number;
   maxBid?: number;
+  isProxy?: boolean;
 }
 
 export interface BidResponse {
@@ -145,7 +146,23 @@ export type AuctionSortBy =
   | "ending-soon"
   | "price-high"
   | "price-low";
-export type AuctionStatus = "active" | "ended" | "cancelled";
+export type AuctionStatus = 
+  | "WAITING_FOR_FEE"
+  | "ACTIVE"
+  | "ENDED_WAITING_PAYMENT"
+  | "COMPLETED"
+  | "CANCELLED";
+
+export const translateAuctionStatus = (status: AuctionStatus | string): string => {
+  switch (status) {
+    case "WAITING_FOR_FEE": return "Oczekuje na opłatę";
+    case "ACTIVE": return "Aktywna";
+    case "ENDED_WAITING_PAYMENT": return "Oczekuje na prowizję";
+    case "COMPLETED": return "Zakończona (Opłacona)";
+    case "CANCELLED": return "Anulowana";
+    default: return status || "Nieznany";
+  }
+};
 
 export interface AuctionFilters {
   status?: AuctionStatus;

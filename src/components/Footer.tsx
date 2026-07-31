@@ -43,37 +43,46 @@ const Footer = () => {
 
   useGSAP(
     () => {
-      // 1. Initial States
-      gsap.set(".footer-column", { opacity: 0, y: 50 });
-      gsap.set(".footer-bottom", { opacity: 0, scaleX: 0.9 });
+      if (!footerRef.current) return;
+      const columns = footerRef.current.querySelectorAll(".footer-column");
+      const bottom = footerRef.current.querySelector(".footer-bottom");
 
-      // 2. Animation Timeline
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: footerRef.current,
-          start: "top 85%",
-          toggleActions: "play none none reverse",
-        },
-      });
+      if (columns.length > 0) {
+        gsap.fromTo(
+          columns,
+          { opacity: 0.2, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power2.out",
+            clearProps: "all",
+            scrollTrigger: {
+              trigger: footerRef.current,
+              start: "top 95%",
+            },
+          },
+        );
+      }
 
-      tl.to(".footer-column", {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        stagger: 0.15,
-        ease: "power3.out",
-        clearProps: "opacity, transform",
-      }).to(
-        ".footer-bottom",
-        {
-          opacity: 1,
-          scaleX: 1,
-          duration: 1.2,
-          ease: "expo.out",
-          clearProps: "opacity, transform",
-        },
-        "-=0.6",
-      );
+      if (bottom) {
+        gsap.fromTo(
+          bottom,
+          { opacity: 0.2, scaleX: 0.95 },
+          {
+            opacity: 1,
+            scaleX: 1,
+            duration: 0.8,
+            ease: "power2.out",
+            clearProps: "all",
+            scrollTrigger: {
+              trigger: footerRef.current,
+              start: "top 95%",
+            },
+          },
+        );
+      }
     },
     { scope: footerRef },
   );

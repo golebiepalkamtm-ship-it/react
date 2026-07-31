@@ -21,6 +21,8 @@ export interface Profile {
   postal_code?: string;
   country?: string;
   role: UserRole;
+  trustScore?: number;
+  last_sign_in_at?: string;
   created_at: string;
   updated_at: string;
 }

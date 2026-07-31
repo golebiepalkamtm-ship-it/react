@@ -27,7 +27,7 @@ export const TraitDropdown = ({ label, description, field, icon: Icon, options, 
             top: rect.bottom + 8,
             left: rect.left,
             width: rect.width,
-            zIndex: 12000,
+            zIndex: 999999,
         });
     }, []);
 
@@ -59,22 +59,22 @@ export const TraitDropdown = ({ label, description, field, icon: Icon, options, 
 
     return (
         <div ref={containerRef} className="relative">
-            <div className="flex items-center gap-2 text-xs text-white/60 mb-1">
+            <div className="flex items-center gap-2 text-xs text-zinc-300 mb-1 font-semibold">
                 <Icon className="w-3.5 h-3.5 text-gold" />
-                <span className="font-semibold uppercase tracking-wide">{label}</span>
+                <span className="font-bold uppercase tracking-wide">{label}</span>
             </div>
-            {description && <p className="text-[10px] text-white/40 mb-1">{description}</p>}
+            {description && <p className="text-[10px] text-zinc-400 mb-1">{description}</p>}
 
             <button
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
-                className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-left text-sm text-white/80 hover:border-gold/60 transition flex items-center gap-2"
+                className="w-full rounded-xl border border-[#A68E4E]/40 bg-[#121f3d] px-3.5 py-2.5 text-left text-sm text-white hover:border-[#A68E4E] focus:border-[#A68E4E] focus:ring-2 focus:ring-[#A68E4E]/30 transition flex items-center gap-2 font-medium"
             >
                 <span className="flex-1 truncate">
                     {value.length ? value.join(', ') : 'Wybierz z listy'}
                 </span>
                 <ChevronDown
-                    className={`w-4 h-4 text-white/60 transition-transform ${open ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 text-[#A68E4E] transition-transform ${open ? 'rotate-180' : ''}`}
                 />
             </button>
 
@@ -85,7 +85,9 @@ export const TraitDropdown = ({ label, description, field, icon: Icon, options, 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[10000] pointer-events-none"
+                            className="fixed inset-0 z-[999999] pointer-events-none"
+                            data-lenis-prevent="true"
+                            data-lenis-prevent-touch="true"
                         >
                             <motion.div
                                 ref={portalRef}
@@ -93,7 +95,7 @@ export const TraitDropdown = ({ label, description, field, icon: Icon, options, 
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -4 }}
                                 style={portalStyle}
-                                className="rounded-2xl border border-white/15 bg-gray-950 shadow-2xl pointer-events-auto"
+                                className="rounded-2xl border-2 border-[#A68E4E]/60 bg-[#0c1427] shadow-[0_0_50px_rgba(166,142,78,0.4)] pointer-events-auto text-white overflow-hidden"
                             >
                                 <div className="py-1 max-h-52 overflow-y-auto custom-scrollbar">
                                     {options.map((option) => {

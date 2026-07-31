@@ -34,6 +34,8 @@ model User {
   postal_code      String?
   city             String?
   country          String?
+  stripeCustomerId String?        @map("stripe_customer_id")
+  stripeConnectId  String?        @map("stripe_connect_id")
   isBlocked        Boolean        @default(false) @map("is_blocked")
   isBanned         Boolean        @default(false) @map("is_banned")
   blockedUntil     DateTime?      @map("blocked_until")
@@ -355,8 +357,12 @@ model PageView {
 }
 
 enum AuctionStatus {
+  DRAFT
+  WAITING_FOR_FEE
   ACTIVE
   ENDED
+  ENDED_WAITING_PAYMENT
+  COMPLETED
   CANCELLED
 }
 

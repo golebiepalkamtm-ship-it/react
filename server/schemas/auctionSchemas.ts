@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { censorText } from "../utils/antiCircumvention.js";
 
 // UUID v4 validation regex
 const uuidRegex =
@@ -12,11 +13,13 @@ export const createAuctionSchema = z
     title: z
       .string()
       .min(3, "Title must be at least 3 characters")
-      .max(200, "Title must be at most 200 characters"),
+      .max(200, "Title must be at most 200 characters")
+      .refine((val) => censorText(val) === val, "Tytuł zawiera niedozwolone dane kontaktowe lub słowa kluczowe."),
     description: z
       .string()
       .max(5000, "Description must be at most 5000 characters")
-      .optional(),
+      .optional()
+      .refine((val) => !val || censorText(val) === val, "Opis zawiera niedozwolone dane kontaktowe lub słowa kluczowe."),
     startingPrice: z
       .number()
       .positive("Starting price must be positive")

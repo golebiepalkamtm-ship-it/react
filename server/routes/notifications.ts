@@ -19,6 +19,26 @@ router.get('/unread', authMiddleware, async (req: AuthenticatedRequest, res) => 
   }
 });
 
+// Oznacz wszystkie powiadomienia jako przeczytane
+router.patch('/read-all', authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id ?? req.user?.uid;
+    
+    if (!userId) return res.status(401).json({ error: 'Invalid user payload' });
+
+    const success = await NotificationManager.markAllAsRead(userId);
+    
+    if (success) {
+      res.json({ success: true });
+    } else {
+      res.status(500).json({ error: 'Failed to mark all notifications as read' });
+    }
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({ error: 'Failed to mark all notifications as read' });
+  }
+});
+
 // Oznacz powiadomienie jako przeczytane
 router.patch('/:id/read', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
@@ -37,26 +57,6 @@ router.patch('/:id/read', authMiddleware, async (req: AuthenticatedRequest, res)
   } catch (error) {
     console.error('Error marking notification as read:', error);
     res.status(500).json({ error: 'Failed to mark notification as read' });
-  }
-});
-
-// Oznacz wszystkie powiadomienia jako przeczytane
-router.patch('/read-all', authMiddleware, async (req: AuthenticatedRequest, res) => {
-  try {
-    const userId = req.user?.id ?? req.user?.uid;
-    
-    if (!userId) return res.status(401).json({ error: 'Invalid user payload' });
-
-    const success = await NotificationManager.markAllAsRead(userId);
-    
-    if (success) {
-      res.json({ success: true });
-    } else {
-      res.status(500).json({ error: 'Failed to mark all notifications as read' });
-    }
-  } catch (error) {
-    console.error('Error marking all notifications as read:', error);
-    res.status(500).json({ error: 'Failed to mark all notifications as read' });
   }
 });
 

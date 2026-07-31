@@ -48,7 +48,7 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import PhoneVerification from "@/components/auth/PhoneVerification";
 import { auctionService } from "@/services/auctionService";
 import apiClient from "@/services/api";
-import { Auction } from "@/types/auction";
+import { Auction, translateAuctionStatus } from "@/types/auction";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { UserPaymentsSection } from "@/components/user/UserPaymentsSection";
@@ -278,236 +278,187 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
   return createPortal(
     <>
+      <div
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 md:p-6"
+      data-lenis-prevent="true"
+      data-lenis-prevent-touch="true"
+    >
       <motion.div
-        ref={dragConstraintsRef}
+        className="absolute inset-0 bg-black/90 backdrop-blur-xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[50] flex items-start justify-center p-4 bg-transparent pointer-events-none print:static print:h-auto print:p-0"
+        onClick={onClose}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="relative w-full max-w-7xl h-[94vh] md:h-[90vh] bg-[#0c1427] border-2 border-[#A68E4E]/70 rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col z-10 text-white"
+        data-lenis-prevent="true"
+        data-lenis-prevent-touch="true"
       >
-        <motion.div
-          ref={dragConstraintsRef}
-          initial={{ opacity: 0, scale: 0.9, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 30 }}
-          transition={{
-            duration: 0.4,
-            ease: [0.4, 0, 0.2, 1],
-            scale: { type: "spring", stiffness: 300, damping: 30 },
-          }}
-          className="relative w-full md:max-w-7xl h-auto md:h-auto md:max-h-none flex flex-col overflow-hidden pointer-events-auto rounded-3xl border border-[#A68E4E]/30 shadow-2xl shadow-black/50 text-white print:static print:h-auto print:max-h-none print:overflow-visible print:shadow-none print:border print:border-gray-200 print:bg-white print:text-black"
-          style={{
-            background:
-              "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-          }}
-          drag
-          dragConstraints={dragConstraintsRef}
-          dragMomentum={false}
-          dragElastic={0.1}
-          dragTransition={{ power: 0.1 }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {/* Animated border glow - disabled */}
-          <div
-            className="absolute inset-0 rounded-3xl pointer-events-none"
-            style={{
-              background: "transparent",
-            }}
-          />
+        {/* Header */}
+        <div className="relative flex-shrink-0 px-6 py-4 border-b border-[#A68E4E]/40 bg-[#070e1e]/95 backdrop-blur-md flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <motion.div
+              className="relative w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#A68E4E]/40 via-amber-600/30 to-yellow-500/20 border border-[#A68E4E]/60 flex items-center justify-center shadow-md shadow-[#A68E4E]/20"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Crown className="w-6 h-6 md:w-7 md:h-7 text-gold" />
+            </motion.div>
 
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: 0.1,
-              type: "spring",
-              stiffness: 200,
-              damping: 20,
-            }}
-            className="relative flex-shrink-0 p-6 md:p-8 border-b border-[#A68E4E]/20 bg-transparent rounded-t-3xl"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <motion.div
-                  className="relative w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-500 to-gray-600 flex items-center justify-center shadow-lg shadow-black/30"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 20,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="absolute inset-0 rounded-full opacity-20"
-                    style={{
-                      background:
-                        "conic-gradient(from 0deg, transparent, rgba(255,255,255,0.8), transparent)",
-                    }}
-                  />
-                  <Crown className="w-8 h-8 text-white relative z-10" />
-                </motion.div>
-
-                <div className="space-y-1">
-                  <motion.div
-                    className="font-display text-3xl md:text-4xl font-bold text-white"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    Panel Użytkownika
-                  </motion.div>
-                  <motion.div
-                    className="text-sm text-white/70"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    {user?.email}
-                  </motion.div>
-                </div>
+            <div className="space-y-0.5">
+              <div className="font-display text-xl md:text-2xl font-extrabold text-white tracking-tight">
+                Panel<span className="text-[#A68E4E]"> Użytkownika</span>
               </div>
-
-              <motion.button
-                onClick={onClose}
-                className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-200 group"
-                aria-label="Zamknij panel użytkownika"
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <X className="w-5 h-5 text-white transition-colors" />
-              </motion.button>
+              <div className="text-xs text-zinc-300 font-medium">
+                {user?.email}
+              </div>
             </div>
-          </motion.div>
-
-          {/* Status Cards */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-black/20 border-b border-[#A68E4E]/10"
-          >
-            {[
-              {
-                icon: Mail,
-                label: "Email",
-                value: user?.email ?? "",
-                color: "from-gray-700 to-gray-600",
-                glow: "shadow-black/30",
-              },
-              {
-                icon: Star,
-                label: "Status",
-                value: profile?.role ?? "-",
-                color: "from-gray-700 to-gray-600",
-                glow: "shadow-black/30",
-              },
-              {
-                icon: Calendar,
-                label: "Następny krok",
-                value:
-                  profile?.role === "USER_REGISTERED"
-                    ? "Zweryfikuj email"
-                    : profile?.role === "USER_EMAIL_VERIFIED"
-                      ? "Uzupełnij profil"
-                      : profile?.role === "USER_FULL_VERIFIED" ||
-                          profile?.role === "ADMIN"
-                        ? "Konto aktywne"
-                        : "-",
-                color: "from-gray-700 to-gray-600",
-                glow: "shadow-black/30",
-              },
-              {
-                icon: Phone,
-                label: "Telefon",
-                value: profile?.phone ?? "Nie dodano",
-                color: "from-gray-700 to-gray-600",
-                glow: "shadow-black/30",
-              },
-            ].map((card, index) => (
-              <motion.div
-                key={card.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.2 + index * 0.05,
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 20,
-                }}
-                whileHover={{ y: -5, scale: 1.02 }}
-                className={`relative bg-black/30 backdrop-blur-xl rounded-2xl border border-[#A68E4E]/10 p-4 overflow-hidden group hover:border-[#A68E4E]/20 hover:shadow-lg transition-all duration-300`}
-              >
-                <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-10 group-hover:opacity-20 transition-opacity duration-300`}
-                />
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
-                    <motion.div
-                      whileHover={{ rotate: 360, scale: 1.2 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <card.icon className="w-4 h-4" />
-                    </motion.div>
-                    {card.label}
-                  </div>
-                  <div className="text-white text-sm font-medium break-words line-clamp-2">
-                    {card.value}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Navigation Tabs */}
-          <div className="flex-shrink-0 flex gap-2 px-6 border-b border-[#A68E4E]/10 bg-black/20 overflow-x-auto scrollbar-hide">
-            {[
-              { id: "overview", label: "Przegląd", icon: User },
-              { id: "profile", label: "Profil", icon: Settings },
-              { id: "security", label: "Bezpieczeństwo", icon: Shield },
-              { id: "auctions", label: "Aukcje", icon: Package },
-              { id: "payments", label: "Płatności", icon: CreditCard },
-            ].map((tab, index) => (
-              <motion.button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id as any)}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.05 }}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className={`relative px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-all duration-300 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-[#A68E4E] text-[#A68E4E]"
-                    : "border-transparent text-[#A68E4E]/60 hover:text-[#A68E4E] hover:border-[#A68E4E]/30"
-                }`}
-              >
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-white/5 rounded-t-lg"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <motion.div
-                  animate={{
-                    rotate: activeTab === tab.id ? [0, 10, -10, 0] : 0,
-                  }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <tab.icon className="w-4 h-4 relative z-10" />
-                </motion.div>
-                <span className="relative z-10">{tab.label}</span>
-              </motion.button>
-            ))}
           </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 custom-scrollbar">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3.5 py-2 rounded-xl bg-red-500/25 border border-red-500/50 text-red-200 hover:bg-red-500/40 transition-all flex items-center gap-2 text-xs md:text-sm font-bold shrink-0 shadow-md shadow-red-950/40"
+            aria-label="Zamknij panel użytkownika"
+          >
+            <X className="w-4 h-4 md:w-5 md:h-5 text-red-200" />
+            <span className="hidden sm:inline">Zamknij</span>
+          </button>
+        </div>
+
+        {/* Status Cards */}
+        <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 md:p-6 bg-[#070e1e]/60 border-b border-[#A68E4E]/30">
+          {[
+            {
+              icon: Mail,
+              label: "Email",
+              value: user?.email ?? "",
+              gradient: "from-cyan-500/20 via-blue-950/70 to-[#0e1832]",
+              border: "border-cyan-500/40",
+              textColor: "text-cyan-300",
+              iconColor: "text-cyan-400",
+            },
+            {
+              icon: Star,
+              label: "Status",
+              value: profile?.role ?? "-",
+              gradient: "from-amber-500/25 via-orange-950/70 to-[#0e1832]",
+              border: "border-amber-500/40",
+              textColor: "text-amber-300",
+              iconColor: "text-amber-400",
+            },
+            {
+              icon: Calendar,
+              label: "Następny krok",
+              value:
+                profile?.role === "USER_REGISTERED"
+                  ? "Zweryfikuj email"
+                  : profile?.role === "USER_EMAIL_VERIFIED"
+                    ? "Uzupełnij profil"
+                    : profile?.role === "USER_FULL_VERIFIED" ||
+                        profile?.role === "ADMIN"
+                      ? "Konto aktywne"
+                      : "-",
+              gradient: "from-emerald-500/20 via-teal-950/70 to-[#0e1832]",
+              border: "border-emerald-500/40",
+              textColor: "text-emerald-300",
+              iconColor: "text-emerald-400",
+            },
+            {
+              icon: Phone,
+              label: "Telefon",
+              value: profile?.phone ?? "Nie dodano",
+              gradient: "from-purple-500/20 via-indigo-950/70 to-[#0e1832]",
+              border: "border-purple-500/40",
+              textColor: "text-purple-300",
+              iconColor: "text-purple-400",
+            },
+          ].map((card, index) => (
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.04 }}
+              whileHover={{ y: -4 }}
+              className={`bg-gradient-to-br ${card.gradient} rounded-2xl border ${card.border} p-4 shadow-lg backdrop-blur-md transition-all duration-300`}
+            >
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-1.5">
+                <card.icon className={`w-4 h-4 ${card.iconColor}`} />
+                <span className={card.textColor}>{card.label}</span>
+              </div>
+              <div className="text-white text-sm font-extrabold break-words line-clamp-2">
+                {card.value}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex-shrink-0 flex gap-2 p-3 md:px-6 border-b border-[#A68E4E]/30 bg-[#070e1e]/90 overflow-x-auto no-scrollbar" data-lenis-prevent="true">
+          {[
+            {
+              id: "overview",
+              label: "Przegląd",
+              icon: User,
+              activeBg: "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30",
+              iconColor: "text-amber-400",
+            },
+            {
+              id: "profile",
+              label: "Profil",
+              icon: Settings,
+              activeBg: "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 text-white font-extrabold shadow-lg shadow-blue-500/30",
+              iconColor: "text-cyan-400",
+            },
+            {
+              id: "security",
+              label: "Bezpieczeństwo",
+              icon: Shield,
+              activeBg: "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-extrabold shadow-lg shadow-amber-500/30",
+              iconColor: "text-amber-400",
+            },
+            {
+              id: "auctions",
+              label: "Aukcje",
+              icon: Package,
+              activeBg: "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white font-extrabold shadow-lg shadow-purple-500/30",
+              iconColor: "text-purple-400",
+            },
+            {
+              id: "payments",
+              label: "Płatności",
+              icon: CreditCard,
+              activeBg: "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-extrabold shadow-lg shadow-emerald-500/30",
+              iconColor: "text-emerald-400",
+            },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-all duration-200 ${
+                activeTab === tab.id
+                  ? `${tab.activeBg} scale-[1.02]`
+                  : "text-zinc-100 bg-[#121f3d] border border-[#A68E4E]/30 hover:bg-[#A68E4E]/30 hover:text-white"
+              }`}
+            >
+              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-current" : tab.iconColor}`} />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div
+          className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar overscroll-contain"
+          data-lenis-prevent="true"
+          data-lenis-prevent-touch="true"
+        >
             <AnimatePresence mode="wait">
               {activeTab === "overview" && (
                 <motion.div
@@ -707,8 +658,69 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               ))}
                             </motion.div>
                           </div>
+                          <div className="flex items-center justify-between text-sm pt-2 border-t border-white/5">
+                            <span className="text-white/60 font-medium">
+                              Wskaźnik zaufania (Trust Score)
+                            </span>
+                            <span className="text-gold font-mono font-bold">
+                              {profile?.trustScore ? `${Number(profile.trustScore).toFixed(1)} / 5.0` : "0.0 / 5.0"}
+                            </span>
+                          </div>
                         </div>
                       </div>
+                    </motion.div>
+                  </div>
+
+                  {/* Ostatnia aktywność & Powiadomienia */}
+                  <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <motion.div
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <Clock className="w-6 h-6 text-gold" />
+                        Ostatnia aktywność
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-sm text-white/70">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <span>Ostatnie logowanie: {profile?.last_sign_in_at ? new Date(profile.last_sign_in_at).toLocaleString('pl-PL') : 'Brak danych'}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-white/70">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span>Konto utworzono: {profile?.created_at ? new Date(profile.created_at).toLocaleString('pl-PL') : 'Brak danych'}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300 flex flex-col justify-center items-center text-center"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <Bell className="w-8 h-8 text-gold mb-3" />
+                      <h3 className="font-display text-xl font-semibold text-white mb-2">
+                        Powiadomienia
+                      </h3>
+                      <p className="text-sm text-white/60 mb-4">
+                        Twój system powiadomień. Wkrótce dodamy tu ważne alerty z systemu.
+                      </p>
+                      <Button variant="outline" className="border-gold/30 text-gold hover:bg-gold/10 hover:border-gold/50" disabled>
+                        Zobacz powiadomienia (Wkrótce)
+                      </Button>
                     </motion.div>
                   </div>
                 </motion.div>
@@ -1208,9 +1220,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               </div>
                               <div className="text-right">
                                 <span className="text-[10px] text-white/40 block">
-                                  {auction.status === "active"
-                                    ? "Aktywna"
-                                    : "Zakończona"}
+                                  {translateAuctionStatus(auction.status)}
                                 </span>
                               </div>
                             </Link>
@@ -1342,14 +1352,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                               </div>
                               <div className="text-right">
                                 <span className="text-[10px] text-white/20 block">
-                                  {auction.status === "active" ? (
-                                    <span className="text-green-500/60 flex items-center gap-1">
-                                      <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                                      Aktywna
-                                    </span>
-                                  ) : (
-                                    "Zakończona"
-                                  )}
+                                  {translateAuctionStatus(auction.status)}
                                 </span>
                               </div>
                             </Link>
@@ -1380,7 +1383,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
             </AnimatePresence>
           </div>
         </motion.div>
-      </motion.div>
+      </div>
 
       <UnifiedModal
         isOpen={showSmsAuth}

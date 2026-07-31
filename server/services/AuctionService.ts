@@ -142,11 +142,23 @@ export class AuctionService {
         );
       }
 
-      // STEP 3: Weryfikacja właściciela
+      // STEP 3: Weryfikacja właściciela i płatności
       if (auction.sellerId === userId) {
         throw createAuctionError(
           AuctionErrorCodes.INVALID_BID_AMOUNT,
           "Nie możesz licytować we własnej aukcji",
+        );
+      }
+
+      const bidderUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { stripeCustomerId: true },
+      });
+
+      if (!bidderUser?.stripeCustomerId) {
+        throw createAuctionError(
+          AuctionErrorCodes.INVALID_BID_AMOUNT,
+          "Musisz podpiąć kartę płatniczą do konta, aby móc licytować. (Anti-Circumvention)",
         );
       }
 

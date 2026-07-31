@@ -75,16 +75,26 @@ class WebsocketService {
   private currentToken: string | null = null;
 
   connect(token: string) {
-    if (this.socket?.connected) return;
+    if (this.socket?.connected || this.socket?.active) return;
 
     this.isManualDisconnect = false;
     this.currentToken = token;
 
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
     this.socket = io(this.url, {
       auth: { token },
-      transports: ["websocket", "polling"],
+      transports: ["websocket"],
       withCredentials: true,
-      reconnection: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 3000,
+      reconnectionDelayMax: 15000,
+      timeout: 10000,
     });
 
     this.socket.on("connect", () => {
@@ -97,10 +107,6 @@ class WebsocketService {
     this.socket.on("disconnect", (reason) => {
       console.log("❌ WebSocket disconnected:", reason);
       this.stopHeartbeat();
-
-      if (!this.isManualDisconnect && reason !== "io client disconnect") {
-        this.scheduleReconnect();
-      }
     });
 
     this.socket.on("connect_error", (error) => {
@@ -112,9 +118,7 @@ class WebsocketService {
         );
       if (isAuthError) {
         this.disconnect();
-        return;
       }
-      if (!this.isManualDisconnect) this.scheduleReconnect();
     });
 
     this.socket.on("pong", () => {
@@ -133,6 +137,7 @@ class WebsocketService {
 
     if (this.socket) {
       this.socket.emit("user:offline");
+      this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
     }

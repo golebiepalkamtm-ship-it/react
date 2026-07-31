@@ -121,9 +121,9 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                     onChange({ ...auction, status: e.target.value })
                   }
                 >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="ENDED">ENDED</option>
-                  <option value="CANCELLED">CANCELLED</option>
+                  <option value="ACTIVE" className="bg-[#0c1427] text-white font-medium py-1">ACTIVE</option>
+                  <option value="ENDED" className="bg-[#0c1427] text-white font-medium py-1">ENDED</option>
+                  <option value="CANCELLED" className="bg-[#0c1427] text-white font-medium py-1">CANCELLED</option>
                 </select>
               </div>
               <div>
@@ -177,9 +177,9 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                       onChange({ ...auction, category: e.target.value })
                     }
                   >
-                    <option value="PIGEONS">Gołębie</option>
-                    <option value="ACCESSORIES">Akcesoria</option>
-                    <option value="SUPPLEMENTS">Suplementy</option>
+                    <option value="PIGEONS" className="bg-[#0c1427] text-white font-medium py-1">Gołębie</option>
+                    <option value="ACCESSORIES" className="bg-[#0c1427] text-white font-medium py-1">Akcesoria</option>
+                    <option value="SUPPLEMENTS" className="bg-[#0c1427] text-white font-medium py-1">Suplementy</option>
                   </select>
                 </div>
               </div>
@@ -195,8 +195,8 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                     onChange({ ...auction, sex: e.target.value })
                   }
                 >
-                  <option value="MALE">SAMIEC</option>
-                  <option value="FEMALE">SAMICA</option>
+                  <option value="MALE" className="bg-[#0c1427] text-white font-medium py-1">SAMIEC</option>
+                  <option value="FEMALE" className="bg-[#0c1427] text-white font-medium py-1">SAMICA</option>
                 </select>
               </div>
               <div className="flex justify-end gap-3 mt-6">

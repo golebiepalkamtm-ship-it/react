@@ -24,6 +24,7 @@ import {
   serializeAuction,
   detailAuctionInclude,
 } from "../utils/auctionSerializer.js";
+import { validate } from "../middleware/validation.js";
 
 const router: Router = express.Router();
 
@@ -1170,5 +1171,87 @@ router.get("/payments", ensureAdmin, async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.patch(
+  "/payments/:id/status",
+  ensureAdmin,
+  mutationLimiter,
+  validate(
+    z.object({
+      status: z.enum([
+        "INITIATED",
+        "PENDING",
+        "SUCCEEDED",
+        "FAILED",
+        "CANCELLED",
+        "REFUNDED",
+      ]),
+    })
+  ),
+  async (req: Request, res: Response) => {
+    try {
+      if (!prisma) throw new Error("Database not initialized");
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const payment = await prisma.payment.findUnique({ where: { id } });
+      if (!payment) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+
+      await prisma.$transaction(async (tx: any) => {
+        await tx.payment.update({
+          where: { id },
+          data: { status },
+        });
+
+        // Trigger auction side-effects only if status changed to SUCCEEDED
+        if (status === "SUCCEEDED" && payment.status !== "SUCCEEDED") {
+          if (payment.type === "BUY_NOW") {
+            await tx.auction.update({
+              where: { id: payment.auctionId },
+              data: {
+                status: "ENDED",
+                currentPrice: payment.amount,
+                reserveMet: true,
+                winnerId: payment.userId,
+              },
+            });
+          } else if (payment.type === "COMMISSION") {
+            await tx.auction.update({
+              where: { id: payment.auctionId },
+              data: {
+                status: "COMPLETED",
+              },
+            });
+          } else if (payment.type === "LISTING_FEE") {
+            await tx.auction.update({
+              where: { id: payment.auctionId },
+              data: { listingFeePaid: true, status: "ACTIVE" },
+            });
+          }
+        }
+      });
+
+      // Invalidate relevant cache entries
+      cache.deletePattern("auctions:*");
+      cache.delete(`auction:${payment.auctionId}`);
+      cache.delete(`auction:${payment.auctionId}:bids`);
+      if (payment.userId) {
+        cache.delete(`user:${payment.userId}:auctions`);
+      }
+
+      await logAdminAction(req, "UPDATE_PAYMENT_STATUS", "PAYMENT", id, {
+        oldStatus: payment.status,
+        newStatus: status,
+      });
+
+      res.json({ success: true, message: "Payment status updated" });
+    } catch (error: any) {
+      console.error("Update payment status error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
 
 export default router;

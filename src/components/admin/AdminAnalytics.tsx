@@ -70,7 +70,7 @@ const AnalyticsCard = ({
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className={`p-6 rounded-3xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-xl flex flex-col ${className}`}
+    className={`p-6 rounded-3xl bg-[#0A0F1C]/50 border border-[#A68E4E]/20 backdrop-blur-xl flex flex-col min-w-0 ${className}`}
   >
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-lg font-semibold text-white flex items-center gap-3">
@@ -80,7 +80,9 @@ const AnalyticsCard = ({
         {title}
       </h3>
     </div>
-    <div className="flex-1 min-h-[300px]">{children}</div>
+    <div className="flex-1 min-h-[300px] w-full min-w-0 relative">
+      {children}
+    </div>
   </motion.div>
 );
 

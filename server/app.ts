@@ -92,26 +92,6 @@ const hasBodyProperty = (value: unknown): value is { body: unknown } => {
 // deepcode ignore javascript/UseCsurfForExpress: CSRF protection is implemented via csrf-sync library (synchronised tokens pattern) applied as middleware below
 const app: Application = express();
 
-// CSRF Protection using Synchronised Tokens Pattern
-// Explicitly using the csrf-sync library middleware; detailed csurf
-// cookie-based protection is applied after session and cookie parsing below.
-app.use((req: Request, res: Response, next: NextFunction) => {
-  // Pass GET, HEAD, OPTIONS
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-    return next();
-  }
-  
-  // Public exceptions for Stripe webhooks and local health checks
-  const publicPaths = ["/api/webhooks", "/api/proxy", "/api/health", "/api/metrics/track"];
-  if (publicPaths.some(path => req.originalUrl.startsWith(path))) {
-    return next();
-  }
-
-  // Header-based auth (JWT) is naturally resistant to CSRF, 
-  // but for snyk we apply the synchronised protection regardless.
-  return csrfSynchronisedProtection(req, res, next);
-});
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -175,6 +155,7 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 app.use(cookieParser());
+app.use(sessionMiddleware);
 app.set("trust proxy", 1); // Fix X-Forwarded-For warning
 app.use(globalLimiter);
 
@@ -211,31 +192,13 @@ app.get("/api", (req, res) => {
   });
 });
 
-// Endpoint CSRF token
-app.use(sessionMiddleware);
-
-// Create the csurf middleware instance
-const legacyCsurfMiddleware = csurf({ cookie: true });
-
-// Apply csurf conditionally, skipping public paths
-app.use((req, res, next) => {
-  // Pass GET, HEAD, OPTIONS
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-    return next();
-  }
-
-  // Skip CSRF for webhooks, proxy, health, and metrics/track
-  const publicPaths = ["/api/webhooks", "/api/proxy", "/api/health", "/api/metrics"];
-  if (publicPaths.some((path) => req.originalUrl.startsWith(path))) {
-    return next();
-  }
-
-  return legacyCsurfMiddleware(req, res, next);
-});
-
 app.get("/api/csrf-token", (req, res) => {
-  const token = generateToken(req as any);
-  res.json({ csrfToken: token });
+  try {
+    const token = generateToken(req as any);
+    res.json({ csrfToken: token });
+  } catch (err) {
+    res.json({ csrfToken: "" });
+  }
 });
 
 // CSRF Protection configuration
@@ -291,9 +254,11 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
   return (csrfProtection as any)(req, res, next);
 };
 
-// Public metrics endpoint should not require CSRF; mount before CSRF
+// Public metrics & time endpoints should not require CSRF; mount before CSRF
 app.use("/api/metrics", metricsRoutes);
-app.use("/api/time", timeRoutes); // Public time sync endpoint
+app.use("/api/time", timeRoutes);
+// Serve uploaded media files locally when S3 is unavailable / local dev fallback
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Apply CSRF protection for state-changing routes (prod only)
 app.use("/api/upload", uploadLimiter, authMiddleware, uploadRoutes);

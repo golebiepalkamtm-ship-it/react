@@ -11,6 +11,7 @@ import {
   Crown,
   Diamond,
   Gavel,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -26,24 +27,40 @@ import type { AuctionSortBy } from "@/types/auction";
 import { gsap } from "@/lib/gsapConfig";
 import { AnimatePresence } from "framer-motion";
 import AccountModal from "@/components/AccountModal";
+import { useSocket } from "@/hooks/useSocket";
+import { useOptimizedToast } from "@/hooks/use-optimized-toast";
+import { auctionService } from "@/services/auctionService";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 const QUICK_FILTERS = [
   {
     id: "ending-today" as const,
     label: "Końcówka",
     description: "Do 24h",
+    tooltip:
+      "Licytacje kończące się w ciągu najbliższych 24 godzin – ostatnia szansa na wygraną!",
     Icon: Clock,
   },
   {
     id: "high-value" as const,
     label: "High stakes",
     description: "25k+ zł",
+    tooltip:
+      "Aukcje elitarnych ptaków z wyceną od 25 000 PLN wzwyż z rodowodami mistrzów",
     Icon: TrendingUp,
   },
   {
     id: "new-royals" as const,
     label: "Nowości",
     description: "Ostatnie 48h",
+    tooltip:
+      "Najświeższe aukcje gołębi i akcesoriów dodane w ciągu ostatnich 48 godzin",
     Icon: Sparkles,
   },
 ] as const;
@@ -51,8 +68,10 @@ const QUICK_FILTERS = [
 type QuickFilterId = (typeof QUICK_FILTERS)[number]["id"];
 
 const AuctionsPage = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, session } = useAuth();
   const navigate = useNavigate();
+  const { info: showInfo, warning: showWarning } = useOptimizedToast();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<AuctionSortBy>("newest");
   const [showFilters, setShowFilters] = useState(false);
@@ -62,19 +81,80 @@ const AuctionsPage = () => {
   const [priceMax, setPriceMax] = useState("");
   const [category, setCategory] = useState("all");
   const [gender, setGender] = useState("all");
+  const [isWatchlistActive, setIsWatchlistActive] = useState(false);
 
   const { auctions, isLoading, refetch, error } = useAuctions({
     status: "active",
     sortBy,
   });
+
+  const { data: watchlistAuctions = [], isLoading: isWatchlistLoading } =
+    useQuery({
+      queryKey: ["watchlist", session?.access_token],
+      queryFn: () => auctionService.getWatchlist(session?.access_token || null),
+      enabled: !!session?.access_token,
+      staleTime: 15000,
+    });
+
+  const handleWatchlistToggle = useCallback(() => {
+    if (!user || !session?.access_token) {
+      setFeedbackModal({
+        isOpen: true,
+        type: "info",
+        title: "Obsługuj ulubione aukcje",
+        message: "Zaloguj się, aby zobaczyć swoje obserwowane aukcje.",
+      });
+      return;
+    }
+    setIsWatchlistActive((prev) => !prev);
+    setActiveQuickFilter(null);
+  }, [user, session?.access_token]);
+
   const sanitizedAuctions = useMemo(() => {
-    return auctions.filter((auction) => {
+    const source = isWatchlistActive ? watchlistAuctions : auctions;
+    return source.filter((auction) => {
       const title = (auction.title || "").trim();
       if (!title) return false;
       if (/^a{10,}$/i.test(title)) return false;
       return true;
     });
-  }, [auctions]);
+  }, [auctions, watchlistAuctions, isWatchlistActive]);
+
+  useSocket({
+    onBidPlaced: (data: {
+      auctionId: string;
+      bid?: any;
+      currentPrice?: number;
+      meta?: any;
+    }) => {
+      if (!data?.auctionId) return;
+      const price = Number(
+        data.currentPrice ?? data.bid?.amount ?? data.meta?.currentPrice,
+      );
+      const priceFormatted = Number.isFinite(price)
+        ? `${price.toLocaleString("pl-PL")} zł`
+        : "";
+
+      const targetAuction = sanitizedAuctions.find(
+        (a) => a.id === data.auctionId,
+      );
+      const title = targetAuction?.title || "Aukcja";
+
+      const previousBidderId =
+        data.bid?.previousBidderId || data.meta?.previousBidderId;
+      const isUserOutbid = user?.id && previousBidderId === user.id;
+
+      if (isUserOutbid) {
+        showWarning({
+          message: `🚨 Twoja oferta na aukcji "${title}" została przebita! Nowa cena: ${priceFormatted}`,
+        });
+      } else {
+        showInfo({
+          message: `⚡ Nowa oferta na żywo w aukcji "${title}": ${priceFormatted}`,
+        });
+      }
+    },
+  });
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -320,132 +400,242 @@ const AuctionsPage = () => {
   ];
 
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-white">
-      <section
-        ref={heroRef}
-        className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
-      >
-        <div className="container mx-auto px-4">
-          <div ref={heroContentRef} className="text-left">
-            <h1 className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight uppercase tracking-wide">
-              <span style={{ color: "#A68E4E" }}>Champions Pigeon</span>{" "}
-              <span className="text-white">Auction</span>
-            </h1>
-            <p className="max-w-xl text-zinc-400 mt-4 text-sm uppercase tracking-wider font-light">
-              Ekskluzywny portal aukcyjny
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4 justify-start">
-              <Button
-                variant="gold"
-                size="lg"
-                className="gold-button text-zinc-950 border-0"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
-                  color: "#0f0f0f",
-                }}
-              >
-                Przeglądaj aukcje
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleCreateAuctionClick}
-                className="gold-button text-zinc-950 border-0 hover:bg-gold/90"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
-                  color: "#0f0f0f",
-                }}
-              >
-                Dodaj swoją aukcję
-              </Button>
-            </div>
-          </div>
-          <div className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-3">
-            {statTiles.map(({ label, value, meta, Icon }) => (
-              <div
-                key={label}
-                className="group rounded-2xl px-5 py-6 text-left shadow-xl backdrop-blur-md transition-all hover:scale-[1.02]"
-                style={{
-                  background:
-                    "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-                  border: "2px solid rgba(166,142,78,0.7)",
-                  boxShadow:
-                    "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
-                }}
-              >
-                <Icon className="h-5 w-5 text-[#A68E4E] mb-2" />
-                <p className="text-[11px] uppercase tracking-[0.35em] text-[#A68E4E]/80">
-                  {label}
-                </p>
-                <p className="text-2xl font-display text-[#A68E4E] font-bold">
-                  {value}
-                </p>
-                <p className="text-sm text-[#A68E4E]/70">{meta}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
-        <div className="container mx-auto px-4">
-          <div
-            className="group rounded-2xl pt-4 px-4 pb-6 space-y-8 sm:px-6 shadow-2xl backdrop-blur-md"
-            style={{
-              background:
-                "radial-gradient(circle at top, rgba(66, 192, 206, 0.12), transparent 60%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-              border: "2px solid rgba(166,142,78,0.7)",
-              boxShadow:
-                "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
-            }}
-          >
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#A68E4E]/60" />
-                <input
-                  type="text"
-                  placeholder="Szukaj po nazwie, linii lub numerze obrączki"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-2xl border border-[#A68E4E]/30 bg-black/40 py-3 pl-12 pr-4 text-[#A68E4E] placeholder:text-[#A68E4E]/40 focus:border-[#A68E4E] focus:outline-none transition-all backdrop-blur-sm"
-                />
-              </div>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as AuctionSortBy)}
-                  className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 px-4 py-3 text-sm text-[#A68E4E] md:w-auto focus:border-[#A68E4E] focus:outline-none appearance-none cursor-pointer backdrop-blur-sm"
+    <TooltipProvider delayDuration={100}>
+      <div className="relative isolate min-h-screen overflow-hidden bg-white">
+        <section
+          ref={heroRef}
+          className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
+        >
+          <div className="container mx-auto px-4">
+            <div ref={heroContentRef} className="text-left">
+              <h1 className="mt-6 font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-tight uppercase tracking-wide">
+                <span style={{ color: "#A68E4E" }}>Champions Pigeon</span>{" "}
+                <span className="text-white">Auction</span>
+              </h1>
+              <p className="max-w-xl text-zinc-400 mt-4 text-sm uppercase tracking-wider font-light">
+                Ekskluzywny portal aukcyjny Pałka MTM
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4 justify-start">
+                <Button
+                  variant="gold"
+                  size="lg"
+                  className="gold-button text-zinc-950 border-0"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                    color: "#0f0f0f",
+                  }}
                 >
-                  <option value="newest" className="bg-[#020a13]">
-                    Najnowsze
-                  </option>
-                  <option value="ending-soon" className="bg-[#020a13]">
-                    Kończące się
-                  </option>
-                  <option value="price-high" className="bg-[#020a13]">
-                    Najdroższe
-                  </option>
-                </select>
+                  Przeglądaj aukcje
+                </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 rounded-2xl border-[#A68E4E]/30 bg-black/40 text-[#A68E4E] hover:bg-[#A68E4E] hover:text-[#020a13] transition-all backdrop-blur-sm"
-                >
-                  <SlidersHorizontal className="h-4 w-4" /> Filtry{" "}
-                  {hasActiveFilters && (
-                    <span className="h-2 w-2 rounded-full bg-[#A68E4E] shadow-[0_0_8px_#A68E4E]" />
-                  )}
-                </Button>
-                <Button
+                  size="lg"
                   onClick={handleCreateAuctionClick}
-                  className="rounded-2xl bg-[#A68E4E] text-[#064e3b] px-5 py-2 font-bold shadow-lg border-0 hover:bg-[#A68E4E]/90 transition-all"
+                  className="gold-button text-zinc-950 border-0 hover:bg-gold/90"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                    color: "#0f0f0f",
+                  }}
                 >
-                  <Plus className="h-4 w-4 mr-2" /> Dodaj aukcję
+                  Dodaj swoją aukcję
                 </Button>
               </div>
             </div>
+            <div className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-3">
+              {statTiles.map(({ label, value, meta, Icon }) => (
+                <div
+                  key={label}
+                  className="group rounded-2xl px-5 py-6 text-left shadow-xl backdrop-blur-md transition-all hover:scale-[1.02]"
+                  style={{
+                    background:
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                    border: "2px solid rgba(166,142,78,0.7)",
+                    boxShadow:
+                      "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
+                  }}
+                >
+                  <Icon className="h-5 w-5 text-[#A68E4E] mb-2" />
+                  <p className="text-[11px] uppercase tracking-[0.35em] text-[#A68E4E]/80">
+                    {label}
+                  </p>
+                  <p className="text-2xl font-display text-[#A68E4E] font-bold">
+                    {value}
+                  </p>
+                  <p className="text-sm text-[#A68E4E]/70">{meta}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="-mt-10 pb-8 md:-mt-16 md:pb-10 relative z-10">
+          <div className="container mx-auto px-4">
+            <div
+              className="group rounded-2xl pt-4 px-4 pb-6 space-y-6 sm:px-6 shadow-2xl backdrop-blur-md"
+              style={{
+                background:
+                  "radial-gradient(circle at top, rgba(66, 192, 206, 0.12), transparent 60%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                border: "2px solid rgba(166,142,78,0.7)",
+                boxShadow:
+                  "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
+              }}
+            >
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#A68E4E]/60" />
+                  <input
+                    type="text"
+                    placeholder="Szukaj po nazwie, linii lub numerze obrączki"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-2xl border border-[#A68E4E]/30 bg-black/40 py-3 pl-12 pr-4 text-[#A68E4E] placeholder:text-[#A68E4E]/40 focus:border-[#A68E4E] focus:outline-none transition-all backdrop-blur-sm"
+                  />
+                </div>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <select
+                        value={sortBy}
+                        onChange={(e) =>
+                          setSortBy(e.target.value as AuctionSortBy)
+                        }
+                        className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 px-4 py-3 text-sm text-[#A68E4E] md:w-auto focus:border-[#A68E4E] focus:outline-none appearance-none cursor-pointer backdrop-blur-sm"
+                      >
+                        <option value="newest" className="bg-[#020a13]">
+                          Najnowsze
+                        </option>
+                        <option value="ending-soon" className="bg-[#020a13]">
+                          Kończące się
+                        </option>
+                        <option value="price-high" className="bg-[#020a13]">
+                          Najdroższe
+                        </option>
+                      </select>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                      Zmień kolejność wyświetlania aukcji na siatce
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center gap-2 rounded-2xl border-[#A68E4E]/30 bg-black/40 text-[#A68E4E] hover:bg-[#A68E4E] hover:text-[#020a13] transition-all backdrop-blur-sm"
+                      >
+                        <SlidersHorizontal className="h-4 w-4" /> Filtry{" "}
+                        {hasActiveFilters && (
+                          <span className="h-2 w-2 rounded-full bg-[#A68E4E] shadow-[0_0_8px_#A68E4E]" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                      Rozwiń panel zaawansowanego filtrowania cenowego i kategorii
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={handleCreateAuctionClick}
+                        className="rounded-2xl bg-[#A68E4E] text-[#064e3b] px-5 py-2 font-bold shadow-lg border-0 hover:bg-[#A68E4E]/90 transition-all"
+                      >
+                        <Plus className="h-4 w-4 mr-2" /> Dodaj aukcję
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
+                      Wystaw swojego gołębia, suplementy lub akcesoria na licytację
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              {/* Quick Filters & Watchlist Bar */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-[#A68E4E]/20">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wider text-[#A68E4E]/70 font-semibold">
+                    Szybkie filtry aukcji (najedź aby zobaczyć opis):
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsWatchlistActive(false);
+                          setActiveQuickFilter(null);
+                          setSortBy("newest");
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                          !isWatchlistActive && !activeQuickFilter
+                            ? "bg-[#A68E4E] text-zinc-950 shadow-[0_0_15px_rgba(166,142,78,0.4)] font-bold"
+                            : "bg-black/30 text-[#A68E4E]/80 border border-[#A68E4E]/20 hover:border-[#A68E4E]/60 hover:text-[#A68E4E]"
+                        }`}
+                      >
+                        <Gavel className="w-3.5 h-3.5" /> Wszystkie aukcje
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs max-w-xs">
+                      Wyświetl pełną listę wszystkich aktywnych licytacji w portalu
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={handleWatchlistToggle}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                          isWatchlistActive
+                            ? "bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)] font-bold"
+                            : "bg-black/30 text-[#A68E4E]/80 border border-[#A68E4E]/20 hover:border-rose-500/60 hover:text-rose-400"
+                        }`}
+                      >
+                        <Heart
+                          className={`w-3.5 h-3.5 ${isWatchlistActive ? "fill-current" : ""}`}
+                        />
+                        Obserwowane
+                        {session?.access_token && (
+                          <span className="ml-1 rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] text-rose-300 font-bold border border-rose-500/30">
+                            {watchlistAuctions.length}
+                          </span>
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="bg-[#020a13] border border-rose-500/50 text-rose-300 text-xs max-w-xs">
+                      Pokaż Twoje ulubione aukcje zapisane do obserwowania
+                    </TooltipContent>
+                  </Tooltip>
+
+                  {QUICK_FILTERS.map(({ id, label, Icon, tooltip }) => (
+                    <Tooltip key={id}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsWatchlistActive(false);
+                            toggleQuickFilter(id);
+                          }}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                            !isWatchlistActive && activeQuickFilter === id
+                              ? "bg-[#A68E4E] text-zinc-950 shadow-[0_0_15px_rgba(166,142,78,0.4)] font-bold"
+                              : "bg-black/30 text-[#A68E4E]/80 border border-[#A68E4E]/20 hover:border-[#A68E4E]/60 hover:text-[#A68E4E]"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" /> {label}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs max-w-xs">
+                        {tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </div>
             {showFilters && (
               <div className="grid gap-4 md:grid-cols-3 p-6 rounded-2xl bg-black/20 border border-[#A68E4E]/20 backdrop-blur-sm">
                 <div>
@@ -581,7 +771,7 @@ const AuctionsPage = () => {
         isOpen={isCreateOpen}
         onClose={handleCloseModal}
         title="Nowa aukcja"
-        size="xl"
+        size="2xl"
         draggable
         bodyScrollable
       >
@@ -591,22 +781,14 @@ const AuctionsPage = () => {
             onCancel={handleCloseModal}
           />
         ) : (
-          <div className="p-4">
-            <button
-              onClick={handleBackToCategory}
-              className="flex items-center gap-2 text-white/60 mb-4 hover:text-white"
-            >
-              <ChevronLeft className="w-4 h-4" /> Powrót
-            </button>
-            <UnifiedAuctionForm
-              category={selectedCategory}
-              onCancel={handleCloseModal}
-              onSuccess={() => {
-                handleCloseModal();
-                refetch();
-              }}
-            />
-          </div>
+          <UnifiedAuctionForm
+            category={selectedCategory}
+            onCancel={handleBackToCategory}
+            onSuccess={() => {
+              handleCloseModal();
+              refetch();
+            }}
+          />
         )}
       </UnifiedModal>
 
@@ -622,6 +804,7 @@ const AuctionsPage = () => {
         onClose={() => setIsAccountOpen(false)}
       />
     </div>
+  </TooltipProvider>
   );
 };
 

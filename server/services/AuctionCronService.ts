@@ -150,7 +150,7 @@ export class AuctionCronService {
                 await tx.auction.update({
                   where: { id: auction.id },
                   data: {
-                    status: AuctionStatus.ENDED,
+                    status: AuctionStatus.ENDED_WAITING_PAYMENT,
                     winnerId,
                     currentPrice: finalPrice
                   }
@@ -159,7 +159,7 @@ export class AuctionCronService {
                 const existingCommission = await tx.payment.findFirst({
                   where: {
                     auctionId: auction.id,
-                    userId: winnerId,
+                    userId: auction.sellerId,
                     type: PaymentType.COMMISSION,
                   },
                 });
@@ -168,7 +168,7 @@ export class AuctionCronService {
                   await tx.payment.create({
                     data: {
                       auctionId: auction.id,
-                      userId: winnerId,
+                      userId: auction.sellerId,
                       amount: commissionAmount,
                       type: PaymentType.COMMISSION,
                       provider: 'STRIPE',
@@ -213,23 +213,14 @@ export class AuctionCronService {
         finalPrice
       );
 
-      if (commissionAmount > 0) {
-        await NotificationManager.notifyCommissionDue(
-          winnerId,
-          auction.id,
-          auction.title,
-          commissionAmount,
-        );
-      }
-
-      // Notify Seller
+      // Notify Seller about success and commission due
       if (auction.sellerId) {
         await NotificationManager.createNotification({
           userId: auction.sellerId,
           auctionId: auction.id,
           type: 'AUCTION_WON' as any,
           title: 'Aukcja zakończona sukcesem',
-          message: `Twoja aukcja "${auction.title}" została sprzedana za ${finalPrice} zł.`
+          message: `Twoja aukcja "${auction.title}" została wylicytowana za ${finalPrice} zł. Opłać prowizję (${commissionAmount} zł), aby otrzymać dane wygrywającego.`
         });
       }
     } catch (e) {

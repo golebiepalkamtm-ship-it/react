@@ -51,6 +51,8 @@ const StatCard = ({
   value,
   label,
   gradient,
+  borderColor = "border-[#A68E4E]/50",
+  iconColor = "text-[#A68E4E]",
   delay,
   trend,
 }: {
@@ -58,6 +60,8 @@ const StatCard = ({
   value: string | number;
   label: string;
   gradient: string;
+  borderColor?: string;
+  iconColor?: string;
   delay: number;
   trend?: number;
 }) => {
@@ -68,21 +72,16 @@ const StatCard = ({
       initial={{ opacity: 0, y: 30, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, type: "spring", stiffness: 200, damping: 20 }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -6, scale: 1.02 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className={`relative p-6 rounded-2xl ${gradient} overflow-hidden group cursor-pointer`}
-      style={{
-        border: "2px solid rgba(166,142,78,0.7)",
-        boxShadow:
-          "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
-      }}
+      className={`relative p-6 rounded-2xl ${gradient} border ${borderColor} overflow-hidden group cursor-pointer shadow-xl backdrop-blur-md`}
     >
       <motion.div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle at 50% 50%, rgba(166, 142, 78, 0.1) 0%, transparent 70%)",
+            "radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 70%)",
         }}
       />
       <div className="relative z-10">
@@ -90,19 +89,21 @@ const StatCard = ({
           <motion.div
             animate={{ rotate: isHovered ? [0, -10, 10, 0] : 0 }}
             transition={{ duration: 0.5 }}
+            className="p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-md"
           >
-            <Icon className="w-8 h-8 text-[#A68E4E]" />
+            <Icon className={`w-7 h-7 ${iconColor}`} />
           </motion.div>
           {trend !== undefined && (
             <div
-              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${trend >= 0 ? "bg-[#A68E4E]/20 text-[#A68E4E]" : "bg-red-500/20 text-red-300"}`}
+              className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${trend >= 0 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-red-500/20 text-red-300 border border-red-500/40"}`}
             >
+              <TrendingUp className="w-3 h-3" />
               {trend}%
             </div>
           )}
         </div>
-        <p className="text-4xl font-bold text-white mb-1">{value}</p>
-        <p className="text-sm text-[#A68E4E]/80">{label}</p>
+        <p className="text-3xl sm:text-4xl font-extrabold text-white mb-1 tracking-tight">{value}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-300">{label}</p>
       </div>
     </motion.div>
   );
@@ -138,7 +139,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={Users}
           value={stats.totalUsers}
           label="Użytkowników"
-          gradient="bg-gradient-to-br from-[#A68E4E]/10 to-[#0A0F1C]"
+          gradient="bg-gradient-to-br from-cyan-500/20 via-blue-950/80 to-[#070b16]"
+          borderColor="border-cyan-500/40"
+          iconColor="text-cyan-400"
           delay={0.1}
           trend={12}
         />
@@ -146,7 +149,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={Gavel}
           value={stats.activeAuctions}
           label="Aktywnych aukcji"
-          gradient="bg-gradient-to-br from-[#A68E4E]/20 to-[#0A0F1C]"
+          gradient="bg-gradient-to-br from-amber-500/25 via-orange-950/80 to-[#070b16]"
+          borderColor="border-amber-500/40"
+          iconColor="text-amber-400"
           delay={0.15}
           trend={8}
         />
@@ -154,7 +159,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={DollarSign}
           value={`${stats.totalVolume.toLocaleString("pl-PL")} zł`}
           label="Łączny obrót"
-          gradient="bg-gradient-to-br from-[#A68E4E]/15 to-[#0A0F1C]"
+          gradient="bg-gradient-to-br from-emerald-500/20 via-teal-950/80 to-[#070b16]"
+          borderColor="border-emerald-500/40"
+          iconColor="text-emerald-400"
           delay={0.2}
           trend={24}
         />
@@ -162,7 +169,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           icon={Database}
           value={stats.totalAuctions}
           label="Wszystkich aukcji"
-          gradient="bg-gradient-to-br from-[#A68E4E]/10 to-[#0A0F1C]"
+          gradient="bg-gradient-to-br from-purple-500/20 via-indigo-950/80 to-[#070b16]"
+          borderColor="border-purple-500/40"
+          iconColor="text-purple-400"
           delay={0.25}
         />
       </div>

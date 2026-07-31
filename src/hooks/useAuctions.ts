@@ -54,6 +54,38 @@ export function useAuctions(filters: AuctionFilters = {}): UseAuctionsResult {
   });
 
   useSocket({
+    onBidPlaced: (data: {
+      auctionId: string;
+      bid?: Bid;
+      currentPrice?: number;
+      newEndTime?: string;
+      meta?: any;
+    }) => {
+      if (!data?.auctionId) return;
+      const price = Number(
+        data.currentPrice ?? data.bid?.amount ?? data.meta?.currentPrice,
+      );
+      queryClient.setQueriesData(
+        { queryKey: ["auctions"] },
+        (old: Auction[] | undefined) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((a) => {
+            if (a.id === data.auctionId) {
+              return {
+                ...a,
+                currentPrice: Number.isFinite(price) ? price : a.currentPrice,
+                endTime: data.newEndTime || data.meta?.newEndTime || a.endTime,
+                _count: {
+                  ...a._count,
+                  bids: (a._count?.bids || a.bids?.length || 0) + 1,
+                },
+              };
+            }
+            return a;
+          });
+        },
+      );
+    },
     onAuctionUpdate: () => {
       queryClient.invalidateQueries({ queryKey: ["auctions"] });
     },
@@ -185,12 +217,14 @@ export function useBid(auctionId: string, currentEndTime?: string) {
   } = useOptimizedToast();
 
   const placeBidMutation = useMutation({
-    mutationFn: (amount: number) =>
-      auctionService.placeBid(
+    mutationFn: (payload: number | { amount: number; maxBid?: number; isProxy?: boolean }) => {
+      const bidData = typeof payload === "number" ? { amount: payload } : payload;
+      return auctionService.placeBid(
         auctionId,
-        { amount },
+        bidData,
         session?.access_token || null,
-      ),
+      );
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["auction", auctionId] });
 

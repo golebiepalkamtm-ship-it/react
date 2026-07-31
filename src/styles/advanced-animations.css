@@ -482,6 +482,81 @@
   color: transparent !important;
 }
 
+/* Floating ambient dust particle animation */
+@keyframes floatParticle {
+  0% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(-22px) translateX(12px) scale(1.25);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.25;
+  }
+}
+
+.floating-particle {
+  animation-name: floatParticle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+/* Gold Text Shimmer */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-gold-text {
+  background: linear-gradient(
+    90deg,
+    #e5ba2c 0%,
+    #fef08a 25%,
+    #e5ba2c 50%,
+    #fef08a 75%,
+    #e5ba2c 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: goldShimmer 4s linear infinite;
+}
+
+/* Interactive Spotlight Glow utility */
+.spotlight-card-glow {
+  position: relative;
+  isolation: isolate;
+}
+
+.spotlight-card-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(166, 142, 78, 0.18),
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.spotlight-card-glow:hover::before {
+  opacity: 1;
+}
+
 /* ==========================================
    PERFORMANCE: Reduced motion
    ========================================== */
@@ -496,3 +571,4 @@
     scroll-behavior: auto !important;
   }
 }
+

@@ -148,15 +148,15 @@ html.lenis body {
     --color-input: hsl(var(--input));
     --color-ring: hsl(var(--ring));
 
-    --gold: 0 0% 47%;
-    /* Muted Olive Gold - Authorised by User */
-    --gold-light: 0 0% 65%;
-    --gold-dark: 0 0% 35%;
+    --gold: 43 89% 52%;
+    /* Royal Gold #E5BA2C */
+    --gold-light: 46 95% 68%;
+    --gold-dark: 38 92% 38%;
 
     /* EtheReal overrides -> visual tokens */
-    --glow-gold: 0 0 60px hsl(0 0% 47% / 0.4);
-    --glow-soft: 0 0 100px hsl(0 0% 47% / 0.2);
-    --gradient-gold: linear-gradient(135deg, hsl(0 0% 47%), hsl(0 0% 65%));
+    --glow-gold: 0 0 60px rgba(229, 186, 44, 0.55);
+    --glow-soft: 0 0 100px rgba(229, 186, 44, 0.25);
+    --gradient-gold: linear-gradient(135deg, #f7da65, #e5ba2c, #b88200);
 
     /* Timeline Colors */
     --timeline-gold: 0 0% 60%;
@@ -211,8 +211,8 @@ html.lenis body {
     --sidebar-width-icon: 3rem;
 
     /* Premium UI Tokens - Restoration to Elite Dark */
-    --neon-gold: #a68e4e;
-    --neon-gold-glow: rgba(166, 142, 78, 0.5);
+    --neon-gold: #e5ba2c;
+    --neon-gold-glow: rgba(229, 186, 44, 0.55);
     --premium-dark: #050505;
     --glass-blur: blur(12px);
   }

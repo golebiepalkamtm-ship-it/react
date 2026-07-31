@@ -281,13 +281,13 @@ router.post(
         where: { id: auctionId },
       });
       if (!auction) return res.status(404).json({ error: "Auction not found" });
-      if ((auction.status as string)?.toUpperCase() !== "ENDED") {
-        return res.status(400).json({ error: "Aukcja nie jest zakończona" });
+      if ((auction.status as string)?.toUpperCase() !== "ENDED_WAITING_PAYMENT") {
+        return res.status(400).json({ error: "Aukcja nie oczekuje na płatność prowizji" });
       }
-      if (auction.winnerId !== userId) {
+      if (auction.sellerId !== userId) {
         return res
           .status(403)
-          .json({ error: "Tylko zwycięzca może opłacić prowizję" });
+          .json({ error: "Tylko sprzedawca może opłacić prowizję" });
       }
       const amountBase = Number(
         auction.currentPrice ||
@@ -499,18 +499,16 @@ export const processStripeEvent = async (
             await tx.auction.update({
               where: { id: auctionId },
               data: {
-                status: "ENDED",
-                reserveMet: true,
-                winnerId: buyerId,
+                status: "COMPLETED",
               } as any,
             });
             console.log(
-              `Auction ${auctionId} commission paid by buyer ${buyerId}`,
+              `Auction ${auctionId} commission paid by seller ${buyerId}`,
             );
           } else if (paymentType === "LISTING_FEE") {
             await tx.auction.update({
               where: { id: auctionId },
-              data: { listingFeePaid: true },
+              data: { listingFeePaid: true, status: "ACTIVE" },
             });
             console.log(
               `Listing fee paid for auction ${auctionId} by user ${buyerId}`,

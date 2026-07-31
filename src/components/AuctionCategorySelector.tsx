@@ -51,44 +51,44 @@ const AuctionCategorySelector = ({ onSelectCategory, onCancel }: AuctionCategory
 
   return (
     <motion.div 
-      className="space-y-8"
+      className="space-y-4 py-2"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <motion.div 
-        className="text-center mb-10"
-        initial={{ opacity: 0, y: -20 }}
+        className="text-center mb-4"
+        initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 20 }}
       >
         <motion.div 
-          className="inline-flex items-center gap-3 mb-4"
+          className="inline-flex items-center gap-2 mb-2"
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring" }}
         >
           <motion.div
-            className="p-3 rounded-2xl bg-gradient-to-br from-gold via-gold-light to-gold-dark shadow-lg shadow-gold/30"
+            className="p-2 rounded-xl bg-gradient-to-br from-gold via-gold-light to-gold-dark shadow-md shadow-gold/30"
             animate={{ 
-              boxShadow: ['0 10px 40px rgba(212,175,55,0.3)', '0 10px 60px rgba(212,175,55,0.5)', '0 10px 40px rgba(212,175,55,0.3)']
+              boxShadow: ['0 5px 20px rgba(212,175,55,0.3)', '0 5px 30px rgba(212,175,55,0.5)', '0 5px 20px rgba(212,175,55,0.3)']
             }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <Sparkles className="w-8 h-8 text-navy" />
+            <Sparkles className="w-5 h-5 text-navy" />
           </motion.div>
         </motion.div>
         
         <motion.h2 
-          className="font-display text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gold-light to-gold bg-clip-text text-transparent mb-3"
-          initial={{ opacity: 0, y: 10 }}
+          className="font-display text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-gold-light to-gold bg-clip-text text-transparent mb-1"
+          initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
           Utwórz aukcję
         </motion.h2>
         <motion.p 
-          className="text-white/70 text-lg max-w-md mx-auto"
+          className="text-white/70 text-xs md:text-sm max-w-md mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -97,7 +97,7 @@ const AuctionCategorySelector = ({ onSelectCategory, onCancel }: AuctionCategory
         </motion.p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {categories.map((category, index) => (
           <motion.button
             key={category.id}

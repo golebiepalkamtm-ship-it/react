@@ -3,6 +3,7 @@ import { z } from "zod";
 import { validate } from "../middleware/validation.js";
 import { authMiddleware, type AuthenticatedRequest } from "../middleware/auth.js";
 import { prisma } from "../lib/db.js";
+import { censorText } from "../utils/antiCircumvention.js";
 
 const router: Router = express.Router();
 
@@ -60,7 +61,7 @@ router.post(
         senderId,
         recipientId,
         conversationId,
-        content,
+        content: censorText(content),
       },
     });
 

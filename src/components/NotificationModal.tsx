@@ -52,13 +52,15 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   const handleMarkAsRead = async (notificationId: string) => {
     if (!session?.access_token) return;
 
+    // Optimistic UI update - remove from list and update badge instantly
+    const updatedNotifications = notifications.filter(n => n.id !== notificationId);
+    setNotifications(updatedNotifications);
+    if (onNotificationsChange) {
+      onNotificationsChange(updatedNotifications.length);
+    }
+
     try {
       await notificationService.markAsRead(notificationId, session.access_token);
-      const updatedNotifications = notifications.filter(n => n.id !== notificationId);
-      setNotifications(updatedNotifications);
-      if (onNotificationsChange) {
-        onNotificationsChange(updatedNotifications.length);
-      }
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
@@ -67,19 +69,21 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   const handleMarkAllAsRead = async () => {
     if (!session?.access_token) return;
 
+    // Optimistic UI update
+    setNotifications([]);
+    if (onNotificationsChange) {
+      onNotificationsChange(0);
+    }
+
     try {
       await notificationService.markAllAsRead(session.access_token);
-      setNotifications([]);
-      if (onNotificationsChange) {
-        onNotificationsChange(0);
-      }
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
     }
   };
 
-  const handleNotificationClick = (notification: Notification) => {
-    handleMarkAsRead(notification.id);
+  const handleNotificationClick = async (notification: Notification) => {
+    await handleMarkAsRead(notification.id);
     if (notification.auctionId) {
       onClose();
       navigate(`/auctions/${notification.auctionId}`);

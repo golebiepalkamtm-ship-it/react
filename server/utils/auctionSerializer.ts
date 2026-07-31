@@ -184,15 +184,16 @@ function maskPhone(phone?: string | null): string | undefined {
   return "***";
 }
 
-function canViewContact(
+function canViewCounterpartyContact(
   auction: AuctionEntity | AuctionListEntity,
   userId?: string,
 ): boolean {
   if (!userId) return false;
-  // Właściciel może widzieć dane kontaktowe
-  if (auction.sellerId === userId) return true;
-  // Zwycięzca może widzieć dane sprzedającego
-  if (auction.winnerId === userId) return true;
+  // Dane kontaktowe drugiej strony widać dopiero po opłaceniu prowizji (COMPLETED)
+  if (auction.status === "COMPLETED") {
+    if (auction.sellerId === userId) return true;
+    if (auction.winnerId === userId) return true;
+  }
   return false;
 }
 
@@ -254,7 +255,9 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(
 ) {
   const { isOwner = false, userId } = options;
   const sellerAny = auction.seller as Record<string, unknown> | null;
-  const showContact = isOwner || canViewContact(auction, userId);
+  const canViewCounterparty = canViewCounterpartyContact(auction, userId);
+  const showSellerContact = isOwner || canViewCounterparty;
+  const showBidderContact = canViewCounterparty;
 
   return {
     id: auction.id,
@@ -283,7 +286,7 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(
       | undefined,
     location: auction.location ?? "",
     views: (auction as any).views || 0,
-    seller: serializePublicUser(sellerAny, showContact),
+    seller: serializePublicUser(sellerAny, showSellerContact),
     images: Array.isArray((auction as any).images)
       ? (auction as any).images.map((i: any) => i.url)
       : [],
@@ -295,11 +298,11 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(
       : [],
     bids: Array.isArray(auction.bids)
       ? (auction.bids as any[]).map((b) =>
-          serializeBid(b as BidEntity, showContact),
+          serializeBid(b as BidEntity, showBidderContact),
         )
       : [],
     _count: auction._count ?? { bids: 0, watchlist: 0 },
-    canViewContact,
+    canViewContact: canViewCounterparty,
   };
 }
 

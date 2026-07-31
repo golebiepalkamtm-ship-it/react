@@ -19,6 +19,7 @@ export interface AuctionData {
   currentPrice: number;
   startingPrice?: number;
   buyNowPrice?: number;
+  reservePrice?: number;
   status: string;
   createdAt: string;
   endTime?: string;
@@ -47,6 +48,7 @@ export interface AdminStats {
     total: number;
     count: number;
   };
+  analytics?: any;
 }
 
 export interface HistoricalStats {

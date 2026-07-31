@@ -304,6 +304,9 @@ const EliteFeatureCard = memo(
         spotlightX.set(xPercent);
         spotlightY.set(yPercent);
 
+        cardRef.current.style.setProperty("--mouse-x", `${xPercent}%`);
+        cardRef.current.style.setProperty("--mouse-y", `${yPercent}%`);
+
         mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
         mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
       },

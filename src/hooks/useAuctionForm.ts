@@ -125,13 +125,17 @@ export const useAuctionForm = ({
       if (!Number.isNaN(days)) endTime.setDate(endTime.getDate() + days);
       if (!Number.isNaN(hours)) endTime.setHours(endTime.getHours() + hours);
 
+      const hasBuyNow = Boolean(
+        formData.buyNowPrice && Number(formData.buyNowPrice) > 0,
+      );
+
       const request: CreateAuctionRequest = {
         title: formData.title!,
         description: formData.description || "",
         startingPrice: isBidding
           ? Number(formData.startingPrice)
           : (undefined as number | undefined),
-        buyNowPrice: isBuyNow
+        buyNowPrice: hasBuyNow
           ? Number(formData.buyNowPrice)
           : (undefined as number | undefined),
         category: formData.category as any,
@@ -149,41 +153,12 @@ export const useAuctionForm = ({
         session?.access_token ?? "",
       );
 
-      if (profile?.role === "ADMIN") {
-        setFeedback({
-          isOpen: true,
-          type: "success",
-          title: "Sukces!",
-          message: "Aukcja została utworzona pomyślnie.",
-        });
-        onSuccess?.();
-        return;
-      }
-
-      if (created?.id) {
-        onListingFeeRequired?.(created.id);
-        window.dispatchEvent(
-          new CustomEvent("listing-fee-required", {
-            detail: { auctionId: created.id },
-          }),
-        );
-        setFeedback({
-          isOpen: true,
-          type: "info",
-          title: "Opłata za wystawienie",
-          message:
-            "Aukcja zapisana. Opłać wystawienie (20 PLN), aby była widoczna publicznie.",
-        });
-        return;
-      }
-
       setFeedback({
         isOpen: true,
         type: "success",
         title: "Sukces!",
         message: "Aukcja została utworzona pomyślnie.",
       });
-
       onSuccess?.();
     } catch (err) {
       const msg =
