@@ -6,7 +6,7 @@ export interface AuditLogData {
   action: string;
   actorId: string;
   targetId?: string;
-  targetType: 'USER' | 'AUCTION' | 'SYSTEM' | 'OTHER';
+  targetType: 'USER' | 'AUCTION' | 'SYSTEM' | 'PAYMENT' | 'OTHER';
   details?: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;

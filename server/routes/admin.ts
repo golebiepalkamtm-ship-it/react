@@ -107,7 +107,7 @@ async function ensureAdmin(
 async function logAdminAction(
   req: AuthenticatedRequest,
   action: string,
-  targetType: "USER" | "AUCTION" | "SYSTEM",
+  targetType: "USER" | "AUCTION" | "SYSTEM" | "PAYMENT" | "OTHER",
   targetId?: string,
   details?: any,
 ) {
