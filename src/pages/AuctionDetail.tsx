@@ -541,7 +541,7 @@ const AuctionDetail: React.FC = () => {
         {dAuction ? (
           <div className="container mx-auto px-4">
             {/* Navigation & Breadcrumb */}
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-6">
                 <Link
                   to="/auctions"
@@ -549,7 +549,7 @@ const AuctionDetail: React.FC = () => {
                 >
                   <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                   <span className="text-[11px] font-black uppercase tracking-widest">
-                    Powrót
+                    Powrót do listy
                   </span>
                 </Link>
 
@@ -567,6 +567,15 @@ const AuctionDetail: React.FC = () => {
                     {dAuction.title}
                   </span>
                 </div>
+              </div>
+
+              {/* Verified Trust Tag */}
+              <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/40 border border-[#A68E4E]/50 backdrop-blur-md shadow-[0_0_15px_rgba(166,142,78,0.2)]">
+                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+                  Aukcja Zweryfikowana • MTM Pałka Loft
+                </span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               </div>
             </div>
 
