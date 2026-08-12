@@ -60,9 +60,9 @@ const GOLD_LINE_BASE_STYLE: React.CSSProperties = {
   width: "100%",
   borderRadius: "999px",
   background:
-    "linear-gradient(90deg, transparent 0%, rgba(255,215,128,0.2) 8%, rgba(255,215,128,0.95) 50%, rgba(255,215,128,0.2) 92%, transparent 100%)",
+    "linear-gradient(90deg, transparent 0%, rgba(166,142,78,0.2) 8%, rgba(166,142,78,0.95) 50%, rgba(166,142,78,0.2) 92%, transparent 100%)",
   clipPath: "polygon(0% 50%, 7% 0%, 93% 0%, 100% 50%, 93% 100%, 7% 100%)",
-  boxShadow: "0 0 22px rgba(255, 215, 128, 0.35)",
+  boxShadow: "0 0 22px rgba(166, 142, 78, 0.35)",
   pointerEvents: "none",
 };
 
