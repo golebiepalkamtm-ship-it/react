@@ -30,6 +30,7 @@ import AccountModal from "@/components/AccountModal";
 import { useSocket } from "@/hooks/useSocket";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { auctionService } from "@/services/auctionService";
+import { paymentService } from "@/services/paymentService";
 import { useQuery } from "@tanstack/react-query";
 import {
   Tooltip,
@@ -161,6 +162,26 @@ const AuctionsPage = () => {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isCardRequiredModalOpen, setIsCardRequiredModalOpen] = useState(false);
+  const [isAttachCardLoading, setIsAttachCardLoading] = useState(false);
+
+  const handleAttachCardRedirect = useCallback(async () => {
+    if (!session?.access_token) return;
+    setIsAttachCardLoading(true);
+    try {
+      const res = await paymentService.createSetupSession(session.access_token);
+      if (res.url) {
+        window.location.assign(res.url);
+      }
+    } catch (e: any) {
+      showWarning({
+        message: e.message || "Nie udało się otworzyć sesji Stripe.",
+      });
+    } finally {
+      setIsAttachCardLoading(false);
+    }
+  }, [session?.access_token, showWarning]);
+
   const [selectedCategory, setSelectedCategory] = useState<
     "pigeons" | "supplements" | "accessories" | null
   >(null);
@@ -284,13 +305,17 @@ const AuctionsPage = () => {
         setShowVerificationModal(true);
       },
       USER_FULL_VERIFIED: () => {
+        if (!profile?.stripeCustomerId && profile?.role !== "ADMIN") {
+          setIsCardRequiredModalOpen(true);
+          return;
+        }
         setIsCreateOpen(true);
       },
       ADMIN: () => {
         setIsCreateOpen(true);
       },
     }),
-    [],
+    [profile],
   );
 
   const openCreateAuctionFlow = useCallback(() => {
@@ -802,6 +827,22 @@ const AuctionsPage = () => {
         title={feedbackModal.title}
         message={feedbackModal.message}
       />
+      <UnifiedModal
+        isOpen={isCardRequiredModalOpen}
+        onClose={() => setIsCardRequiredModalOpen(false)}
+        type="warning"
+        title="💳 Wymagana karta płatnicza"
+        message="Aby wystawiać nowe aukcje w serwisie Pałka MTM (zabezpieczenie opłat i prowizji), musisz najpierw podpiąć kartę płatniczą w bezpiecznym systemie Stripe."
+        confirmButton={{
+          text: isAttachCardLoading ? "Łączenie ze Stripe..." : "💳 Podepnij kartę (Stripe)",
+          onClick: handleAttachCardRedirect,
+        }}
+        cancelButton={{
+          text: "Anuluj",
+          onClick: () => setIsCardRequiredModalOpen(false),
+        }}
+      />
+
       <AccountModal
         open={isAccountOpen}
         onClose={() => setIsAccountOpen(false)}

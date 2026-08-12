@@ -20,6 +20,7 @@ export interface UserProfile {
   trustScore: number;
   role: string;
   avatarUrl: string | null;
+  stripeCustomerId?: string | null;
 }
 
 export const userService = {

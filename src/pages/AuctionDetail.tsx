@@ -324,11 +324,37 @@ const AuctionDetail: React.FC = () => {
 
   const [isAutoBid, setIsAutoBid] = useState<boolean>(false);
   const [maxBidAmount, setMaxBidAmount] = useState<string>("");
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [isAttachCardLoading, setIsAttachCardLoading] = useState(false);
+
+  const handleAttachCardRedirect = useCallback(async () => {
+    if (!token) return;
+    setIsAttachCardLoading(true);
+    try {
+      const res = await paymentService.createSetupSession(token);
+      if (res.url) {
+        window.location.assign(res.url);
+      }
+    } catch (e: any) {
+      toast({
+        title: "Błąd płatności",
+        description: e.message || "Nie udało się otworzyć sesji Stripe.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAttachCardLoading(false);
+    }
+  }, [token]);
 
   const handleBid = useCallback(async () => {
     if (isOwner) return;
     if (!checkAccess()) return;
     if (!token || !dAuction) return;
+
+    if (profile?.role !== "ADMIN" && !profile?.stripeCustomerId) {
+      setIsCardModalOpen(true);
+      return;
+    }
 
     const amount = parseFloat(bidAmount);
     if (isNaN(amount)) return;
@@ -352,7 +378,7 @@ const AuctionDetail: React.FC = () => {
       setBidAmount("");
       setMaxBidAmount("");
     }
-  }, [checkAccess, token, dAuction, placeBid, bidAmount, maxBidAmount, isAutoBid, bidError, isOwner]);
+  }, [checkAccess, token, dAuction, placeBid, bidAmount, maxBidAmount, isAutoBid, bidError, isOwner, profile]);
 
   const handleAdminUpdate = async (data: {
     currentPrice?: number;
@@ -1555,6 +1581,21 @@ const AuctionDetail: React.FC = () => {
           onCancel={handleAdminCancel}
         />
       )}
+      <UnifiedModal
+        isOpen={isCardModalOpen}
+        onClose={() => setIsCardModalOpen(false)}
+        type="warning"
+        title="💳 Wymagana karta płatnicza"
+        message="Aby składać oferty w licytacjach Pałka MTM (zabezpieczenie wiarygodności transakcji), musisz najpierw podpiąć kartę płatniczą w bezpiecznym systemie Stripe."
+        confirmButton={{
+          text: isAttachCardLoading ? "Łączenie ze Stripe..." : "💳 Podepnij kartę (Stripe)",
+          onClick: handleAttachCardRedirect,
+        }}
+        cancelButton={{
+          text: "Anuluj",
+          onClick: () => setIsCardModalOpen(false),
+        }}
+      />
 
       <Footer />
     </div>

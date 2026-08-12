@@ -87,6 +87,11 @@ export const paymentService = {
       token,
     );
   },
+
+  async createSetupSession(token: string | null): Promise<{ url: string }> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.post<{ url: string }>("/payments/stripe/setup-session", {}, token);
+  },
 };
 
 export default paymentService;

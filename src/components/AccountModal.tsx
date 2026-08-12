@@ -21,6 +21,7 @@ import type { Profile } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { reviewService } from "@/services/reviewService";
 import { apiClient } from "@/services/api";
+import { paymentService } from "@/services/paymentService";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import PhoneVerification from "@/components/auth/PhoneVerification";
 
@@ -85,6 +86,25 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
     "profile" | "security" | "settings"
   >("profile");
   const [trustScore, setTrustScore] = useState(0);
+  const [cardLoading, setCardLoading] = useState(false);
+
+  const handleAttachCard = async () => {
+    if (!session?.access_token) return;
+    setCardLoading(true);
+    try {
+      const res = await paymentService.createSetupSession(session.access_token);
+      if (res.url) {
+        window.location.assign(res.url);
+      }
+    } catch (err: any) {
+      setFeedbackType("error");
+      setFeedbackTitle("Błąd płatności");
+      setFeedbackMessage(err.message || "Nie udało się uruchomić sesji Stripe.");
+      setFeedbackOpen(true);
+    } finally {
+      setCardLoading(false);
+    }
+  };
 
   // Fetch trust score
   React.useEffect(() => {
@@ -261,13 +281,13 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
       )}
 
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.06 }}
       >
         <div
-          className="rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-950/70 to-[#0e1832] p-4 border border-cyan-500/40 shadow-lg backdrop-blur-md"
+          className="rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-950/70 to-[#0e1832] p-4 border border-cyan-500/40 shadow-lg backdrop-blur-md flex flex-col justify-between"
         >
           <div className="text-cyan-300 font-medium flex items-center gap-2 text-xs uppercase tracking-wider">
             <Mail className="w-4 h-4 text-cyan-400" />
@@ -278,7 +298,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
           </div>
         </div>
         <div
-          className="rounded-2xl bg-gradient-to-br from-amber-500/25 via-orange-950/70 to-[#0e1832] p-4 border border-amber-500/40 shadow-lg backdrop-blur-md"
+          className="rounded-2xl bg-gradient-to-br from-amber-500/25 via-orange-950/70 to-[#0e1832] p-4 border border-amber-500/40 shadow-lg backdrop-blur-md flex flex-col justify-between"
         >
           <div className="text-amber-300 font-medium flex items-center gap-2 text-xs uppercase tracking-wider">
             <Star className="w-4 h-4 text-amber-400" />
@@ -287,7 +307,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
           <div className="mt-1.5 text-white font-extrabold text-sm md:text-base">{profile.role ?? "-"}</div>
         </div>
         <div
-          className="rounded-2xl bg-gradient-to-br from-emerald-500/20 via-teal-950/70 to-[#0e1832] p-4 border border-emerald-500/40 shadow-lg backdrop-blur-md"
+          className="rounded-2xl bg-gradient-to-br from-emerald-500/20 via-teal-950/70 to-[#0e1832] p-4 border border-emerald-500/40 shadow-lg backdrop-blur-md flex flex-col justify-between"
         >
           <div className="text-emerald-300 font-medium flex items-center gap-2 text-xs uppercase tracking-wider">
             <Calendar className="w-4 h-4 text-emerald-400" />
@@ -302,6 +322,32 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
                     profile.role === "ADMIN"
                   ? t("account.next.done")
                   : "-"}
+          </div>
+        </div>
+        <div
+          className="rounded-2xl bg-gradient-to-br from-[#A68E4E]/25 via-[#2b2413]/70 to-[#0e1832] p-4 border border-[#A68E4E]/50 shadow-lg backdrop-blur-md flex flex-col justify-between"
+        >
+          <div className="text-[#A68E4E] font-medium flex items-center gap-2 text-xs uppercase tracking-wider">
+            <CreditCard className="w-4 h-4 text-[#A68E4E]" />
+            Karta w Stripe
+          </div>
+          <div className="mt-1.5 flex flex-col gap-2">
+            <span className="text-xs font-bold text-amber-200">
+              {profile.stripeCustomerId ? "✓ Podpięta" : "✕ Brak karty"}
+            </span>
+            <button
+              type="button"
+              onClick={handleAttachCard}
+              disabled={cardLoading}
+              className="gold-button text-[11px] px-2.5 py-1.5 rounded-lg font-extrabold flex items-center justify-center gap-1.5 shadow-md hover:scale-[1.02] transition-all"
+              style={{
+                backgroundImage: "linear-gradient(135deg, rgba(166,142,78,0.95), rgba(166,142,78,0.85))",
+                color: "#0f0f0f",
+              }}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              {cardLoading ? "Łączenie..." : profile.stripeCustomerId ? "Zarządzaj kartą" : "Podepnij kartę"}
+            </button>
           </div>
         </div>
       </motion.div>

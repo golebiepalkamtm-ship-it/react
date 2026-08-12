@@ -492,6 +492,20 @@ if (validatedEnv.NODE_ENV === "development") {
             .status(500)
             .json({ error: "Błąd połączenia z bazą danych." });
 
+        const requireCard = process.env.REQUIRE_CARD_FOR_LISTING !== "false" && process.env.REQUIRE_CARD_FOR_BID !== "false";
+        if (requireCard && role !== "ADMIN") {
+          const userObj = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { stripeCustomerId: true },
+          });
+          if (!userObj?.stripeCustomerId) {
+            return res.status(400).json({
+              error: "Musisz podpiąć kartę płatniczą do konta, aby móc wystawiać nowe aukcje. [REQUIRES_PAYMENT_CARD]",
+              code: "REQUIRES_PAYMENT_CARD",
+            });
+          }
+        }
+
         const created = await performAuctionCreate(req, userId, {
           isAdmin: role === "ADMIN",
         });
