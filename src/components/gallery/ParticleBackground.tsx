@@ -120,7 +120,9 @@ export const ParticleBackground = ({
         ctx.fill();
       });
 
-      animationRef.current = requestAnimationFrame(animate);
+      if (!document.hidden) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
     };
 
     animate();

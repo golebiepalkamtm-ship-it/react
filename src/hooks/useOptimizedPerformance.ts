@@ -82,11 +82,15 @@ export const useOptimizedPerformance = (config: PerformanceConfig = {}) => {
         setCurrentFPS(fps);
       }
 
-      animationId = requestAnimationFrame(measureFPS);
+      if (!document.hidden) {
+        animationId = requestAnimationFrame(measureFPS);
+      }
     };
 
     performanceRef.current.lastTime = performance.now();
-    animationId = requestAnimationFrame(measureFPS);
+    if (!document.hidden) {
+      animationId = requestAnimationFrame(measureFPS);
+    }
 
     return () => cancelAnimationFrame(animationId);
   }, [enableAnimations]);

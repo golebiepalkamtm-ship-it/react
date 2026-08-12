@@ -93,13 +93,25 @@ export default function ParticleBackground() {
         ctx.fill();
       });
 
-      animationRef.current = requestAnimationFrame(animate);
+      if (!document.hidden) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      } else {
+        animate();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     animate();
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [reduced]);
