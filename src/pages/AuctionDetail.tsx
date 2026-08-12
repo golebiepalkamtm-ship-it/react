@@ -52,6 +52,20 @@ import { toast } from "@/hooks/use-toast";
 import type { Auction } from "@/types/auction";
 import { formatCategory } from "@/utils/auction";
 
+const CONTENT_BACKGROUND =
+  "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)";
+
+const GOLD_LINE_BASE_STYLE: React.CSSProperties = {
+  height: "4px",
+  width: "100%",
+  borderRadius: "999px",
+  background:
+    "linear-gradient(90deg, transparent 0%, rgba(255,215,128,0.2) 8%, rgba(255,215,128,0.95) 50%, rgba(255,215,128,0.2) 92%, transparent 100%)",
+  clipPath: "polygon(0% 50%, 7% 0%, 93% 0%, 100% 50%, 93% 100%, 7% 100%)",
+  boxShadow: "0 0 22px rgba(255, 215, 128, 0.35)",
+  pointerEvents: "none",
+};
+
 const AuctionImage = memo(
   ({
     src,
@@ -588,12 +602,13 @@ const AuctionDetail: React.FC = () => {
               <div className="space-y-6 relative z-10">
                 {/* Main Glass Gallery Card */}
                 <div
-                  className="aspect-square rounded-[2.5rem] overflow-hidden glass-vault border-2 border-[#A68E4E]/70 shadow-[0_0_60px_rgba(166,142,78,0.25)] relative cursor-pointer"
+                  className="aspect-square rounded-[2.5rem] overflow-hidden relative cursor-pointer"
                   style={{
-                    background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-                    backdropFilter: "blur(12px)",
-                    WebkitBackdropFilter: "blur(12px)",
+                    backgroundImage: CONTENT_BACKGROUND,
+                    backgroundColor: "#010509",
+                    border: "2px solid rgba(166,142,78,0.7)",
+                    boxShadow:
+                      "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
                   }}
                   onClick={() => {
                     setImageModalIndex(activeImageIndex);
@@ -656,12 +671,13 @@ const AuctionDetail: React.FC = () => {
                 {/* Pedigree Images Section */}
                 {isPigeon && pedigreeImages && pedigreeImages.length > 0 && (
                   <div
-                    className="p-5 rounded-3xl border-2 border-[#A68E4E]/40 space-y-3 shadow-xl"
+                    className="p-5 rounded-3xl space-y-3"
                     style={{
-                      background:
-                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-                      backdropFilter: "blur(12px)",
-                      WebkitBackdropFilter: "blur(12px)",
+                      backgroundImage: CONTENT_BACKGROUND,
+                      backgroundColor: "#010509",
+                      border: "2px solid rgba(166,142,78,0.7)",
+                      boxShadow:
+                        "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
                     }}
                   >
                     <div className="flex items-center justify-between">
@@ -702,12 +718,13 @@ const AuctionDetail: React.FC = () => {
                 {/* Seller Trust Card */}
                 {dAuction.seller && (
                   <div
-                    className="p-6 rounded-3xl border-2 border-[#A68E4E]/40 flex items-center justify-between gap-4 shadow-xl"
+                    className="p-6 rounded-3xl flex items-center justify-between gap-4"
                     style={{
-                      background:
-                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-                      backdropFilter: "blur(12px)",
-                      WebkitBackdropFilter: "blur(12px)",
+                      backgroundImage: CONTENT_BACKGROUND,
+                      backgroundColor: "#010509",
+                      border: "2px solid rgba(166,142,78,0.7)",
+                      boxShadow:
+                        "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
                     }}
                   >
                     <div className="flex items-center gap-4">
@@ -755,12 +772,13 @@ const AuctionDetail: React.FC = () => {
               <div className="flex flex-col h-full relative z-10">
                 {/* Single Unified Auction Dashboard Container */}
                 <div
-                  className="glass-vault rounded-[2.5rem] overflow-hidden relative group h-full border-2 border-[#A68E4E]/70 shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col"
+                  className="rounded-[2.5rem] overflow-hidden relative group h-full flex flex-col"
                   style={{
-                    background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
-                    backdropFilter: "blur(12px)",
-                    WebkitBackdropFilter: "blur(12px)",
+                    backgroundImage: CONTENT_BACKGROUND,
+                    backgroundColor: "#010509",
+                    border: "2px solid rgba(166,142,78,0.7)",
+                    boxShadow:
+                      "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
                   }}
                 >
                   {/* Top Accent Line like Footer */}
@@ -768,7 +786,7 @@ const AuctionDetail: React.FC = () => {
                   <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-cyan-400 to-[#A68E4E] shadow-[0_0_20px_rgba(66,192,206,0.8)] z-20" />
 
                   {/* Section 0: Enhanced Header (Category, Status, Bids, Views, Watch) */}
-                  <div className="p-8 border-b border-[#A68E4E]/40 relative bg-[#03131c]/50 backdrop-blur-md">
+                  <div className="p-8 relative">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
@@ -837,8 +855,11 @@ const AuctionDetail: React.FC = () => {
                     </h1>
                   </div>
 
+                  {/* Gold Separator Line like ChampionCard */}
+                  <div className="px-8"><div style={GOLD_LINE_BASE_STYLE} /></div>
+
                   {/* Section 1: Bidding & Price (The "Hot" Zone) */}
-                  <div className="p-8 border-b border-[#A68E4E]/30 relative bg-[#051c27]/40">
+                  <div className="p-8 relative">
                     <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
                       <div className="min-w-fit">
                         <p className="text-[11px] text-amber-200/80 uppercase tracking-[0.2em] font-black mb-1">
@@ -1080,6 +1101,9 @@ const AuctionDetail: React.FC = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Gold Separator Line like ChampionCard */}
+                  <div className="px-8"><div style={GOLD_LINE_BASE_STYLE} /></div>
 
                   {/* Section 3: Deep Details (Tabbed View) */}
                   <div className="p-8">

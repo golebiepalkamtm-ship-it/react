@@ -55,6 +55,9 @@ AuctionImage.displayName = "AuctionImage";
 
 const AUCTION_PLACEHOLDER_SRC = "/placeholder.svg";
 
+const CONTENT_BACKGROUND =
+  "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)";
+
 const GOLD_LINE_BASE_STYLE: CSSProperties = {
   height: "4px",
   width: "100%",
@@ -278,42 +281,15 @@ export const UnifiedAuctionCard = memo(
       [],
     );
 
-    // Dynamic card styling based on status
+    // Dynamic card styling based on status - Exactly matching ChampionCard
     const cardStyles = useMemo(() => {
-      if (timeMeta.ended) {
-        return {
-          gradient:
-            "radial-gradient(circle at top, rgba(255,255,255,0.08) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #030308 55%, #080b12 100%)",
-          base: "#010104",
-          border: "transparent",
-          glow: "none",
-        };
-      }
-      if (timeMeta.endingSoon) {
-        return {
-          gradient:
-            "radial-gradient(circle at top, rgba(255,125,125,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #080103 55%, #150205 100%)",
-          base: "#040003",
-          border: "transparent",
-          glow: "none",
-        };
-      }
-      if (featured || highlight) {
-        return {
-          gradient:
-            "radial-gradient(circle at top, rgba(100,150,255,0.06) 0%, transparent 35%), linear-gradient(165deg, #000000 0%, #01050e 55%, #020a16 100%)",
-          base: "#01030a",
-          border: "transparent",
-          glow: "none",
-        };
-      }
       return {
         gradient: CONTENT_BACKGROUND,
-        base: "rgba(15, 23, 42, 0.88)",
-        border: "transparent",
-        glow: "none",
+        base: "#010509",
+        border: "rgba(166,142,78,0.7)",
+        glow: "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
       };
-    }, [timeMeta.ended, timeMeta.endingSoon, featured, highlight]);
+    }, []);
 
     return (
       <motion.article
