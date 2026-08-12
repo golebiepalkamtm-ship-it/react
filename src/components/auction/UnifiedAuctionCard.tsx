@@ -415,7 +415,7 @@ export const UnifiedAuctionCard = memo(
 
           {/* Image section */}
           <div
-            className="relative w-full aspect-square overflow-hidden bg-transparent border-b border-[#F5E096]/40"
+            className="relative w-full aspect-square overflow-hidden bg-transparent"
             onContextMenu={(e) => e.preventDefault()}
           >
             <div

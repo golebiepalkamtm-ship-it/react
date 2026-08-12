@@ -627,62 +627,57 @@ const AuctionDetail: React.FC = () => {
               {/* Column 1: Gallery & Seller Trust */}
               <div className="space-y-6 relative z-10">
                 {/* Main Glass Gallery Card */}
-                <div className="relative group/gallery">
-                  {/* Ambient Radiant Gold Outer Glow */}
-                  <div className="pointer-events-none absolute -inset-1.5 rounded-[2.7rem] bg-gradient-to-tr from-[#A68E4E]/60 via-[#F5E096]/50 to-[#A68E4E]/60 blur-xl opacity-75 group-hover/gallery:opacity-100 transition-opacity duration-500 animate-pulse" />
-
+                <div
+                  className="aspect-square rounded-[2.5rem] overflow-hidden relative cursor-pointer backdrop-blur-md"
+                  style={{
+                    background: "transparent",
+                    border: "2px solid rgba(166,142,78,0.7)",
+                    boxShadow:
+                      "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
+                  }}
+                  onClick={() => {
+                    setImageModalIndex(activeImageIndex);
+                    setIsImageModalOpen(true);
+                  }}
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  {/* Transparent Protection Overlay */}
                   <div
-                    className="aspect-square rounded-[2.5rem] overflow-hidden relative cursor-pointer backdrop-blur-md transition-all duration-300"
-                    style={{
-                      background: "transparent",
-                      border: "2.5px solid rgba(220, 185, 105, 0.95)",
-                      boxShadow:
-                        "0 0 25px rgba(220, 185, 105, 0.5), 0 0 50px rgba(166, 142, 78, 0.35), inset 0 0 25px rgba(220, 185, 105, 0.2), 0 24px 60px rgba(0,0,0,0.8)",
-                    }}
-                    onClick={() => {
-                      setImageModalIndex(activeImageIndex);
-                      setIsImageModalOpen(true);
-                    }}
+                    className="absolute inset-0 z-20 bg-transparent select-none"
                     onContextMenu={(e) => e.preventDefault()}
-                  >
-                    {/* Transparent Protection Overlay */}
-                    <div
-                      className="absolute inset-0 z-20 bg-transparent select-none"
-                      onContextMenu={(e) => e.preventDefault()}
-                      onDragStart={(e) => e.preventDefault()}
-                    />
-                    {/* Top Accent Line like Footer */}
-                    <div className="absolute top-0 left-0 w-full h-[18px] bg-gradient-to-b from-[#FFF2A8]/50 via-[#A68E4E]/30 to-transparent pointer-events-none opacity-90 z-20" />
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#A68E4E] via-[#FFF2A8] to-[#A68E4E] shadow-[0_0_25px_rgba(255,242,168,0.9)] z-20" />
-                    <AuctionImage
-                      src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-40 scale-110 select-none pointer-events-none"
-                    />
-                    <AuctionImage
-                      src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
-                      alt={dAuction.title}
-                      className="relative z-10 w-full h-full object-contain object-center filter brightness-[1.06] contrast-[1.04] drop-shadow-[0_12px_24px_rgba(0,0,0,0.7)] select-none pointer-events-none"
-                    />
-                    <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-[#070e1e]/40 via-transparent to-white/5" />
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+                  {/* Top Accent Line like Footer */}
+                  <div className="absolute top-0 left-0 w-full h-[15px] bg-gradient-to-b from-[#A68E4E]/40 via-[#A68E4E]/20 to-transparent pointer-events-none opacity-90 z-20" />
+                  <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-[#C5A95D] to-[#A68E4E] shadow-[0_0_20px_rgba(166,142,78,0.8)] z-20" />
+                  <AuctionImage
+                    src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-110 select-none pointer-events-none"
+                  />
+                  <AuctionImage
+                    src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
+                    alt={dAuction.title}
+                    className="relative z-10 w-full h-full object-contain object-center filter brightness-[1.08] contrast-[1.05] drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] select-none pointer-events-none"
+                  />
+                  <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-[#070e1e]/20 via-transparent to-white/5" />
 
-                    {/* Top Badge Overlay */}
-                    <div className="absolute top-4 left-4 right-4 z-30 flex items-center justify-between pointer-events-none">
-                      <div className="flex items-center gap-2">
-                        {isPigeon && (
-                          <span className="px-3.5 py-1.5 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#F5E096]/70 text-[#FFF2A8] text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,224,150,0.3)]">
-                            <Award className="w-3.5 h-3.5 text-[#FFF2A8]" />
-                            Certyfikat Genetyczny
-                          </span>
-                        )}
-                      </div>
-                      {dAuction.images && dAuction.images.length > 0 && (
-                        <span className="px-3 py-1.5 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#F5E096]/60 text-[#FFF2A8] text-[11px] font-bold tracking-wider flex items-center gap-1.5 shadow-md">
-                          <Maximize2 className="w-3.5 h-3.5 text-[#FFF2A8]" />
-                          {activeImageIndex + 1} / {dAuction.images.length}
+                  {/* Top Badge Overlay */}
+                  <div className="absolute top-4 left-4 right-4 z-30 flex items-center justify-between pointer-events-none">
+                    <div className="flex items-center gap-2">
+                      {isPigeon && (
+                        <span className="px-3.5 py-1.5 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#A68E4E]/50 text-[#A68E4E] text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
+                          <Award className="w-3.5 h-3.5 text-[#A68E4E]" />
+                          Certyfikat Genetyczny
                         </span>
                       )}
                     </div>
+                    {dAuction.images && dAuction.images.length > 0 && (
+                      <span className="px-3 py-1.5 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#A68E4E]/40 text-[#A68E4E] text-[11px] font-bold tracking-wider flex items-center gap-1.5 shadow-md">
+                        <Maximize2 className="w-3.5 h-3.5 text-[#A68E4E]" />
+                        {activeImageIndex + 1} / {dAuction.images.length}
+                      </span>
+                    )}
                   </div>
                 </div>
 
