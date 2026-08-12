@@ -789,7 +789,7 @@ const AuctionDetail: React.FC = () => {
                   <div className="p-8 relative">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className="px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <span className="px-4 py-1.5 rounded-full bg-[#A68E4E]/20 text-[#A68E4E] border border-[#A68E4E]/40 text-[10px] font-black uppercase tracking-[0.2em]">
                           {formatCategory(dAuction.category)}
                         </span>
                         {isEnded ? (
@@ -808,19 +808,19 @@ const AuctionDetail: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {dAuction.startingPrice != null && (
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-amber-100/70 uppercase tracking-widest font-black">
+                              <span className="text-[10px] text-[#A68E4E]/70 uppercase tracking-widest font-black">
                                 Ofert:
                               </span>
-                              <span className="text-[12px] font-bold text-amber-300">
+                              <span className="text-[12px] font-bold text-[#A68E4E]">
                                 {dAuction._count?.bids || 0}
                               </span>
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-amber-100/70 uppercase tracking-widest font-black">
+                            <span className="text-[10px] text-[#A68E4E]/70 uppercase tracking-widest font-black">
                               Obserwują:
                             </span>
-                            <span className="text-[12px] font-bold text-amber-300">
+                            <span className="text-[12px] font-bold text-[#A68E4E]">
                               {dAuction._count?.watchlist || 0}
                             </span>
                           </div>
@@ -862,26 +862,26 @@ const AuctionDetail: React.FC = () => {
                   <div className="p-8 relative">
                     <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
                       <div className="min-w-fit">
-                        <p className="text-[11px] text-amber-200/80 uppercase tracking-[0.2em] font-black mb-1">
+                        <p className="text-[11px] text-[#A68E4E]/80 uppercase tracking-[0.2em] font-black mb-1">
                           {dAuction.startingPrice != null
                             ? "Aktualna cena"
                             : "Cena"}
                         </p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-4xl md:text-5xl font-black text-amber-400 tracking-tighter drop-shadow-[0_0_25px_rgba(245,158,11,0.5)]">
+                          <span className="text-4xl md:text-5xl font-black text-[#A68E4E] tracking-tighter drop-shadow-[0_0_25px_rgba(166,142,78,0.4)]">
                             {dAuction.currentPrice
                               ? dAuction.currentPrice.toLocaleString("pl-PL")
                               : "0"}
                           </span>
-                          <span className="text-base font-black text-amber-300 uppercase tracking-widest mb-1">
+                          <span className="text-base font-black text-[#A68E4E] uppercase tracking-widest mb-1">
                             PLN
                           </span>
                         </div>
                       </div>
                       {!isEnded && (
                         <div className="min-w-fit flex flex-col items-end gap-2">
-                          <div className="bg-[#020a13]/90 border-2 border-amber-400/80 px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.3)]">
-                            <p className="text-[10px] text-amber-300 uppercase tracking-[0.2em] font-black leading-none">
+                          <div className="bg-[#020a13]/90 border-2 border-[#A68E4E] px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_25px_rgba(166,142,78,0.3)]">
+                            <p className="text-[10px] text-[#A68E4E] uppercase tracking-[0.2em] font-black leading-none">
                               Koniec za
                             </p>
                             <div className="text-2xl font-black text-white tabular-nums tracking-tight leading-none">
@@ -889,8 +889,8 @@ const AuctionDetail: React.FC = () => {
                             </div>
                           </div>
                           {dAuction.isExtended && (
-                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] font-bold tracking-wide animate-pulse">
-                              <Sparkles className="w-3 h-3 text-amber-400" />
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A68E4E]/20 border border-[#A68E4E]/40 text-[#A68E4E] text-[10px] font-bold tracking-wide animate-pulse">
+                              <Sparkles className="w-3 h-3 text-[#A68E4E]" />
                               <span>Aukcja przedłużona o +5 min (Anti-Sniping)</span>
                             </div>
                           )}
@@ -993,9 +993,9 @@ const AuctionDetail: React.FC = () => {
                                       type="checkbox"
                                       checked={isAutoBid}
                                       onChange={(e) => setIsAutoBid(e.target.checked)}
-                                      className="w-4 h-4 rounded border-amber-500/50 accent-amber-500"
+                                      className="w-4 h-4 rounded border-[#A68E4E]/50 accent-[#A68E4E]"
                                     />
-                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                                    <span className="text-xs font-bold text-[#A68E4E] uppercase tracking-wider">
                                       Auto-Bid (Stawka Maksymalna)
                                     </span>
                                   </label>
@@ -1012,7 +1012,7 @@ const AuctionDetail: React.FC = () => {
                                       placeholder={`Kwota maksymalna (np. ${((minimumBidValue || 0) + 500).toLocaleString("pl-PL")})`}
                                       className="flex-1 bg-black/40 border border-[#A68E4E]/60 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#A68E4E] font-bold"
                                     />
-                                    <span className="text-xs font-bold text-amber-400">PLN MAX</span>
+                                    <span className="text-xs font-bold text-[#A68E4E]">PLN MAX</span>
                                   </div>
                                 )}
                               </div>
@@ -1039,7 +1039,7 @@ const AuctionDetail: React.FC = () => {
                                           <Button
                                             onClick={handleBid}
                                             disabled={bidLoading}
-                                            className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 shadow-lg shadow-amber-500/30 hover:scale-[1.02] border-0"
+                                            className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap bg-[#A68E4E] hover:bg-[#8e7a42] text-zinc-950 shadow-lg shadow-[#A68E4E]/30 border-0"
                                           >
                                             <Gavel className="w-3.5 h-3.5 mr-1.5" />
                                             {isAutoBid ? "Ustaw Auto-Bid" : "Licytuj"}
@@ -1111,20 +1111,20 @@ const AuctionDetail: React.FC = () => {
                     <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-[#03131c]/60 rounded-2xl border border-[#A68E4E]/40 shadow-lg">
                       <button
                         onClick={() => setActiveDetailTab("details")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-amber-100/70 hover:text-white hover:bg-white/10"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "bg-[#A68E4E] text-zinc-950 font-extrabold shadow-lg shadow-[#A68E4E]/30 scale-[1.02]" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
                       >
                         Informacje
                       </button>
                       <button
                         onClick={() => setActiveDetailTab("history")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-amber-100/70 hover:text-white hover:bg-white/10"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "bg-[#A68E4E] text-zinc-950 font-extrabold shadow-lg shadow-[#A68E4E]/30 scale-[1.02]" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
                       >
                         Historia ({dAuction.bids?.length || 0})
                       </button>
                       {dAuction.documents && dAuction.documents.length > 0 && (
                         <button
                           onClick={() => setActiveDetailTab("documents")}
-                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-amber-100/70 hover:text-white hover:bg-white/10"}`}
+                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "bg-[#A68E4E] text-zinc-950 font-extrabold shadow-lg shadow-[#A68E4E]/30 scale-[1.02]" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
                         >
                           Dokumenty ({dAuction.documents.length})
                         </button>
@@ -1199,8 +1199,8 @@ const AuctionDetail: React.FC = () => {
                                     <div key={i} className="p-6 bg-[#06232e]/80 hover:bg-[#093d4d]/90 transition-all duration-300 group/spec">
                                       <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-1.5">
-                                          <spec.icon className="w-3.5 h-3.5 text-amber-400 opacity-80 group-hover/spec:opacity-100 group-hover/spec:scale-110 transition-all" />
-                                          <p className="text-[10px] text-amber-400 uppercase tracking-[0.2em] font-black">
+                                          <spec.icon className="w-3.5 h-3.5 text-[#A68E4E] opacity-80 group-hover/spec:opacity-100 group-hover/spec:scale-110 transition-all" />
+                                          <p className="text-[10px] text-[#A68E4E] uppercase tracking-[0.2em] font-black">
                                             {spec.label}
                                           </p>
                                         </div>
