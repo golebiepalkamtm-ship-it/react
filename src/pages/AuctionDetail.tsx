@@ -768,18 +768,18 @@ const AuctionDetail: React.FC = () => {
                   <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-cyan-400 to-[#A68E4E] shadow-[0_0_20px_rgba(66,192,206,0.8)] z-20" />
 
                   {/* Section 0: Enhanced Header (Category, Status, Bids, Views, Watch) */}
-                  <div className="p-8 border-b border-[#A68E4E]/50 relative bg-slate-900/60 backdrop-blur-md">
+                  <div className="p-8 border-b border-[#A68E4E]/40 relative bg-[#03131c]/50 backdrop-blur-md">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className="px-4 py-1.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/50 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <span className="px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
                           {formatCategory(dAuction.category)}
                         </span>
                         {isEnded ? (
-                          <span className="px-4 py-1.5 rounded-full bg-rose-500/25 text-rose-300 border border-rose-500/50 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
                             Zakończona
                           </span>
                         ) : (
-                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/25 text-cyan-200 border border-cyan-400/50 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/20 text-cyan-200 border border-cyan-400/40 text-[10px] font-black uppercase tracking-[0.2em]">
                             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                             Aktywna
                           </div>
@@ -790,7 +790,7 @@ const AuctionDetail: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {dAuction.startingPrice != null && (
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-slate-200 uppercase tracking-widest font-black">
+                              <span className="text-[10px] text-amber-100/70 uppercase tracking-widest font-black">
                                 Ofert:
                               </span>
                               <span className="text-[12px] font-bold text-amber-300">
@@ -799,7 +799,7 @@ const AuctionDetail: React.FC = () => {
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-slate-200 uppercase tracking-widest font-black">
+                            <span className="text-[10px] text-amber-100/70 uppercase tracking-widest font-black">
                               Obserwują:
                             </span>
                             <span className="text-[12px] font-bold text-amber-300">
@@ -838,10 +838,10 @@ const AuctionDetail: React.FC = () => {
                   </div>
 
                   {/* Section 1: Bidding & Price (The "Hot" Zone) */}
-                  <div className="p-8 border-b border-[#A68E4E]/40 relative bg-slate-900/40">
+                  <div className="p-8 border-b border-[#A68E4E]/30 relative bg-[#051c27]/40">
                     <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
                       <div className="min-w-fit">
-                        <p className="text-[11px] text-slate-200 uppercase tracking-[0.2em] font-black mb-1">
+                        <p className="text-[11px] text-amber-200/80 uppercase tracking-[0.2em] font-black mb-1">
                           {dAuction.startingPrice != null
                             ? "Aktualna cena"
                             : "Cena"}
@@ -859,7 +859,7 @@ const AuctionDetail: React.FC = () => {
                       </div>
                       {!isEnded && (
                         <div className="min-w-fit flex flex-col items-end gap-2">
-                          <div className="bg-slate-900/90 border-2 border-amber-400/80 px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.25)]">
+                          <div className="bg-[#020a13]/90 border-2 border-amber-400/80 px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.3)]">
                             <p className="text-[10px] text-amber-300 uppercase tracking-[0.2em] font-black leading-none">
                               Koniec za
                             </p>
@@ -1084,23 +1084,23 @@ const AuctionDetail: React.FC = () => {
                   {/* Section 3: Deep Details (Tabbed View) */}
                   <div className="p-8">
                     {/* Navigation Buttons (The "Separate Buttons") */}
-                    <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-slate-900/70 rounded-2xl border border-[#A68E4E]/50 shadow-lg">
+                    <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-[#03131c]/60 rounded-2xl border border-[#A68E4E]/40 shadow-lg">
                       <button
                         onClick={() => setActiveDetailTab("details")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-slate-100 hover:text-white hover:bg-slate-800/60"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-amber-100/70 hover:text-white hover:bg-white/10"}`}
                       >
                         Informacje
                       </button>
                       <button
                         onClick={() => setActiveDetailTab("history")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-slate-100 hover:text-white hover:bg-slate-800/60"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-amber-100/70 hover:text-white hover:bg-white/10"}`}
                       >
                         Historia ({dAuction.bids?.length || 0})
                       </button>
                       {dAuction.documents && dAuction.documents.length > 0 && (
                         <button
                           onClick={() => setActiveDetailTab("documents")}
-                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-slate-100 hover:text-white hover:bg-slate-800/60"}`}
+                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-amber-100/70 hover:text-white hover:bg-white/10"}`}
                         >
                           Dokumenty ({dAuction.documents.length})
                         </button>
@@ -1115,8 +1115,8 @@ const AuctionDetail: React.FC = () => {
                           animate={{ opacity: 1, scale: 1 }}
                           className="space-y-6"
                         >
-                          <div className="border-2 border-[#A68E4E]/50 rounded-[2.5rem] overflow-hidden bg-slate-900/60 backdrop-blur-md shadow-2xl">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-[#A68E4E]/40">
+                          <div className="border-2 border-[#A68E4E]/40 rounded-[2.5rem] overflow-hidden bg-[#041924]/60 backdrop-blur-md shadow-2xl">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-[#A68E4E]/30">
                               {isPigeon ? (
                                 [
                                   {
@@ -1172,7 +1172,7 @@ const AuctionDetail: React.FC = () => {
                                   },
                                 ].map((spec, i) =>
                                   spec.value ? (
-                                    <div key={i} className="p-6 bg-slate-900/80 hover:bg-slate-800/90 transition-all duration-300 group/spec">
+                                    <div key={i} className="p-6 bg-[#06232e]/80 hover:bg-[#093d4d]/90 transition-all duration-300 group/spec">
                                       <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-1.5">
                                           <spec.icon className="w-3.5 h-3.5 text-amber-400 opacity-80 group-hover/spec:opacity-100 group-hover/spec:scale-110 transition-all" />
