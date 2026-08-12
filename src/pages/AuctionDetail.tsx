@@ -628,10 +628,9 @@ const AuctionDetail: React.FC = () => {
               <div className="space-y-6 relative z-10">
                 {/* Main Glass Gallery Card */}
                 <div
-                  className="aspect-square rounded-[2.5rem] overflow-hidden relative cursor-pointer"
+                  className="aspect-square rounded-[2.5rem] overflow-hidden relative cursor-pointer backdrop-blur-md"
                   style={{
-                    backgroundImage: CONTENT_BACKGROUND,
-                    backgroundColor: "#010509",
+                    background: "transparent",
                     border: "2px solid rgba(166,142,78,0.7)",
                     boxShadow:
                       "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
@@ -640,7 +639,14 @@ const AuctionDetail: React.FC = () => {
                     setImageModalIndex(activeImageIndex);
                     setIsImageModalOpen(true);
                   }}
+                  onContextMenu={(e) => e.preventDefault()}
                 >
+                  {/* Transparent Protection Overlay */}
+                  <div
+                    className="absolute inset-0 z-20 bg-transparent select-none"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
                   {/* Top Accent Line like Footer */}
                   <div className="absolute top-0 left-0 w-full h-[15px] bg-gradient-to-b from-[#A68E4E]/40 via-[#A68E4E]/20 to-transparent pointer-events-none opacity-90 z-20" />
                   <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-[#C5A95D] to-[#A68E4E] shadow-[0_0_20px_rgba(166,142,78,0.8)] z-20" />
@@ -652,7 +658,7 @@ const AuctionDetail: React.FC = () => {
                   <AuctionImage
                     src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
                     alt={dAuction.title}
-                    className="relative z-10 w-full h-full object-contain object-center filter brightness-[1.04] contrast-[1.02]"
+                    className="relative z-10 w-full h-full object-contain object-center filter brightness-[1.04] contrast-[1.02] select-none pointer-events-none"
                   />
                   <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-[#070e1e]/40 via-transparent to-white/5" />
                   

@@ -163,8 +163,16 @@ export const ChampionCard = ({
          /> */}
 
         {/* Obraz z efektami hover */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-900 to-black">
+        <div
+          className="relative aspect-[4/3] overflow-hidden bg-transparent"
+          onContextMenu={(e) => e.preventDefault()}
+        >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none z-10" />
+          <div
+            className="absolute inset-0 z-20 bg-transparent select-none"
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+          />
           {/* Obrazek championa */}
           {champion.images?.[0] ? (
             <motion.img
@@ -172,7 +180,10 @@ export const ChampionCard = ({
               alt={champion.name}
               loading="lazy"
               decoding="async"
-              className="w-full h-full object-contain object-top will-change-transform"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+              className="w-full h-full object-contain object-top will-change-transform select-none pointer-events-none"
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
                 if (!img.dataset.fallback) {

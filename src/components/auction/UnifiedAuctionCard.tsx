@@ -415,12 +415,18 @@ export const UnifiedAuctionCard = memo(
 
           {/* Image section */}
           <div
-            className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-black"
+            className="relative w-full aspect-square overflow-hidden bg-transparent"
+            onContextMenu={(e) => e.preventDefault()}
           >
+            <div
+              className="absolute inset-0 z-20 bg-transparent select-none"
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+            />
             <AuctionImage
               src={imgSrc}
               alt={title}
-              className={`w-full h-full ${imageObjectClass} duration-700 ease-in-out origin-center`}
+              className={`w-full h-full ${imageObjectClass} duration-700 ease-in-out origin-center select-none pointer-events-none`}
               onError={handleImageError}
             />
             {/* Gradient overlay */}

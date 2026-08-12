@@ -228,7 +228,10 @@ export const ChampionModal = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4 }}
-              className="max-h-[70vh] md:max-h-[80vh] w-auto h-auto object-contain cursor-zoom-in rounded-xl shadow-2xl"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+              className="max-h-[70vh] md:max-h-[80vh] w-auto h-auto object-contain cursor-zoom-in rounded-xl shadow-2xl select-none"
               onClick={() => setIsFullscreenOpen(true)}
             />
           )}

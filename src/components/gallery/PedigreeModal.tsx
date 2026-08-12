@@ -81,10 +81,18 @@ export const PedigreeModal = ({ isOpen, onClose, pedigreeUrl, images = [], start
                   </button>
                 </>
               )}
+              <div
+                className="absolute inset-0 z-20 bg-transparent select-none"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+              />
               <img
                 src={src || ''}
                 alt="Rodowód"
-                className="w-full h-full object-contain"
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+                className="w-full h-full object-contain select-none pointer-events-none"
               />
               {showImages && imageList.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/60 px-2 py-1.5 rounded-xl backdrop-blur-sm">
