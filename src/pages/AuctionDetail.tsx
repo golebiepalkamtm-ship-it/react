@@ -581,8 +581,8 @@ const AuctionDetail: React.FC = () => {
 
             <div className="grid lg:grid-cols-2 gap-12 items-start relative">
               {/* Background Ambient Orbs */}
-              <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-[#42C0CE]/15 rounded-full blur-[140px] animate-pulse" />
-              <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 bg-[#A68E4E]/15 rounded-full blur-[140px] animate-pulse" />
+              <div className="pointer-events-none absolute -top-32 -left-32 w-[30rem] h-[30rem] bg-[#42C0CE]/30 rounded-full blur-[120px] animate-pulse" />
+              <div className="pointer-events-none absolute -bottom-32 -right-32 w-[30rem] h-[30rem] bg-[#A68E4E]/30 rounded-full blur-[120px] animate-pulse" />
 
               {/* Column 1: Gallery & Seller Trust */}
               <div className="space-y-6 relative z-10">
@@ -591,7 +591,7 @@ const AuctionDetail: React.FC = () => {
                   className="aspect-square rounded-[2.5rem] overflow-hidden glass-vault border-2 border-[#A68E4E]/70 shadow-[0_0_60px_rgba(166,142,78,0.25)] relative group cursor-pointer transition-all duration-700 hover:shadow-[0_0_80px_rgba(166,142,78,0.4)]"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.28), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
+                      "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                   }}
@@ -667,7 +667,7 @@ const AuctionDetail: React.FC = () => {
                     className="p-5 rounded-3xl border-2 border-[#A68E4E]/40 space-y-3 shadow-xl"
                     style={{
                       background:
-                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.25), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
+                        "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
                       backdropFilter: "blur(12px)",
                       WebkitBackdropFilter: "blur(12px)",
                     }}
@@ -713,7 +713,7 @@ const AuctionDetail: React.FC = () => {
                     className="p-6 rounded-3xl border-2 border-[#A68E4E]/40 flex items-center justify-between gap-4 shadow-xl"
                     style={{
                       background:
-                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.25), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
+                        "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
                       backdropFilter: "blur(12px)",
                       WebkitBackdropFilter: "blur(12px)",
                     }}
@@ -766,7 +766,7 @@ const AuctionDetail: React.FC = () => {
                   className="glass-vault rounded-[2.5rem] overflow-hidden relative group h-full border-2 border-[#A68E4E]/70 shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.28), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
+                      "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                   }}
@@ -776,51 +776,51 @@ const AuctionDetail: React.FC = () => {
                   <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-cyan-400 to-[#A68E4E] shadow-[0_0_20px_rgba(66,192,206,0.8)] z-20" />
 
                   {/* Section 0: Enhanced Header (Category, Status, Bids, Views, Watch) */}
-                  <div className="p-8 border-b border-[#A68E4E]/40 relative bg-black/20 backdrop-blur-md">
+                  <div className="p-8 border-b border-[#A68E4E]/50 relative bg-slate-900/60 backdrop-blur-md">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className="px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <span className="px-4 py-1.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/50 text-[10px] font-black uppercase tracking-[0.2em]">
                           {formatCategory(dAuction.category)}
                         </span>
                         {isEnded ? (
-                          <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <span className="px-4 py-1.5 rounded-full bg-rose-500/25 text-rose-300 border border-rose-500/50 text-[10px] font-black uppercase tracking-[0.2em]">
                             Zakończona
                           </span>
                         ) : (
-                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
+                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/25 text-cyan-200 border border-cyan-400/50 text-[10px] font-black uppercase tracking-[0.2em]">
                             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                             Aktywna
                           </div>
                         )}
 
-                        <div className="h-4 w-px bg-white/10 mx-1 hidden sm:block" />
+                        <div className="h-4 w-px bg-white/20 mx-1 hidden sm:block" />
 
                         <div className="flex items-center gap-4">
                           {dAuction.startingPrice != null && (
                             <div className="flex items-center gap-2">
-                              <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">
+                              <span className="text-[10px] text-slate-200 uppercase tracking-widest font-black">
                                 Ofert:
                               </span>
-                              <span className="text-[11px] font-bold text-amber-300">
+                              <span className="text-[12px] font-bold text-amber-300">
                                 {dAuction._count?.bids || 0}
                               </span>
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">
+                            <span className="text-[10px] text-slate-200 uppercase tracking-widest font-black">
                               Obserwują:
                             </span>
-                            <span className="text-[11px] font-bold text-amber-300">
+                            <span className="text-[12px] font-bold text-amber-300">
                               {dAuction._count?.watchlist || 0}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-emerald-400/80 uppercase tracking-widest font-black">
+                            <span className="text-[10px] text-emerald-300 uppercase tracking-widest font-black">
                               Przegląda:
                             </span>
                             <div className="flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                              <span className="text-[11px] font-bold text-emerald-400">
+                              <span className="text-[12px] font-bold text-emerald-300">
                                 {viewersCount > 0 ? viewersCount : 1}
                               </span>
                             </div>
@@ -830,12 +830,12 @@ const AuctionDetail: React.FC = () => {
 
                       <button
                         onClick={toggleWatch}
-                        className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all ${isWatched ? "bg-rose-500/20 border-rose-500/40 text-rose-300" : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10"}`}
+                        className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all ${isWatched ? "bg-rose-500/30 border-rose-400/60 text-rose-200" : "bg-white/10 border-white/20 text-slate-100 hover:text-white hover:bg-white/20"}`}
                       >
                         <Heart
-                          className={`w-3 h-3 ${isWatched ? "fill-current" : ""}`}
+                          className={`w-3.5 h-3.5 ${isWatched ? "fill-current" : ""}`}
                         />
-                        <span className="text-[9px] font-black uppercase tracking-wider">
+                        <span className="text-[10px] font-black uppercase tracking-wider">
                           {isWatched ? "Obserwujesz" : "Obserwuj"}
                         </span>
                       </button>
@@ -846,29 +846,29 @@ const AuctionDetail: React.FC = () => {
                   </div>
 
                   {/* Section 1: Bidding & Price (The "Hot" Zone) */}
-                  <div className="p-8 border-b border-[#A68E4E]/30 relative bg-black/10">
+                  <div className="p-8 border-b border-[#A68E4E]/40 relative bg-slate-900/40">
                     <div className="flex flex-wrap items-center justify-between gap-6 mb-10">
                       <div className="min-w-fit">
-                        <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-1">
+                        <p className="text-[11px] text-slate-200 uppercase tracking-[0.2em] font-black mb-1">
                           {dAuction.startingPrice != null
                             ? "Aktualna cena"
                             : "Cena"}
                         </p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-4xl md:text-5xl font-black text-amber-400 tracking-tighter drop-shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+                          <span className="text-4xl md:text-5xl font-black text-amber-400 tracking-tighter drop-shadow-[0_0_25px_rgba(245,158,11,0.5)]">
                             {dAuction.currentPrice
                               ? dAuction.currentPrice.toLocaleString("pl-PL")
                               : "0"}
                           </span>
-                          <span className="text-sm font-bold text-amber-400/80 uppercase tracking-widest mb-1">
+                          <span className="text-base font-black text-amber-300 uppercase tracking-widest mb-1">
                             PLN
                           </span>
                         </div>
                       </div>
                       {!isEnded && (
                         <div className="min-w-fit flex flex-col items-end gap-2">
-                          <div className="bg-black/30 border-2 border-[#A68E4E]/60 px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.4)]">
-                            <p className="text-[9px] text-amber-400 uppercase tracking-[0.2em] font-black leading-none">
+                          <div className="bg-slate-900/90 border-2 border-amber-400/80 px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.25)]">
+                            <p className="text-[10px] text-amber-300 uppercase tracking-[0.2em] font-black leading-none">
                               Koniec za
                             </p>
                             <div className="text-2xl font-black text-white tabular-nums tracking-tight leading-none">
@@ -1092,23 +1092,23 @@ const AuctionDetail: React.FC = () => {
                   {/* Section 3: Deep Details (Tabbed View) */}
                   <div className="p-8">
                     {/* Navigation Buttons (The "Separate Buttons") */}
-                    <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-black/30 rounded-2xl border border-[#A68E4E]/40 shadow-lg">
+                    <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-slate-900/70 rounded-2xl border border-[#A68E4E]/50 shadow-lg">
                       <button
                         onClick={() => setActiveDetailTab("details")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-white/60 hover:text-white hover:bg-white/5"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-slate-100 hover:text-white hover:bg-slate-800/60"}`}
                       >
                         Informacje
                       </button>
                       <button
                         onClick={() => setActiveDetailTab("history")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-white/60 hover:text-white hover:bg-white/5"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-slate-100 hover:text-white hover:bg-slate-800/60"}`}
                       >
                         Historia ({dAuction.bids?.length || 0})
                       </button>
                       {dAuction.documents && dAuction.documents.length > 0 && (
                         <button
                           onClick={() => setActiveDetailTab("documents")}
-                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-white/60 hover:text-white hover:bg-white/5"}`}
+                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]" : "text-slate-100 hover:text-white hover:bg-slate-800/60"}`}
                         >
                           Dokumenty ({dAuction.documents.length})
                         </button>
@@ -1123,8 +1123,8 @@ const AuctionDetail: React.FC = () => {
                           animate={{ opacity: 1, scale: 1 }}
                           className="space-y-6"
                         >
-                          <div className="border-2 border-[#A68E4E]/40 rounded-[2.5rem] overflow-hidden bg-black/30 backdrop-blur-md shadow-2xl">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-[#A68E4E]/30">
+                          <div className="border-2 border-[#A68E4E]/50 rounded-[2.5rem] overflow-hidden bg-slate-900/60 backdrop-blur-md shadow-2xl">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-[#A68E4E]/40">
                               {isPigeon ? (
                                 [
                                   {
@@ -1180,7 +1180,7 @@ const AuctionDetail: React.FC = () => {
                                   },
                                 ].map((spec, i) =>
                                   spec.value ? (
-                                    <div key={i} className="p-6 bg-black/40 hover:bg-black/60 transition-all duration-300 group/spec">
+                                    <div key={i} className="p-6 bg-slate-900/80 hover:bg-slate-800/90 transition-all duration-300 group/spec">
                                       <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-1.5">
                                           <spec.icon className="w-3.5 h-3.5 text-amber-400 opacity-80 group-hover/spec:opacity-100 group-hover/spec:scale-110 transition-all" />
