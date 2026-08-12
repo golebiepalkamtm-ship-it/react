@@ -283,6 +283,10 @@ class ApiClient {
     });
   }
 
+  async patchWithToken<T>(endpoint: string, data?: unknown, token?: string): Promise<T> {
+    return this.patch<T>(endpoint, data, token);
+  }
+
   createAbortableRequest<T>(
     endpoint: string,
     config: RequestConfig = {},

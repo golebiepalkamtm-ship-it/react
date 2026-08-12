@@ -885,7 +885,7 @@ const AuctionDetail: React.FC = () => {
                       )}
                     </div>
 
-                    {dAuction.status === "WAITING_FOR_FEE" && isOwner && (
+                    {(dAuction.status as string) === "WAITING_FOR_FEE" && isOwner && (
                       <div className="flex flex-col gap-3">
                         <div className="w-full flex items-center justify-center gap-3 p-6 bg-amber-500/10 border border-amber-500/50 rounded-2xl text-amber-400 text-sm font-medium backdrop-blur-sm">
                           <AlertCircle className="w-5 h-5 text-amber-400" />
@@ -898,7 +898,7 @@ const AuctionDetail: React.FC = () => {
                                 onClick={async () => {
                                   try {
                                     const res = await paymentService.createListingFeeCheckout(dAuction.id, session?.access_token ?? null);
-                                    if (res.url) {
+                                    if ('url' in res && res.url) {
                                       window.location.href = res.url;
                                     }
                                   } catch (err) {
@@ -918,7 +918,7 @@ const AuctionDetail: React.FC = () => {
                       </div>
                     )}
 
-                    {dAuction.status === "ENDED_WAITING_PAYMENT" && isOwner && (
+                    {(dAuction.status as string) === "ENDED_WAITING_PAYMENT" && isOwner && (
                       <div className="flex flex-col gap-3">
                         <div className="w-full flex items-center justify-center gap-3 p-6 bg-emerald-500/10 border border-emerald-500/50 rounded-2xl text-emerald-400 text-sm font-medium backdrop-blur-sm">
                           <AlertCircle className="w-5 h-5 text-emerald-400" />
@@ -931,7 +931,7 @@ const AuctionDetail: React.FC = () => {
                                 onClick={async () => {
                                   try {
                                     const res = await paymentService.createCommissionCheckout(dAuction.id, session?.access_token ?? null);
-                                    if (res.url) {
+                                    if ('url' in res && res.url) {
                                       window.location.href = res.url;
                                     }
                                   } catch (err) {
@@ -951,14 +951,14 @@ const AuctionDetail: React.FC = () => {
                       </div>
                     )}
 
-                    {dAuction.status === "ENDED_WAITING_PAYMENT" && !isOwner && (
+                    {(dAuction.status as string) === "ENDED_WAITING_PAYMENT" && !isOwner && (
                        <div className="w-full flex items-center justify-center gap-3 p-6 bg-black/30 border border-[#A68E4E]/30 rounded-2xl text-white/60 text-sm font-medium backdrop-blur-sm">
                           <AlertCircle className="w-5 h-5 text-amber-400" />
                           Aukcja zakończona. Oczekujemy na rozliczenie ze sprzedawcą.
                        </div>
                     )}
 
-                    {dAuction.status === "ACTIVE" && !isEnded && (
+                    {((dAuction.status as string) === "ACTIVE" || dAuction.status === "active") && !isEnded && (
                       <div className="flex flex-col gap-3">
                         {isOwner ? (
                           <div className="w-full flex items-center justify-center gap-3 p-6 bg-black/30 border border-[#A68E4E]/30 rounded-2xl text-white/60 text-sm font-medium backdrop-blur-sm">

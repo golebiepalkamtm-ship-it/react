@@ -162,7 +162,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
       // content: meetings + references
       try {
-        const ms = await meetingsService.getMeetings(session.access_token);
+        const ms = await meetingsService.getMeetings();
         setMeetings(ms || []);
       } catch (e) {
         logger.error("Meetings fetch failed", e);
@@ -1049,7 +1049,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                             ) : (
                               <>
                                 <p className="text-sm text-white/80 mt-2 line-clamp-3">
-                                  {r.opinion || r.experience || "Brak opisu"}
+                          {r.opinion || r.experience || "Brak opisu"}
                                 </p>
                                 <div className="flex gap-2 flex-wrap mt-3">
                                   <Button
@@ -1062,11 +1062,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                                         location: r.location,
                                         rating: r.rating,
                                         opinion: r.opinion,
-                                        experience: r.experience,
-                                        achievements: r.achievements,
-                                        pigeon_name: r.pigeon_name,
-                                        images: r.images,
-                                        is_approved: r.is_approved,
+                                        ...(r.experience !== undefined ? { experience: r.experience } : {}),
+                                        ...(r.achievements !== undefined ? { achievements: r.achievements } : {}),
+                                        ...(r.pigeon_name !== undefined ? { pigeon_name: r.pigeon_name } : {}),
+                                        ...(r.images !== undefined ? { images: r.images } : {}),
+                                        ...(r.is_approved !== undefined ? { is_approved: r.is_approved } : {}),
                                       });
                                     }}
                                   >
