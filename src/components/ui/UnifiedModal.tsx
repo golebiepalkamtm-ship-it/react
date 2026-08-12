@@ -52,12 +52,12 @@ interface UnifiedModalProps {
 const typeConfig = {
   default: {
     icon: null,
-    gradient: "from-white/15 to-white/5",
-    iconBg: "from-gold to-amber-600",
-    iconShadow: "shadow-gold/30",
+    gradient: "from-[#A68E4E]/15 to-[#A68E4E]/5",
+    iconBg: "from-[#A68E4E] to-[#8e7a42]",
+    iconShadow: "shadow-[#A68E4E]/30",
     buttonGradient:
-      "from-gold to-amber-600 hover:from-gold/90 hover:to-amber-700",
-    buttonShadow: "shadow-gold/25",
+      "from-[#A68E4E] to-[#8e7a42] hover:from-[#A68E4E]/90 hover:to-[#8e7a42]",
+    buttonShadow: "shadow-[#A68E4E]/25",
   },
   success: {
     icon: CheckCircle2,
@@ -79,12 +79,12 @@ const typeConfig = {
   },
   warning: {
     icon: AlertTriangle,
-    gradient: "from-yellow-500/10 to-amber-500/5",
-    iconBg: "from-yellow-400 to-amber-600",
-    iconShadow: "shadow-yellow-500/30",
+    gradient: "from-[#A68E4E]/10 to-[#A68E4E]/5",
+    iconBg: "from-[#A68E4E] to-[#8e7a42]",
+    iconShadow: "shadow-[#A68E4E]/30",
     buttonGradient:
-      "from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700",
-    buttonShadow: "shadow-yellow-500/25",
+      "from-[#A68E4E] to-[#8e7a42] hover:from-[#A68E4E]/90 hover:to-[#8e7a42]",
+    buttonShadow: "shadow-[#A68E4E]/25",
   },
   info: {
     icon: Info,

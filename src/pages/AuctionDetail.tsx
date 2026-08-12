@@ -616,8 +616,8 @@ const AuctionDetail: React.FC = () => {
                   }}
                 >
                   {/* Top Accent Line like Footer */}
-                  <div className="absolute top-0 left-0 w-full h-[15px] bg-gradient-to-b from-[#A68E4E]/40 via-cyan-500/20 to-transparent pointer-events-none opacity-90 z-20" />
-                  <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-cyan-400 to-[#A68E4E] shadow-[0_0_20px_rgba(66,192,206,0.8)] z-20" />
+                  <div className="absolute top-0 left-0 w-full h-[15px] bg-gradient-to-b from-[#A68E4E]/40 via-[#A68E4E]/20 to-transparent pointer-events-none opacity-90 z-20" />
+                  <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-[#C5A95D] to-[#A68E4E] shadow-[0_0_20px_rgba(166,142,78,0.8)] z-20" />
                   <AuctionImage
                     src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
                     alt=""
@@ -634,15 +634,15 @@ const AuctionDetail: React.FC = () => {
                   <div className="absolute top-4 left-4 right-4 z-30 flex items-center justify-between pointer-events-none">
                     <div className="flex items-center gap-2">
                       {isPigeon && (
-                        <span className="px-3.5 py-1.5 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#A68E4E]/50 text-amber-300 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
-                          <Award className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="px-3.5 py-1.5 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#A68E4E]/50 text-[#A68E4E] text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
+                          <Award className="w-3.5 h-3.5 text-[#A68E4E]" />
                           Certyfikat Genetyczny
                         </span>
                       )}
                     </div>
                     {dAuction.images && dAuction.images.length > 0 && (
-                      <span className="px-3 py-1 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#A68E4E]/30 text-amber-200 text-[10px] font-bold tracking-wider flex items-center gap-1.5">
-                        <Maximize2 className="w-3 h-3 text-amber-400" />
+                      <span className="px-3 py-1 rounded-full bg-[#070e1e]/90 backdrop-blur-md border border-[#A68E4E]/30 text-[#A68E4E] text-[10px] font-bold tracking-wider flex items-center gap-1.5">
+                        <Maximize2 className="w-3 h-3 text-[#A68E4E]" />
                         {activeImageIndex + 1} / {dAuction.images.length}
                       </span>
                     )}
@@ -682,14 +682,14 @@ const AuctionDetail: React.FC = () => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-amber-400" />
+                        <FileText className="w-4 h-4 text-[#A68E4E]" />
                         <h3 className="text-white text-xs font-black uppercase tracking-wider">
                           Dokumenty Rodowodu
                         </h3>
                       </div>
                       <button
                         onClick={() => setIsPedigreeOpen(true)}
-                        className="text-amber-400 hover:text-white text-xs font-black uppercase tracking-wider transition-colors flex items-center gap-1"
+                        className="text-[#A68E4E] hover:text-white text-xs font-black uppercase tracking-wider transition-colors flex items-center gap-1"
                       >
                         Zobacz rodowód <ChevronRight className="w-3.5 h-3.5" />
                       </button>
@@ -729,7 +729,7 @@ const AuctionDetail: React.FC = () => {
                   >
                     <div className="flex items-center gap-4">
                       <div className="relative">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border-2 border-[#A68E4E] flex items-center justify-center font-black text-xl text-amber-300 overflow-hidden shadow-lg">
+                        <div className="w-14 h-14 rounded-2xl bg-[#A68E4E]/20 border-2 border-[#A68E4E] flex items-center justify-center font-black text-xl text-[#A68E4E] overflow-hidden shadow-lg">
                           {dAuction.seller.image ? (
                             <img src={dAuction.seller.image} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -745,18 +745,18 @@ const AuctionDetail: React.FC = () => {
                           <h4 className="text-white font-black text-base tracking-tight">
                             {dAuction.seller.username || `${dAuction.seller.firstName || ""} ${dAuction.seller.lastName || ""}`.trim() || "Hodowca Pałka MTM"}
                           </h4>
-                          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase tracking-wider border border-amber-500/40">
+                          <span className="px-2 py-0.5 rounded-md bg-[#A68E4E]/20 text-[#A68E4E] text-[9px] font-black uppercase tracking-wider border border-[#A68E4E]/40">
                             Weryfikowany
                           </span>
                         </div>
                         <p className="text-xs text-white/60 flex items-center gap-2 mt-1">
-                          <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                          <MapPin className="w-3.5 h-3.5 text-[#A68E4E]" />
                           {dAuction.location || "Lubań, Polska"}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center justify-end gap-1 text-amber-400">
+                      <div className="flex items-center justify-end gap-1 text-[#A68E4E]">
                         {"★".repeat(5)}
                         <span className="text-xs font-bold text-white ml-1">5.0</span>
                       </div>
@@ -782,8 +782,8 @@ const AuctionDetail: React.FC = () => {
                   }}
                 >
                   {/* Top Accent Line like Footer */}
-                  <div className="absolute top-0 left-0 w-full h-[15px] bg-gradient-to-b from-[#A68E4E]/40 via-cyan-500/20 to-transparent pointer-events-none opacity-90 z-20" />
-                  <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-cyan-400 to-[#A68E4E] shadow-[0_0_20px_rgba(66,192,206,0.8)] z-20" />
+                  <div className="absolute top-0 left-0 w-full h-[15px] bg-gradient-to-b from-[#A68E4E]/40 via-[#A68E4E]/20 to-transparent pointer-events-none opacity-90 z-20" />
+                  <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-[#A68E4E] via-[#C5A95D] to-[#A68E4E] shadow-[0_0_20px_rgba(166,142,78,0.8)] z-20" />
 
                   {/* Section 0: Enhanced Header (Category, Status, Bids, Views, Watch) */}
                   <div className="p-8 relative">
@@ -850,7 +850,7 @@ const AuctionDetail: React.FC = () => {
                         </span>
                       </button>
                     </div>
-                    <h1 className="font-display text-3xl md:text-4xl text-white font-black leading-tight tracking-tight">
+                    <h1 className="font-display text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight drop-shadow-lg">
                       {dAuction.title}
                     </h1>
                   </div>
@@ -880,7 +880,7 @@ const AuctionDetail: React.FC = () => {
                       </div>
                       {!isEnded && (
                         <div className="min-w-fit flex flex-col items-end gap-2">
-                          <div className="bg-[#020a13]/90 border-2 border-[#A68E4E] px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_25px_rgba(166,142,78,0.3)]">
+                          <div className="bg-[#020a13]/90 border-2 border-[rgba(166,142,78,0.7)] px-6 py-4 rounded-2xl flex flex-col items-start gap-1.5 backdrop-blur-md shadow-[0_0_25px_rgba(166,142,78,0.3)]">
                             <p className="text-[10px] text-[#A68E4E] uppercase tracking-[0.2em] font-black leading-none">
                               Koniec za
                             </p>
@@ -1030,7 +1030,7 @@ const AuctionDetail: React.FC = () => {
                                           setBidAmount(e.target.value)
                                         }
                                         placeholder={`${minimumBidValue ? minimumBidValue.toLocaleString("pl-PL") : "0"}+`}
-                                        className="w-full h-full bg-black/40 border-2 border-[#A68E4E]/60 rounded-2xl px-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-[#A68E4E] transition-all font-bold group-hover/input:border-[#A68E4E] text-sm placeholder:text-white/30"
+                                        className="w-full h-full bg-black/40 border-2 border-[rgba(166,142,78,0.7)] rounded-2xl px-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-[#A68E4E] transition-all font-bold group-hover/input:border-[#A68E4E] text-sm placeholder:text-white/30"
                                       />
                                     </div>
                                     <TooltipProvider>
@@ -1039,7 +1039,12 @@ const AuctionDetail: React.FC = () => {
                                           <Button
                                             onClick={handleBid}
                                             disabled={bidLoading}
-                                            className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap bg-[#A68E4E] hover:bg-[#8e7a42] text-zinc-950 shadow-lg shadow-[#A68E4E]/30 border-0"
+                                            className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap gold-button text-zinc-950 border-0 shadow-lg"
+                                            style={{
+                                              backgroundImage:
+                                                "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                              color: "#0f0f0f",
+                                            }}
                                           >
                                             <Gavel className="w-3.5 h-3.5 mr-1.5" />
                                             {isAutoBid ? "Ustaw Auto-Bid" : "Licytuj"}
@@ -1054,7 +1059,7 @@ const AuctionDetail: React.FC = () => {
                                     </TooltipProvider>
                                   </div>
                                   <div className="flex items-center gap-1.5 pt-1">
-                                    <span className="text-[9px] text-cyan-400 uppercase font-black tracking-widest mr-1">
+                                    <span className="text-[9px] text-[#A68E4E] uppercase font-black tracking-widest mr-1">
                                       Szybki przebieg:
                                     </span>
                                     {[50, 100, 250, 500].map((inc) => (
@@ -1065,7 +1070,7 @@ const AuctionDetail: React.FC = () => {
                                           const base = minimumBidValue || 0;
                                           setBidAmount(String(base + inc));
                                         }}
-                                        className="px-2.5 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 text-[10px] font-black tracking-wider transition-all duration-300 hover:scale-105 active:scale-95"
+                                        className="px-2.5 py-1 rounded-xl bg-[#A68E4E]/10 hover:bg-[#A68E4E]/25 border border-[rgba(166,142,78,0.5)] text-[#A68E4E] text-[10px] font-black tracking-wider transition-all duration-300 hover:scale-105 active:scale-95"
                                       >
                                         +{inc} zł
                                       </button>
@@ -1080,7 +1085,12 @@ const AuctionDetail: React.FC = () => {
                                       <TooltipTrigger asChild>
                                         <Button
                                           onClick={handleBuyNow}
-                                          className="relative w-full h-full px-4 py-4 rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.02] border-0"
+                                          className="relative w-full h-full px-4 py-4 rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap gold-button text-zinc-950 border-0 shadow-lg"
+                                          style={{
+                                            backgroundImage:
+                                              "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                            color: "#0f0f0f",
+                                          }}
                                           disabled={isCheckoutLoading}
                                         >
                                           {isCheckoutLoading
@@ -1108,23 +1118,50 @@ const AuctionDetail: React.FC = () => {
                   {/* Section 3: Deep Details (Tabbed View) */}
                   <div className="p-8">
                     {/* Navigation Buttons (The "Separate Buttons") */}
-                    <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-[#03131c]/60 rounded-2xl border border-[#A68E4E]/40 shadow-lg">
+                    <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-[#03131c]/60 rounded-2xl border-2 border-[rgba(166,142,78,0.7)] shadow-lg">
                       <button
                         onClick={() => setActiveDetailTab("details")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "bg-[#A68E4E] text-zinc-950 font-extrabold shadow-lg shadow-[#A68E4E]/30 scale-[1.02]" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "details" ? "gold-button text-zinc-950 font-extrabold shadow-lg scale-[1.02] border-0" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
+                        style={
+                          activeDetailTab === "details"
+                            ? {
+                                backgroundImage:
+                                  "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                color: "#0f0f0f",
+                              }
+                            : {}
+                        }
                       >
                         Informacje
                       </button>
                       <button
                         onClick={() => setActiveDetailTab("history")}
-                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "bg-[#A68E4E] text-zinc-950 font-extrabold shadow-lg shadow-[#A68E4E]/30 scale-[1.02]" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
+                        className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "history" ? "gold-button text-zinc-950 font-extrabold shadow-lg scale-[1.02] border-0" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
+                        style={
+                          activeDetailTab === "history"
+                            ? {
+                                backgroundImage:
+                                  "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                color: "#0f0f0f",
+                              }
+                            : {}
+                        }
                       >
                         Historia ({dAuction.bids?.length || 0})
                       </button>
                       {dAuction.documents && dAuction.documents.length > 0 && (
                         <button
                           onClick={() => setActiveDetailTab("documents")}
-                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "bg-[#A68E4E] text-zinc-950 font-extrabold shadow-lg shadow-[#A68E4E]/30 scale-[1.02]" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
+                          className={`flex-1 min-w-[120px] px-6 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeDetailTab === "documents" ? "gold-button text-zinc-950 font-extrabold shadow-lg scale-[1.02] border-0" : "text-[#A68E4E]/70 hover:text-white hover:bg-white/10"}`}
+                          style={
+                            activeDetailTab === "documents"
+                              ? {
+                                  backgroundImage:
+                                    "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
+                                  color: "#0f0f0f",
+                                }
+                              : {}
+                          }
                         >
                           Dokumenty ({dAuction.documents.length})
                         </button>
@@ -1139,8 +1176,8 @@ const AuctionDetail: React.FC = () => {
                           animate={{ opacity: 1, scale: 1 }}
                           className="space-y-6"
                         >
-                          <div className="border-2 border-[#A68E4E]/40 rounded-[2.5rem] overflow-hidden bg-[#041924]/60 backdrop-blur-md shadow-2xl">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-[#A68E4E]/30">
+                          <div className="border-2 border-[rgba(166,142,78,0.7)] rounded-[2.5rem] overflow-hidden bg-black/40 backdrop-blur-md shadow-2xl">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-[rgba(166,142,78,0.3)]">
                               {isPigeon ? (
                                 [
                                   {
@@ -1196,7 +1233,7 @@ const AuctionDetail: React.FC = () => {
                                   },
                                 ].map((spec, i) =>
                                   spec.value ? (
-                                    <div key={i} className="p-6 bg-[#06232e]/80 hover:bg-[#093d4d]/90 transition-all duration-300 group/spec">
+                                    <div key={i} className="p-6 bg-black/40 hover:bg-[#A68E4E]/10 transition-all duration-300 group/spec">
                                       <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-1.5">
                                           <spec.icon className="w-3.5 h-3.5 text-[#A68E4E] opacity-80 group-hover/spec:opacity-100 group-hover/spec:scale-110 transition-all" />
@@ -1205,12 +1242,12 @@ const AuctionDetail: React.FC = () => {
                                           </p>
                                         </div>
                                         {spec.badge && (
-                                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_10px_rgba(66,192,206,0.3)]">
+                                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-[#A68E4E]/20 text-[#A68E4E] border border-[#A68E4E]/40 shadow-[0_0_10px_rgba(166,142,78,0.3)]">
                                             {spec.badge}
                                           </span>
                                         )}
                                       </div>
-                                      <p className="text-sm text-white font-black tracking-wide group-hover/spec:text-amber-200 transition-colors">
+                                      <p className="text-sm text-white font-black tracking-wide group-hover/spec:text-[#A68E4E] transition-colors">
                                         {spec.value}
                                       </p>
                                     </div>
@@ -1218,7 +1255,7 @@ const AuctionDetail: React.FC = () => {
                                 )
                               ) : (
                                 <div className="p-6 col-span-full bg-black/40">
-                                  <p className="text-[10px] text-amber-400 uppercase tracking-[0.2em] font-black mb-1.5">
+                                  <p className="text-[10px] text-[#A68E4E] uppercase tracking-[0.2em] font-black mb-1.5">
                                     Kategoria
                                   </p>
                                   <p className="text-base text-white font-bold">
@@ -1230,13 +1267,13 @@ const AuctionDetail: React.FC = () => {
 
                             {/* Pigeon Performance & Vitality Radar Bar */}
                             {isPigeon && (
-                              <div className="p-8 border-t-2 border-[#42C0CE]/40 bg-black/40 backdrop-blur-md space-y-4">
+                              <div className="p-8 border-t-2 border-[#A68E4E]/40 bg-black/40 backdrop-blur-md space-y-4">
                                 <div className="flex items-center justify-between">
-                                  <h4 className="text-[#42C0CE] text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Zap className="w-4 h-4 text-[#42C0CE]" />
+                                  <h4 className="text-[#A68E4E] text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <Zap className="w-4 h-4 text-[#A68E4E]" />
                                     Profil Zdolności Lotowych & Genetyki
                                   </h4>
-                                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase tracking-widest shadow-[0_0_10px_rgba(66,192,206,0.3)]">Klasa S+</span>
+                                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#A68E4E]/20 text-[#A68E4E] border border-[#A68E4E]/40 uppercase tracking-widest shadow-[0_0_10px_rgba(166,142,78,0.3)]">Klasa S+</span>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {[
@@ -1248,14 +1285,14 @@ const AuctionDetail: React.FC = () => {
                                     <div key={sIdx} className="space-y-1.5">
                                       <div className="flex justify-between text-xs font-bold text-white/90">
                                         <span>{stat.label}</span>
-                                        <span className="text-[#42C0CE] font-black">{stat.pct}%</span>
+                                        <span className="text-[#A68E4E] font-black">{stat.pct}%</span>
                                       </div>
-                                      <div className="h-2 w-full rounded-full bg-black/60 overflow-hidden p-0.5 border border-[#42C0CE]/40">
+                                      <div className="h-2 w-full rounded-full bg-black/60 overflow-hidden p-0.5 border border-[#A68E4E]/40">
                                         <motion.div
                                           initial={{ width: 0 }}
                                           animate={{ width: `${stat.pct}%` }}
                                           transition={{ duration: 1, delay: sIdx * 0.1 }}
-                                          className="h-full rounded-full bg-gradient-to-r from-[#42C0CE]/70 via-[#42C0CE] to-cyan-200 shadow-[0_0_12px_#42C0CE]"
+                                          className="h-full rounded-full bg-[#A68E4E] shadow-[0_0_12px_rgba(166,142,78,0.5)]"
                                         />
                                       </div>
                                     </div>
@@ -1266,13 +1303,13 @@ const AuctionDetail: React.FC = () => {
 
                             {/* PIPA-Style DNA Certificate & Lineage Guarantee Showcase */}
                             {isPigeon && (
-                              <div className="p-6 border-t-2 border-[#A68E4E]/40 bg-gradient-to-r from-amber-500/10 via-black/40 to-cyan-500/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
+                              <div className="p-6 border-t-2 border-[#A68E4E]/40 bg-black/40 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                   <div className="p-3 rounded-2xl bg-[#A68E4E]/20 border border-[#A68E4E]/40 shadow-inner">
-                                    <ShieldCheck className="w-6 h-6 text-amber-400" />
+                                    <ShieldCheck className="w-6 h-6 text-[#A68E4E]" />
                                   </div>
                                   <div>
-                                    <h5 className="text-sm font-black text-amber-300 uppercase tracking-wider">
+                                    <h5 className="text-sm font-black text-[#A68E4E] uppercase tracking-wider">
                                       Certyfikat Genetyczny ISAG & DNA PIPA Standard
                                     </h5>
                                     <p className="text-xs text-white/60 font-medium">
@@ -1283,7 +1320,7 @@ const AuctionDetail: React.FC = () => {
                                 {pedigreeUrl && (
                                   <button
                                     onClick={() => setIsPedigreeOpen(true)}
-                                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#A68E4E] to-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+                                    className="px-4 py-2.5 rounded-xl bg-[#A68E4E] hover:bg-[#8e7a42] text-zinc-950 text-xs font-black uppercase tracking-wider shadow-lg hover:scale-105 transition-all flex items-center gap-2"
                                   >
                                     <FileText className="w-4 h-4 text-zinc-950" />
                                     Otwórz Rodowód PDF
@@ -1293,7 +1330,7 @@ const AuctionDetail: React.FC = () => {
                             )}
 
                             {dAuction.description && (
-                              <div className="p-8 border-t-2 border-[#42C0CE]/40 bg-black/30 backdrop-blur-md">
+                              <div className="p-8 border-t-2 border-[#A68E4E]/40 bg-black/30 backdrop-blur-md">
                                 <div className="text-white/80 leading-relaxed whitespace-pre-wrap font-sans text-base">
                                   {dAuction.description}
                                 </div>
@@ -1313,14 +1350,14 @@ const AuctionDetail: React.FC = () => {
                             dAuction.bids.map((bid, bidx) => (
                               <div
                                 key={bid.id}
-                                className={`flex items-center justify-between p-5 rounded-2xl transition-all duration-500 border-2 ${bidx === 0 ? "bg-cyan-500/15 border-cyan-400 shadow-[0_0_25px_rgba(66,192,206,0.35)]" : "bg-black/30 border-[#A68E4E]/30 hover:border-[#A68E4E]"}`}
+                                className={`flex items-center justify-between p-5 rounded-2xl transition-all duration-500 border-2 ${bidx === 0 ? "bg-[#A68E4E]/15 border-[#A68E4E] shadow-[0_0_25px_rgba(166,142,78,0.35)]" : "bg-black/30 border-[#A68E4E]/30 hover:border-[#A68E4E]"}`}
                               >
                                 <div className="flex items-center gap-5">
                                   <div
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center border ${bidx === 0 ? "border-cyan-400 bg-cyan-400/20 shadow-[0_0_15px_rgba(66,192,206,0.5)]" : "border-white/10 bg-white/10"}`}
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center border ${bidx === 0 ? "border-[#A68E4E] bg-[#A68E4E]/20 shadow-[0_0_15px_rgba(166,142,78,0.5)]" : "border-white/10 bg-white/10"}`}
                                   >
                                     {bidx === 0 ? (
-                                      <Crown className="w-5 h-5 text-amber-400" />
+                                      <Crown className="w-5 h-5 text-[#A68E4E]" />
                                     ) : (
                                       <span className="text-xs font-black text-white/30">
                                         #{dAuction.bids.length - bidx}
@@ -1330,18 +1367,18 @@ const AuctionDetail: React.FC = () => {
                                   <div>
                                     <div className="flex items-center gap-2">
                                       <p
-                                        className={`text-base font-black ${bidx === 0 ? "text-cyan-300" : "text-white/80"}`}
+                                        className={`text-base font-black ${bidx === 0 ? "text-[#A68E4E]" : "text-white/80"}`}
                                       >
                                         {bid?.bidder?.username || "Anonimowy"}
                                       </p>
                                       {bidx === 0 && (
-                                        <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                                        <span className="px-2 py-0.5 rounded-full bg-[#A68E4E]/20 border border-[#A68E4E]/40 text-[#A68E4E] text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-[#A68E4E] animate-pulse" />
                                           Lider Aukcji
                                         </span>
                                       )}
                                     </div>
-                                    <p className="text-[10px] text-cyan-200/50 uppercase tracking-widest font-bold mt-0.5">
+                                    <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold mt-0.5">
                                       {new Date(
                                         bid.createdAt,
                                       ).toLocaleDateString("pl-PL")}{" "}
@@ -1357,12 +1394,12 @@ const AuctionDetail: React.FC = () => {
                                 </div>
                                 <div className="text-right">
                                   <p
-                                    className={`text-xl font-black ${bidx === 0 ? "text-[#42C0CE]" : "text-white"}`}
+                                    className={`text-xl font-black ${bidx === 0 ? "text-[#A68E4E]" : "text-white"}`}
                                   >
                                     {bid.amount
                                       ? bid.amount.toLocaleString("pl-PL")
                                       : "0"}
-                                    <span className="text-[10px] ml-1.5 opacity-60 font-bold tracking-tighter text-[#42C0CE]">
+                                    <span className="text-[10px] ml-1.5 opacity-60 font-bold tracking-tighter text-[#A68E4E]">
                                       PLN
                                     </span>
                                   </p>
@@ -1370,9 +1407,9 @@ const AuctionDetail: React.FC = () => {
                               </div>
                             ))
                           ) : (
-                            <div className="py-24 text-center bg-[#08232e]/60 rounded-[3rem] border border-dashed border-[#42C0CE]/30">
-                              <Gavel className="w-16 h-16 text-[#42C0CE]/20 mx-auto mb-6" />
-                              <p className="text-cyan-200/60 text-base font-bold">
+                            <div className="py-24 text-center bg-black/30 rounded-[3rem] border border-dashed border-[#A68E4E]/30">
+                              <Gavel className="w-16 h-16 text-[#A68E4E]/30 mx-auto mb-6" />
+                              <p className="text-white/60 text-base font-bold">
                                 Brak ofert. Rozpocznij licytację!
                               </p>
                             </div>
@@ -1392,23 +1429,23 @@ const AuctionDetail: React.FC = () => {
                               href={doc}
                               target="_blank"
                               rel="noreferrer"
-                              className="group flex items-center justify-between p-6 bg-[#08232e]/80 border border-[#42C0CE]/30 rounded-2xl hover:bg-[#0c3140] hover:border-[#42C0CE] transition-all duration-500"
+                              className="group flex items-center justify-between p-6 bg-black/40 border border-[#A68E4E]/30 rounded-2xl hover:border-[#A68E4E] transition-all duration-500"
                             >
                               <div className="flex items-center gap-5">
-                                <div className="w-12 h-12 rounded-xl bg-[#42C0CE]/10 flex items-center justify-center border border-[#42C0CE]/20 group-hover:bg-[#42C0CE]/30 group-hover:border-[#42C0CE] transition-all duration-500">
-                                  <Sparkles className="w-6 h-6 text-[#42C0CE]" />
+                                <div className="w-12 h-12 rounded-xl bg-[#A68E4E]/10 flex items-center justify-center border border-[#A68E4E]/20 group-hover:bg-[#A68E4E]/30 group-hover:border-[#A68E4E] transition-all duration-500">
+                                  <Sparkles className="w-6 h-6 text-[#A68E4E]" />
                                 </div>
                                 <div>
                                   <p className="text-xs text-white font-black uppercase tracking-widest mb-1">
                                     Dokument #{idx + 1}
                                   </p>
-                                  <p className="text-[10px] text-cyan-200/50 truncate max-w-[200px]">
+                                  <p className="text-[10px] text-white/50 truncate max-w-[200px]">
                                     {doc.split("/").pop()}
                                   </p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-3">
-                                <span className="text-[9px] font-black text-[#03141b] uppercase tracking-widest px-5 py-2.5 bg-[#42C0CE] rounded-lg group-hover:bg-white transition-all duration-500">
+                                <span className="text-[9px] font-black text-zinc-950 uppercase tracking-widest px-5 py-2.5 bg-[#A68E4E] hover:bg-[#8e7a42] rounded-lg transition-all duration-500">
                                   Pobierz
                                 </span>
                               </div>
