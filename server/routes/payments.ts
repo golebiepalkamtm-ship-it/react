@@ -361,6 +361,44 @@ router.post(
   },
 );
 
+router.post("/stripe/setup-session", requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!stripe) return res.status(503).json({ error: "Stripe disabled" });
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || undefined,
+        metadata: { userId: user.id },
+      });
+      customerId = customer.id;
+      await prisma.user.update({
+        where: { id: userId },
+        data: { stripeCustomerId: customerId },
+      });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "setup",
+      customer: customerId,
+      payment_method_types: ["card"],
+      success_url: `${process.env.CLIENT_URL || "https://www.palkamtm.pl"}?payment_setup=success`,
+      cancel_url: `${process.env.CLIENT_URL || "https://www.palkamtm.pl"}?payment_setup=cancel`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error: any) {
+    console.error("Stripe setup session error", error);
+    res.status(500).json({ error: error.message || "Setup session failed" });
+  }
+});
+
 router.get("/history", async (req: any, res) => {
   try {
     const userId = req.user?.id;

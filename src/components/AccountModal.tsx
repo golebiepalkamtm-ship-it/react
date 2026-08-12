@@ -12,6 +12,7 @@ import {
   Mail,
   Lock,
   Save,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -19,6 +20,7 @@ import { useProfile } from "@/hooks/useProfile";
 import type { Profile } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { reviewService } from "@/services/reviewService";
+import { apiClient } from "@/services/api";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import PhoneVerification from "@/components/auth/PhoneVerification";
 
@@ -544,6 +546,25 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
               className="px-4 py-2 border border-white/30 text-white/80 hover:bg-white/10 hover:border-white/40 font-medium rounded-lg transition-all duration-200 disabled:opacity-50"
             >
               {t("account.sms.start")}
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={async () => {
+                try {
+                  const res = await apiClient.post<{ url: string }>("/stripe/setup-session", {}, session?.access_token);
+                  if (res.url) window.location.href = res.url;
+                } catch {
+                  setFeedbackOpen(true);
+                  setFeedbackType("error");
+                  setFeedbackTitle("Błąd");
+                  setFeedbackMessage("Nie udało się uruchomić konfiguracji karty.");
+                }
+              }}
+              className="px-4 py-2 border border-amber-500/40 text-amber-300 hover:bg-amber-500/10 font-medium rounded-lg transition-all duration-200 flex items-center gap-2"
+            >
+              <CreditCard className="w-4 h-4 text-amber-400" />
+              Podepnij kartę
             </motion.button>
           </motion.div>
         )}

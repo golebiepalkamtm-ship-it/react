@@ -155,7 +155,8 @@ export class AuctionService {
         select: { stripeCustomerId: true },
       });
 
-      if (!bidderUser?.stripeCustomerId) {
+      const requireCard = process.env.REQUIRE_CARD_FOR_BID === "true";
+      if (requireCard && !bidderUser?.stripeCustomerId) {
         throw createAuctionError(
           AuctionErrorCodes.INVALID_BID_AMOUNT,
           "Musisz podpiąć kartę płatniczą do konta, aby móc licytować. (Anti-Circumvention)",
