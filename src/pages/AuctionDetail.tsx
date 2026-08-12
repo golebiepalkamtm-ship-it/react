@@ -1246,6 +1246,8 @@ const AuctionDetail: React.FC = () => {
                                   ))}
                                 </div>
                               </div>
+                            )}
+
                             {/* PIPA-Style DNA Certificate & Lineage Guarantee Showcase */}
                             {isPigeon && (
                               <div className="p-6 border-t-2 border-[#A68E4E]/40 bg-gradient-to-r from-amber-500/10 via-black/40 to-cyan-500/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">

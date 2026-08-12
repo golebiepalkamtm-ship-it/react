@@ -541,33 +541,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handlePaymentStatusChange = async (paymentId: string, status: string) => {
-    if (!session?.access_token) return;
-    try {
-      await apiClient.patchWithToken(
-        `/admin/payments/${paymentId}/status`,
-        { status },
-        session.access_token,
-      );
-      setFeedbackModal({
-        isOpen: true,
-        type: "success",
-        title: "Sukces",
-        message: "Status płatności został pomyślnie zaktualizowany.",
-      });
-      fetchData();
-      queryClient.invalidateQueries({ queryKey: ["auctions"] });
-    } catch (error: any) {
-      logger.error("Failed to update payment status", error);
-      setFeedbackModal({
-        isOpen: true,
-        type: "error",
-        title: "Błąd",
-        message: error?.message || "Nie udało się zaktualizować statusu płatności.",
-      });
-    }
-  };
-
   const filteredUsers = users.filter(
     (u) =>
       (u.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
