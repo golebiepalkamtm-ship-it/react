@@ -40,6 +40,7 @@ const STATIC_CLIENT_ORIGINS = [
 // Regex patterns for dynamic origins
 const DYNAMIC_ORIGIN_PATTERNS = [
   /^https:\/\/react-[a-z0-9]+-marcins-projects-59088b6e\.vercel\.app$/,
+  /^https:\/\/.*\.vercel\.app$/,
 ];
 
 const SUPABASE_ORIGINS = [
