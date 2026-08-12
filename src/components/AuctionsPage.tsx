@@ -450,7 +450,7 @@ const AuctionsPage = () => {
                   className="group rounded-2xl px-5 py-6 text-left shadow-xl backdrop-blur-md transition-all hover:scale-[1.02]"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.28), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
                     border: "2px solid rgba(166,142,78,0.7)",
                     boxShadow:
                       "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",

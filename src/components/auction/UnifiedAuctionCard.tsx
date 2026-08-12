@@ -89,7 +89,7 @@ type UnifiedAuctionCardProps = {
 };
 
 const CONTENT_BACKGROUND =
-  "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)";
+  "radial-gradient(circle at top, rgba(66, 192, 206, 0.25), transparent 60%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.85) 45%, rgba(15, 23, 42, 0.92) 100%)";
 
 const formatNumber = (value?: number, suffix = "zł") => {
   if (typeof value !== "number") return "—";
@@ -309,7 +309,7 @@ export const UnifiedAuctionCard = memo(
       }
       return {
         gradient: CONTENT_BACKGROUND,
-        base: "rgba(2, 10, 19, 0.96)",
+        base: "rgba(15, 23, 42, 0.88)",
         border: "transparent",
         glow: "none",
       };
@@ -459,7 +459,7 @@ export const UnifiedAuctionCard = memo(
             className="flex flex-1 flex-col gap-2 px-6 pb-6 pt-4 bg-transparent backdrop-blur-2xl relative overflow-hidden"
             style={{
               backgroundImage: CONTENT_BACKGROUND,
-              backgroundColor: "rgba(2, 10, 19, 0.96)",
+              backgroundColor: "rgba(15, 23, 42, 0.88)",
               backgroundBlendMode: "normal",
             }}
           >

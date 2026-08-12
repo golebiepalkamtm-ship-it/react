@@ -591,7 +591,7 @@ const AuctionDetail: React.FC = () => {
                   className="aspect-square rounded-[2.5rem] overflow-hidden glass-vault border-2 border-[#A68E4E]/70 shadow-[0_0_60px_rgba(166,142,78,0.25)] relative group cursor-pointer transition-all duration-700 hover:shadow-[0_0_80px_rgba(166,142,78,0.4)]"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.28), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                   }}
@@ -667,7 +667,7 @@ const AuctionDetail: React.FC = () => {
                     className="p-5 rounded-3xl border-2 border-[#A68E4E]/40 space-y-3 shadow-xl"
                     style={{
                       background:
-                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.25), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
                       backdropFilter: "blur(12px)",
                       WebkitBackdropFilter: "blur(12px)",
                     }}
@@ -713,7 +713,7 @@ const AuctionDetail: React.FC = () => {
                     className="p-6 rounded-3xl border-2 border-[#A68E4E]/40 flex items-center justify-between gap-4 shadow-xl"
                     style={{
                       background:
-                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.25), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
                       backdropFilter: "blur(12px)",
                       WebkitBackdropFilter: "blur(12px)",
                     }}
@@ -766,7 +766,7 @@ const AuctionDetail: React.FC = () => {
                   className="glass-vault rounded-[2.5rem] overflow-hidden relative group h-full border-2 border-[#A68E4E]/70 shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.28), transparent 70%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.82) 45%, rgba(15, 23, 42, 0.90) 100%)",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                   }}
