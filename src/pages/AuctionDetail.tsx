@@ -588,10 +588,10 @@ const AuctionDetail: React.FC = () => {
               <div className="space-y-6 relative z-10">
                 {/* Main Glass Gallery Card */}
                 <div
-                  className="aspect-square rounded-[2.5rem] overflow-hidden glass-vault border-2 border-[#A68E4E]/70 shadow-[0_0_60px_rgba(166,142,78,0.25)] relative group cursor-pointer transition-all duration-700 hover:shadow-[0_0_80px_rgba(166,142,78,0.4)]"
+                  className="aspect-square rounded-[2.5rem] overflow-hidden glass-vault border-2 border-[#A68E4E]/70 shadow-[0_0_60px_rgba(166,142,78,0.25)] relative cursor-pointer"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                   }}
@@ -606,14 +606,14 @@ const AuctionDetail: React.FC = () => {
                   <AuctionImage
                     src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
                     alt=""
-                    className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-40 scale-110 select-none pointer-events-none transition-all duration-700"
+                    className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-40 scale-110 select-none pointer-events-none"
                   />
                   <AuctionImage
                     src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
                     alt={dAuction.title}
-                    className="relative z-10 w-full h-full object-contain object-center transition-all duration-700 group-hover:scale-[1.04] filter brightness-[1.04] contrast-[1.02]"
+                    className="relative z-10 w-full h-full object-contain object-center filter brightness-[1.04] contrast-[1.02]"
                   />
-                  <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-[#070e1e]/60 via-transparent to-white/10 transition-opacity group-hover:opacity-60" />
+                  <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-[#070e1e]/40 via-transparent to-white/5" />
                   
                   {/* Top Badge Overlay */}
                   <div className="absolute top-4 left-4 right-4 z-30 flex items-center justify-between pointer-events-none">
@@ -632,14 +632,6 @@ const AuctionDetail: React.FC = () => {
                       </span>
                     )}
                   </div>
-
-                  {/* Click to expand hint overlay */}
-                  <div className="absolute bottom-4 right-4 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <span className="px-4 py-2 rounded-xl bg-[#070e1e]/95 backdrop-blur-md border border-[#A68E4E]/60 text-white text-xs font-bold flex items-center gap-2 shadow-2xl">
-                      <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
-                      Powiększ zdjęcie
-                    </span>
-                  </div>
                 </div>
 
                 {/* Thumbnails Row */}
@@ -649,12 +641,12 @@ const AuctionDetail: React.FC = () => {
                       <button
                         key={idx}
                         onClick={() => setActiveImageIndex(idx)}
-                        className={`aspect-square rounded-2xl overflow-hidden glass-vault border-2 transition-all duration-300 hover:-translate-y-1 ${activeImageIndex === idx ? "border-[#A68E4E] ring-4 ring-[#A68E4E]/30 scale-[1.02]" : "border-[#A68E4E]/20 opacity-70 hover:opacity-100 hover:border-[#A68E4E]/60"}`}
+                        className={`aspect-square rounded-2xl overflow-hidden glass-vault border-2 ${activeImageIndex === idx ? "border-[#A68E4E] ring-4 ring-[#A68E4E]/30" : "border-[#A68E4E]/30 opacity-80"}`}
                       >
                         <AuctionImage
                           src={img}
                           alt=""
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                          className="w-full h-full object-cover"
                         />
                       </button>
                     ))}
@@ -667,7 +659,7 @@ const AuctionDetail: React.FC = () => {
                     className="p-5 rounded-3xl border-2 border-[#A68E4E]/40 space-y-3 shadow-xl"
                     style={{
                       background:
-                        "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
+                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
                       backdropFilter: "blur(12px)",
                       WebkitBackdropFilter: "blur(12px)",
                     }}
@@ -713,7 +705,7 @@ const AuctionDetail: React.FC = () => {
                     className="p-6 rounded-3xl border-2 border-[#A68E4E]/40 flex items-center justify-between gap-4 shadow-xl"
                     style={{
                       background:
-                        "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
+                        "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
                       backdropFilter: "blur(12px)",
                       WebkitBackdropFilter: "blur(12px)",
                     }}
@@ -766,7 +758,7 @@ const AuctionDetail: React.FC = () => {
                   className="glass-vault rounded-[2.5rem] overflow-hidden relative group h-full border-2 border-[#A68E4E]/70 shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col"
                   style={{
                     background:
-                      "radial-gradient(circle at top, rgba(56, 189, 248, 0.35), transparent 70%), linear-gradient(185deg, rgba(30, 41, 59, 0.96) 0%, rgba(51, 65, 85, 0.92) 50%, rgba(30, 41, 59, 0.98) 100%)",
+                      "radial-gradient(circle at top, rgba(66, 192, 206, 0.20), transparent 70%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                   }}
