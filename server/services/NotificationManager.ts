@@ -331,8 +331,12 @@ export class NotificationManager {
           }
         }
       }
-    } catch (error) {
-      console.error('Error checking ending auctions:', error);
+    } catch (error: any) {
+      if (error?.message?.includes('ENOTFOUND') || error?.message?.includes('tenant/user')) {
+        console.error('NotificationManager: Supabase DB connection error — project paused or DATABASE_URL invalid.');
+      } else {
+        console.error('Error checking ending auctions:', error);
+      }
     }
   }
 

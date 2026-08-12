@@ -1246,6 +1246,32 @@ const AuctionDetail: React.FC = () => {
                                   ))}
                                 </div>
                               </div>
+                            {/* PIPA-Style DNA Certificate & Lineage Guarantee Showcase */}
+                            {isPigeon && (
+                              <div className="p-6 border-t-2 border-[#A68E4E]/40 bg-gradient-to-r from-amber-500/10 via-black/40 to-cyan-500/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-3 rounded-2xl bg-[#A68E4E]/20 border border-[#A68E4E]/40 shadow-inner">
+                                    <ShieldCheck className="w-6 h-6 text-amber-400" />
+                                  </div>
+                                  <div>
+                                    <h5 className="text-sm font-black text-amber-300 uppercase tracking-wider">
+                                      Certyfikat Genetyczny ISAG & DNA PIPA Standard
+                                    </h5>
+                                    <p className="text-xs text-white/60 font-medium">
+                                      100% potwierdzone pochodzenie rodzicielskie z oficjalnym rodowodem hodowli MTM Pałka
+                                    </p>
+                                  </div>
+                                </div>
+                                {pedigreeUrl && (
+                                  <button
+                                    onClick={() => setIsPedigreeOpen(true)}
+                                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#A68E4E] to-amber-500 text-zinc-950 text-xs font-black uppercase tracking-wider shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+                                  >
+                                    <FileText className="w-4 h-4 text-zinc-950" />
+                                    Otwórz Rodowód PDF
+                                  </button>
+                                )}
+                              </div>
                             )}
 
                             {dAuction.description && (

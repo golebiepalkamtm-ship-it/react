@@ -121,9 +121,13 @@ export class AuctionCronService {
           orderBy: { endTime: 'asc' },
           take: 25, // batch to avoid long transactions
         });
-      } catch (dbErr) {
+      } catch (dbErr: any) {
         // Fail-safe: don't let cron DB issues bubble up to request handlers/tests
-        logger.error('Auction cron: DB query failed (skipping run)', dbErr);
+        if (dbErr?.message?.includes('ENOTFOUND') || dbErr?.message?.includes('tenant/user')) {
+          logger.error('Auction cron: Supabase DB connection error — project paused or DATABASE_URL invalid (skipping run).');
+        } else {
+          logger.error('Auction cron: DB query failed (skipping run)', dbErr);
+        }
         return;
       }
 
