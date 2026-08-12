@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { prisma } from "../lib/db.js";
 import { cache } from "../lib/cache.js";
 import { validate } from "../middleware/validation.js";
+import { authMiddleware } from "../middleware/auth.js";
 import { z } from "zod";
 
 // Import types from Prisma client
@@ -361,7 +362,7 @@ router.post(
   },
 );
 
-router.post("/stripe/setup-session", requireAuth, async (req: any, res) => {
+router.post("/stripe/setup-session", authMiddleware, async (req: any, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
@@ -373,8 +374,8 @@ router.post("/stripe/setup-session", requireAuth, async (req: any, res) => {
     let customerId = user.stripeCustomerId;
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: user.email,
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || undefined,
+        email: user.email || undefined,
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || undefined,
         metadata: { userId: user.id },
       });
       customerId = customer.id;

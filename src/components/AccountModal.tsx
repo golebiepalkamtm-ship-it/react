@@ -57,7 +57,7 @@ const AccountModalContent: React.FC<AccountModalContentProps> = ({
   profileSaving,
   updateUserProfile,
 }) => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { t } = useLocale();
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
