@@ -91,9 +91,6 @@ type UnifiedAuctionCardProps = {
   nowMs?: number | undefined;
 };
 
-const CONTENT_BACKGROUND =
-  "radial-gradient(circle at top, rgba(66, 192, 206, 0.25), transparent 60%), linear-gradient(185deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.85) 45%, rgba(15, 23, 42, 0.92) 100%)";
-
 const formatNumber = (value?: number, suffix = "zł") => {
   if (typeof value !== "number") return "—";
   return `${value.toLocaleString("pl-PL")} ${suffix}`.trim();
