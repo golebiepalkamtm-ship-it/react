@@ -415,7 +415,7 @@ export const UnifiedAuctionCard = memo(
 
           {/* Image section */}
           <div
-            className="relative w-full aspect-square overflow-hidden bg-transparent"
+            className="relative w-full aspect-square overflow-hidden bg-transparent border-b border-[#F5E096]/40"
             onContextMenu={(e) => e.preventDefault()}
           >
             <div
@@ -426,7 +426,7 @@ export const UnifiedAuctionCard = memo(
             <AuctionImage
               src={imgSrc}
               alt={title}
-              className={`w-full h-full ${imageObjectClass} duration-700 ease-in-out origin-center select-none pointer-events-none`}
+              className={`w-full h-full ${imageObjectClass} duration-700 ease-in-out origin-center select-none pointer-events-none filter brightness-[1.04] contrast-[1.02]`}
               onError={handleImageError}
             />
             {/* Gradient overlay */}
