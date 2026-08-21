@@ -31,6 +31,12 @@ const STATUS_CONFIG: Record<
   string,
   { label: string; color: string; bg: string; icon: React.ReactNode }
 > = {
+  SUCCEEDED: {
+    label: "Zapłacono",
+    color: "text-green-400",
+    bg: "bg-green-500/10 border-green-500/25",
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+  },
   COMPLETED: {
     label: "Zapłacono",
     color: "text-green-400",
@@ -42,6 +48,12 @@ const STATUS_CONFIG: Record<
     color: "text-green-400",
     bg: "bg-green-500/10 border-green-500/25",
     icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+  },
+  INITIATED: {
+    label: "Rozpoczęto",
+    color: "text-blue-400",
+    bg: "bg-blue-500/10 border-blue-500/25",
+    icon: <Clock className="w-3.5 h-3.5" />,
   },
   PENDING: {
     label: "Oczekuje",
@@ -59,6 +71,12 @@ const STATUS_CONFIG: Record<
     label: "Anulowano",
     color: "text-white/40",
     bg: "bg-white/5 border-white/10",
+    icon: <AlertCircle className="w-3.5 h-3.5" />,
+  },
+  REFUNDED: {
+    label: "Zwrócono",
+    color: "text-purple-400",
+    bg: "bg-purple-500/10 border-purple-500/25",
     icon: <AlertCircle className="w-3.5 h-3.5" />,
   },
 };
@@ -136,7 +154,10 @@ export const AdminPaymentsTable: React.FC<AdminPaymentsTableProps> = ({
   }, [payments, filterStatus, filterType, search, sortField, sortDir]);
 
   const totalAmount = useMemo(
-    () => filtered.filter((p) => ["PAID", "COMPLETED"].includes(p.status)).reduce((s, p) => s + p.amount, 0),
+    () =>
+      filtered
+        .filter((p) => ["PAID", "COMPLETED", "SUCCEEDED"].includes(p.status))
+        .reduce((s, p) => s + p.amount, 0),
     [filtered]
   );
 

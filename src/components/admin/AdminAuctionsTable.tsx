@@ -65,7 +65,9 @@ export const AdminAuctionsTable: React.FC<AdminAuctionsTableProps> = ({
                   <span className="text-sm font-semibold text-white">{auction.title}</span>
                 </td>
                 <td className="py-4 px-6 text-sm font-medium text-zinc-200">
-                  {auction.seller?.first_name} {auction.seller?.last_name}
+                  {auction.seller?.first_name || auction.seller?.last_name
+                    ? `${auction.seller?.first_name || ""} ${auction.seller?.last_name || ""}`.trim()
+                    : auction.seller?.username || auction.seller?.email || "—"}
                 </td>
                 <td className="py-4 px-6 text-right text-gold font-bold text-base">
                   {auction.currentPrice?.toLocaleString("pl-PL")} zł

@@ -75,6 +75,20 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
                   }
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
+                  Numer telefonu
+                </label>
+                <input
+                  type="tel"
+                  placeholder="+48 000 000 000"
+                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
+                  value={user.phone || ""}
+                  onChange={(e) =>
+                    onChange({ ...user, phone: e.target.value })
+                  }
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">

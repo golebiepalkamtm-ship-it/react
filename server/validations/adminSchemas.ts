@@ -91,3 +91,17 @@ export const UserCreateSchema = z.object({
 export const UserRoleUpdateBodySchema = z.object({
   role: UserRoleSchema,
 });
+
+export const PlatformSettingsSchema = z.object({
+  registration: z.boolean().optional(),
+  email_verify: z.boolean().optional(),
+  push: z.boolean().optional(),
+  maintenance: z.boolean().optional(),
+  commission: z.coerce.number().min(0).max(100).optional(),
+  minBid: z.coerce.number().min(1).optional(),
+  maxAuctions: z.coerce.number().min(1).optional(),
+  stripeMode: z.enum(["test", "live"]).optional(),
+  stripePk: z.string().optional(),
+  stripeSk: z.string().optional(),
+  stripeWebhook: z.string().optional(),
+});

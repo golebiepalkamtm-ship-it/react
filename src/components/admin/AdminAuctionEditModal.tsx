@@ -190,16 +190,16 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-2">
-                  Płeć
-                </label>
-                <select
-                  className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
-                  value={auction.sex || "MALE"}
-                  onChange={(e) =>
-                    onChange({ ...auction, sex: e.target.value })
-                  }
-                >
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Płeć
+                  </label>
+                  <select
+                    className="w-full bg-[#A68E4E]/5 border border-[#A68E4E]/10 rounded-xl p-3 text-white focus:border-[#A68E4E]/50 focus:ring-2 focus:ring-[#A68E4E]/20 outline-none transition-all"
+                    value={auction.sex || (auction as any).gender || "MALE"}
+                    onChange={(e) =>
+                      onChange({ ...auction, sex: e.target.value })
+                    }
+                  >
                   <option value="MALE" className="bg-[#0c1427] text-white font-medium py-1">SAMIEC</option>
                   <option value="FEMALE" className="bg-[#0c1427] text-white font-medium py-1">SAMICA</option>
                 </select>

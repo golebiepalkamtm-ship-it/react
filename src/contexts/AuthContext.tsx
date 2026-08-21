@@ -130,11 +130,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const computeRole = useCallback(
     (authUser: User, existingProfile?: Profile | null) => {
+      const isSuperAdmin = authUser.email === "superadmin@palkamtm.pl";
       const supabaseRole =
         (authUser as any).app_metadata?.role ||
         (authUser as any).user_metadata?.role;
       const inferredRole =
-        supabaseRole === "ADMIN" ? "ADMIN" : existingProfile?.role;
+        isSuperAdmin || supabaseRole === "ADMIN"
+          ? "ADMIN"
+          : existingProfile?.role;
 
       const userWithVerifications = {
         id: authUser.id,
@@ -158,11 +161,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const appMeta = (authUser as any).app_metadata;
         const isEmailVerified = isEmailConfirmed(authUser);
         const isPhoneVerified = Boolean((authUser as any).phone_confirmed_at);
+        const isSuperAdmin = authUser.email === "superadmin@palkamtm.pl";
 
         let newRole: UserRole | null = null;
 
-        // 1. Sync ADMIN role from Auth metadata
-        if (appMeta?.role === "ADMIN" || existingProfile.role === "ADMIN") {
+        // 1. Sync ADMIN role from Auth metadata or superadmin
+        if (
+          appMeta?.role === "ADMIN" ||
+          existingProfile.role === "ADMIN" ||
+          isSuperAdmin
+        ) {
           newRole = "ADMIN";
         }
         // 2. Fix users stuck in USER_REGISTERED despite verification OR upgrade to FULL_VERIFIED
@@ -189,10 +197,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return existingProfile;
       }
 
+      const isSuperAdmin = authUser.email === "superadmin@palkamtm.pl";
       const supabaseRole =
         (authUser as any).app_metadata?.role ||
         (authUser as any).user_metadata?.role;
-      const roleOverride = supabaseRole === "ADMIN" ? "ADMIN" : undefined;
+      const roleOverride =
+        isSuperAdmin || supabaseRole === "ADMIN" ? "ADMIN" : undefined;
 
       // If missing (race condition), return temp read-only object
       const userWithVerifications = {

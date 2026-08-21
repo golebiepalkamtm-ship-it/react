@@ -72,7 +72,9 @@ export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({
                       </span>
                     </div>
                     <span className="text-sm font-medium text-white">
-                      {user.first_name} {user.last_name}
+                      {user.first_name || user.last_name
+                        ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
+                        : user.username || user.email}
                     </span>
                   </div>
                 </td>

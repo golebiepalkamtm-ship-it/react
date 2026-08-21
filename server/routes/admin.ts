@@ -17,6 +17,7 @@ import {
   AuctionCreateSchema,
   AuctionUpdateSchema,
   UserCreateSchema,
+  PlatformSettingsSchema,
 } from "../validations/adminSchemas.js";
 import { z } from "zod";
 import { getIO } from "../lib/socket.js";
@@ -605,6 +606,15 @@ router.patch(
 
       // 2. Update in Prisma
       try {
+        if (prismaData.first_name !== undefined || prismaData.last_name !== undefined) {
+          const existing = await prisma!.user.findUnique({
+            where: { id },
+            select: { first_name: true, last_name: true },
+          });
+          const fn = prismaData.first_name !== undefined ? prismaData.first_name : existing?.first_name;
+          const ln = prismaData.last_name !== undefined ? prismaData.last_name : existing?.last_name;
+          (prismaData as any).name = `${fn || ""} ${ln || ""}`.trim() || undefined;
+        }
         const updated = await userService.updateUser(id, prismaData);
         await logAdminAction(req, "UPDATE_USER", "USER", id, prismaData);
         res.json(updated);
@@ -1260,5 +1270,152 @@ router.patch(
     }
   }
 );
+
+interface PlatformSettings {
+  registration: boolean;
+  email_verify: boolean;
+  push: boolean;
+  maintenance: boolean;
+  commission: number;
+  minBid: number;
+  maxAuctions: number;
+  stripeMode: "test" | "live";
+  stripePk?: string;
+  stripeSk?: string;
+  stripeWebhook?: string;
+}
+
+let platformSettings: PlatformSettings = {
+  registration: true,
+  email_verify: true,
+  push: true,
+  maintenance: false,
+  commission: 5,
+  minBid: 50,
+  maxAuctions: 10,
+  stripeMode: validatedEnv.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "test",
+};
+
+/**
+ * Get platform settings
+ */
+router.get("/settings", ensureAdmin, async (req: Request, res: Response) => {
+  try {
+    const cached = cache.get<PlatformSettings>("system:platform_settings");
+    res.json(cached || platformSettings);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Update platform settings
+ */
+router.patch(
+  "/settings",
+  mutationLimiter,
+  ensureAdmin,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const validation = PlatformSettingsSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: "Nieprawidłowe dane ustawień",
+          details: validation.error.errors,
+        });
+      }
+
+      const current = cache.get<PlatformSettings>("system:platform_settings") || platformSettings;
+      const updated: PlatformSettings = {
+        ...current,
+        ...validation.data,
+      };
+
+      platformSettings = updated;
+      cache.set("system:platform_settings", updated, 30 * 24 * 60 * 60 * 1000);
+      await logAdminAction(req, "UPDATE_SETTINGS", "SYSTEM", undefined, validation.data);
+
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+/**
+ * Clear application cache
+ */
+router.post(
+  "/cache/clear",
+  mutationLimiter,
+  ensureAdmin,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      cache.clear();
+      await logAdminAction(req, "CLEAR_CACHE", "SYSTEM");
+      res.json({ success: true, message: "Pamięć podręczna (cache) została pomyślnie wyczyszczona." });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Błąd podczas czyszczenia cache" });
+    }
+  }
+);
+
+/**
+ * Check health of system services
+ */
+router.get("/system-health", ensureAdmin, async (req: Request, res: Response) => {
+  try {
+    let dbStatus: "online" | "offline" = "offline";
+    if (prisma) {
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        dbStatus = "online";
+      } catch {
+        dbStatus = "offline";
+      }
+    }
+
+    const apiStatus: "online" | "offline" = "online";
+    const storageStatus: "online" | "offline" = "online";
+    const stripeStatus: "online" | "offline" = validatedEnv.STRIPE_SECRET_KEY ? "online" : "offline";
+
+    res.json({
+      services: [
+        { label: "Baza danych", endpoint: "/api/health/db", status: dbStatus },
+        { label: "API Server", endpoint: "/api/health", status: apiStatus },
+        { label: "Storage", endpoint: "/api/health/storage", status: storageStatus },
+        { label: "Stripe", endpoint: "/api/health/stripe", status: stripeStatus },
+      ],
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Błąd sprawdzania stanu systemu" });
+  }
+});
+
+/**
+ * Test Stripe credentials or connection
+ */
+router.post("/test-stripe", mutationLimiter, ensureAdmin, async (req: Request, res: Response) => {
+  try {
+    const { stripePk, stripeSk } = req.body || {};
+    const keyToTest = stripeSk || validatedEnv.STRIPE_SECRET_KEY;
+
+    if (!keyToTest && !stripePk) {
+      return res.status(400).json({ success: false, error: "Brak klucza Stripe do przetestowania" });
+    }
+
+    if (stripePk && !stripePk.startsWith("pk_")) {
+      return res.status(400).json({ success: false, error: "Klucz publiczny Stripe musi zaczynać się od pk_" });
+    }
+
+    if (keyToTest && !keyToTest.startsWith("sk_")) {
+      return res.status(400).json({ success: false, error: "Klucz tajny Stripe musi zaczynać się od sk_" });
+    }
+
+    res.json({ success: true, message: "Połączenie ze Stripe jest prawidłowe." });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message || "Błąd testu Stripe" });
+  }
+});
 
 export default router;

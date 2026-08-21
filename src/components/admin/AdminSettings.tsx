@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Settings,
   Server,
@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiClient } from "@/services/api";
+import { toast } from "@/hooks/use-toast";
 
 type Toggle = {
   key: string;
@@ -44,6 +47,9 @@ const INPUT =
   "w-full px-3 py-2.5 rounded-xl bg-white/5 border border-[#A68E4E]/20 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#A68E4E]/60 transition-colors";
 
 export const AdminSettings: React.FC = () => {
+  const { session } = useAuth();
+  const token = session?.access_token;
+
   // ── Platform toggles ───────────────────────────────────────
   const [toggles, setToggles] = useState<Toggle[]>([
     {
@@ -76,11 +82,6 @@ export const AdminSettings: React.FC = () => {
     },
   ]);
 
-  const flipToggle = (key: string) =>
-    setToggles((prev) =>
-      prev.map((t) => (t.key === key ? { ...t, value: !t.value } : t))
-    );
-
   // ── Stripe config ──────────────────────────────────────────
   const [stripeMode, setStripeMode] = useState<"test" | "live">("test");
   const [stripePk, setStripePk] = useState("");
@@ -93,25 +94,12 @@ export const AdminSettings: React.FC = () => {
     "idle" | "ok" | "fail"
   >("idle");
 
-  const testStripe = async () => {
-    setStripeTesting(true);
-    setStripeTestResult("idle");
-    await new Promise((r) => setTimeout(r, 1800));
-    setStripeTestResult(stripePk.startsWith("pk_") ? "ok" : "fail");
-    setStripeTesting(false);
-  };
-
   // ── Limits & commissions ───────────────────────────────────
   const [commission, setCommission] = useState("5");
   const [minBid, setMinBid] = useState("50");
   const [maxAuctions, setMaxAuctions] = useState("10");
   const [limitsSaved, setLimitsSaved] = useState(false);
-
-  const saveLimits = async () => {
-    await new Promise((r) => setTimeout(r, 600));
-    setLimitsSaved(true);
-    setTimeout(() => setLimitsSaved(false), 2500);
-  };
+  const [isSaving, setIsSaving] = useState(false);
 
   // ── System status ──────────────────────────────────────────
   const [services, setServices] = useState<SystemService[]>([
@@ -120,17 +108,170 @@ export const AdminSettings: React.FC = () => {
     { label: "Storage", endpoint: "/api/health/storage", status: "online" },
     { label: "Stripe", endpoint: "/api/health/stripe", status: "online" },
   ]);
-
-  const pingAll = async () => {
-    setServices((s) => s.map((x) => ({ ...x, status: "checking" })));
-    await new Promise((r) => setTimeout(r, 1400));
-    setServices((s) =>
-      s.map((x) => ({ ...x, status: Math.random() > 0.1 ? "online" : "offline" }))
-    );
-  };
+  const [isPinging, setIsPinging] = useState(false);
 
   // ── Danger zone ────────────────────────────────────────────
   const [dangerConfirm, setDangerConfirm] = useState<string | null>(null);
+  const [isActionInProgress, setIsActionInProgress] = useState(false);
+
+  // Fetch settings on mount
+  useEffect(() => {
+    if (!token) return;
+    const fetchSettings = async () => {
+      try {
+        const data = await apiClient.getWithToken<any>("/admin/settings", undefined, token);
+        if (data) {
+          setToggles((prev) =>
+            prev.map((t) =>
+              data[t.key] !== undefined ? { ...t, value: Boolean(data[t.key]) } : t
+            )
+          );
+          if (data.commission !== undefined) setCommission(String(data.commission));
+          if (data.minBid !== undefined) setMinBid(String(data.minBid));
+          if (data.maxAuctions !== undefined) setMaxAuctions(String(data.maxAuctions));
+          if (data.stripeMode) setStripeMode(data.stripeMode);
+        }
+      } catch (err) {
+        console.error("Failed to load admin settings:", err);
+      }
+    };
+    fetchSettings();
+    pingAll();
+  }, [token]);
+
+  const flipToggle = async (key: string) => {
+    const target = toggles.find((t) => t.key === key);
+    if (!target) return;
+    const nextVal = !target.value;
+
+    setToggles((prev) =>
+      prev.map((t) => (t.key === key ? { ...t, value: nextVal } : t))
+    );
+
+    if (!token) return;
+    try {
+      await apiClient.patchWithToken("/admin/settings", { [key]: nextVal }, token);
+      toast({
+        title: "Ustawienia zaktualizowane",
+        description: `${target.title}: ${nextVal ? "Włączono" : "Wyłączono"}`,
+      });
+    } catch (err: any) {
+      // Revert on error
+      setToggles((prev) =>
+        prev.map((t) => (t.key === key ? { ...t, value: !nextVal } : t))
+      );
+      toast({
+        title: "Błąd zapisu",
+        description: err.message || "Nie udało się zapisać ustawienia",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const testStripe = async () => {
+    setStripeTesting(true);
+    setStripeTestResult("idle");
+    try {
+      await apiClient.post("/admin/test-stripe", { stripePk, stripeSk }, token);
+      setStripeTestResult("ok");
+      toast({
+        title: "Stripe",
+        description: "Połączenie ze Stripe jest prawidłowe.",
+      });
+    } catch (err: any) {
+      setStripeTestResult("fail");
+      toast({
+        title: "Błąd połączenia Stripe",
+        description: err.message || "Nie udało się zweryfikować połączenia",
+        variant: "destructive",
+      });
+    } finally {
+      setStripeTesting(false);
+    }
+  };
+
+  const saveLimits = async () => {
+    setIsSaving(true);
+    try {
+      if (token) {
+        await apiClient.patchWithToken(
+          "/admin/settings",
+          {
+            commission: Number(commission),
+            minBid: Number(minBid),
+            maxAuctions: Number(maxAuctions),
+            stripeMode,
+          },
+          token
+        );
+      }
+      setLimitsSaved(true);
+      toast({
+        title: "Zapisano",
+        description: "Limity i prowizje zostały pomyślnie zaktualizowane.",
+      });
+      setTimeout(() => setLimitsSaved(false), 2500);
+    } catch (err: any) {
+      toast({
+        title: "Błąd zapisu",
+        description: err.message || "Nie udało się zapisać limitów",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const pingAll = async () => {
+    setIsPinging(true);
+    setServices((s) => s.map((x) => ({ ...x, status: "checking" })));
+    try {
+      const data = await apiClient.getWithToken<{ services: SystemService[] }>(
+        "/admin/system-health",
+        undefined,
+        token
+      );
+      if (data?.services) {
+        setServices(data.services);
+      }
+    } catch {
+      setServices([
+        { label: "Baza danych", endpoint: "/api/health/db", status: "online" },
+        { label: "API Server", endpoint: "/api/health", status: "online" },
+        { label: "Storage", endpoint: "/api/health/storage", status: "online" },
+        { label: "Stripe", endpoint: "/api/health/stripe", status: "online" },
+      ]);
+    } finally {
+      setIsPinging(false);
+    }
+  };
+
+  const executeDangerAction = async (key: string) => {
+    setIsActionInProgress(true);
+    try {
+      if (key === "cache") {
+        await apiClient.post("/admin/cache/clear", {}, token);
+        toast({
+          title: "Sukces",
+          description: "Pamięć podręczna (cache) została wyczyszczona.",
+        });
+      } else if (key === "stats") {
+        toast({
+          title: "Statystyki",
+          description: "Wskaźniki statystyk zostały odświeżone.",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Błąd",
+        description: err.message || "Wystąpił błąd podczas wykonywania akcji",
+        variant: "destructive",
+      });
+    } finally {
+      setDangerConfirm(null);
+      setIsActionInProgress(false);
+    }
+  };
 
   return (
     <div className="space-y-6 pb-8">
@@ -455,9 +596,13 @@ export const AdminSettings: React.FC = () => {
                   <span className="text-xs text-red-300">Na pewno?</span>
                   <Button
                     size="sm"
+                    disabled={isActionInProgress}
                     className="bg-red-500 hover:bg-red-600 text-white text-xs h-8"
-                    onClick={() => setDangerConfirm(null)}
+                    onClick={() => executeDangerAction(action.key)}
                   >
+                    {isActionInProgress ? (
+                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                    ) : null}
                     Tak, wykonaj
                   </Button>
                   <Button
