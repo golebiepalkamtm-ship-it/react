@@ -915,7 +915,10 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           </motion.div>
                         </div>
                       </div>
-                   div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 space-y-4">
+                    </motion.div>
+                  </div>
+
+                  <div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 space-y-4">
                     <h3 className="font-display text-xl font-semibold text-white">
                       Wypłata za sprzedane ptaki
                     </h3>
@@ -973,9 +976,6 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         />
                       </div>
                     )}
-                  </div>
-
-                  < </motion.div>
                   </div>
 
                   <motion.div
