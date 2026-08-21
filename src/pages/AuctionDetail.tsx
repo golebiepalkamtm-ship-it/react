@@ -621,7 +621,7 @@ const AuctionDetail: React.FC = () => {
 
             <div className="grid lg:grid-cols-2 gap-12 items-start relative">
               {/* Background Ambient Orbs */}
-              <div className="pointer-events-none absolute -top-32 -left-32 w-[30rem] h-[30rem] bg-[#42C0CE]/30 rounded-full blur-[120px] animate-pulse" />
+              <div className="pointer-events-none absolute -top-32 -left-32 w-[30rem] h-[30rem] bg-[#A68E4E]/15 rounded-full blur-[120px] animate-pulse" />
               <div className="pointer-events-none absolute -bottom-32 -right-32 w-[30rem] h-[30rem] bg-[#A68E4E]/30 rounded-full blur-[120px] animate-pulse" />
 
               {/* Column 1: Gallery & Seller Trust */}
