@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gavel, X, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,13 +20,13 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
   onSave,
   onChange,
 }) => {
-  if (!auction) return null;
+  if (!auction || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -121,8 +122,12 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
                     onChange({ ...auction, status: e.target.value })
                   }
                 >
+                  <option value="DRAFT" className="bg-[#0c1427] text-white font-medium py-1">DRAFT</option>
+                  <option value="WAITING_FOR_FEE" className="bg-[#0c1427] text-white font-medium py-1">WAITING_FOR_FEE</option>
                   <option value="ACTIVE" className="bg-[#0c1427] text-white font-medium py-1">ACTIVE</option>
                   <option value="ENDED" className="bg-[#0c1427] text-white font-medium py-1">ENDED</option>
+                  <option value="ENDED_WAITING_PAYMENT" className="bg-[#0c1427] text-white font-medium py-1">ENDED_WAITING_PAYMENT</option>
+                  <option value="COMPLETED" className="bg-[#0c1427] text-white font-medium py-1">COMPLETED</option>
                   <option value="CANCELLED" className="bg-[#0c1427] text-white font-medium py-1">CANCELLED</option>
                 </select>
               </div>
@@ -219,6 +224,7 @@ export const AdminAuctionEditModal: React.FC<AdminAuctionEditModalProps> = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 };

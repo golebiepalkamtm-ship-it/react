@@ -131,70 +131,90 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       return;
     }
     setLoading(true);
-    try {
-      logger.info("Fetching admin data...");
+    const token = session.access_token;
+    const failures: string[] = [];
 
-      const statsData = await apiClient.getWithToken<AdminStats>(
-        "/admin/stats",
-        undefined,
-        session.access_token,
-      );
-      setStats(statsData);
-
-      const usersData = await apiClient.getWithToken<{ users: UserData[] }>(
-        "/admin/users",
-        { limit: 100 },
-        session.access_token,
-      );
-      setUsers(usersData.users || []);
-
-      const auctionsResponse = await apiClient.getWithToken<{
-        data: AuctionData[];
-      }>("/admin/auctions", undefined, session.access_token);
-      setAuctions(auctionsResponse.data || []);
-
-      const historicalData = await apiClient.getWithToken<HistoricalStats>(
-        "/admin/stats/historical",
-        undefined,
-        session.access_token,
-      );
-      setHistoricalStats(historicalData);
-
-      // content: meetings + references
+    const load = async <T,>(
+      label: string,
+      runner: () => Promise<T>,
+      onOk: (value: T) => void,
+    ) => {
       try {
-        const ms = await meetingsService.getMeetings();
-        setMeetings(ms || []);
-      } catch (e) {
-        logger.error("Meetings fetch failed", e);
+        onOk(await runner());
+      } catch (error) {
+        failures.push(label);
+        logger.error(`Admin fetch failed: ${label}`, error);
       }
-      try {
-        const rs = await referenceService.getReferences();
-        setReferences(rs || []);
-      } catch (e) {
-        logger.error("References fetch failed", e);
-      }
+    };
 
-      try {
-        const payData = await apiClient.getWithToken<{ payments: any[] }>(
-          "/admin/payments",
-          { limit: 50 },
-          session.access_token,
-        );
-        setAdminPayments(payData.payments || []);
-      } catch (e) {
-        logger.error("Admin payments fetch failed", e);
-      }
-    } catch (error) {
-      logger.error("❌ Error fetching admin data:", error);
+    logger.info("Fetching admin data...");
+    await Promise.all([
+      load(
+        "statystyki",
+        () => apiClient.getWithToken<AdminStats>("/admin/stats", undefined, token),
+        setStats,
+      ),
+      load(
+        "użytkownicy",
+        () =>
+          apiClient.getWithToken<{ users: UserData[] }>(
+            "/admin/users",
+            { limit: 100 },
+            token,
+          ),
+        (usersData) => setUsers(usersData.users || []),
+      ),
+      load(
+        "aukcje",
+        () =>
+          apiClient.getWithToken<{ data: AuctionData[] }>(
+            "/admin/auctions",
+            { limit: 100 },
+            token,
+          ),
+        (auctionsResponse) => setAuctions(auctionsResponse.data || []),
+      ),
+      load(
+        "wykresy",
+        () =>
+          apiClient.getWithToken<HistoricalStats>(
+            "/admin/stats/historical",
+            undefined,
+            token,
+          ),
+        setHistoricalStats,
+      ),
+      load(
+        "spotkania",
+        () => meetingsService.getMeetings(),
+        (ms) => setMeetings(ms || []),
+      ),
+      load(
+        "referencje",
+        () => referenceService.getReferences(),
+        (rs) => setReferences(rs || []),
+      ),
+      load(
+        "płatności",
+        () =>
+          apiClient.getWithToken<{ payments: any[] }>(
+            "/admin/payments",
+            { limit: 50 },
+            token,
+          ),
+        (payData) => setAdminPayments(payData.payments || []),
+      ),
+    ]);
+
+    if (failures.length > 0) {
       setFeedbackModal({
         isOpen: true,
         type: "error",
         title: "Błąd",
-        message: "Nie udało się pobrać danych administratora.",
+        message: `Nie udało się pobrać: ${failures.join(", ")}. Reszta panelu działa.`,
       });
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [session?.access_token]);
 
   useEffect(() => {
@@ -383,7 +403,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           isOpen: true,
           type: "error",
           title: "Błąd",
-          message: "Nie udało się wykonać akcji.",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nie udało się wykonać akcji.",
         });
       }
     };
@@ -405,9 +428,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!editingUser || !session?.access_token) return;
     try {
+      const payload: Record<string, unknown> = {
+        email: editingUser.email,
+        first_name: editingUser.first_name || undefined,
+        last_name: editingUser.last_name || undefined,
+        username: editingUser.username || undefined,
+        phone: editingUser.phone || undefined,
+        role: editingUser.role,
+        isBlocked: Boolean(editingUser.isBlocked),
+        isBanned: Boolean(editingUser.isBanned),
+      };
+      if (editingUser.password && editingUser.password.length >= 6) {
+        payload.password = editingUser.password;
+      }
       await apiClient.patch(
         `/admin/users/${editingUser.id}`,
-        editingUser,
+        payload,
         session.access_token,
       );
       setEditingUser(null);
@@ -423,7 +459,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         isOpen: true,
         type: "error",
         title: "Błąd",
-        message: "Nie udało się zapisać zmian.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nie udało się zapisać zmian.",
       });
     }
   };
@@ -432,7 +471,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!session?.access_token) return;
     try {
-      await apiClient.post("/admin/users", newUser, session.access_token);
+      await apiClient.post(
+        "/admin/users",
+        {
+          email: newUser.email,
+          password: newUser.password,
+          first_name: newUser.first_name || undefined,
+          last_name: newUser.last_name || undefined,
+          role: newUser.role || "USER_REGISTERED",
+          username: newUser.username,
+          phone: newUser.phone || undefined,
+        },
+        session.access_token,
+      );
       setIsCreatingUser(false);
       setNewUser({
         email: "",
@@ -455,7 +506,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         isOpen: true,
         type: "error",
         title: "Błąd",
-        message: "Nie udało się utworzyć użytkownika.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nie udało się utworzyć użytkownika.",
       });
     }
   };
@@ -492,7 +546,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           isOpen: true,
           type: "error",
           title: "Błąd",
-          message: "Nie udało się wykonać akcji.",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nie udało się wykonać akcji.",
         });
       }
     };
@@ -514,9 +571,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     if (!editingAuction || !session?.access_token) return;
     try {
       const auctionIdToInvalidate = editingAuction.id;
+      const allowedStatuses = [
+        "DRAFT",
+        "WAITING_FOR_FEE",
+        "ACTIVE",
+        "ENDED",
+        "ENDED_WAITING_PAYMENT",
+        "COMPLETED",
+        "CANCELLED",
+      ];
+      const payload: Record<string, unknown> = {
+        title: editingAuction.title,
+        description: editingAuction.description || undefined,
+        startingPrice: editingAuction.startingPrice,
+        buyNowPrice: editingAuction.buyNowPrice || undefined,
+        reservePrice: editingAuction.reservePrice || undefined,
+        minBidIncrement: editingAuction.minBidIncrement || undefined,
+        category: editingAuction.category,
+        sex: editingAuction.sex,
+        endTime: editingAuction.endTime || undefined,
+      };
+      if (
+        editingAuction.status &&
+        allowedStatuses.includes(editingAuction.status)
+      ) {
+        payload.status = editingAuction.status;
+      }
       await apiClient.patch(
         `/admin/auctions/${editingAuction.id}`,
-        editingAuction,
+        payload,
         session.access_token,
       );
       setEditingAuction(null);
@@ -536,7 +619,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         isOpen: true,
         type: "error",
         title: "Błąd",
-        message: "Nie udało się zapisać zmian.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nie udało się zapisać zmian.",
       });
     }
   };

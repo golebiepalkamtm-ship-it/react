@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit, X, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,13 +20,13 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
   onSave,
   onChange,
 }) => {
-  if (!user) return null;
+  if (!user || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -181,6 +182,7 @@ export const AdminUserEditModal: React.FC<AdminUserEditModalProps> = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 };

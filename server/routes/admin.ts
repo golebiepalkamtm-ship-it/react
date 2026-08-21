@@ -163,9 +163,6 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
       topSellers,
       topBidders,
       paymentsSummary,
-      totalPageViews,
-      pageViewsByPath,
-      recentVisits,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.auction.count({ where: { status: "ACTIVE" } }),
@@ -199,23 +196,6 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
         _sum: { amount: true },
         _count: { id: true },
         where: { status: "SUCCEEDED" },
-      }),
-      prisma.pageView.count(),
-      prisma.pageView.groupBy({
-        by: ["path"],
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
-        take: 20,
-      }),
-      prisma.pageView.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 20,
-        select: {
-          path: true,
-          ipAddress: true,
-          userAgent: true,
-          createdAt: true,
-        },
       }),
     ]);
 
@@ -251,11 +231,42 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
       user: b.bidderId ? bidderMap[b.bidderId] : null,
     }));
 
-    // Process page view stats
-    const visitsByPath = pageViewsByPath.map((p) => ({
-      path: p.path,
-      count: p._count.id,
-    }));
+    let analytics = {
+      totalPageViews: 0,
+      visitsByPath: [] as { path: string; count: number }[],
+      recentVisits: [] as unknown[],
+    };
+    try {
+      const [totalPageViews, pageViewsByPath, recentVisits] = await Promise.all([
+        prisma.pageView.count(),
+        prisma.pageView.groupBy({
+          by: ["path"],
+          _count: { id: true },
+          orderBy: { _count: { id: "desc" } },
+          take: 20,
+        }),
+        prisma.pageView.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          select: {
+            path: true,
+            ipAddress: true,
+            userAgent: true,
+            createdAt: true,
+          },
+        }),
+      ]);
+      analytics = {
+        totalPageViews,
+        visitsByPath: pageViewsByPath.map((p) => ({
+          path: p.path,
+          count: p._count.id,
+        })),
+        recentVisits,
+      };
+    } catch (pageViewError) {
+      console.warn("Admin stats: page views unavailable", pageViewError);
+    }
 
     res.json({
       totalUsers,
@@ -278,11 +289,7 @@ router.get("/stats", ensureAdmin, async (req: Request, res: Response) => {
         total: Number(paymentsSummary._sum.amount || 0),
         count: paymentsSummary._count.id,
       },
-      analytics: {
-        totalPageViews,
-        visitsByPath,
-        recentVisits,
-      },
+      analytics,
     });
   } catch (error: any) {
     console.error("Stats fetch error:", error);
