@@ -1,6 +1,7 @@
 import express, { type Router } from 'express';
 import { authMiddleware, type AuthenticatedRequest } from '../middleware/auth.js';
 import { prisma } from '../lib/db.js';
+import { validatePayoutInput } from '../utils/sellerPayout.js';
 
 const router: Router = express.Router();
 
@@ -43,7 +44,10 @@ router.patch('/profile', authMiddleware, async (req: AuthenticatedRequest, res) 
       'street', 
       'postal_code', 
       'city', 
-      'country'
+      'country',
+      'payoutMethod',
+      'payoutIban',
+      'payoutPhone',
     ];
 
     const updates = req.body || {};
@@ -63,6 +67,24 @@ router.patch('/profile', authMiddleware, async (req: AuthenticatedRequest, res) 
 
     if (Object.keys(filteredUpdates).length === 0) {
       return res.status(400).json({ error: 'Brak poprawnych pól do aktualizacji.' });
+    }
+
+    if (
+      filteredUpdates.payoutMethod !== undefined ||
+      filteredUpdates.payoutIban !== undefined ||
+      filteredUpdates.payoutPhone !== undefined
+    ) {
+      const payout = validatePayoutInput({
+        payoutMethod: filteredUpdates.payoutMethod,
+        payoutIban: filteredUpdates.payoutIban,
+        payoutPhone: filteredUpdates.payoutPhone,
+      });
+      if (!payout.ok) {
+        return res.status(400).json({ error: payout.error });
+      }
+      filteredUpdates.payoutMethod = payout.data.payoutMethod;
+      filteredUpdates.payoutIban = payout.data.payoutIban;
+      filteredUpdates.payoutPhone = payout.data.payoutPhone;
     }
 
     // Special validation for username if present

@@ -5,6 +5,7 @@ import { cache } from "../lib/cache.js";
 import { validate } from "../middleware/validation.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { z } from "zod";
+import { hasCompletePayout, PAYOUT_REQUIRED_ERROR } from "../utils/sellerPayout.js";
 
 // Import types from Prisma client
 // import type { Payment, PaymentStatus, PaymentProvider, PaymentType } from '@prisma/client';
@@ -61,6 +62,12 @@ router.post(
         include: { seller: true },
       });
       if (!auction) return res.status(404).json({ error: "Auction not found" });
+      if (auction.sellerId === userId) {
+        return res.status(400).json({ error: "Nie możesz kupić własnej aukcji." });
+      }
+      if (!hasCompletePayout(auction.seller)) {
+        return res.status(400).json({ error: PAYOUT_REQUIRED_ERROR });
+      }
 
       const now = Date.now();
       const endsAt = new Date(auction.endTime).getTime();
@@ -100,10 +107,26 @@ router.post(
         },
       });
 
+      const sellerConnectId = auction.seller?.stripeConnectId as string | undefined;
+      const splitEnabled = Boolean(sellerConnectId);
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
-        line_items: [
+        line_items: splitEnabled
+          ? [
+              {
+                price_data: {
+                  currency,
+                  unit_amount: amountCents + commissionCents,
+                  product_data: {
+                    name: auction.title,
+                    description: "Kwota aukcji + prowizja portalu (10%)",
+                  },
+                },
+                quantity: 1,
+              },
+            ]
+          : [
           {
             price_data: {
               currency,
@@ -125,6 +148,17 @@ router.post(
             quantity: 1,
           },
         ],
+        payment_intent_data: splitEnabled
+          ? {
+              application_fee_amount: commissionCents,
+              transfer_data: { destination: sellerConnectId as string },
+              metadata: {
+                payoutMethod: auction.seller?.payoutMethod ?? "",
+                payoutIban: auction.seller?.payoutIban ?? "",
+                payoutPhone: auction.seller?.payoutPhone ?? "",
+              },
+            }
+          : undefined,
         success_url:
           successUrl ||
           `${clientUrl}/auctions/success?session_id={CHECKOUT_SESSION_ID}`,

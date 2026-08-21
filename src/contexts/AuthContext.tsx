@@ -53,6 +53,10 @@ export interface Profile {
   street?: string;
   postal_code?: string;
   country?: string;
+  payoutMethod?: "IBAN" | "BLIK" | string;
+  payoutIban?: string;
+  payoutPhone?: string;
+  stripeCustomerId?: string;
   role: UserRole;
   trustScore?: number;
   last_sign_in_at?: string;

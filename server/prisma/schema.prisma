@@ -36,6 +36,10 @@ model User {
   country          String?
   stripeCustomerId String?        @map("stripe_customer_id")
   stripeConnectId  String?        @map("stripe_connect_id")
+  payoutMethod     String?        @map("payout_method")
+  payoutIban       String?        @map("payout_iban")
+  payoutPhone      String?        @map("payout_phone")
+  sellerActivationPaid Boolean    @default(false) @map("seller_activation_paid")
   isBlocked        Boolean        @default(false) @map("is_blocked")
   isBanned         Boolean        @default(false) @map("is_banned")
   blockedUntil     DateTime?      @map("blocked_until")

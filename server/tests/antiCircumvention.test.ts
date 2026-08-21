@@ -7,17 +7,17 @@ describe('Anti-Circumvention Module', () => {
     expect(censorText(text)).toBe(text);
   });
 
-  it('should replace email addresses with [UKRYTY EMAIL]', () => {
+  it('should replace email addresses with hidden-contact marker', () => {
     const text = 'Contact me at test@example.com for more info.';
     const censored = censorText(text);
-    expect(censored).toContain('[UKRYTY EMAIL]');
+    expect(censored).toContain('Dane ukryte do momentu opłacenia aukcji');
     expect(censored).not.toContain('test@example.com');
   });
 
-  it('should replace phone numbers with [UKRYTY NUMER]', () => {
+  it('should replace phone numbers with hidden-contact marker', () => {
     const text = 'Call me: +48 123 456 789 or 123456789.';
     const censored = censorText(text);
-    expect(censored).toContain('[UKRYTY NUMER]');
+    expect(censored).toContain('Dane ukryte do momentu opłacenia aukcji');
     expect(censored).not.toContain('123456789');
     expect(censored).not.toContain('123 456 789');
   });
@@ -34,8 +34,7 @@ describe('Anti-Circumvention Module', () => {
   it('should handle multiple violations in one text', () => {
     const text = 'Hit me up at foo@bar.com or call 555-123-456. Accept blik.';
     const censored = censorText(text);
-    expect(censored).toContain('[UKRYTY EMAIL]');
-    expect(censored).toContain('[UKRYTY NUMER]');
+    expect(censored).toContain('Dane ukryte do momentu opłacenia aukcji');
     expect(censored).toContain('***');
   });
 });

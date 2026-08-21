@@ -305,6 +305,18 @@ const AuctionsPage = () => {
         setShowVerificationModal(true);
       },
       USER_FULL_VERIFIED: () => {
+        const payoutOk =
+          (profile?.payoutMethod === "IBAN" && Boolean(profile?.payoutIban)) ||
+          (profile?.payoutMethod === "BLIK" && Boolean(profile?.payoutPhone || profile?.phone));
+        if (!payoutOk) {
+          setVerificationMessage({
+            title: "Uzupełnij dane do wypłaty",
+            message:
+              "Zanim wystawisz aukcję, podaj IBAN albo numer BLIK w ustawieniach konta. Bez tego nie da się rozliczyć sprzedaży przez portal.",
+          });
+          setShowVerificationModal(true);
+          return;
+        }
         if (!profile?.stripeCustomerId && profile?.role !== "ADMIN") {
           setIsCardRequiredModalOpen(true);
           return;

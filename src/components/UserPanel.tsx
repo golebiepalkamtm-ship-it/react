@@ -111,6 +111,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const [city, setCity] = useState(profile?.city ?? "");
   const [country, setCountry] = useState(profile?.country ?? "");
   const [phone, setPhone] = useState(profile?.phone ?? "");
+  const [payoutMethod, setPayoutMethod] = useState<"IBAN" | "BLIK">(
+    profile?.payoutMethod === "BLIK" ? "BLIK" : "IBAN",
+  );
+  const [payoutIban, setPayoutIban] = useState(profile?.payoutIban ?? "");
+  const [payoutPhone, setPayoutPhone] = useState(profile?.payoutPhone ?? "");
   const [showSmsAuth, setShowSmsAuth] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -191,6 +196,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         city: city.trim(),
         country: country.trim(),
         phone: phone.trim(),
+        payoutMethod,
+        payoutIban: payoutMethod === "IBAN" ? payoutIban.trim() : "",
+        payoutPhone: payoutMethod === "BLIK" ? payoutPhone.trim() : phone.trim(),
       });
       setFeedbackType("success");
       setFeedbackTitle("Zapisano");
@@ -259,6 +267,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
     setLastName(profile.last_name ?? "");
     setStreet(profile.street ?? "");
     setPostalCode(profile.postal_code ?? "");
+    setPayoutMethod(profile.payoutMethod === "BLIK" ? "BLIK" : "IBAN");
+    setPayoutIban(profile.payoutIban ?? "");
+    setPayoutPhone(profile.payoutPhone ?? profile.phone ?? "");
     setCity(profile.city ?? "");
     setCountry(profile.country ?? "");
     setPhone(profile.phone ?? "");
@@ -904,7 +915,67 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           </motion.div>
                         </div>
                       </div>
-                    </motion.div>
+                   div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 space-y-4">
+                    <h3 className="font-display text-xl font-semibold text-white">
+                      Wypłata za sprzedane ptaki
+                    </h3>
+                    <p className="text-sm text-white/70">
+                      Bez tych danych nie wystawisz aukcji. Kupujący płaci tylko przez portal.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPayoutMethod("IBAN")}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold ${
+                          payoutMethod === "IBAN"
+                            ? "bg-[#A68E4E] text-black"
+                            : "bg-white/10 text-white"
+                        }`}
+                      >
+                        Przelew na konto (IBAN)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPayoutMethod("BLIK")}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold ${
+                          payoutMethod === "BLIK"
+                            ? "bg-[#A68E4E] text-black"
+                            : "bg-white/10 text-white"
+                        }`}
+                      >
+                        BLIK / telefon
+                      </button>
+                    </div>
+                    {payoutMethod === "IBAN" ? (
+                      <div>
+                        <label className="text-sm font-medium text-white/90 mb-2 block">
+                          Numer IBAN
+                        </label>
+                        <input
+                          type="text"
+                          value={payoutIban}
+                          onChange={(e) => setPayoutIban(e.target.value.toUpperCase())}
+                          placeholder="PL61 1090 1014 0000 0712 1981 2874"
+                          className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="text-sm font-medium text-white/90 mb-2 block">
+                          Telefon do BLIK
+                        </label>
+                        <input
+                          type="tel"
+                          value={payoutPhone}
+                          onChange={(e) => setPayoutPhone(e.target.value)}
+                          placeholder="+48 600 000 000"
+                          className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  < </motion.div>
                   </div>
 
                   <motion.div

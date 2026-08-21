@@ -1,0 +1,4 @@
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "payout_method" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "payout_iban" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "payout_phone" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "seller_activation_paid" BOOLEAN NOT NULL DEFAULT false;

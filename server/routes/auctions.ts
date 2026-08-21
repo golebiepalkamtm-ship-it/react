@@ -19,6 +19,7 @@ import {
 } from "../schemas/auctionSchemas.js";
 import { cache } from "../lib/cache.js";
 import { prisma, supabase } from "../lib/db.js";
+import { hasCompletePayout, PAYOUT_REQUIRED_ERROR } from "../utils/sellerPayout.js";
 import { validatedEnv } from "../lib/env.js";
 import { auctionService } from "../services/AuctionService.js";
 import { Prisma } from "@prisma/client";
@@ -252,7 +253,8 @@ router.get("/:id", async (req, res) => {
     });
 
     if (!auction) return res.status(404).json({ error: "Auction not found" });
-    res.json(serializeAuction(auction));
+    const viewerId = (req as AuthenticatedRequest).user?.id;
+    res.json(serializeAuction(auction, { userId: viewerId, isOwner: auction.sellerId === viewerId }));
   } catch (error) {
     console.error("Error fetching auction:", error);
     res.status(500).json({ error: "Failed to fetch auction" });
@@ -491,6 +493,25 @@ if (validatedEnv.NODE_ENV === "development") {
           return res
             .status(500)
             .json({ error: "Błąd połączenia z bazą danych." });
+
+        if (role !== "ADMIN") {
+          const seller = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+              role: true,
+              payoutMethod: true,
+              payoutIban: true,
+              payoutPhone: true,
+              phone: true,
+            },
+          });
+          if (!hasCompletePayout(seller)) {
+            return res.status(400).json({
+              error: PAYOUT_REQUIRED_ERROR,
+              code: "PAYOUT_REQUIRED",
+            });
+          }
+        }
 
         const requireCard = process.env.REQUIRE_CARD_FOR_LISTING !== "false" && process.env.REQUIRE_CARD_FOR_BID !== "false";
         if (requireCard && role !== "ADMIN") {

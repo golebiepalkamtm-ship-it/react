@@ -189,12 +189,11 @@ function canViewCounterpartyContact(
   userId?: string,
 ): boolean {
   if (!userId) return false;
-  // Dane kontaktowe drugiej strony widać dopiero po opłaceniu prowizji (COMPLETED)
-  if (auction.status === "COMPLETED") {
-    if (auction.sellerId === userId) return true;
-    if (auction.winnerId === userId) return true;
-  }
-  return false;
+  const paid =
+    auction.status === "COMPLETED" ||
+    (auction.status === "ENDED" && Boolean(auction.winnerId));
+  if (!paid) return false;
+  return auction.sellerId === userId || auction.winnerId === userId;
 }
 
 export function serializePublicUser(
@@ -218,15 +217,12 @@ export function serializePublicUser(
         (user.lastName as string | undefined) ??
         "")
       : undefined,
-    // PII removed - email and phone only visible to owner/admin
-    email:
-      showContact && (user.role === "ADMIN" || user.isOwner)
-        ? ((user.email as string | undefined) ?? "")
-        : undefined,
-    phoneNumber:
-      showContact && (user.role === "ADMIN" || user.isOwner)
-        ? ((user.phone as string | undefined) ?? "")
-        : undefined,
+    email: showContact
+      ? ((user.email as string | undefined) ?? "")
+      : undefined,
+    phoneNumber: showContact
+      ? ((user.phone as string | undefined) ?? "")
+      : undefined,
     image:
       (user.avatarUrl as string | undefined) ??
       (user.avatar_url as string | undefined) ??
@@ -293,7 +289,7 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(
     videos: Array.isArray((auction as any).videos)
       ? (auction as any).videos.map((v: any) => v.url)
       : [],
-    documents: Array.isArray((auction as any).documents)
+    documents: canViewCounterparty && Array.isArray((auction as any).documents)
       ? (auction as any).documents.map((d: any) => d.url)
       : [],
     bids: Array.isArray(auction.bids)

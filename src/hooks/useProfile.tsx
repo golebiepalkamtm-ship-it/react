@@ -17,6 +17,9 @@ export const useProfile = () => {
     postal_code?: string;
     city?: string;
     country?: string;
+    payoutMethod?: "IBAN" | "BLIK" | string;
+    payoutIban?: string;
+    payoutPhone?: string;
     avatar_url?: string;
     role?: 'USER_REGISTERED' | 'USER_EMAIL_VERIFIED' | 'USER_FULL_VERIFIED' | 'ADMIN';
   }) => {
