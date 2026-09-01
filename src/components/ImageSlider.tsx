@@ -95,7 +95,14 @@ export default function ImageSlider({ slides, repeat = false, noArrows = false, 
       {!noBullets && (
         <div className="bullet-container">
           {slides.map((_, i) => (
-            <div key={`bullet-${i}`} id={`bullet-index-${i}`} className={`bullet ${i === slideCurrent ? 'active' : ''}`} onClick={() => goTo(i)} />
+            <button
+              type="button"
+              key={`bullet-${i}`}
+              id={`bullet-index-${i}`}
+              aria-label={`Przejdź do slajdu ${i + 1}`}
+              className={`bullet ${i === slideCurrent ? 'active' : ''}`}
+              onClick={() => goTo(i)}
+            />
           ))}
         </div>
       )}

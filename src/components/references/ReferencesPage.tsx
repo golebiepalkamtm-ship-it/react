@@ -4,7 +4,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -24,7 +24,7 @@ import { type Reference, referenceService } from "@/services/referenceService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
-import UserPanel from "@/components/UserPanel";
+const UserPanel = lazy(() => import("@/components/UserPanel"));
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 interface ReferenceCardProps {
@@ -312,11 +312,17 @@ export function ReferencesPage() {
     }
   };
 
+  const [error, setError] = useState<string | null>(null);
+
   const loadReferences = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await referenceService.getReferences();
       setReferences(data);
+    } catch (err) {
+      console.error("Błąd podczas ładowania referencji:", err);
+      setError("Nie udało się załadować referencji. Sprawdź połączenie z internetem i spróbuj ponownie.");
     } finally {
       setIsLoading(false);
     }
@@ -430,6 +436,22 @@ export function ReferencesPage() {
           </div>
           <p className="text-white/70 text-lg">Ładowanie referencji...</p>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (error && references.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-transparent px-4">
+        <div className="p-8 text-center max-w-md rounded-2xl bg-[#0c1427] border border-[#A68E4E]/50 shadow-2xl">
+          <p className="text-red-400 mb-4 text-sm">{error}</p>
+          <Button
+            onClick={() => void loadReferences()}
+            className="bg-[#A68E4E] hover:bg-[#8e7a42] text-black font-bold"
+          >
+            Spróbuj ponownie
+          </Button>
+        </div>
       </div>
     );
   }
@@ -784,7 +806,9 @@ export function ReferencesPage() {
       </UnifiedModal>
 
       {isAccountOpen && (
-        <UserPanel onClose={() => setIsAccountOpen(false)} />
+        <Suspense fallback={null}>
+          <UserPanel onClose={() => setIsAccountOpen(false)} />
+        </Suspense>
       )}
 
       <UnifiedModal

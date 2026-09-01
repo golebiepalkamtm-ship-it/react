@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   SlidersHorizontal,
@@ -27,11 +27,12 @@ import { resolveAuctionImage } from "@/utils/image";
 import type { AuctionSortBy } from "@/types/auction";
 import { gsap } from "@/lib/gsapConfig";
 import { AnimatePresence } from "framer-motion";
-import UserPanel from "@/components/UserPanel";
+const UserPanel = lazy(() => import("@/components/UserPanel"));
 import { useSocket } from "@/hooks/useSocket";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { auctionService } from "@/services/auctionService";
 import { paymentService } from "@/services/paymentService";
+import { useSEO } from "@/hooks/useSEO";
 import { useQuery } from "@tanstack/react-query";
 import {
   Tooltip,
@@ -76,6 +77,11 @@ const AuctionsPage = () => {
   const { user, profile, session } = useAuth();
   const navigate = useNavigate();
   const { info: showInfo, warning: showWarning } = useOptimizedToast();
+
+  useSEO({
+    title: "Aukcje Gołębi Pocztowych",
+    description: "Ekskluzywne aukcje mistrzowskich gołębi pocztowych, rodowody, geny zwycięzców. Pałka MTM.",
+  });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<AuctionSortBy>("newest");
@@ -448,10 +454,10 @@ const AuctionsPage = () => {
 
   return (
     <TooltipProvider delayDuration={100}>
-      <div className="relative isolate min-h-screen overflow-hidden bg-white">
+      <div className="relative isolate min-h-screen overflow-hidden bg-[#010509]">
         <section
           ref={heroRef}
-          className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-white"
+          className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-[#010509]"
         >
           <div className="container mx-auto px-4">
             <div ref={heroContentRef} className="text-left">
@@ -886,7 +892,9 @@ const AuctionsPage = () => {
       />
 
       {isAccountOpen && (
-        <UserPanel onClose={() => setIsAccountOpen(false)} defaultTab={accountModalTab} />
+        <Suspense fallback={null}>
+          <UserPanel onClose={() => setIsAccountOpen(false)} defaultTab={accountModalTab} />
+        </Suspense>
       )}
     </div>
   </TooltipProvider>

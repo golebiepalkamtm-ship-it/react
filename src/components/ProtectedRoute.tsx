@@ -2,8 +2,6 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, type UserRole } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 
-const DISABLE_GUARDS = import.meta.env.VITE_DISABLE_AUTH_GUARDS === 'true';
-
 // Hierarchia poziomów dostępu (od najniższego do najwyższego)
 const ROLE_HIERARCHY: Record<UserRole, number> = {
   'USER_REGISTERED': 1,      // Poziom 1: tylko zalogowany
@@ -27,10 +25,6 @@ export const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
-
-  if (DISABLE_GUARDS) {
-    return <>{children}</>;
-  }
 
   if (loading) {
     return (

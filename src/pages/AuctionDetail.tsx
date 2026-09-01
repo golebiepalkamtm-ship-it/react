@@ -4,7 +4,7 @@ import {
   Link,
   useSearchParams,
 } from "react-router-dom";
-import { useEffect, useState, useMemo, useCallback, memo } from "react";
+import { useEffect, useState, useMemo, useCallback, memo, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -35,7 +35,7 @@ import Footer from "@/components/Footer";
 import { PedigreeModal } from "@/components/gallery/PedigreeModal";
 import { Button } from "@/components/ui/button";
 import { FullscreenImageModal } from "@/components/ui/FullscreenImageModal";
-import { useAuction, useBid, useAuctionTimer } from "@/hooks/useAuctions";
+import { useAuction, useBid } from "@/hooks/useAuctions";
 import { AuctionCountDown } from "@/components/auction/AuctionCountDown";
 import { useAuth } from "@/contexts/AuthContext";
 import { auctionService } from "@/services/auctionService";
@@ -46,12 +46,13 @@ import ReviewForm from "@/components/ReviewForm";
 import SellerReviews from "@/components/SellerReviews";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
-import UserPanel from "@/components/UserPanel";
+const UserPanel = lazy(() => import("@/components/UserPanel"));
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
 import { trackMetric } from "@/services/metricsService";
 import { toast } from "@/hooks/use-toast";
 import type { Auction } from "@/types/auction";
 import { formatCategory } from "@/utils/auction";
+import { useSEO } from "@/hooks/useSEO";
 
 const CONTENT_BACKGROUND =
   "radial-gradient(circle at top, rgba(66, 192, 206, 0.18), transparent 55%), linear-gradient(185deg, rgba(2, 10, 19, 0.96) 0%, rgba(6, 35, 46, 0.93) 45%, rgba(9, 61, 77, 0.9) 100%)";
@@ -73,17 +74,19 @@ const AuctionImage = memo(
     alt,
     className,
     onError,
+    loading = "lazy",
   }: {
     src: string;
     alt: string;
     className: string;
     onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+    loading?: "eager" | "lazy";
   }) => (
     <img
       src={src}
       alt={alt}
       className={className}
-      loading="eager"
+      loading={loading}
       onError={onError}
     />
   ),
@@ -102,7 +105,20 @@ const AuctionDetail: React.FC = () => {
     refetch: refetchAuction,
     viewersCount,
   } = useAuction({ auctionId: id || "" });
-  const { isEnded } = useAuctionTimer(auction?.endTime);
+  const isEnded = useMemo(() => {
+    if (!auction?.endTime) return false;
+    return new Date(auction.endTime).getTime() <= Date.now();
+  }, [auction?.endTime]);
+
+  // Re-check isEnded once when the auction is about to end
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    if (!auction?.endTime || isEnded) return;
+    const msLeft = new Date(auction.endTime).getTime() - Date.now();
+    if (msLeft <= 0) return;
+    const timer = setTimeout(() => forceUpdate((n) => n + 1), msLeft + 100);
+    return () => clearTimeout(timer);
+  }, [auction?.endTime, isEnded]);
   const [bidAmount, setBidAmount] = useState<string>("");
   const [isWatched, setIsWatched] = useState<boolean>(false);
   const [canReview, setCanReview] = useState(false);
@@ -137,102 +153,111 @@ const AuctionDetail: React.FC = () => {
 
   // Demo preview for layout stress test (?demo=full)
   const isDemo = searchParams.get("demo") === "full";
-  const demoAuction: Auction = {
-    id: "demo-auction",
-    title:
-      "SUPER DŁUGI TYTUŁ AUKCJI • GOŁĄB SUPER CHAMPION Z RODOWODEM – NAJLEPSZA LINIA LOTNIKÓW W EUROPIE • WIELOKROTNY LAUREAT • NIESAMOWITA GENETYKA • ODPORNOŚĆ • SZYBKOŚĆ • WYTRZYMAŁOŚĆ • PRECYZJA • WYGRANE MARATONY • LEGENDARNE DNA",
-    description:
-      "Ta aukcja prezentuje wyjątkowego gołębia pocztowego z linii mistrzów. Pełny opis zawiera historię lotów, genealogiczne informacje, wyniki w maratonach, a także szczegółowy opis kondycji, budowy, mięśni, skrzydeł i temperamentu. " +
-      "W komplecie dokumenty i zdjęcia w wysokiej rozdzielczości. Dodatkowo szczegółowy rodowód oraz wyniki badań zdrowotnych. " +
-      "Opis celowo jest ekstremalnie długi, aby zweryfikować zachowanie layoutu przy skrajnych przypadkach, sprawdzić line-height, zawijanie tekstu, marginesy, efekt glass i gradienty. " +
-      "Sekcja uwzględnia: historię lotów (500 km, 700 km, 1000 km), kondycję (VO2 max, tętno spoczynkowe), mięśnie (sprężystość, siła), skrzydła (długość, elastyczność), " +
-      "temperament (spokój w klatce, agresja w locie), inteligencję nawigacyjną (powroty w trudnych warunkach), odporność (wilgoć, niskie temperatury), " +
-      "genetykę (linie Janssen, Koopman, Van Loon), oraz pełną listę badań weterynaryjnych. " +
-      "Ta część tekstu powinna wypełnić kilka linii, aby sprawdzić czy kontener z glassmorphismem utrzymuje czytelność i nie generuje overflow na urządzeniach mobilnych i desktopowych.",
-    startingPrice: 1000,
-    currentPrice: 12500,
-    buyNowPrice: 18000,
-    reservePrice: 15000,
-    endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    snipeThresholdMinutes: 5,
-    snipeExtensionMinutes: 5,
-    minBidIncrement: 5,
-    status: "active",
-    reserveMet: false,
-    category: "PIGEONS",
-    pigeon: {
-      ringNumber: "PL-2024-CHAMP-999999",
-      eyeColor: "Bursztynowe",
-      pigeonColor: "Niebieski nakrapiany",
-      construction: "Mocna, kompaktowa",
-      pedigreeUrl: "https://example.com/pedigree.pdf",
-      vitality: "Wysoka",
-      length: "Średnia",
-      endurance: "Bardzo wysoka",
-      forkStrength: "Mocna",
-      forkAlignment: "Idealna",
-      muscles: "Sprężyste",
-      shoulders: "Szerokie",
-      balance: "Perfekcyjny",
-      back: "Stabilny",
-      feathers: "Jedwabiste",
-      purpose: "Maraton / długie dystanse",
-      gender: "MALE",
-      dnaCertificate: true,
-      colorTraits: ["Deep blue", "Iridescent"],
-      eyeTraits: ["Rich iris", "Clear circle"],
-      bodyStructureTraits: ["Compact", "Aerodynamic"],
-      breastboneTraits: ["Strong"],
-      forkTraits: ["Tight"],
-      musculatureTraits: ["Elastic"],
-      backTraits: ["Straight"],
-      wingTraits: ["Long primary"],
-      wingBehaviorTraits: ["Fast return"],
-      breedingValueTraits: ["High"],
-      distanceTraits: ["800+ km"],
-    },
-    sex: "MALE",
-    location: "Lubań, Polska",
-    seller: {
-      id: "seller-demo",
-      username: "super-seller",
-      firstName: "Jan",
-      lastName: "Kowalski",
-      email: "demo@example.com",
-      phoneNumber: "+48 600 600 600",
-      image: null,
-      rating: 5,
-      salesCount: 123,
-    },
-    images: [
-      "/images/auth-hero.jpg",
-      "/public/hero-pigeon.jpg",
-      "/placeholder.svg",
-      "/images/auth-hero.jpg",
-    ],
-    videos: [],
-    documents: ["/placeholder.svg", "/images/auth-hero.jpg"],
-    bids: [
-      {
-        id: "b1",
-        amount: 12000,
-        createdAt: new Date().toISOString(),
-        bidder: { id: "u1", username: "anna-n" },
+  const demoAuction = useMemo<Auction | null>(() => {
+    if (!isDemo) return null;
+    return {
+      id: "demo-auction",
+      title:
+        "SUPER DŁUGI TYTUŁ AUKCJI • GOŁĄB SUPER CHAMPION Z RODOWODEM – NAJLEPSZA LINIA LOTNIKÓW W EUROPIE • WIELOKROTNY LAUREAT • NIESAMOWITA GENETYKA • ODPORNOŚĆ • SZYBKOŚĆ • WYTRZYMAŁOŚĆ • PRECYZJA • WYGRANE MARATONY • LEGENDARNE DNA",
+      description:
+        "Ta aukcja prezentuje wyjątkowego gołębia pocztowego z linii mistrzów. Pełny opis zawiera historię lotów, genealogiczne informacje, wyniki w maratonach, a także szczegółowy opis kondycji, budowy, mięśni, skrzydeł i temperamentu. " +
+        "W komplecie dokumenty i zdjęcia w wysokiej rozdzielczości. Dodatkowo szczegółowy rodowód oraz wyniki badań zdrowotnych. " +
+        "Opis celowo jest ekstremalnie długi, aby zweryfikować zachowanie layoutu przy skrajnych przypadkach, sprawdzić line-height, zawijanie tekstu, marginesy, efekt glass i gradienty. " +
+        "Sekcja uwzględnia: historię lotów (500 km, 700 km, 1000 km), kondycję (VO2 max, tętno spoczynkowe), mięśnie (sprężystość, siła), skrzydła (długość, elastyczność), " +
+        "temperament (spokój w klatce, agresja w locie), inteligencję nawigacyjną (powroty w trudnych warunkach), odporność (wilgoć, niskie temperatury), " +
+        "genetykę (linie Janssen, Koopman, Van Loon), oraz pełną listę badań weterynaryjnych. " +
+        "Ta część tekstu powinna wypełnić kilka linii, aby sprawdzić czy kontener z glassmorphismem utrzymuje czytelność i nie generuje overflow na urządzeniach mobilnych i desktopowych.",
+      startingPrice: 1000,
+      currentPrice: 12500,
+      buyNowPrice: 18000,
+      reservePrice: 15000,
+      endTime: new Date(Date.now() + 7 * 24 * 60 * 1000).toISOString(),
+      snipeThresholdMinutes: 5,
+      snipeExtensionMinutes: 5,
+      minBidIncrement: 5,
+      status: "active",
+      reserveMet: false,
+      category: "PIGEONS",
+      pigeon: {
+        ringNumber: "PL-2024-CHAMP-999999",
+        eyeColor: "Bursztynowe",
+        pigeonColor: "Niebieski nakrapiany",
+        construction: "Mocna, kompaktowa",
+        pedigreeUrl: "https://example.com/pedigree.pdf",
+        vitality: "Wysoka",
+        length: "Średnia",
+        endurance: "Bardzo wysoka",
+        forkStrength: "Mocna",
+        forkAlignment: "Idealna",
+        muscles: "Sprężyste",
+        shoulders: "Szerokie",
+        balance: "Perfekcyjny",
+        back: "Stabilny",
+        feathers: "Jedwabiste",
+        purpose: "Maraton / długie dystanse",
+        gender: "MALE",
+        dnaCertificate: true,
+        colorTraits: ["Deep blue", "Iridescent"],
+        eyeTraits: ["Rich iris", "Clear circle"],
+        bodyStructureTraits: ["Compact", "Aerodynamic"],
+        breastboneTraits: ["Strong"],
+        forkTraits: ["Tight"],
+        musculatureTraits: ["Elastic"],
+        backTraits: ["Straight"],
+        wingTraits: ["Long primary"],
+        wingBehaviorTraits: ["Fast return"],
+        breedingValueTraits: ["High"],
+        distanceTraits: ["800+ km"],
       },
-      {
-        id: "b2",
-        amount: 11000,
-        createdAt: new Date(Date.now() - 3600 * 1000).toISOString(),
-        bidder: { id: "u2", username: "piotr-z" },
+      sex: "MALE",
+      location: "Lubań, Polska",
+      seller: {
+        id: "seller-demo",
+        username: "super-seller",
+        firstName: "Jan",
+        lastName: "Kowalski",
+        email: "demo@example.com",
+        phoneNumber: "+48 600 600 600",
+        image: null,
+        rating: 5,
+        salesCount: 123,
       },
-    ],
-    _count: { bids: 12, watchlist: 34 },
-    views: 0,
-  };
+      images: [
+        "/images/auth-hero.jpg",
+        "/public/hero-pigeon.jpg",
+        "/placeholder.svg",
+        "/images/auth-hero.jpg",
+      ],
+      videos: [],
+      documents: ["/placeholder.svg", "/images/auth-hero.jpg"],
+      bids: [
+        {
+          id: "b1",
+          amount: 12000,
+          createdAt: new Date().toISOString(),
+          bidder: { id: "u1", username: "anna-n" },
+        },
+        {
+          id: "b2",
+          amount: 11000,
+          createdAt: new Date(Date.now() - 3600 * 1000).toISOString(),
+          bidder: { id: "u2", username: "piotr-z" },
+        },
+      ],
+      _count: { bids: 12, watchlist: 34 },
+      views: 0,
+    };
+  }, [isDemo]);
 
-  const displayAuction = isDemo ? demoAuction : auction;
+  const displayAuction = isDemo && demoAuction ? demoAuction : auction;
   const dAuction = displayAuction;
   const isLoadingCurrent = loading && !isDemo;
+
+  useSEO({
+    title: dAuction?.title ? `${dAuction.title} - Aukcja` : "Aukcja Gołębia",
+    description: dAuction?.description?.slice(0, 160) || "Licytuj elitarnego gołębia pocztowego na portalu Pałka MTM.",
+    image: dAuction?.images?.[0],
+  });
 
   const isOwner = useMemo(() => {
     if (!dAuction || !user) return false;
@@ -656,11 +681,13 @@ const AuctionDetail: React.FC = () => {
                     src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-110 select-none pointer-events-none"
+                    loading="lazy"
                   />
                   <AuctionImage
                     src={dAuction.images?.[activeImageIndex] || dAuction.images?.[0] || "/placeholder.svg"}
-                    alt={dAuction.title}
+                    alt={dAuction.title || "Zdjęcie aukcji"}
                     className="relative z-10 w-full h-full object-contain object-center filter brightness-[1.08] contrast-[1.05] drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] select-none pointer-events-none"
+                    loading="eager"
                   />
                   <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-tr from-[#070e1e]/20 via-transparent to-white/5" />
 
@@ -689,12 +716,15 @@ const AuctionDetail: React.FC = () => {
                     {dAuction.images.map((img, idx) => (
                       <button
                         key={idx}
+                        type="button"
+                        aria-label={`Pokaż zdjęcie ${idx + 1}`}
                         onClick={() => setActiveImageIndex(idx)}
                         className={`aspect-square rounded-2xl overflow-hidden glass-vault border-2 ${activeImageIndex === idx ? "border-[#A68E4E] ring-4 ring-[#A68E4E]/30" : "border-[#A68E4E]/30 opacity-80"}`}
                       >
                         <AuctionImage
                           src={img}
-                          alt=""
+                          alt={`${dAuction.title || "Gołąb"} - miniatura ${idx + 1}`}
+                          loading="lazy"
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -765,7 +795,12 @@ const AuctionDetail: React.FC = () => {
                       <div className="relative">
                         <div className="w-14 h-14 rounded-2xl bg-[#A68E4E]/20 border-2 border-[#A68E4E] flex items-center justify-center font-black text-xl text-[#A68E4E] overflow-hidden shadow-lg">
                           {dAuction.seller.image ? (
-                            <img src={dAuction.seller.image} alt="" className="w-full h-full object-cover" />
+                            <img
+                              src={dAuction.seller.image}
+                              alt={`Avatar hodowcy ${dAuction.seller.username || dAuction.seller.firstName || ""}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
                           ) : (
                             (dAuction.seller.username || dAuction.seller.firstName || "S").charAt(0).toUpperCase()
                           )}
@@ -1539,7 +1574,9 @@ const AuctionDetail: React.FC = () => {
       </main>
 
       {isAccountOpen && (
-        <UserPanel onClose={() => setIsAccountOpen(false)} defaultTab={accountModalTab} />
+        <Suspense fallback={null}>
+          <UserPanel onClose={() => setIsAccountOpen(false)} defaultTab={accountModalTab} />
+        </Suspense>
       )}
 
       <UnifiedModal

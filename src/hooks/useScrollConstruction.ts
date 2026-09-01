@@ -81,10 +81,15 @@ export const useTextConstruction = (
     const text = element.textContent || '';
     const chars = text.split('');
     
-    // Wrap each character in span
-    element.innerHTML = chars
-      .map((char) => `<span class="char" style="display: inline-block;">${char === ' ' ? '&nbsp;' : char}</span>`)
-      .join('');
+    // Wrap each character in span (safe DOM manipulation)
+    element.innerHTML = "";
+    chars.forEach((char) => {
+      const span = document.createElement("span");
+      span.className = "char";
+      span.style.display = "inline-block";
+      span.textContent = char === " " ? "\u00A0" : char;
+      element.appendChild(span);
+    });
 
     const charElements = element.querySelectorAll('.char');
 

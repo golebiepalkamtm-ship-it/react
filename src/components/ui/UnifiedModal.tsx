@@ -206,6 +206,58 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
     if (!isOpen) return;
     if (typeof window === "undefined" || typeof document === "undefined")
       return;
+
+    // Focus trap & Escape key
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const modalEl = modalRef.current;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && modalEl) {
+        const focusable = modalEl.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    // Initial focus on first interactive element or modal
+    const focusTimer = setTimeout(() => {
+      if (modalEl) {
+        const focusable = modalEl.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length > 0) {
+          focusable[0].focus();
+        }
+      }
+    }, 50);
+
+    return () => {
+      clearTimeout(focusTimer);
+      document.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window === "undefined" || typeof document === "undefined")
+      return;
     if (draggable && window.innerWidth >= 768) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
@@ -241,6 +293,9 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
 
           <motion.div
             ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={title ? "unified-modal-title" : undefined}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -286,7 +341,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
                 )}
                 <div>
                   {title && (
-                    <h2 className="text-lg md:text-xl font-display font-extrabold text-white leading-tight tracking-tight">
+                    <h2 id="unified-modal-title" className="text-lg md:text-xl font-display font-extrabold text-white leading-tight tracking-tight">
                       {title}
                     </h2>
                   )}

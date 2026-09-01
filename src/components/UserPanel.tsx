@@ -822,10 +822,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="up-username" className="text-sm font-medium text-white/90 mb-2 block">
                             Nick
                           </label>
                           <input
+                            id="up-username"
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -838,10 +839,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.25 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="up-firstName" className="text-sm font-medium text-white/90 mb-2 block">
                             Imię
                           </label>
                           <input
+                            id="up-firstName"
                             type="text"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
@@ -854,10 +856,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.3 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="up-lastName" className="text-sm font-medium text-white/90 mb-2 block">
                             Nazwisko
                           </label>
                           <input
+                            id="up-lastName"
                             type="text"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
@@ -870,10 +873,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.35 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="up-phone" className="text-sm font-medium text-white/90 mb-2 block">
                             Telefon
                           </label>
                           <input
+                            id="up-phone"
                             type="tel"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
@@ -906,10 +910,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="up-street" className="text-sm font-medium text-white/90 mb-2 block">
                             Ulica i numer
                           </label>
                           <input
+                            id="up-street"
                             type="text"
                             value={street}
                             onChange={(e) => setStreet(e.target.value)}
@@ -922,10 +927,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.25 }}
                         >
-                          <label className="text-sm font-medium text-white/90 mb-2 block">
+                          <label htmlFor="up-city" className="text-sm font-medium text-white/90 mb-2 block">
                             Miasto
                           </label>
                           <input
+                            id="up-city"
                             type="text"
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
@@ -939,10 +945,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
                           >
-                            <label className="text-sm font-medium text-white/90 mb-2 block">
+                            <label htmlFor="up-postalCode" className="text-sm font-medium text-white/90 mb-2 block">
                               Kod pocztowy
                             </label>
                             <input
+                              id="up-postalCode"
                               type="text"
                               value={postalCode}
                               onChange={(e) => setPostalCode(e.target.value)}
@@ -955,10 +962,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.35 }}
                           >
-                            <label className="text-sm font-medium text-white/90 mb-2 block">
+                            <label htmlFor="up-country" className="text-sm font-medium text-white/90 mb-2 block">
                               Kraj
                             </label>
                             <input
+                              id="up-country"
                               type="text"
                               value={country}
                               onChange={(e) => setCountry(e.target.value)}

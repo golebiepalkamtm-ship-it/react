@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, memo, useRef, useMemo, lazy, Suspense } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -12,8 +12,8 @@ import {
   Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import UserPanel from "./UserPanel";
-import AdminPanel from "./AdminPanel";
+const UserPanel = lazy(() => import("./UserPanel"));
+const AdminPanel = lazy(() => import("./AdminPanel"));
 import {
   motion,
   AnimatePresence,
@@ -146,12 +146,15 @@ const Header = () => {
     };
 
     // Krótkie opóźnienie żeby Lenis zdążył się zamontować
+    let cleanup: (() => void) | undefined;
     const t = setTimeout(() => {
-      const cleanup = attachLenis();
-      return cleanup;
+      cleanup = attachLenis();
     }, 300);
 
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      if (cleanup) cleanup();
+    };
   }, []);
 
   // Animacja wejściowa
@@ -571,14 +574,18 @@ const Header = () => {
 
       <AnimatePresence>
         {isAccountModalOpen && (
-          <UserPanel onClose={() => setShowAccountModal(false)} />
+          <Suspense fallback={null}>
+            <UserPanel onClose={() => setShowAccountModal(false)} />
+          </Suspense>
         )}
         {isHeaderAdminPanelOpen && (
-          <AdminPanel
-            key="admin-panel"
-            isOpen={true}
-            onClose={() => setAdminModalWithTrace(false)}
-          />
+          <Suspense fallback={null}>
+            <AdminPanel
+              key="admin-panel"
+              isOpen={true}
+              onClose={() => setAdminModalWithTrace(false)}
+            />
+          </Suspense>
         )}
         {showNotificationModal && (
           <NotificationModal
@@ -684,6 +691,57 @@ const Header = () => {
                   </motion.div>
                 );
               })}
+
+              {/* ── Mobile-only: Account & Admin buttons ───── */}
+              {user && profile && (
+                <>
+                  <motion.div
+                    className="mt-2 pt-2 border-t border-white/10"
+                    variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }}
+                  >
+                    <button
+                      className="flex items-center w-full py-3 px-2 text-sm font-medium text-[#d4af37] hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                      onClick={() => { setShowAccountModal(true); closeMobileMenu(); }}
+                    >
+                      <User className="w-4 h-4 mr-3 text-[#d4af37]/70" />
+                      <div className="flex flex-col text-left">
+                        <span className="font-bold">{profile.full_name || user.email?.split("@")[0] || "Mój profil"}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-white/50">
+                          {profile.role === "ADMIN" ? "Admin" : profile.role === "USER_FULL_VERIFIED" ? "Zweryfikowany" : "Panel użytkownika"}
+                        </span>
+                      </div>
+                    </button>
+                  </motion.div>
+                  {profile.role === "ADMIN" && (
+                    <motion.div
+                      variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }}
+                    >
+                      <button
+                        className="flex items-center w-full py-3 px-2 text-sm font-medium text-purple-300 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                        onClick={() => { setAdminModalWithTrace(true); closeMobileMenu(); }}
+                      >
+                        <Shield className="w-4 h-4 mr-3 text-purple-400" />
+                        Panel Admina
+                      </button>
+                    </motion.div>
+                  )}
+                </>
+              )}
+              {!user && (
+                <motion.div
+                  className="mt-2 pt-2 border-t border-white/10"
+                  variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }}
+                >
+                  <RouterLink
+                    to="/auth?mode=login"
+                    className="flex items-center w-full py-3 px-2 text-sm font-bold text-[#d4af37] hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                    onClick={closeMobileMenu}
+                  >
+                    <User className="w-4 h-4 mr-3" />
+                    Zaloguj się
+                  </RouterLink>
+                </motion.div>
+              )}
             </motion.nav>
           </motion.div>
         )}

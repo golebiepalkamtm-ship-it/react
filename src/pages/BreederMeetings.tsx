@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { meetingsService } from "@/services/meetingsService";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
-import UserPanel from "@/components/UserPanel";
+const UserPanel = lazy(() => import("@/components/UserPanel"));
 import { useNavigate } from "react-router-dom";
 import { gsap } from "@/lib/gsapConfig";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
@@ -159,20 +159,25 @@ export default function BreederMeetings() {
     [breederMeetings],
   );
 
-  useEffect(() => {
-    const fetchBreederMeetings = async () => {
-      try {
-        const data = await meetingsService.getMeetings();
-        setBreederMeetings(Array.isArray(data) ? data : []);
-        setImagesLoaded(true);
-      } catch (error) {
-        console.error("Błąd podczas ładowania spotkań z hodowcami:", error);
-        setBreederMeetings([]);
-        setImagesLoaded(true);
-      }
-    };
-    fetchBreederMeetings();
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBreederMeetings = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await meetingsService.getMeetings();
+      setBreederMeetings(Array.isArray(data) ? data : []);
+      setImagesLoaded(true);
+    } catch (err) {
+      console.error("Błąd podczas ładowania spotkań z hodowcami:", err);
+      setError("Nie udało się załadować spotkań z hodowcami. Sprawdź połączenie i spróbuj ponownie.");
+      setBreederMeetings([]);
+      setImagesLoaded(true);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchBreederMeetings();
+  }, [fetchBreederMeetings]);
 
   const handleAddMeeting = () => {
     if (!user) {
@@ -205,6 +210,26 @@ export default function BreederMeetings() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4" />
           <div className="text-lg text-white/70">Ładowanie zdjęć...</div>
         </div>
+      </div>
+    );
+  }
+
+  if (error && breederMeetings.length === 0) {
+    return (
+      <div className="min-h-screen relative overflow-hidden bg-transparent">
+        <Header />
+        <main className="relative z-10 flex items-center justify-center min-h-[60vh] px-4">
+          <div className="p-8 text-center max-w-md rounded-2xl bg-[#0c1427] border border-[#A68E4E]/50 shadow-2xl">
+            <p className="text-red-400 mb-4 text-sm">{error}</p>
+            <Button
+              onClick={() => void fetchBreederMeetings()}
+              className="bg-[#A68E4E] hover:bg-[#8e7a42] text-black font-bold"
+            >
+              Spróbuj ponownie
+            </Button>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
@@ -409,7 +434,9 @@ export default function BreederMeetings() {
       </main>
 
       {isAccountOpen && (
-        <UserPanel onClose={() => setIsAccountOpen(false)} />
+        <Suspense fallback={null}>
+          <UserPanel onClose={() => setIsAccountOpen(false)} />
+        </Suspense>
       )}
 
       <UnifiedModal

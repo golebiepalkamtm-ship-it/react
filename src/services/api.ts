@@ -71,12 +71,25 @@ class ApiClient {
     return true;
   }
 
+  private isNetworkError(error: unknown): boolean {
+    if (error instanceof TypeError) return true;
+    if (
+      error instanceof Error &&
+      (error.message.includes("Failed to fetch") ||
+        error.message.includes("NetworkError") ||
+        error.message.includes("ECONNREFUSED"))
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   private async withAlternateBase<T>(runner: () => Promise<T>): Promise<T> {
     try {
       return await runner();
     } catch (error) {
       const alt = this.getAlternateBaseUrl();
-      if (alt && alt !== this.baseUrl) {
+      if (alt && alt !== this.baseUrl && this.isNetworkError(error)) {
         this.baseUrl = alt;
         return runner();
       }

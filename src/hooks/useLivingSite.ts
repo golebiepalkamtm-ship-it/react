@@ -273,12 +273,15 @@ export const useLivingSite = (config: LivingSiteConfig = {}) => {
     const text = element.textContent || "";
     const words = text.split(" ");
 
-    element.innerHTML = words
-      .map(
-        (word) =>
-          `<span class="word" style="display: inline-block; opacity: 0; transform: translateY(20px);">${word}</span>`,
-      )
-      .join(" ");
+    element.innerHTML = "";
+    words.forEach((word, i) => {
+      if (i > 0) element.appendChild(document.createTextNode(" "));
+      const span = document.createElement("span");
+      span.className = "word";
+      span.style.cssText = "display: inline-block; opacity: 0; transform: translateY(20px);";
+      span.textContent = word;
+      element.appendChild(span);
+    });
 
     const wordSpans = element.querySelectorAll(".word");
 

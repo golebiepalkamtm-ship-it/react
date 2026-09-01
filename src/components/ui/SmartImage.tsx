@@ -36,17 +36,15 @@ const SmartImageInner: React.FC<SmartImageProps> = ({
     }
   };
 
-  const getAspectRatioClass = () => {
-    if (!aspectRatio) return '';
-    const [widthRatio, heightRatio] = aspectRatio.split('/').map(Number);
-    return `aspect-[${widthRatio}/${heightRatio}]`;
-  };
+  const aspectRatioStyle = aspectRatio
+    ? { aspectRatio: aspectRatio.replace('/', ' / ') }
+    : undefined;
 
   if (hasError) {
     return (
       <div
-        className={`relative overflow-hidden bg-gray-200 dark:bg-gray-800 rounded-xl ${getAspectRatioClass()} ${className}`}
-        style={{ width, height }}
+        className={`relative overflow-hidden bg-gray-200 dark:bg-gray-800 rounded-xl ${className}`}
+        style={{ ...aspectRatioStyle, width, height }}
       >
         <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400">
           <span className="text-sm">Image failed to load</span>
@@ -57,8 +55,8 @@ const SmartImageInner: React.FC<SmartImageProps> = ({
 
   return (
     <div
-      className={`relative overflow-hidden bg-gray-200 dark:bg-gray-800 rounded-xl ${getAspectRatioClass()} ${className}`}
-      style={{ width, height }}
+      className={`relative overflow-hidden bg-gray-200 dark:bg-gray-800 rounded-xl ${className}`}
+      style={{ ...aspectRatioStyle, width, height }}
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">

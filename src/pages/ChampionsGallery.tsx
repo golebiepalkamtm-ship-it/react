@@ -23,6 +23,7 @@ import { ChampionCard } from "@/components/gallery/ChampionCard";
 import { PedigreeModal } from "@/components/gallery/PedigreeModal";
 import { ChampionModal } from "@/components/gallery/ChampionModal";
 import { useChampions, type Champion } from "@/hooks/useChampions";
+import { ChampionCardSkeleton } from "@/components/ui/skeleton-variants";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { RevealOnScroll } from "@/components/motion/RevealOnScroll";
@@ -32,8 +33,14 @@ import {
   staggerItemVariants,
 } from "@/components/premium";
 import { trackMetric } from "@/services/metricsService";
+import { useSEO } from "@/hooks/useSEO";
 
 export const ChampionsGallery = () => {
+  useSEO({
+    title: "Galeria Championów",
+    description: "Zobacz legendarne championy i wybitne gołębie z hodowli Pałka MTM. Wygrane maratony, olimpijskie osiągnięcia.",
+  });
+
   const [selectedChampion, setSelectedChampion] = useState<Champion | null>(
     null,
   );
@@ -229,14 +236,10 @@ export const ChampionsGallery = () => {
         <section className="py-16 px-4 relative bg-transparent">
           <div className="max-w-7xl mx-auto">
             {loading && (
-              <div className="flex flex-col items-center justify-center py-32">
-                <div className="relative">
-                  <div className="w-16 h-16 border-4 border-gold/20 rounded-full" />
-                  <div className="absolute inset-0 w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin" />
-                </div>
-                <span className="mt-6 text-white/60">
-                  Ładowanie championów...
-                </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <ChampionCardSkeleton key={i} />
+                ))}
               </div>
             )}
 
