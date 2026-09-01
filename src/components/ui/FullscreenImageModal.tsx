@@ -19,7 +19,7 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
   title,
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(initialIndex);
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const goToPrevious = useCallback(() => {
     setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -31,8 +31,13 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
 
   useEffect(() => {
     setCurrentImageIndex(initialIndex);
-    setIsZoomed(false);
+    setZoomLevel(1);
   }, [initialIndex]);
+
+  // Optionally, reset zoom when changing images manually via buttons
+  useEffect(() => {
+    setZoomLevel(1);
+  }, [currentImageIndex]);
 
   useEffect(() => {
     if (isOpen) {
@@ -76,7 +81,7 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/98 w-screen h-screen overflow-hidden select-none"
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black w-screen h-screen overflow-hidden select-none"
           onClick={onClose}
           onContextMenu={(e) => e.preventDefault()}
         >
@@ -122,10 +127,15 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
               )}
 
               <div
-                className={`relative w-full h-full flex items-center justify-center overflow-hidden cursor-zoom-in ${
-                  isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'
-                }`}
-                onClick={() => setIsZoomed(!isZoomed)}
+                className="relative w-full h-full flex items-center justify-center overflow-hidden cursor-default"
+                onWheel={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setZoomLevel((prev) => {
+                    const newZoom = prev + (e.deltaY < 0 ? 0.2 : -0.2);
+                    return Math.min(Math.max(1, newZoom), 5); // min 1x, max 5x
+                  });
+                }}
                 onContextMenu={(e) => e.preventDefault()}
               >
                 {/* Image protection transparent shield layer */}
@@ -146,10 +156,9 @@ export const FullscreenImageModal: React.FC<FullscreenImageModalProps> = ({
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     WebkitTouchCallout: 'none',
+                    transform: `scale(${zoomLevel})`,
                   }}
-                  className={`w-full h-full max-w-full max-h-full object-contain transition-transform duration-300 ${
-                    isZoomed ? 'scale-150' : 'scale-100'
-                  } select-none pointer-events-none`}
+                  className="w-full h-full max-w-full max-h-full object-contain transition-transform duration-100 ease-out select-none pointer-events-none"
                   loading="eager"
                 />
               </div>
