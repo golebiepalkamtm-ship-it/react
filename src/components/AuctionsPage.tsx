@@ -362,8 +362,8 @@ const AuctionsPage = () => {
     setSelectedCategory(cat);
   };
 
-  const handleCloseModal = () => {
-    if (selectedCategory) {
+  const handleCloseModal = (forceClose = false) => {
+    if (selectedCategory && !forceClose) {
       if (!window.confirm("Masz niezapisane zmiany w formularzu. Czy na pewno chcesz wyjść? Utracisz wpisane dane.")) {
         return;
       }
@@ -835,7 +835,7 @@ const AuctionsPage = () => {
             category={selectedCategory}
             onCancel={handleBackToCategory}
             onSuccess={() => {
-              handleCloseModal();
+              handleCloseModal(true);
               refetch();
             }}
           />
