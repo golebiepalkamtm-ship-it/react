@@ -37,12 +37,14 @@ import {
   Sparkles,
   Plus,
   Gavel,
+  PlayCircle,
 } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useProfile } from "@/hooks/useProfile";
+import { useTutorial } from "@/hooks/useTutorial";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
@@ -68,6 +70,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
     loading: profileSaving,
     error: profileError,
   } = useProfile();
+  const { startTutorial } = useTutorial();
   const navigate = useNavigate();
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -467,58 +470,68 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex-shrink-0 flex gap-2 p-3 md:px-6 border-b border-[#A68E4E]/30 bg-[#070e1e]/90 overflow-x-auto no-scrollbar" data-lenis-prevent="true">
-          {[
-            {
-              id: "overview",
-              label: "Przegląd",
-              icon: User,
-              activeBg: "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30",
-              iconColor: "text-amber-400",
-            },
-            {
-              id: "profile",
-              label: "Profil",
-              icon: Settings,
-              activeBg: "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 text-white font-extrabold shadow-lg shadow-blue-500/30",
-              iconColor: "text-cyan-400",
-            },
-            {
-              id: "security",
-              label: "Bezpieczeństwo",
-              icon: Shield,
-              activeBg: "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-extrabold shadow-lg shadow-amber-500/30",
-              iconColor: "text-amber-400",
-            },
-            {
-              id: "auctions",
-              label: "Aukcje",
-              icon: Package,
-              activeBg: "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white font-extrabold shadow-lg shadow-purple-500/30",
-              iconColor: "text-purple-400",
-            },
-            {
-              id: "payments",
-              label: "Płatności",
-              icon: CreditCard,
-              activeBg: "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-extrabold shadow-lg shadow-emerald-500/30",
-              iconColor: "text-emerald-400",
-            },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-all duration-200 ${
-                activeTab === tab.id
-                  ? `${tab.activeBg} scale-[1.02]`
-                  : "text-zinc-100 bg-[#121f3d] border border-[#A68E4E]/30 hover:bg-[#A68E4E]/30 hover:text-white"
-              }`}
-            >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-current" : tab.iconColor}`} />
-              <span>{tab.label}</span>
-            </button>
-          ))}
+        <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center justify-between p-3 md:px-6 border-b border-[#A68E4E]/30 bg-[#070e1e]/90 gap-4">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar" data-lenis-prevent="true">
+            {[
+              {
+                id: "overview",
+                label: "Przegląd",
+                icon: User,
+                activeBg: "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30",
+                iconColor: "text-amber-400",
+              },
+              {
+                id: "profile",
+                label: "Profil",
+                icon: Settings,
+                activeBg: "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 text-white font-extrabold shadow-lg shadow-blue-500/30",
+                iconColor: "text-cyan-400",
+              },
+              {
+                id: "security",
+                label: "Bezpieczeństwo",
+                icon: Shield,
+                activeBg: "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-extrabold shadow-lg shadow-amber-500/30",
+                iconColor: "text-amber-400",
+              },
+              {
+                id: "auctions",
+                label: "Aukcje",
+                icon: Package,
+                activeBg: "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white font-extrabold shadow-lg shadow-purple-500/30",
+                iconColor: "text-purple-400",
+              },
+              {
+                id: "payments",
+                label: "Płatności",
+                icon: CreditCard,
+                activeBg: "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-extrabold shadow-lg shadow-emerald-500/30",
+                iconColor: "text-emerald-400",
+              },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? `${tab.activeBg} scale-[1.02]`
+                    : "text-zinc-100 bg-[#121f3d] border border-[#A68E4E]/30 hover:bg-[#A68E4E]/30 hover:text-white"
+                }`}
+              >
+                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-current" : tab.iconColor}`} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => startTutorial(`userpanel-${activeTab}` as any)}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 shrink-0"
+          >
+            <PlayCircle className="w-4 h-4" />
+            Włącz samouczek
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -537,7 +550,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="h-full"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-tutorial="up-stats">
                     <motion.div
                       className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
                       style={{
@@ -786,7 +799,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="space-y-6"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-tutorial="up-profile-form">
                     <motion.div
                       className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
                       initial={{ opacity: 0, y: 20 }}
@@ -968,6 +981,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      data-tutorial="up-profile-save"
                     >
                       <Button
                         disabled={profileSaving}
@@ -983,6 +997,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                       <motion.div
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        data-tutorial="up-profile-sms"
                       >
                         <Button
                           variant="outline"
@@ -1015,6 +1030,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
                       whileHover={{ y: -3 }}
+                      data-tutorial="up-security-pass"
                     >
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
                         <motion.div
@@ -1252,9 +1268,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="h-full space-y-6"
+                  className="space-y-6"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-tutorial="up-auctions-tabs">
                     {/* Moje aukcje */}
                     <motion.div
                       className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
@@ -1389,6 +1405,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
 
                     {/* Moje Wygrane */}
                     <motion.div
+                      data-tutorial="up-auctions-won"
                       className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300 lg:col-span-2"
                       style={{
                         background:
@@ -1568,7 +1585,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                       </div>
 
                       {/* Payout Method */}
-                      <div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 space-y-4 flex flex-col justify-between">
+                      <div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 space-y-4 flex flex-col justify-between" data-tutorial="up-payments-info">
                         <div>
                           <h3 className="font-display text-xl font-semibold text-white mb-2">
                             Wypłata za sprzedane ptaki
@@ -1629,14 +1646,16 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           )}
                         </div>
                         
-                        <Button
-                          disabled={profileSaving}
-                          onClick={onSaveProfile}
-                          className="bg-gradient-to-r from-[#A68E4E] to-gold-dark text-navy hover:from-gold-light hover:to-gold w-fit font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300 mt-4"
-                        >
-                          <Save className="w-4 h-4 mr-2" />
-                          {profileSaving ? "Zapisywanie..." : "Zapisz ustawienia wypłat"}
-                        </Button>
+                        <div data-tutorial="up-payments-save">
+                          <Button
+                            disabled={profileSaving}
+                            onClick={onSaveProfile}
+                            className="bg-gradient-to-r from-[#A68E4E] to-gold-dark text-navy hover:from-gold-light hover:to-gold w-fit font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300 mt-4"
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            {profileSaving ? "Zapisywanie..." : "Zapisz ustawienia wypłat"}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     

@@ -15,7 +15,15 @@ export interface TutorialStep {
   spotlightRadius?: number;
 }
 
-export type TutorialTrack = "welcome" | "verification" | "features";
+export type TutorialTrack = 
+  | "welcome" 
+  | "verification" 
+  | "features"
+  | "userpanel-overview"
+  | "userpanel-profile"
+  | "userpanel-auctions"
+  | "userpanel-payments"
+  | "userpanel-security";
 
 export const TUTORIAL_TRACKS: Record<TutorialTrack, TutorialStep[]> = {
   // ── Track 1: New visitor (not logged in) ──────────────────────
@@ -178,6 +186,95 @@ export const TUTORIAL_TRACKS: Record<TutorialTrack, TutorialStep[]> = {
       placement: "bottom",
     },
   ],
+
+  // ── User Panel Tracks ─────────────────────────────────────
+  "userpanel-overview": [
+    {
+      id: "up-overview-stats",
+      targetSelector: "[data-tutorial='up-stats']",
+      fallbackPosition: "center",
+      title: "Pulpit i Statystyki",
+      description: "Tutaj widzisz swoje wyniki, odznaki zaufania oraz ogólne podsumowanie konta. Pomaga to budować Twoją reputację jako hodowcy.",
+      icon: "📊",
+      placement: "bottom",
+    }
+  ],
+  "userpanel-profile": [
+    {
+      id: "up-profile-form",
+      targetSelector: "[data-tutorial='up-profile-form']",
+      fallbackPosition: "center",
+      title: "Dane kontaktowe",
+      description: "Uzupełnij swoje dane: Imię, Nazwisko oraz adres. Są one niezbędne do wysyłki gołębia i dokumentów rodowodowych przez kuriera poczty (Pocztex).",
+      icon: "📝",
+      placement: "top",
+    },
+    {
+      id: "up-profile-save",
+      targetSelector: "[data-tutorial='up-profile-save']",
+      title: "Zapisywanie profilu",
+      description: "Po wypełnieniu danych kliknij tutaj, aby je zapisać na swoim koncie. Dane nie są publicznie widoczne aż do wygrania aukcji.",
+      icon: "💾",
+      placement: "top",
+    },
+    {
+      id: "up-profile-sms",
+      targetSelector: "[data-tutorial='up-profile-sms']",
+      title: "Weryfikacja SMS",
+      description: "To kluczowa funkcja. Chroni platformę przed oszustami. Bez pomyślnej weryfikacji SMS na polski numer, nie możesz brać udziału w licytacjach.",
+      icon: "📱",
+      placement: "top",
+    }
+  ],
+  "userpanel-auctions": [
+    {
+      id: "up-auctions-tabs",
+      targetSelector: "[data-tutorial='up-auctions-tabs']",
+      fallbackPosition: "center",
+      title: "Twoje Zgłoszenia",
+      description: "Zakładka ta dzieli się na aukcje, które Licytujesz, te które Sprzedajesz (Twoje) oraz aukcje Wygrane i Obserwowane.",
+      icon: "🏷️",
+      placement: "bottom",
+    },
+    {
+      id: "up-auctions-won",
+      targetSelector: "[data-tutorial='up-auctions-won']",
+      title: "Wygrane Aukcje",
+      description: "Gdy wygrasz aukcję, pojawi się ona tutaj. Z tego miejsca zostaniesz przekierowany do opłacenia jej bezpiecznie przez system Stripe (kartą, BLIK itp.).",
+      icon: "🏆",
+      placement: "top",
+    }
+  ],
+  "userpanel-payments": [
+    {
+      id: "up-payments-info",
+      targetSelector: "[data-tutorial='up-payments-info']",
+      fallbackPosition: "center",
+      title: "Konto do wypłat",
+      description: "Kupujący płacą za Twoje gołębie bezpośrednio przez system. Zgromadzone środki musimy na coś przelać. Podaj tu polski IBAN (numer konta) lub telefon do BLIK.",
+      icon: "💰",
+      placement: "bottom",
+    },
+    {
+      id: "up-payments-save",
+      targetSelector: "[data-tutorial='up-payments-save']",
+      title: "Zapisz ustawienia płatności",
+      description: "Nie zapomnij kliknąć przycisku Zapisz, by system zapamiętał Twój numer konta do wypłat gotówki za wygrane aukcje.",
+      icon: "💾",
+      placement: "top",
+    }
+  ],
+  "userpanel-security": [
+    {
+      id: "up-security-pass",
+      targetSelector: "[data-tutorial='up-security-pass']",
+      fallbackPosition: "center",
+      title: "Zmiana hasła",
+      description: "Jeśli czujesz, że Twoje konto może być narażone, wpisz tu nowe hasło (minimum 6 znaków).",
+      icon: "🔑",
+      placement: "bottom",
+    }
+  ],
 };
 
 // Storage keys for tracking completion per track
@@ -185,4 +282,9 @@ export const TUTORIAL_STORAGE_KEYS: Record<TutorialTrack, string> = {
   welcome: "palkamtm_tutorial_welcome_done",
   verification: "palkamtm_tutorial_verification_done",
   features: "palkamtm_tutorial_features_done",
+  "userpanel-overview": "palkamtm_tutorial_userpanel_overview_done",
+  "userpanel-profile": "palkamtm_tutorial_userpanel_profile_done",
+  "userpanel-auctions": "palkamtm_tutorial_userpanel_auctions_done",
+  "userpanel-payments": "palkamtm_tutorial_userpanel_payments_done",
+  "userpanel-security": "palkamtm_tutorial_userpanel_security_done",
 };
