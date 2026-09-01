@@ -44,7 +44,6 @@ function computePlacement(
   preferred: Placement | "auto" | undefined,
 ): Placement {
   if (!rect) return "bottom";
-  if (preferred && preferred !== "auto") return preferred;
 
   const viewH = window.innerHeight;
   const viewW = window.innerWidth;
@@ -53,11 +52,20 @@ function computePlacement(
   const spaceRight = viewW - rect.right;
   const spaceLeft = rect.left;
 
+  if (preferred && preferred !== "auto") {
+    if (preferred === "bottom" && spaceBelow >= 200) return "bottom";
+    if (preferred === "top" && spaceAbove >= 200) return "top";
+    if (preferred === "right" && spaceRight >= BUBBLE_WIDTH + BUBBLE_GAP) return "right";
+    if (preferred === "left" && spaceLeft >= BUBBLE_WIDTH + BUBBLE_GAP) return "left";
+  }
+
   // Prefer bottom, then top, then right, then left
   if (spaceBelow >= 200) return "bottom";
   if (spaceAbove >= 200) return "top";
   if (spaceRight >= BUBBLE_WIDTH + BUBBLE_GAP) return "right";
   if (spaceLeft >= BUBBLE_WIDTH + BUBBLE_GAP) return "left";
+  
+  // If nothing fits well, default to center-ish (fallback to bottom but we will clamp in computeBubblePosition)
   return "bottom";
 }
 
@@ -74,29 +82,35 @@ function computeBubblePosition(
   }
 
   const maxLeft = window.innerWidth - BUBBLE_WIDTH - 16;
+  const maxTop = window.innerHeight - 250; // approximate bubble height + padding
+  
+  let top = 0;
+  let left = 0;
 
   switch (placement) {
     case "bottom":
-      return {
-        top: rect.bottom + BUBBLE_GAP,
-        left: Math.max(16, Math.min(rect.left + rect.width / 2 - BUBBLE_WIDTH / 2, maxLeft)),
-      };
+      top = rect.bottom + BUBBLE_GAP;
+      left = Math.max(16, Math.min(rect.left + rect.width / 2 - BUBBLE_WIDTH / 2, maxLeft));
+      break;
     case "top":
-      return {
-        top: rect.top - BUBBLE_GAP - 200, // approximate bubble height
-        left: Math.max(16, Math.min(rect.left + rect.width / 2 - BUBBLE_WIDTH / 2, maxLeft)),
-      };
+      top = rect.top - BUBBLE_GAP - 200; // approximate bubble height
+      left = Math.max(16, Math.min(rect.left + rect.width / 2 - BUBBLE_WIDTH / 2, maxLeft));
+      break;
     case "right":
-      return {
-        top: Math.max(16, rect.top + rect.height / 2 - 100),
-        left: Math.min(rect.right + BUBBLE_GAP, maxLeft),
-      };
+      top = Math.max(16, rect.top + rect.height / 2 - 100);
+      left = Math.min(rect.right + BUBBLE_GAP, maxLeft);
+      break;
     case "left":
-      return {
-        top: Math.max(16, rect.top + rect.height / 2 - 100),
-        left: Math.max(16, rect.left - BUBBLE_WIDTH - BUBBLE_GAP),
-      };
+      top = Math.max(16, rect.top + rect.height / 2 - 100);
+      left = Math.max(16, rect.left - BUBBLE_WIDTH - BUBBLE_GAP);
+      break;
   }
+  
+  // Final clamping to ensure it's ALWAYS on screen
+  top = Math.max(16, Math.min(top, maxTop));
+  left = Math.max(16, Math.min(left, maxLeft));
+  
+  return { top, left };
 }
 
 // ── Component ────────────────────────────────────────────────────
