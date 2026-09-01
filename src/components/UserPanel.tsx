@@ -186,15 +186,36 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
   ]);
 
   const onSaveProfile = async () => {
-    if (!username.trim() || username.trim().length < 3) {
-      setFeedbackType("error");
-      setFeedbackTitle("Błąd");
-      setFeedbackMessage("Nick jest wymagany i musi mieć min. 3 znaki");
-      setFeedbackOpen(true);
-      return;
-    }
-    try {
-      await updateUserProfile({
+    let payload: any = {};
+
+    if (activeTab === "profile") {
+      if (!username.trim() || username.trim().length < 3) {
+        setFeedbackType("error");
+        setFeedbackTitle("Błąd");
+        setFeedbackMessage("Nick jest wymagany i musi mieć min. 3 znaki");
+        setFeedbackOpen(true);
+        return;
+      }
+      payload = {
+        username: username.trim(),
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        street: street.trim(),
+        postal_code: postalCode.trim(),
+        city: city.trim(),
+        country: country.trim(),
+        phone: phone.trim(),
+      };
+    } else if (activeTab === "payments") {
+      payload = {
+        payoutMethod,
+        payoutIban: payoutMethod === "IBAN" ? payoutIban.trim() : "",
+        payoutPhone: payoutMethod === "BLIK" ? payoutPhone.trim() : phone.trim(),
+      };
+    } else {
+      // Fallback just in case
+      payload = {
         username: username.trim(),
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -207,7 +228,11 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
         payoutMethod,
         payoutIban: payoutMethod === "IBAN" ? payoutIban.trim() : "",
         payoutPhone: payoutMethod === "BLIK" ? payoutPhone.trim() : phone.trim(),
-      });
+      };
+    }
+
+    try {
+      await updateUserProfile(payload);
       setFeedbackType("success");
       setFeedbackTitle("Zapisano");
       setFeedbackMessage(
