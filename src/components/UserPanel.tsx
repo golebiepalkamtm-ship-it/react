@@ -70,7 +70,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
     loading: profileSaving,
     error: profileError,
   } = useProfile();
-  const { startTutorial } = useTutorial();
+  const { start: startTutorial } = useTutorial();
   const navigate = useNavigate();
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
