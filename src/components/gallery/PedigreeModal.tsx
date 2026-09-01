@@ -32,7 +32,7 @@ export const PedigreeModal = ({ isOpen, onClose, pedigreeUrl, images = [], start
   }, [imageList, currentIndex, pedigreeUrl]);
   const showImages = imageList.length > 0;
 
-  if (!pedigreeUrl) return null;
+  if (!pedigreeUrl && imageList.length === 0) return null;
 
   return (
     <UnifiedModal
