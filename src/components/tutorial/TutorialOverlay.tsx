@@ -318,6 +318,7 @@ export default function TutorialOverlay() {
                 onSkip={skip}
                 isFirst={currentIndex === 0}
                 isLast={currentIndex === totalSteps - 1}
+                hideArrow={!targetRect}
               />
             </div>
           </AnimatePresence>

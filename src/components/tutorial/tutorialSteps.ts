@@ -216,14 +216,6 @@ export const TUTORIAL_TRACKS: Record<TutorialTrack, TutorialStep[]> = {
       description: "Po wypełnieniu danych kliknij tutaj, aby je zapisać na swoim koncie. Dane nie są publicznie widoczne aż do wygrania aukcji.",
       icon: "💾",
       placement: "top",
-    },
-    {
-      id: "up-profile-sms",
-      targetSelector: "[data-tutorial='up-profile-sms']",
-      title: "Weryfikacja SMS",
-      description: "To kluczowa funkcja. Chroni platformę przed oszustami. Bez pomyślnej weryfikacji SMS na polski numer, nie możesz brać udziału w licytacjach.",
-      icon: "📱",
-      placement: "top",
     }
   ],
   "userpanel-auctions": [

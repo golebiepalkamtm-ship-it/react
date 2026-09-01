@@ -12,6 +12,7 @@ interface TutorialBubbleProps {
   onSkip: () => void;
   isFirst: boolean;
   isLast: boolean;
+  hideArrow?: boolean;
 }
 
 const arrowStyles: Record<string, string> = {
@@ -40,6 +41,7 @@ const TutorialBubble = memo(function TutorialBubble({
   onSkip,
   isFirst,
   isLast,
+  hideArrow,
 }: TutorialBubbleProps) {
   const origin = slideOrigin[placement] ?? { y: -10 };
 
@@ -72,9 +74,11 @@ const TutorialBubble = memo(function TutorialBubble({
       aria-label={step.title}
     >
       {/* Arrow */}
-      <div
-        className={`absolute h-0 w-0 border-[8px] ${arrowStyles[placement] ?? arrowStyles.bottom}`}
-      />
+      {!hideArrow && (
+        <div
+          className={`absolute h-0 w-0 border-[8px] ${arrowStyles[placement] ?? arrowStyles.bottom}`}
+        />
+      )}
 
       {/* Icon + Title */}
       <div className="mb-2 flex items-center gap-2.5">
