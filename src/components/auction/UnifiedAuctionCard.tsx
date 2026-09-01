@@ -311,6 +311,10 @@ export const UnifiedAuctionCard = memo(
           borderColor: "rgba(166,142,78,0.7)",
           boxShadow:
             "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08)",
+          rotateX: rotateX,
+          rotateY: rotateY,
+          transformPerspective: 1200,
+          transformStyle: "preserve-3d"
         }}
         onMouseEnter={() => setIsHovered(true)}
       >
@@ -325,7 +329,7 @@ export const UnifiedAuctionCard = memo(
         {/* Inner container for 3D parallax effect */}
         <div
           className="auction-card-inner relative h-full w-full flex flex-col"
-          // style={{ transformStyle: "preserve-3d" }} // Disabled to prevent blur
+          style={{ transformStyle: "preserve-3d" }}
         >
           {/* Decorative gold lines */}
           <div className="absolute top-0 left-0 right-0 h-[6px] bg-gradient-to-r from-transparent via-gold/50 to-transparent pointer-events-none rounded-full" />
@@ -417,6 +421,7 @@ export const UnifiedAuctionCard = memo(
           <div
             className="relative w-full aspect-square overflow-hidden bg-transparent"
             onContextMenu={(e) => e.preventDefault()}
+            style={{ transform: "translateZ(40px)" }}
           >
             <div
               className="absolute inset-0 z-20 bg-transparent select-none"
@@ -440,6 +445,7 @@ export const UnifiedAuctionCard = memo(
               backgroundImage: CONTENT_BACKGROUND,
               backgroundColor: "rgba(15, 23, 42, 0.88)",
               backgroundBlendMode: "normal",
+              transform: "translateZ(20px)"
             }}
           >
             {/* Views Counter - Top Right */}

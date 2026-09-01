@@ -24,7 +24,7 @@ import { type Reference, referenceService } from "@/services/referenceService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
-import AccountModal from "@/components/AccountModal";
+import UserPanel from "@/components/UserPanel";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 interface ReferenceCardProps {
@@ -783,10 +783,9 @@ export function ReferencesPage() {
         />
       </UnifiedModal>
 
-      <AccountModal
-        open={isAccountOpen}
-        onClose={() => setIsAccountOpen(false)}
-      />
+      {isAccountOpen && (
+        <UserPanel onClose={() => setIsAccountOpen(false)} />
+      )}
 
       <UnifiedModal
         isOpen={infoModal.isOpen}

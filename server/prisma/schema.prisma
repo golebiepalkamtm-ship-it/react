@@ -419,4 +419,5 @@ enum PaymentType {
   BUY_NOW
   LISTING_FEE
   COMMISSION
+  WON_AUCTION
 }

@@ -13,6 +13,7 @@ import {
   Gavel,
   Heart,
 } from "lucide-react";
+import { PremiumButton } from "@/components/ui/PremiumButton";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { UnifiedAuctionCard } from "@/components/auction/UnifiedAuctionCard";
@@ -26,7 +27,7 @@ import { resolveAuctionImage } from "@/utils/image";
 import type { AuctionSortBy } from "@/types/auction";
 import { gsap } from "@/lib/gsapConfig";
 import { AnimatePresence } from "framer-motion";
-import AccountModal from "@/components/AccountModal";
+import UserPanel from "@/components/UserPanel";
 import { useSocket } from "@/hooks/useSocket";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { auctionService } from "@/services/auctionService";
@@ -162,6 +163,7 @@ const AuctionsPage = () => {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [accountModalTab, setAccountModalTab] = useState<"overview" | "payments" | "profile">("overview");
   const [isCardRequiredModalOpen, setIsCardRequiredModalOpen] = useState(false);
   const [isAttachCardLoading, setIsAttachCardLoading] = useState(false);
 
@@ -361,6 +363,11 @@ const AuctionsPage = () => {
   };
 
   const handleCloseModal = () => {
+    if (selectedCategory) {
+      if (!window.confirm("Masz niezapisane zmiany w formularzu. Czy na pewno chcesz wyjść? Utracisz wpisane dane.")) {
+        return;
+      }
+    }
     setIsCreateOpen(false);
     setSelectedCategory(null);
   };
@@ -579,12 +586,14 @@ const AuctionsPage = () => {
 
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
+                      <PremiumButton
                         onClick={handleCreateAuctionClick}
-                        className="rounded-2xl bg-[#A68E4E] text-[#064e3b] px-5 py-2 font-bold shadow-lg border-0 hover:bg-[#A68E4E]/90 transition-all"
+                        className="rounded-2xl bg-[#A68E4E] text-[#064e3b] px-5 py-2 font-bold shadow-[0_0_15px_rgba(166,142,78,0.3)] hover:shadow-[0_0_25px_rgba(166,142,78,0.5)] border-0 hover:bg-[#A68E4E]/90 transition-all"
+                        data-tutorial="create-auction-btn"
+                        magneticStrength={0.15}
                       >
                         <Plus className="h-4 w-4 mr-2" /> Dodaj aukcję
-                      </Button>
+                      </PremiumButton>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="bg-[#020a13] border border-[#A68E4E]/50 text-[#A68E4E] text-xs">
                       Wystaw swojego gołębia, suplementy lub akcesoria na licytację
@@ -629,6 +638,7 @@ const AuctionsPage = () => {
                       <button
                         type="button"
                         onClick={handleWatchlistToggle}
+                        data-tutorial="watchlist-filter"
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                           isWatchlistActive
                             ? "bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)] font-bold"
@@ -839,6 +849,26 @@ const AuctionsPage = () => {
         title={feedbackModal.title}
         message={feedbackModal.message}
       />
+      
+      <UnifiedModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        type="warning"
+        title={verificationMessage.title}
+        message={verificationMessage.message}
+        confirmButton={{
+          text: "Przejdź do ustawień konta",
+          onClick: () => {
+            setShowVerificationModal(false);
+            setAccountModalTab("payments");
+            setIsAccountOpen(true);
+          }
+        }}
+        cancelButton={{
+          text: "Zamknij",
+          onClick: () => setShowVerificationModal(false)
+        }}
+      />
       <UnifiedModal
         isOpen={isCardRequiredModalOpen}
         onClose={() => setIsCardRequiredModalOpen(false)}
@@ -855,10 +885,9 @@ const AuctionsPage = () => {
         }}
       />
 
-      <AccountModal
-        open={isAccountOpen}
-        onClose={() => setIsAccountOpen(false)}
-      />
+      {isAccountOpen && (
+        <UserPanel onClose={() => setIsAccountOpen(false)} defaultTab={accountModalTab} />
+      )}
     </div>
   </TooltipProvider>
   );

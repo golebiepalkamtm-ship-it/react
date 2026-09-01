@@ -44,8 +44,9 @@ import { reviewService } from "@/services/reviewService";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ReviewForm from "@/components/ReviewForm";
 import SellerReviews from "@/components/SellerReviews";
+import { PremiumButton } from "@/components/ui/PremiumButton";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
-import AccountModal from "@/components/AccountModal";
+import UserPanel from "@/components/UserPanel";
 import EditAuctionModal from "@/components/auction/EditAuctionModal";
 import { trackMetric } from "@/services/metricsService";
 import { toast } from "@/hooks/use-toast";
@@ -116,6 +117,7 @@ const AuctionDetail: React.FC = () => {
 
   // Verification modal state
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [accountModalTab, setAccountModalTab] = useState<"overview" | "payments" | "profile">("overview");
   const [verificationMessage, setVerificationMessage] = useState({
     title: "",
     message: "",
@@ -1068,19 +1070,21 @@ const AuctionDetail: React.FC = () => {
                                     <TooltipProvider>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
-                                          <Button
+                                          <PremiumButton
                                             onClick={handleBid}
                                             disabled={bidLoading}
-                                            className="flex-1 px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap gold-button text-zinc-950 border-0 shadow-lg"
+                                            wrapperClassName="flex-1"
+                                            className="w-full px-4 py-4 h-auto rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap gold-button text-zinc-950 border-0 shadow-lg"
                                             style={{
                                               backgroundImage:
                                                 "linear-gradient(135deg, rgba(166,142,78,0.9), rgba(166,142,78,0.8))",
                                               color: "#0f0f0f",
                                             }}
+                                            magneticStrength={0.15}
                                           >
                                             <Gavel className="w-3.5 h-3.5 mr-1.5" />
                                             {isAutoBid ? "Ustaw Auto-Bid" : "Licytuj"}
-                                          </Button>
+                                          </PremiumButton>
                                         </TooltipTrigger>
                                         <TooltipContent>
                                           {isAutoBid 
@@ -1115,8 +1119,9 @@ const AuctionDetail: React.FC = () => {
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Button
+                                        <PremiumButton
                                           onClick={handleBuyNow}
+                                          wrapperClassName="w-full h-full"
                                           className="relative w-full h-full px-4 py-4 rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap gold-button text-zinc-950 border-0 shadow-lg"
                                           style={{
                                             backgroundImage:
@@ -1124,11 +1129,12 @@ const AuctionDetail: React.FC = () => {
                                             color: "#0f0f0f",
                                           }}
                                           disabled={isCheckoutLoading}
+                                          magneticStrength={0.15}
                                         >
                                           {isCheckoutLoading
                                             ? "Przetwarzanie..."
                                             : "Kup teraz"}
-                                        </Button>
+                                        </PremiumButton>
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         Natychmiastowe zakończenie aukcji i zakup za z góry ustaloną kwotę (Kup Teraz).
@@ -1532,10 +1538,9 @@ const AuctionDetail: React.FC = () => {
         )}
       </main>
 
-      <AccountModal
-        open={isAccountOpen}
-        onClose={() => setIsAccountOpen(false)}
-      />
+      {isAccountOpen && (
+        <UserPanel onClose={() => setIsAccountOpen(false)} defaultTab={accountModalTab} />
+      )}
 
       <UnifiedModal
         isOpen={showVerificationModal}
@@ -1553,6 +1558,7 @@ const AuctionDetail: React.FC = () => {
             if (profile?.role === "USER_REGISTERED") {
               navigate("/verify-email");
             } else {
+              setAccountModalTab("profile");
               setIsAccountOpen(true);
             }
           },

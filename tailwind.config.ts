@@ -1,5 +1,8 @@
 import type { Config } from "tailwindcss";
 import tailwindAnimate from "tailwindcss-animate";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 // Conditional imports for optional plugins
 let typography: any = null;

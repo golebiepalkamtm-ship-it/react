@@ -1,6 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 // Conditional plugin imports
 let compression: any = null;
@@ -182,7 +185,13 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes("node_modules")) {
+            // React Core & Router (strict package matching first to avoid circular chunking)
+            if (
+              /[\\/]node_modules[\\/](react|react-dom|scheduler|use-sync-external-store|react-router|react-router-dom|@remix-run)[\\/]/.test(id)
+            ) {
+              return "react-vendor";
+            }
+
             // Three.js & 3D (Split for better caching)
             if (
               id.includes("three") ||
@@ -192,7 +201,7 @@ export default defineConfig(({ mode }) => ({
             ) {
               if (id.includes("examples/jsm")) return "three-examples";
               if (id.includes("three-mesh-bvh")) return "three-bvh";
-              if (id.includes("@react-three/drei")) return "three-drei"; // Split drei
+              if (id.includes("@react-three/drei")) return "three-drei";
               return "three-vendor";
             }
 
@@ -238,16 +247,6 @@ export default defineConfig(({ mode }) => ({
 
             // Carousel
             if (id.includes("embla")) return "carousel";
-
-            // React Core (Catch-all for other react stuff)
-            if (
-              id.includes("react") ||
-              id.includes("react-dom") ||
-              id.includes("react-router")
-            ) {
-              return "react-vendor";
-            }
-          }
         },
       },
     },

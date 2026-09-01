@@ -187,16 +187,6 @@ router.post(
   }
 );
 
-// Multer & upload-specific error handler (keep after routes)
-router.use((err: any, _req: AuthenticatedRequest, res: Response, next: express.NextFunction) => {
-  if (err instanceof multer.MulterError || err?.message?.includes('File too large')) {
-    return res.status(400).json({ error: 'File size exceeds limit' });
-  }
-  if (err?.message?.includes('format nie przejdzie') || err?.message?.includes('format nie zadziała')) {
-    return res.status(400).json({ error: 'Dangerous file type not allowed' });
-  }
-  return next(err);
-});
 
 /**
  * POST /api/upload/document
@@ -256,5 +246,16 @@ router.post(
     }
   }
 );
+
+// Multer & upload-specific error handler (placed after all upload routes)
+router.use((err: any, _req: AuthenticatedRequest, res: Response, next: express.NextFunction) => {
+  if (err instanceof multer.MulterError || err?.message?.includes('File too large')) {
+    return res.status(400).json({ error: 'File size exceeds limit' });
+  }
+  if (err?.message?.includes('format nie przejdzie') || err?.message?.includes('format nie zadziała') || err?.message?.includes('nie otworzymy')) {
+    return res.status(400).json({ error: 'Dangerous file type not allowed' });
+  }
+  return next(err);
+});
 
 export default router;

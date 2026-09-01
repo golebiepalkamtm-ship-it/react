@@ -11,11 +11,17 @@ import { isRedisEnabled, getRedisReady } from "../lib/redis.js";
  * A wrapper for RedisStore that gracefully falls back to memory if Redis is offline.
  * This prevents unhandled promise rejections during startup by lazy-initializing 
  * the actual RedisStore only when Redis is confirmed ready.
+ * Each limiter gets its own prefix and isolated store instance to avoid double-counting.
  */
 class SafeRedisStore {
   private store: any = null;
   private options: any = null;
   private memoryHits: Map<string, { totalHits: number; resetTime: Date }> = new Map();
+  public prefix: string;
+
+  constructor(prefix: string = "rl:") {
+    this.prefix = prefix;
+  }
 
   init(options: any) {
     this.options = options;
@@ -23,7 +29,7 @@ class SafeRedisStore {
       try {
         this.store.init(options);
       } catch (e) {
-        logger.error("SafeRedisStore: Failed to call init on active store", { error: e });
+        logger.error(`SafeRedisStore (${this.prefix}): Failed to call init on active store`, { error: e });
       }
     }
   }
@@ -34,6 +40,7 @@ class SafeRedisStore {
     if (isRedisEnabled() && getRedisReady()) {
       try {
         this.store = new RedisStore({
+          prefix: this.prefix,
           sendCommand: async (...args: string[]) => {
             return await redis.sendCommand(args);
           },
@@ -45,7 +52,7 @@ class SafeRedisStore {
         
         return this.store;
       } catch (e) {
-        logger.warn("SafeRedisStore: Lazy initialization failed", { error: e });
+        logger.warn(`SafeRedisStore (${this.prefix}): Lazy initialization failed`, { error: e });
         this.store = null;
         return null;
       }
@@ -64,7 +71,7 @@ class SafeRedisStore {
           }
         }
       } catch (e) {
-        logger.error("SafeRedisStore: increment failed, falling back to memory", { 
+        logger.error(`SafeRedisStore (${this.prefix}): increment failed, falling back to memory`, { 
           error: e instanceof Error ? { name: e.name, message: e.message, stack: e.stack } : e,
           key 
         });
@@ -74,7 +81,8 @@ class SafeRedisStore {
     // In-memory fallback tracking when Redis is offline
     const windowMs = this.options?.windowMs || 60000;
     const now = Date.now();
-    let record = this.memoryHits.get(key);
+    const storeKey = `${this.prefix}${key}`;
+    let record = this.memoryHits.get(storeKey);
 
     if (!record || record.resetTime.getTime() <= now) {
       record = {
@@ -85,7 +93,7 @@ class SafeRedisStore {
       record.totalHits += 1;
     }
 
-    this.memoryHits.set(key, record);
+    this.memoryHits.set(storeKey, record);
     return record;
   }
 
@@ -98,10 +106,11 @@ class SafeRedisStore {
           return;
         }
       } catch (e) {
-        logger.error("SafeRedisStore: decrement failed", { error: e, key });
+        logger.error(`SafeRedisStore (${this.prefix}): decrement failed`, { error: e, key });
       }
     }
-    const record = this.memoryHits.get(key);
+    const storeKey = `${this.prefix}${key}`;
+    const record = this.memoryHits.get(storeKey);
     if (record && record.totalHits > 0) {
       record.totalHits -= 1;
     }
@@ -116,10 +125,11 @@ class SafeRedisStore {
           return;
         }
       } catch (e) {
-        logger.error("SafeRedisStore: resetKey failed", { error: e, key });
+        logger.error(`SafeRedisStore (${this.prefix}): resetKey failed`, { error: e, key });
       }
     }
-    this.memoryHits.delete(key);
+    const storeKey = `${this.prefix}${key}`;
+    this.memoryHits.delete(storeKey);
   }
 
   async get(key: string) {
@@ -130,21 +140,20 @@ class SafeRedisStore {
           return await activeStore.get(key);
         }
       } catch (e) {
-        logger.error("SafeRedisStore: get failed", { error: e, key });
+        logger.error(`SafeRedisStore (${this.prefix}): get failed`, { error: e, key });
       }
     }
-    return this.memoryHits.get(key);
+    const storeKey = `${this.prefix}${key}`;
+    return this.memoryHits.get(storeKey);
   }
 }
 
-// Re-enable RedisStore using the SafeRedisStore wrapper
-const redisStore = new SafeRedisStore();
-
-const baseLimiterConfig = {
+export const createLimiterConfig = (prefix: string) => ({
   standardHeaders: true,
   legacyHeaders: false,
-  store: redisStore ?? undefined,
-};
+  store: new SafeRedisStore(prefix) as any,
+  validate: false,
+});
 
 // Global rate limiter
 export const globalLimiter = rateLimit({
@@ -154,7 +163,7 @@ export const globalLimiter = rateLimit({
     error: "Too many requests from this IP, please try again later.",
     retryAfter: Math.ceil(validatedEnv.RATE_LIMIT_WINDOW_MS / 1000),
   },
-  ...baseLimiterConfig,
+  ...createLimiterConfig("rl:global:"),
   legacyHeaders: true, // Keep legacy headers for backwards compatibility on global
   handler: (req: Request, res: Response) => {
     logger.warn(`Rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
@@ -178,7 +187,7 @@ export const loginLimiter = rateLimit({
     error: "Too many login attempts, please try again later.",
     retryAfter: 15 * 60,
   },
-  ...baseLimiterConfig,
+  ...createLimiterConfig("rl:login:"),
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(`Login rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
@@ -202,7 +211,7 @@ export const resetLimiter = rateLimit({
     error: "Too many reset attempts, please try again later.",
     retryAfter: 60 * 60,
   },
-  ...baseLimiterConfig,
+  ...createLimiterConfig("rl:reset:"),
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(
@@ -229,7 +238,7 @@ export const authLimiter = rateLimit({
     error: "Too many authentication attempts, please try again later.",
     retryAfter: 15 * 60, // 15 minutes in seconds
   },
-  ...baseLimiterConfig,
+  ...createLimiterConfig("rl:auth:"),
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(`Auth rate limit exceeded for IP: ${req.ip} on ${req.path}`, {
@@ -255,7 +264,7 @@ export const otpSendLimiter = rateLimit({
     error: "Zbyt wiele wysłanych kodów. Spróbuj za ok. 15 minut.",
     retryAfter: 15 * 60,
   },
-  ...baseLimiterConfig,
+  ...createLimiterConfig("rl:otp_send:"),
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(`OTP send rate limit exceeded`, {
@@ -278,7 +287,7 @@ export const otpVerifyLimiter = rateLimit({
     error: "Zbyt wiele prób weryfikacji. Spróbuj za ok. 15 minut.",
     retryAfter: 15 * 60,
   },
-  ...baseLimiterConfig,
+  ...createLimiterConfig("rl:otp_verify:"),
   legacyHeaders: true,
   handler: (req: Request, res: Response) => {
     logger.warn(`OTP verify rate limit exceeded`, {
@@ -304,8 +313,7 @@ export const biddingLimiter = rateLimit({
     error: "Too many bidding attempts, please slow down.",
     retryAfter: 60, // 1 minute in seconds
   },
-  standardHeaders: true,
-  legacyHeaders: false,
+  ...createLimiterConfig("rl:bid:"),
   handler: (req: Request, res: Response) => {
     const identifier = (req as any).user?.id || req.ip;
     logger.warn(
@@ -323,9 +331,6 @@ export const biddingLimiter = rateLimit({
       retryAfter: 60,
     });
   },
-  // store: new RedisStore({
-  //   sendCommand: (...args: string[]) => redis.sendCommand(args),
-  // }),
 });
 
 // Upload limiter - 10 requests per hour per user
@@ -340,8 +345,7 @@ export const uploadLimiter = rateLimit({
     error: "Too many upload attempts, please try again later.",
     retryAfter: 60 * 60, // 1 hour in seconds
   },
-  standardHeaders: true,
-  legacyHeaders: false,
+  ...createLimiterConfig("rl:upload:"),
   handler: (req: Request, res: Response) => {
     const identifier = (req as any).user?.id || req.ip;
     logger.warn(
@@ -359,7 +363,6 @@ export const uploadLimiter = rateLimit({
       retryAfter: 60 * 60,
     });
   },
-  // }),
 });
 
 // Webhook limiter - 60 requests per minute per IP (allowing for high volume if needed but preventing flood)
@@ -370,8 +373,7 @@ export const webhookLimiter = rateLimit({
     error: "Too many webhook requests, please try again later.",
     retryAfter: 60,
   },
-  standardHeaders: true,
-  legacyHeaders: false,
+  ...createLimiterConfig("rl:webhook:"),
   handler: (req: Request, res: Response) => {
     logger.warn(
       `Webhook rate limit exceeded for IP: ${req.ip} on ${req.path}`,
@@ -398,7 +400,7 @@ export const dataFetchLimiter = rateLimit({
     error: "Too many requests for data, please try again later.",
     retryAfter: 5 * 60,
   },
-  ...baseLimiterConfig,
+  ...createLimiterConfig("rl:data:"),
   handler: (req: Request, res: Response) => {
     logger.warn(
       `Data fetch rate limit exceeded for IP: ${req.ip} on ${req.path}`,
@@ -429,7 +431,14 @@ export const skipTrustedIPs = (req: Request): boolean => {
 
 // Global limiter with trusted IP skip
 export const globalLimiterWithSkip = rateLimit({
-  ...globalLimiter,
+  windowMs: validatedEnv.RATE_LIMIT_WINDOW_MS,
+  max: validatedEnv.RATE_LIMIT_MAX_REQUESTS,
+  message: {
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: Math.ceil(validatedEnv.RATE_LIMIT_WINDOW_MS / 1000),
+  },
+  ...createLimiterConfig("rl:global_skip:"),
+  legacyHeaders: true,
   skip: skipTrustedIPs,
 });
 

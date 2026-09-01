@@ -59,9 +59,21 @@ router.post(
 
       const auction = await db.auction.findUnique({
         where: { id: auctionId },
-        include: { seller: true },
+        include: { 
+          seller: true,
+          payments: {
+            where: {
+              status: "SUCCEEDED",
+              type: { in: ["BUY_NOW", "WON_AUCTION"] }
+            }
+          }
+        },
       });
       if (!auction) return res.status(404).json({ error: "Auction not found" });
+      
+      if (auction.payments.length > 0) {
+        return res.status(400).json({ error: "Ta aukcja została już opłacona." });
+      }
       if (auction.sellerId === userId) {
         return res.status(400).json({ error: "Nie możesz kupić własnej aukcji." });
       }
@@ -71,19 +83,30 @@ router.post(
 
       const now = Date.now();
       const endsAt = new Date(auction.endTime).getTime();
-      if (
-        (auction.status as string)?.toUpperCase() !== "ACTIVE" ||
-        endsAt <= now
-      ) {
-        return res.status(400).json({ error: "Aukcja nieaktywna" });
-      }
-      if (!auction.buyNowPrice) {
-        return res.status(400).json({ error: "Brak ceny Kup teraz" });
+      
+      const isWinner = auction.winnerId === userId && (auction.status as string)?.toUpperCase() === "SOLD";
+      const isBuyNow = !isWinner && (auction.status as string)?.toUpperCase() === "ACTIVE" && endsAt > now;
+
+      if (!isBuyNow && !isWinner) {
+        return res.status(400).json({ error: "Nie możesz opłacić tej aukcji. Aukcja jest nieaktywna lub nie jesteś zwycięzcą." });
       }
 
-      const amount = Number(auction.buyNowPrice);
+      let amount = 0;
+      let paymentType = "";
+      
+      if (isWinner) {
+        amount = Number(auction.currentPrice);
+        paymentType = "WON_AUCTION";
+      } else {
+        if (!auction.buyNowPrice) {
+          return res.status(400).json({ error: "Brak ceny Kup teraz" });
+        }
+        amount = Number(auction.buyNowPrice);
+        paymentType = "BUY_NOW";
+      }
+
       if (!Number.isFinite(amount) || amount <= 0) {
-        return res.status(400).json({ error: "Nieprawidłowa cena Kup Teraz" });
+        return res.status(400).json({ error: "Nieprawidłowa kwota do zapłaty" });
       }
       if (amount < 2) {
         return res
@@ -102,7 +125,7 @@ router.post(
           userId,
           amount: amount + commission,
           provider: "STRIPE" as any,
-          type: "BUY_NOW" as any,
+          type: paymentType as any,
           status: "INITIATED" as any,
         },
       });
@@ -167,7 +190,7 @@ router.post(
           paymentId: payment.id,
           auctionId,
           buyerId: userId,
-          paymentType: "BUY_NOW",
+          paymentType,
         },
         client_reference_id: payment.id,
         customer_email: (auction as any)?.email ?? undefined,
@@ -567,6 +590,16 @@ export const processStripeEvent = async (
             });
             console.log(
               `Auction ${auctionId} ended via BUY_NOW for buyer ${buyerId}`,
+            );
+          } else if (paymentType === "WON_AUCTION") {
+            await tx.auction.update({
+              where: { id: auctionId },
+              data: {
+                status: "COMPLETED",
+              } as any,
+            });
+            console.log(
+              `Auction ${auctionId} paid via WON_AUCTION by buyer ${buyerId}`,
             );
           } else if (paymentType === "COMMISSION") {
             await tx.auction.update({

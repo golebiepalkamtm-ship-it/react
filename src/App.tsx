@@ -7,6 +7,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useSearchParams,
 } from "react-router-dom";
 import React, { Suspense, useEffect } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -16,10 +17,11 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { GSAPPageTransition } from "@/components/motion";
 import { UIProviders } from "@/components/ui/UIProviders";
+import { TutorialProvider } from "@/components/tutorial/TutorialProvider";
+import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
 
 import { trackMetric } from "@/services/metricsService";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
+import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 
 import {
   LazyIndex,
@@ -89,6 +91,35 @@ const AnalyticsTracker = () => {
   return null;
 };
 
+const StripeReturnHandler = () => {
+  const { showSuccess, showWarning } = useOptimizedToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const paymentSetup = searchParams.get("payment_setup");
+    if (paymentSetup === "success") {
+      showSuccess({
+        message: "Karta została pomyślnie podpięta. Masz teraz pełen dostęp do platformy!",
+      });
+      // Remove query param without reloading
+      setSearchParams((params) => {
+        params.delete("payment_setup");
+        return params;
+      }, { replace: true });
+    } else if (paymentSetup === "cancel") {
+      showWarning({
+        message: "Podpinanie karty zostało anulowane.",
+      });
+      setSearchParams((params) => {
+        params.delete("payment_setup");
+        return params;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams, showSuccess, showWarning]);
+
+  return null;
+};
+
 const App = () => {
   useEffect(() => {
     // Remove FOUC guard
@@ -107,10 +138,11 @@ const App = () => {
                   v7_relativeSplatPath: true,
                 }}
               >
+                <TutorialProvider>
+                  <StripeReturnHandler />
+                  <TutorialOverlay />
                 <TooltipProvider>
                   <AnalyticsTracker />
-                  <Analytics />
-                  <SpeedInsights />
                   <Toaster />
                   <div className="fixed bottom-0 right-0 z-[9999] p-1 text-[8px] text-white/20 pointer-events-none">
                     v1.0.8.7-stable
@@ -221,6 +253,7 @@ const App = () => {
                     </GSAPPageTransition>
                   </UIProviders>
                 </TooltipProvider>
+                </TutorialProvider>
               </BrowserRouter>
             </AuthProvider>
           </LocaleProvider>

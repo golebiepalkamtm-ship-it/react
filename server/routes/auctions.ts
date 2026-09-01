@@ -232,6 +232,39 @@ router.get("/my", authMiddleware, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+router.get("/won", authMiddleware, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    if (!prisma) {
+      return res.status(500).json({ error: "Baza danych niedostępna" });
+    }
+
+    const auctions = await prisma.auction.findMany({
+      where: { 
+        winnerId: userId,
+        status: "SOLD",
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        ...detailAuctionInclude,
+        payments: {
+          where: {
+            status: "SUCCEEDED",
+            type: { in: ["BUY_NOW", "WON_AUCTION"] }
+          }
+        }
+      },
+    });
+
+    const serialized = auctions.map((a) => serializePrivateAuction(a, userId));
+    res.json(serialized);
+  } catch (error) {
+    console.error("Error fetching won auctions:", error);
+    res.status(500).json({ error: "Failed to fetch won auctions" });
+  }
+});
+
 // Get auction by ID
 router.get("/:id", async (req, res) => {
   try {
@@ -441,7 +474,7 @@ async function performAuctionCreate(
       buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
       reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
       endTime: new Date(endTime),
-      status: options?.isAdmin ? "ACTIVE" : "WAITING_FOR_FEE",
+      status: "ACTIVE",
       listingFeePaid: options?.isAdmin ? true : false,
       category: auctionCategory as any,
       location: location || "Lubań, Polska",

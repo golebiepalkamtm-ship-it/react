@@ -88,7 +88,10 @@ class ApiClient {
     endpoint: string,
     params?: Record<string, string | number | undefined>,
   ): string {
-    const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
+    const cleanBase = this.baseUrl.replace(/\/+$/, "");
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    const baseOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
+    const url = new URL(`${cleanBase}${cleanEndpoint}`, baseOrigin);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined) url.searchParams.append(key, String(value));

@@ -99,6 +99,11 @@ export const auctionService = {
     return apiClient.getWithToken<Auction[]>("/auctions/my", undefined, token);
   },
 
+  async getWonAuctions(token: string | null): Promise<Auction[]> {
+    if (!token) throw new Error("Wymagane logowanie");
+    return apiClient.getWithToken<Auction[]>("/auctions/won", undefined, token);
+  },
+
   /**
    * Pobierz aukcje z listy życzeń użytkownika
    */

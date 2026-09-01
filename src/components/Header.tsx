@@ -191,11 +191,11 @@ const Header = () => {
 
   const navLinks = useMemo(() => {
     return [
-      { label: "Aukcje", href: "/auctions" },
-      { label: "Championy", href: "/champions" },
+      { label: "Aukcje", href: "/auctions", tutorialId: "nav-auctions" },
+      { label: "Championy", href: "/champions", tutorialId: "nav-champions" },
       { label: "Wyniki lotowe", href: "/flight-results" },
       { label: "Spotkania z hodowcami", href: "/breeder-meetings" },
-      { label: "Referencje", href: "/references" },
+      { label: "Referencje", href: "/references", tutorialId: "nav-references" },
       { label: "Prasa i media", href: "/press" },
       { label: "O nas", href: "/#about" },
       { label: "Kontakt", href: "/#contact" },
@@ -351,6 +351,7 @@ const Header = () => {
         {/* Desktop Nav - centered */}
         <motion.nav
           className="hidden lg:flex items-center gap-1 xl:gap-2"
+          data-tutorial="main-nav"
           initial="hidden"
           animate="visible"
           variants={{
@@ -367,6 +368,7 @@ const Header = () => {
                 hidden: { opacity: 0, y: -10 },
                 visible: { opacity: 1, y: 0 },
               }}
+              {...(link.tutorialId ? { "data-tutorial": link.tutorialId } : {})}
             >
               {link.href?.startsWith("/#") ? (
                 <button
@@ -404,6 +406,7 @@ const Header = () => {
                 onClick={() => setShowNotificationModal(true)}
                 className="relative p-2.5 rounded-xl bg-slate-900/60 border border-[#d4af37]/20 hover:border-[#d4af37]/60 text-white/90 hover:text-white transition-all shadow-lg hover:shadow-[#d4af37]/20 group cursor-pointer backdrop-blur-md"
                 aria-label="Powiadomienia"
+                data-tutorial="notification-bell"
               >
                 <div className="relative">
                   <Bell className="w-4 h-4 text-[#d4af37] group-hover:rotate-12 transition-transform duration-300" />
@@ -450,6 +453,7 @@ const Header = () => {
                 onClick={() => setShowAccountModal(true)}
                 className="relative group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#0b1329]/90 via-[#0e1936]/90 to-[#070d1e]/90 border border-[#d4af37]/40 hover:border-[#d4af37] text-white transition-all shadow-[0_0_15px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.3)] cursor-pointer backdrop-blur-xl"
                 title="Otwórz Panel Użytkownika"
+                data-tutorial="user-pill"
               >
                 <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 text-[#d4af37] shadow-inner">
                   <User className="w-3.5 h-3.5 text-[#d4af37]" />
@@ -490,6 +494,7 @@ const Header = () => {
               <RouterLink
                 to="/auth?mode=login"
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#b8972e] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] border border-white/40 transition-all"
+                data-tutorial="login-btn"
               >
                 <User className="w-4 h-4 text-slate-950" />
                 <span>Zaloguj się</span>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Settings,
   Server,
@@ -114,6 +114,30 @@ export const AdminSettings: React.FC = () => {
   const [dangerConfirm, setDangerConfirm] = useState<string | null>(null);
   const [isActionInProgress, setIsActionInProgress] = useState(false);
 
+  const pingAll = useCallback(async () => {
+    setIsPinging(true);
+    setServices((s) => s.map((x) => ({ ...x, status: "checking" })));
+    try {
+      const data = await apiClient.getWithToken<{ services: SystemService[] }>(
+        "/admin/system-health",
+        undefined,
+        token
+      );
+      if (data?.services) {
+        setServices(data.services);
+      }
+    } catch {
+      setServices([
+        { label: "Baza danych", endpoint: "/api/health/db", status: "online" },
+        { label: "API Server", endpoint: "/api/health", status: "online" },
+        { label: "Storage", endpoint: "/api/health/storage", status: "online" },
+        { label: "Stripe", endpoint: "/api/health/stripe", status: "online" },
+      ]);
+    } finally {
+      setIsPinging(false);
+    }
+  }, [token]);
+
   // Fetch settings on mount
   useEffect(() => {
     if (!token) return;
@@ -137,7 +161,7 @@ export const AdminSettings: React.FC = () => {
     };
     fetchSettings();
     pingAll();
-  }, [token]);
+  }, [token, pingAll]);
 
   const flipToggle = async (key: string) => {
     const target = toggles.find((t) => t.key === key);
@@ -222,29 +246,6 @@ export const AdminSettings: React.FC = () => {
     }
   };
 
-  const pingAll = async () => {
-    setIsPinging(true);
-    setServices((s) => s.map((x) => ({ ...x, status: "checking" })));
-    try {
-      const data = await apiClient.getWithToken<{ services: SystemService[] }>(
-        "/admin/system-health",
-        undefined,
-        token
-      );
-      if (data?.services) {
-        setServices(data.services);
-      }
-    } catch {
-      setServices([
-        { label: "Baza danych", endpoint: "/api/health/db", status: "online" },
-        { label: "API Server", endpoint: "/api/health", status: "online" },
-        { label: "Storage", endpoint: "/api/health/storage", status: "online" },
-        { label: "Stripe", endpoint: "/api/health/stripe", status: "online" },
-      ]);
-    } finally {
-      setIsPinging(false);
-    }
-  };
 
   const executeDangerAction = async (key: string) => {
     setIsActionInProgress(true);

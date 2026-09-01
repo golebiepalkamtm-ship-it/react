@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { meetingsService } from "@/services/meetingsService";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
-import AccountModal from "@/components/AccountModal";
+import UserPanel from "@/components/UserPanel";
 import { useNavigate } from "react-router-dom";
 import { gsap } from "@/lib/gsapConfig";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
@@ -408,10 +408,9 @@ export default function BreederMeetings() {
         </UnifiedModal>
       </main>
 
-      <AccountModal
-        open={isAccountOpen}
-        onClose={() => setIsAccountOpen(false)}
-      />
+      {isAccountOpen && (
+        <UserPanel onClose={() => setIsAccountOpen(false)} />
+      )}
 
       <UnifiedModal
         isOpen={showVerificationModal}

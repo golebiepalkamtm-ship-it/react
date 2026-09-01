@@ -57,8 +57,35 @@ export const uploadService = {
     file: File,
     token: string | null,
   ): Promise<{ url: string; path: string }> {
+    let processedFile = file;
+
+    // Kompresja skanów dokumentów (zdjęć)
+    try {
+      if (
+        file.type.startsWith("image/") &&
+        !file.type.includes("svg") &&
+        !file.type.includes("gif")
+      ) {
+        const options = {
+          maxSizeMB: 1, // Max 1 MB dla skanów
+          maxWidthOrHeight: 2000, // Większa rozdzielczość by rozczytać tekst
+          useWebWorker: true,
+          fileType: "image/webp",
+          initialQuality: 0.85,
+        };
+
+        const compressedBlob = await imageCompression(file, options);
+        const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+        processedFile = new File([compressedBlob], newFileName, {
+          type: "image/webp",
+        });
+      }
+    } catch (error) {
+      console.error("Błąd kompresji skanu dokumentu, upload oryginalnego pliku:", error);
+    }
+
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", processedFile);
     const authToken = await resolveToken(token);
     return apiClient.postFormData<{ url: string; path: string }>(
       "/upload/document",

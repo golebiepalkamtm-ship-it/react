@@ -4,6 +4,7 @@ import {
   PanInfo,
   useMotionValue,
   useTransform,
+  useDragControls,
 } from "framer-motion";
 import {
   User,
@@ -48,6 +49,7 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import PhoneVerification from "@/components/auth/PhoneVerification";
 import { auctionService } from "@/services/auctionService";
 import apiClient from "@/services/api";
+import { paymentService } from "@/services/paymentService";
 import { Auction, translateAuctionStatus } from "@/types/auction";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -55,9 +57,10 @@ import { UserPaymentsSection } from "@/components/user/UserPaymentsSection";
 
 interface UserPanelProps {
   onClose: () => void;
+  defaultTab?: "overview" | "profile" | "security" | "auctions" | "payments";
 }
 
-const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
+const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" }) => {
   const { user, profile, session, signOut } = useAuth();
   const { t } = useLocale();
   const {
@@ -99,7 +102,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
   const [activeTab, setActiveTab] = useState<
     "overview" | "profile" | "security" | "auctions" | "payments"
-  >("overview");
+  >(defaultTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dragConstraintsRef = useRef(null);
@@ -119,27 +122,32 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
   const [showSmsAuth, setShowSmsAuth] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [cardLoading, setCardLoading] = useState(false);
   const [passSaving, setPassSaving] = useState(false);
   const [passError, setPassError] = useState("");
+  const dragControls = useDragControls();
 
   const [userAuctions, setUserAuctions] = useState<Auction[]>([]);
   const [watchedAuctions, setWatchedAuctions] = useState<Auction[]>([]);
   const [biddingAuctions, setBiddingAuctions] = useState<Auction[]>([]);
-  const [loadingAuctions, setLoadingAuctions] = useState(false);
+  const [wonAuctions, setWonAuctions] = useState<Auction[]>([]);
+  const [loadingAuctions, setLoadingAuctions] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       if (!session?.access_token) return;
       try {
         setLoadingAuctions(true);
-        const [my, watched, bidding] = await Promise.all([
+        const [my, watched, bidding, won] = await Promise.all([
           auctionService.getUserAuctions(session.access_token),
           auctionService.getWatchlist(session.access_token),
           auctionService.getBiddingAuctions(session.access_token),
+          auctionService.getWonAuctions(session.access_token),
         ]);
         setUserAuctions(my);
         setWatchedAuctions(watched);
         setBiddingAuctions(bidding);
+        setWonAuctions(won);
       } catch (err) {
         console.error("Failed to fetch user auction data:", err);
       } finally {
@@ -216,6 +224,24 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
       setFeedbackTitle("Nie zapisano");
       setFeedbackMessage(message);
       setFeedbackOpen(true);
+    }
+  };
+
+  const handleAttachCard = async () => {
+    if (!session?.access_token) return;
+    setCardLoading(true);
+    try {
+      const res = await paymentService.createSetupSession(session.access_token);
+      if (res.url) {
+        window.location.assign(res.url);
+      }
+    } catch (err: any) {
+      setFeedbackType("error");
+      setFeedbackTitle("Błąd płatności");
+      setFeedbackMessage(err.message || "Nie udało się uruchomić sesji Stripe.");
+      setFeedbackOpen(true);
+    } finally {
+      setCardLoading(false);
     }
   };
 
@@ -299,20 +325,26 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
       />
 
       <motion.div
+        drag
+        dragListener={false}
+        dragControls={dragControls}
+        dragMomentum={false}
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="relative w-full max-w-7xl h-[94vh] md:h-[90vh] bg-[#0c1427] border-2 border-[#A68E4E]/70 rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col z-10 text-white"
+        className="relative w-full max-w-7xl h-auto max-h-[94vh] md:max-h-[90vh] bg-[#0c1427] border-2 border-[#A68E4E]/70 rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col z-10 text-white"
         data-lenis-prevent="true"
         data-lenis-prevent-touch="true"
       >
         {/* Header */}
-        <div className="relative flex-shrink-0 px-6 py-4 border-b border-[#A68E4E]/40 bg-[#070e1e]/95 backdrop-blur-md flex items-center justify-between gap-4">
+        <div 
+          onPointerDown={(e) => dragControls.start(e)}
+          className="relative flex-shrink-0 px-6 py-4 border-b border-[#A68E4E]/40 bg-[#070e1e]/95 backdrop-blur-md flex items-center justify-between gap-4 cursor-move"
+        >
           <div className="flex items-center gap-4">
             <motion.div
               className="relative w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#A68E4E]/40 via-amber-600/30 to-yellow-500/20 border border-[#A68E4E]/60 flex items-center justify-center shadow-md shadow-[#A68E4E]/20"
@@ -466,7 +498,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
 
         {/* Tab Content */}
         <div
-          className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar overscroll-contain"
+          className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 no-scrollbar overscroll-contain"
           data-lenis-prevent="true"
           data-lenis-prevent-touch="true"
         >
@@ -581,95 +613,78 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                         >
                           <Star className="w-6 h-6 text-gold" />
                         </motion.div>
-                        Status konta
+                        Ukończenie profilu
                       </h3>
                       <div className="space-y-4">
-                        {profile?.role === "USER_REGISTERED" && (
-                          <motion.div
-                            className="p-4 bg-amber-500/20 border border-amber-500/50 rounded-xl backdrop-blur-sm"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            whileHover={{ scale: 1.02 }}
-                          >
-                            <p className="text-amber-300 text-sm font-medium flex items-center gap-2">
-                              <AlertCircle className="w-4 h-4" />
-                              Wymagana weryfikacja email
-                            </p>
-                          </motion.div>
-                        )}
-                        {profile?.role === "USER_EMAIL_VERIFIED" && (
-                          <motion.div
-                            className="p-4 bg-gold/20 border border-gold/50 rounded-xl backdrop-blur-sm"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            whileHover={{ scale: 1.02 }}
-                          >
-                            <p className="text-gold text-sm font-medium flex items-center gap-2">
-                              <Sparkles className="w-4 h-4" />
-                              Uzupełnij profil
-                            </p>
-                          </motion.div>
-                        )}
-                        {profile?.role === "USER_FULL_VERIFIED" && (
-                          <motion.div
-                            className="p-4 bg-green-500/20 border border-green-500/50 rounded-xl backdrop-blur-sm"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            whileHover={{ scale: 1.02 }}
-                          >
-                            <p className="text-green-300 text-sm font-medium flex items-center gap-2">
-                              <Check className="w-4 h-4" />
-                              Konto aktywne
-                            </p>
-                          </motion.div>
-                        )}
-                        {profile?.role === "ADMIN" && (
-                          <motion.div
-                            className="p-4 bg-purple-500/20 border border-purple-500/50 rounded-xl backdrop-blur-sm"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            whileHover={{ scale: 1.02 }}
-                          >
-                            <p className="text-purple-300 text-sm font-medium flex items-center gap-2">
-                              <Crown className="w-4 h-4" />
-                              Administrator
-                            </p>
-                          </motion.div>
-                        )}
+                        {(() => {
+                          const isEmailVerified = profile?.role !== "USER_REGISTERED";
+                          const isProfileComplete = !!(profile?.phone && profile?.first_name && profile?.last_name);
+                          const isPayoutSet = !!(
+                            (profile?.payoutMethod === "IBAN" && profile?.payoutIban) ||
+                            (profile?.payoutMethod === "BLIK" && (profile?.payoutPhone || profile?.phone))
+                          );
+                          const isStripeSet = !!profile?.stripeCustomerId;
+                          
+                          const steps = [
+                            { id: 1, label: "Potwierdź e-mail", done: isEmailVerified, tab: "overview" },
+                            { id: 2, label: "Podaj dane i telefon", done: isProfileComplete, tab: "profile" },
+                            { id: 3, label: "Metoda wypłat", done: isPayoutSet, tab: "payments" },
+                            { id: 4, label: "Podepnij kartę Stripe", done: isStripeSet, tab: "payments" },
+                          ];
+                          
+                          const completedSteps = steps.filter(s => s.done).length;
+                          const progressPercent = Math.round((completedSteps / steps.length) * 100);
 
-                        <div className="pt-4 space-y-3">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-white/60">
-                              Poziom weryfikacji
-                            </span>
-                            <motion.div
-                              className="flex gap-1"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.3 }}
-                            >
-                              {[1, 2, 3].map((level) => (
-                                <motion.div
-                                  key={level}
-                                  className={`w-8 h-2 rounded-full ${
-                                    (profile?.role === "USER_REGISTERED" &&
-                                      level <= 1) ||
-                                    (profile?.role === "USER_EMAIL_VERIFIED" &&
-                                      level <= 2) ||
-                                    ((profile?.role === "USER_FULL_VERIFIED" ||
-                                      profile?.role === "ADMIN") &&
-                                      level <= 3)
-                                      ? "bg-gold"
-                                      : "bg-white/20"
-                                  }`}
-                                  initial={{ scaleX: 0 }}
-                                  animate={{ scaleX: 1 }}
-                                  transition={{ delay: 0.4 + level * 0.1 }}
+                          return (
+                            <>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-bold text-white/80">Progres</span>
+                                <span className="text-sm font-bold text-gold">{progressPercent}%</span>
+                              </div>
+                              <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden mb-6 border border-[#A68E4E]/20">
+                                <motion.div 
+                                  className="h-full bg-gradient-to-r from-amber-500 to-yellow-400"
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${progressPercent}%` }}
+                                  transition={{ duration: 1, ease: "easeOut" }}
                                 />
-                              ))}
-                            </motion.div>
-                          </div>
-                          <div className="flex items-center justify-between text-sm pt-2 border-t border-white/5">
+                              </div>
+                              
+                              <div className="space-y-3">
+                                {steps.map((step, idx) => (
+                                  <motion.button
+                                    key={step.id}
+                                    onClick={() => setActiveTab(step.tab as any)}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 + idx * 0.1 }}
+                                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
+                                      step.done 
+                                        ? "bg-green-500/10 border-green-500/30 hover:bg-green-500/20" 
+                                        : "bg-black/30 border-white/10 hover:border-[#A68E4E]/40 hover:bg-[#A68E4E]/10"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step.done ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-white/40'}`}>
+                                        {step.done ? <Check className="w-3 h-3" /> : <span className="text-xs font-bold">{step.id}</span>}
+                                      </div>
+                                      <span className={`text-sm font-medium ${step.done ? 'text-green-100' : 'text-white/70'}`}>
+                                        {step.label}
+                                      </span>
+                                    </div>
+                                    {!step.done && (
+                                      <span className="text-[10px] uppercase font-bold text-[#A68E4E] bg-[#A68E4E]/10 px-2 py-1 rounded-md">
+                                        Wymagane
+                                      </span>
+                                    )}
+                                  </motion.button>
+                                ))}
+                              </div>
+                            </>
+                          );
+                        })()}
+                        <div className="pt-4 space-y-3">
+                          <div className="flex items-center justify-between text-sm border-t border-white/5 pt-4">
                             <span className="text-white/60 font-medium">
                               Wskaźnik zaufania (Trust Score)
                             </span>
@@ -918,65 +933,6 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                     </motion.div>
                   </div>
 
-                  <div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 space-y-4">
-                    <h3 className="font-display text-xl font-semibold text-white">
-                      Wypłata za sprzedane ptaki
-                    </h3>
-                    <p className="text-sm text-white/70">
-                      Bez tych danych nie wystawisz aukcji. Kupujący płaci tylko przez portal.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setPayoutMethod("IBAN")}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold ${
-                          payoutMethod === "IBAN"
-                            ? "bg-[#A68E4E] text-black"
-                            : "bg-white/10 text-white"
-                        }`}
-                      >
-                        Przelew na konto (IBAN)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPayoutMethod("BLIK")}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold ${
-                          payoutMethod === "BLIK"
-                            ? "bg-[#A68E4E] text-black"
-                            : "bg-white/10 text-white"
-                        }`}
-                      >
-                        BLIK / telefon
-                      </button>
-                    </div>
-                    {payoutMethod === "IBAN" ? (
-                      <div>
-                        <label className="text-sm font-medium text-white/90 mb-2 block">
-                          Numer IBAN
-                        </label>
-                        <input
-                          type="text"
-                          value={payoutIban}
-                          onChange={(e) => setPayoutIban(e.target.value.toUpperCase())}
-                          placeholder="PL61 1090 1014 0000 0712 1981 2874"
-                          className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="text-sm font-medium text-white/90 mb-2 block">
-                          Telefon do BLIK
-                        </label>
-                        <input
-                          type="tel"
-                          value={payoutPhone}
-                          onChange={(e) => setPayoutPhone(e.target.value)}
-                          placeholder="+48 600 000 000"
-                          className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
-                        />
-                      </div>
-                    )}
-                  </div>
 
                   <motion.div
                     className="flex gap-3"
@@ -1150,6 +1106,33 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                           </Button>
                         </motion.div>
                       </form>
+                    </motion.div>
+
+                    {/* Tutorial restart */}
+                    <motion.div
+                      className="rounded-2xl border border-[#A68E4E]/30 bg-[#A68E4E]/5 p-6 backdrop-blur-xl"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 }}
+                    >
+                      <h4 className="font-display text-xl font-semibold text-[#A68E4E] mb-3 flex items-center gap-2">
+                        🎓 Samouczek
+                      </h4>
+                      <p className="text-white/60 text-sm mb-4">
+                        Pokaż ponownie samouczek z chmurkami, który przeprowadzi Cię przez funkcje platformy.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="w-full border-[#A68E4E]/40 text-[#A68E4E] hover:bg-[#A68E4E]/20 hover:border-[#A68E4E]/70 transition-all"
+                        onClick={() => {
+                          onClose();
+                          setTimeout(() => {
+                            window.dispatchEvent(new CustomEvent("restartTutorial"));
+                          }, 400);
+                        }}
+                      >
+                        🔄 Uruchom samouczek
+                      </Button>
                     </motion.div>
 
                     <motion.div
@@ -1379,6 +1362,90 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                       </div>
                     </motion.div>
 
+                    {/* Moje Wygrane */}
+                    <motion.div
+                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300 lg:col-span-2"
+                      style={{
+                        background:
+                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
+                      }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.18 }}
+                    >
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <Trophy className="w-6 h-6 text-gold" />
+                        Wygrane aukcje ({wonAuctions.length})
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {wonAuctions.length > 0 ? (
+                          wonAuctions.map((auction) => {
+                            const isPaid = (auction as any).payments?.length > 0;
+                            return (
+                              <div
+                                key={auction.id}
+                                className="flex flex-col gap-3 p-3 bg-black/20 rounded-xl border border-[#A68E4E]/10 transition-all group"
+                              >
+                                <Link
+                                  to={`/auctions/${auction.id}`}
+                                  onClick={onClose}
+                                  className="flex items-center gap-3"
+                                >
+                                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
+                                    <img
+                                      src={auction.images?.[0] || "/placeholder.svg"}
+                                      alt=""
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-white font-bold text-sm truncate group-hover:text-gold transition-colors">
+                                      {auction.title}
+                                    </p>
+                                    <p className="text-xs text-gold font-mono">
+                                      {isPaid ? "Zapłacono: " : "Do zapłaty: "}
+                                      {auction.currentPrice.toLocaleString("pl-PL")} PLN
+                                    </p>
+                                  </div>
+                                </Link>
+                                {!isPaid ? (
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-gold text-navy hover:bg-gold-light text-xs py-2 h-auto mt-2"
+                                    onClick={async () => {
+                                      try {
+                                        const res = await paymentService.createStripeCheckout(auction.id, session?.access_token || null);
+                                        window.location.href = res.url;
+                                      } catch (err: any) {
+                                        setFeedbackType("error");
+                                        setFeedbackTitle("Błąd płatności");
+                                        setFeedbackMessage(err.message || "Nie udało się rozpocząć płatności");
+                                        setFeedbackOpen(true);
+                                      }
+                                    }}
+                                  >
+                                    <CreditCard className="w-3 h-3 mr-2" />
+                                    Opłać przez Stripe
+                                  </Button>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-green-400 bg-green-500/10 p-2 rounded-lg border border-green-500/20 text-xs mt-2 h-[32px]">
+                                    <Check className="w-3 h-3" />
+                                    Aukcja opłacona
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="text-center py-6 col-span-1 md:col-span-2">
+                            <p className="text-white/40 text-sm mb-4">
+                              Nie masz jeszcze wygranych aukcji.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
                     {/* Obserwowane */}
                     <motion.div
                       className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300 lg:col-span-2"
@@ -1448,7 +1515,108 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose }) => {
                   transition={{ duration: 0.3 }}
                   className="h-full"
                 >
-                  <UserPaymentsSection />
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Stripe Card Setup */}
+                      <div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 flex flex-col justify-between">
+                        <div className="text-[#A68E4E] font-medium flex items-center gap-2 text-xl mb-4">
+                          <CreditCard className="w-6 h-6 text-[#A68E4E]" />
+                          Karta w Stripe
+                        </div>
+                        <div className="flex flex-col gap-3">
+                          <span className="text-sm font-bold text-amber-200">
+                            {profile?.stripeCustomerId ? "✓ Karta podpięta (możesz licytować)" : "✕ Brak podpiętej karty"}
+                          </span>
+                          <p className="text-sm text-white/70">
+                            Podpięcie karty jest wymagane, aby licytować i wystawiać aukcje na platformie. 
+                            Twoje dane są bezpiecznie przechowywane przez Stripe.
+                          </p>
+                          <Button
+                            onClick={handleAttachCard}
+                            disabled={cardLoading}
+                            className="bg-gradient-to-r from-[#A68E4E] to-[#8e7a42] text-black w-fit font-bold shadow-lg hover:shadow-xl transition-all mt-2"
+                          >
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            {cardLoading ? "Łączenie ze Stripe..." : profile?.stripeCustomerId ? "Zarządzaj kartą" : "Podepnij kartę"}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Payout Method */}
+                      <div className="rounded-2xl border border-[#A68E4E]/30 bg-black/40 p-6 space-y-4 flex flex-col justify-between">
+                        <div>
+                          <h3 className="font-display text-xl font-semibold text-white mb-2">
+                            Wypłata za sprzedane ptaki
+                          </h3>
+                          <p className="text-sm text-white/70 mb-4">
+                            Bez tych danych nie wystawisz aukcji. Kupujący płaci tylko przez portal.
+                          </p>
+                          <div className="flex flex-wrap gap-3 mb-4">
+                            <button
+                              type="button"
+                              onClick={() => setPayoutMethod("IBAN")}
+                              className={`px-4 py-2 rounded-xl text-sm font-bold ${
+                                payoutMethod === "IBAN"
+                                  ? "bg-[#A68E4E] text-black"
+                                  : "bg-white/10 text-white"
+                              }`}
+                            >
+                              Przelew na konto (IBAN)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPayoutMethod("BLIK")}
+                              className={`px-4 py-2 rounded-xl text-sm font-bold ${
+                                payoutMethod === "BLIK"
+                                  ? "bg-[#A68E4E] text-black"
+                                  : "bg-white/10 text-white"
+                              }`}
+                            >
+                              BLIK / telefon
+                            </button>
+                          </div>
+                          {payoutMethod === "IBAN" ? (
+                            <div>
+                              <label className="text-sm font-medium text-white/90 mb-2 block">
+                                Numer IBAN
+                              </label>
+                              <input
+                                type="text"
+                                value={payoutIban}
+                                onChange={(e) => setPayoutIban(e.target.value.toUpperCase())}
+                                placeholder="PL61 1090 1014 0000 0712 1981 2874"
+                                className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
+                              />
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="text-sm font-medium text-white/90 mb-2 block">
+                                Telefon do BLIK
+                              </label>
+                              <input
+                                type="tel"
+                                value={payoutPhone}
+                                onChange={(e) => setPayoutPhone(e.target.value)}
+                                placeholder="+48 600 000 000"
+                                className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <Button
+                          disabled={profileSaving}
+                          onClick={onSaveProfile}
+                          className="bg-gradient-to-r from-[#A68E4E] to-gold-dark text-navy hover:from-gold-light hover:to-gold w-fit font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300 mt-4"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          {profileSaving ? "Zapisywanie..." : "Zapisz ustawienia wypłat"}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <UserPaymentsSection />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
