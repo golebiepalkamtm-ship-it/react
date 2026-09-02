@@ -454,10 +454,10 @@ const AuctionsPage = () => {
 
   return (
     <TooltipProvider delayDuration={100}>
-      <div className="relative isolate min-h-screen overflow-hidden bg-[#010509]">
+      <div className="relative isolate min-h-screen overflow-hidden bg-transparent">
         <section
           ref={heroRef}
-          className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-[#010509]"
+          className="relative isolate overflow-hidden py-12 sm:py-16 md:py-24 bg-transparent"
         >
           <div className="container mx-auto px-4">
             <div ref={heroContentRef} className="text-left">
