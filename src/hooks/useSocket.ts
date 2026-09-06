@@ -118,8 +118,8 @@ export const useSocket = ({
         websocketService.leaveAuction(auctionId);
       }
 
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
+      websocketService.offReconnect(handleConnect);
+      websocketService.offDisconnect(handleDisconnect);
       socket.off("connect", handleConnectionStateChange);
       socket.off("disconnect", handleConnectionStateChange);
       socket.off("connect_error", handleConnectionStateChange);

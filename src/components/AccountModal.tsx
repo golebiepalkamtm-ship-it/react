@@ -822,7 +822,7 @@ const AccountModal: React.FC<Props> = ({ open, onClose }) => {
         <div className="p-6 text-center text-muted-foreground">Ładowanie…</div>
       ) : user && profile ? (
         <AccountModalContent
-          key={profile?.id || "account-modal"}
+          key={`${profile?.id || "account"}-${profile?.updated_at || ""}`}
           onClose={onClose}
           profile={profile}
           signOut={signOut}

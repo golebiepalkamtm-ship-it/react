@@ -205,8 +205,16 @@ class WebsocketService {
     this.socket?.on("connect", handler);
   }
 
+  offReconnect(handler: () => void) {
+    this.socket?.off("connect", handler);
+  }
+
   onDisconnect(handler: (reason: string) => void) {
     this.socket?.on("disconnect", handler);
+  }
+
+  offDisconnect(handler: (reason: string) => void) {
+    this.socket?.off("disconnect", handler);
   }
 
   getConnectionState(): {

@@ -1,4 +1,5 @@
 import { prisma } from '../lib/db.js';
+import { cache } from '../lib/cache.js';
 import NotificationManager from './NotificationManager.js';
 import logger from '../lib/logger.js';
 import { Prisma, PaymentType, PaymentStatus, AuctionStatus } from '@prisma/client';
@@ -149,7 +150,11 @@ export class AuctionCronService {
               if (highestBid?.bidderId) {
                 const winnerId = highestBid.bidderId;
                 const finalPrice = Number(highestBid.amount);
-                const commissionAmount = Number((finalPrice * 0.1).toFixed(2));
+                const cachedSettings = cache.get<{ commission?: number }>('system:platform_settings');
+                const commissionRate = (typeof cachedSettings?.commission === 'number' && cachedSettings.commission >= 0)
+                  ? cachedSettings.commission / 100
+                  : 0.1;
+                const commissionAmount = Number((finalPrice * commissionRate).toFixed(2));
 
                 await tx.auction.update({
                   where: { id: auction.id },

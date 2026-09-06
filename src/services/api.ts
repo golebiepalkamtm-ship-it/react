@@ -43,6 +43,7 @@ export interface AbortableRequest<T> {
 
 class ApiClient {
   private baseUrl: string;
+  private memoryCsrfToken: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -77,7 +78,12 @@ class ApiClient {
       error instanceof Error &&
       (error.message.includes("Failed to fetch") ||
         error.message.includes("NetworkError") ||
-        error.message.includes("ECONNREFUSED"))
+        error.message.includes("ECONNREFUSED") ||
+        error.message.includes("Proxy error") ||
+        error.message.includes("Bad Gateway") ||
+        error.message.includes("502") ||
+        error.message.includes("503") ||
+        error.message.includes("504"))
     ) {
       return true;
     }
@@ -124,6 +130,8 @@ class ApiClient {
   }
 
   private readCSRFToken(): string | undefined {
+    if (this.memoryCsrfToken) return this.memoryCsrfToken;
+    if (typeof document === "undefined") return undefined;
     const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split("=");
@@ -138,7 +146,13 @@ class ApiClient {
     if (!this.isSameOrigin()) return;
     if (this.readCSRFToken()) return;
     try {
-      await fetch(this.buildUrl("/csrf-token"), { credentials: "include" });
+      const res = await fetch(this.buildUrl("/csrf-token"), { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.csrfToken) {
+          this.memoryCsrfToken = data.csrfToken;
+        }
+      }
     } catch (e) {
       logger.warn("CSRF cookie fetch failed", e);
     }
@@ -325,7 +339,11 @@ class ApiClient {
       logger.debug("Skipping CSRF fetch for cross-origin API");
       return { csrfToken: "" as const };
     }
-    return this.get<{ csrfToken: string }>("/csrf-token");
+    const res = await this.get<{ csrfToken: string }>("/csrf-token");
+    if (res?.csrfToken) {
+      this.memoryCsrfToken = res.csrfToken;
+    }
+    return res;
   }
 }
 

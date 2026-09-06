@@ -206,6 +206,7 @@ model Bid {
   bidder      User?    @relation(fields: [bidderId], references: [id])
 
   @@index([auctionId, createdAt])
+  @@index([auctionId, amount(sort: Desc)])
   @@index([bidderId])
   @@map("bids")
 }

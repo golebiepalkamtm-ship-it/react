@@ -15,6 +15,9 @@ const RippleShockwave = () => {
   const rafRef = useRef<number>(0);
   const activeRef = useRef(true);
 
+  const isAnimatingRef = useRef(false);
+  const startAnimationRef = useRef<() => void>(() => {});
+
   const spawnRipple = useCallback((cx: number, cy: number) => {
     const ripples = ripplesRef.current;
     const maxLife = 60 + Math.random() * 30;
@@ -35,6 +38,11 @@ const RippleShockwave = () => {
       life: maxLife * 0.7,
       maxLife: maxLife * 0.7,
     });
+
+    if (!isAnimatingRef.current) {
+      isAnimatingRef.current = true;
+      startAnimationRef.current();
+    }
   }, []);
 
   useEffect(() => {
@@ -60,14 +68,21 @@ const RippleShockwave = () => {
     document.addEventListener("visibilitychange", onVisibility);
 
     const render = () => {
-      rafRef.current = requestAnimationFrame(render);
-      if (!activeRef.current) return;
+      if (!activeRef.current) {
+        rafRef.current = requestAnimationFrame(render);
+        return;
+      }
 
       const w = window.innerWidth;
       const h = window.innerHeight;
       ctx.clearRect(0, 0, w, h);
 
       const ripples = ripplesRef.current;
+      if (ripples.length === 0) {
+        isAnimatingRef.current = false;
+        return; // Pause loop when idle
+      }
+
       for (let i = ripples.length - 1; i >= 0; i--) {
         const r = ripples[i];
         r.life--;
@@ -96,8 +111,14 @@ const RippleShockwave = () => {
           ctx.stroke();
         }
       }
+
+      rafRef.current = requestAnimationFrame(render);
     };
-    render();
+
+    startAnimationRef.current = () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(render);
+    };
 
     return () => {
       cancelAnimationFrame(rafRef.current);

@@ -53,13 +53,15 @@ const envSchema = z.object({
   ALLOWED_MIME_TYPES: z.string().default('image/jpeg,image/png,image/gif,image/webp,image/bmp,image/tiff,image/vnd.adobe.photoshop,application/pdf,video/mp4,video/webm'),
   
   // Redis (dla rate limiting)
-  
-  // Redis (dla rate limiting)
-  REDIS_URL: z.string().optional(),
-  REDIS_HOST: z.string().optional(),
-  REDIS_PORT: z.string().regex(/^\d+$/, 'REDIS_PORT must be a number').transform(Number).pipe(z.number().min(1).max(65535)).optional(),
-  REDIS_PASSWORD: z.string().optional(),
-  REDIS_USERNAME: z.string().optional().default('default'),
+  REDIS_URL: z.string().optional().transform(v => (v && v.startsWith('${{') ? undefined : v)),
+  REDIS_HOST: z.string().optional().transform(v => (v && v.startsWith('${{') ? undefined : v)),
+  REDIS_PORT: z.string().optional().transform(v => {
+    if (!v || v.startsWith('${{')) return undefined;
+    const n = Number(v);
+    return isNaN(n) ? undefined : n;
+  }).pipe(z.number().min(1).max(65535).optional()),
+  REDIS_PASSWORD: z.string().optional().transform(v => (v && v.startsWith('${{') ? undefined : v)),
+  REDIS_USERNAME: z.string().optional().transform(v => (v && v.startsWith('${{') ? 'default' : v)).default('default'),
 });
 
 export const loadConfig = () => {

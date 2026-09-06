@@ -114,7 +114,7 @@ export class NotificationManager {
       auctionId,
       type: 'AUCTION_WON' as NotificationType,
       title: 'Opłać prowizję serwisu',
-      message: `Wygrałeś aukcję "${auctionTitle}". Opłać prowizję 10% (${commissionAmount} zł) w panelu konta.`,
+      message: `Wygrałeś aukcję "${auctionTitle}". Opłać prowizję (${commissionAmount} zł) w panelu konta.`,
     });
   }
 

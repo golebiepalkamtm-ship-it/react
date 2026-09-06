@@ -81,6 +81,9 @@ router.get("/", async (req, res) => {
     }
     if (category && category !== "all")
       where.category = normalizeCategory(category) as any;
+    if (gender && gender !== "all") {
+      where.gender = gender.toUpperCase() as any;
+    }
     if (priceMin || priceMax) {
       where.currentPrice = {};
       if (priceMin) where.currentPrice.gte = new Prisma.Decimal(priceMin);
@@ -243,7 +246,7 @@ router.get("/won", authMiddleware, async (req: AuthenticatedRequest, res) => {
     const auctions = await prisma.auction.findMany({
       where: { 
         winnerId: userId,
-        status: "SOLD",
+        status: { in: ["ENDED_WAITING_PAYMENT", "COMPLETED", "ENDED"] as any },
       },
       orderBy: { createdAt: "desc" },
       include: {

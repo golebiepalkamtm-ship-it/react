@@ -16,12 +16,14 @@ export default {
       console.log('Cache miss for:', request.url);
       const response = await fetch(request);
       
-      // Clone the response to cache it
-      const responseToCache = response.clone();
-      
-      // Set cache headers for 5 minutes (300 seconds)
-      const cacheControl = 'public, max-age=300';
-      responseToCache.headers.set('Cache-Control', cacheControl);
+      // Clone response and attach cache headers safely via new Response
+      const newHeaders = new Headers(response.headers);
+      newHeaders.set('Cache-Control', 'public, max-age=300');
+      const responseToCache = new Response(response.clone().body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders,
+      });
       
       // Store in cache
       ctx.waitUntil(cache.put(cacheKey, responseToCache));

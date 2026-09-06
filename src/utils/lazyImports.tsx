@@ -1,7 +1,6 @@
 import { lazy } from "react";
 
-// Lazy load all page components
-export const LazyIndex = lazy(() => import("@/pages/Index"));
+
 export const LazyFlightResults = lazy(() => import("@/pages/FlightResults"));
 export const LazyAuctions = lazy(() => import("@/pages/Auctions"));
 export const LazyAuctionDetail = lazy(() => import("@/pages/AuctionDetail"));
@@ -28,4 +27,4 @@ export const LazyHomePagePremium = lazy(
 );
 export const LazyTerms = lazy(() => import("@/pages/Terms"));
 export const LazyPrivacy = lazy(() => import("@/pages/Privacy"));
-export const LazyRCE = lazy(() => import("@/pages/RCE"));
+

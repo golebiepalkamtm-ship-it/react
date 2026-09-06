@@ -39,7 +39,15 @@ const paymentAmountSchema = z.object({
 });
 
 const listingFee = 20; // PLN
-const commissionRate = 0.1; // 10%
+const defaultCommissionRate = 0.1; // 10% default fallback
+
+const getCommissionRate = (): number => {
+  const cached = cache.get<{ commission?: number }>("system:platform_settings");
+  if (cached && typeof cached.commission === "number" && cached.commission >= 0) {
+    return cached.commission / 100;
+  }
+  return defaultCommissionRate;
+};
 
 router.post(
   "/stripe/checkout",
@@ -84,8 +92,11 @@ router.post(
       const now = Date.now();
       const endsAt = new Date(auction.endTime).getTime();
       
-      const isWinner = auction.winnerId === userId && (auction.status as string)?.toUpperCase() === "SOLD";
-      const isBuyNow = !isWinner && (auction.status as string)?.toUpperCase() === "ACTIVE" && endsAt > now;
+      const statusUpper = (auction.status as string)?.toUpperCase();
+      const isWinner =
+        auction.winnerId === userId &&
+        (statusUpper === "ENDED_WAITING_PAYMENT" || statusUpper === "COMPLETED" || statusUpper === "SOLD");
+      const isBuyNow = !isWinner && statusUpper === "ACTIVE" && endsAt > now;
 
       if (!isBuyNow && !isWinner) {
         return res.status(400).json({ error: "Nie możesz opłacić tej aukcji. Aukcja jest nieaktywna lub nie jesteś zwycięzcą." });
@@ -113,7 +124,8 @@ router.post(
           .status(400)
           .json({ error: "Minimalna kwota Stripe to 2.00 PLN" });
       }
-      const commission = Number((amount * commissionRate).toFixed(2));
+      const rate = getCommissionRate();
+      const commission = Number((amount * rate).toFixed(2));
       const amountCents = Math.round(amount * 100);
       const commissionCents = Math.round(commission * 100);
       const currency = (process.env.STRIPE_CURRENCY || "pln").toLowerCase();
@@ -143,7 +155,7 @@ router.post(
                   unit_amount: amountCents + commissionCents,
                   product_data: {
                     name: auction.title,
-                    description: "Kwota aukcji + prowizja portalu (10%)",
+                    description: `Kwota aukcji + prowizja portalu (${(rate * 100).toFixed(0)}%)`,
                   },
                 },
                 quantity: 1,
@@ -165,7 +177,7 @@ router.post(
               currency,
               unit_amount: commissionCents,
               product_data: {
-                name: "Prowizja serwisu (10%)",
+                name: `Prowizja serwisu (${(rate * 100).toFixed(0)}%)`,
               },
             },
             quantity: 1,
@@ -353,7 +365,8 @@ router.post(
           auction.startingPrice ||
           0,
       );
-      const commission = Number((amountBase * commissionRate).toFixed(2));
+      const rate = getCommissionRate();
+      const commission = Number((amountBase * rate).toFixed(2));
       if (commission <= 0)
         return res.status(400).json({ error: "Brak kwoty prowizji" });
 
@@ -381,7 +394,7 @@ router.post(
               currency,
               unit_amount: commissionCents,
               product_data: {
-                name: "Prowizja serwisu (10%)",
+                name: `Prowizja serwisu (${(rate * 100).toFixed(0)}%)`,
               },
             },
             quantity: 1,

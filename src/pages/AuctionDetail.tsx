@@ -224,7 +224,7 @@ const AuctionDetail: React.FC = () => {
       },
       images: [
         "/images/auth-hero.jpg",
-        "/public/hero-pigeon.jpg",
+        "/hero-pigeon.jpg",
         "/placeholder.svg",
         "/images/auth-hero.jpg",
       ],

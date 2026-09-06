@@ -24,7 +24,6 @@ import { trackMetric } from "@/services/metricsService";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 
 import {
-  LazyIndex,
   LazyFlightResults,
   LazyAuctions,
   LazyAuctionDetail,
@@ -45,7 +44,6 @@ import {
   LazyHomePagePremium,
   LazyTerms,
   LazyPrivacy,
-  LazyRCE,
 } from "@/utils/lazyImports";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { HeroBackground } from "@/styles/HeroBackground";
@@ -245,7 +243,6 @@ const App = () => {
                             />
                             <Route path="/terms" element={<LazyTerms />} />
                             <Route path="/privacy" element={<LazyPrivacy />} />
-                            <Route path="/rce" element={<LazyRCE />} />
                             <Route path="*" element={<LazyNotFound />} />
                           </Routes>
                         </Suspense>
