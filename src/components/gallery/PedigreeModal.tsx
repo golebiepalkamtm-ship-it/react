@@ -11,18 +11,30 @@ interface PedigreeModalProps {
 }
 
 export const PedigreeModal = ({ isOpen, onClose, pedigreeUrl, images = [], startIndex = 0 }: PedigreeModalProps) => {
+  const cleanUrl = (u?: string | null) => (u ? u.split('?')[0].split('#')[0].toLowerCase() : '');
+
   const isPdf = useMemo(() => {
-    return typeof pedigreeUrl === 'string' && pedigreeUrl.toLowerCase().endsWith('.pdf');
+    return typeof pedigreeUrl === 'string' && (cleanUrl(pedigreeUrl).endsWith('.pdf') || cleanUrl(pedigreeUrl).includes('pdf'));
   }, [pedigreeUrl]);
+
   const [isFullscreen, setIsFullscreen] = useState(false);
+
   const imageList = useMemo(() => {
-    const isImage = (url: string) => /\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(url);
+    const isImage = (url: string) => {
+      if (!url) return false;
+      const clean = cleanUrl(url);
+      return (
+        /\.(jpg|jpeg|png|gif|webp|bmp|tiff|svg)$/i.test(clean) ||
+        (!clean.endsWith('.pdf') && !clean.includes('pdf'))
+      );
+    };
     const base: string[] = Array.isArray(images) ? images.filter((u) => isImage(u)) : [];
     if (!isPdf && pedigreeUrl && isImage(pedigreeUrl)) {
       if (!base.includes(pedigreeUrl)) base.unshift(pedigreeUrl);
     }
-    return base;
+    return Array.from(new Set(base));
   }, [images, isPdf, pedigreeUrl]);
+
   const [currentIndex, setCurrentIndex] = useState(Math.min(Math.max(0, startIndex), Math.max(0, imageList.length - 1)));
   const goPrev = () => setCurrentIndex((i) => (i === 0 ? imageList.length - 1 : i - 1));
   const goNext = () => setCurrentIndex((i) => (i === imageList.length - 1 ? 0 : i + 1));
@@ -56,11 +68,24 @@ export const PedigreeModal = ({ isOpen, onClose, pedigreeUrl, images = [], start
 
         <div className="relative w-full h-full flex items-center justify-center bg-zinc-900/50 rounded-lg overflow-hidden border border-white/10">
           {isPdf && !showImages ? (
-            <iframe
-              src={src}
-              className="w-full h-full"
-              title="Rodowód"
-            />
+            <div className="relative w-full h-full flex flex-col items-center justify-center">
+              <iframe
+                src={src || ''}
+                className="w-full h-full"
+                title="Rodowód"
+              />
+              {src && (
+                <a
+                  href={src}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute top-2 left-2 z-50 px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 backdrop-blur-sm transition-colors border border-white/20"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-[#A68E4E]" />
+                  Otwórz w nowej karcie
+                </a>
+              )}
+            </div>
           ) : (
             <>
               {showImages && imageList.length > 1 && (

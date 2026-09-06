@@ -59,6 +59,13 @@ export const listAuctionInclude = {
     },
     orderBy: [{ ordering: "asc" as const }, { createdAt: "asc" as const }],
   } as any,
+  documents: {
+    select: {
+      url: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "asc" as const },
+  } as any,
   bids: {
     select: {
       id: true,
@@ -150,8 +157,16 @@ export type BidEntity = Prisma.BidGetPayload<{
 
 export function serializePigeon(
   pigeon: Record<string, unknown> | null | undefined,
+  documents?: { url: string }[] | string[],
 ) {
   if (!pigeon) return undefined;
+  const firstDocUrl =
+    Array.isArray(documents) && documents.length > 0
+      ? typeof documents[0] === "string"
+        ? documents[0]
+        : (documents[0] as any)?.url
+      : undefined;
+
   return {
     ringNumber: (pigeon.ringNumber as string) ?? "",
     eyeColor: (pigeon.eyeColor as string) ?? "",
@@ -170,6 +185,7 @@ export function serializePigeon(
       | "male"
       | "female"
       | undefined,
+    pedigreeUrl: (pigeon.pedigreeUrl as string) || firstDocUrl || undefined,
     traits: (pigeon.traits as any) ?? {},
     achievements: "", // legacy field
   };
@@ -274,7 +290,7 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(
       | undefined,
     reserveMet: !!auction.reserveMet,
     category: toLowerEnum(auction.category) ?? "ogólna",
-    pigeon: serializePigeon((auction as any).pigeon),
+    pigeon: serializePigeon((auction as any).pigeon, (auction as any).documents),
     gender: toLowerEnum((auction as any).gender) as
       | "male"
       | "female"
@@ -289,8 +305,8 @@ export function serializeAuction<T extends AuctionEntity | AuctionListEntity>(
     videos: Array.isArray((auction as any).videos)
       ? (auction as any).videos.map((v: any) => v.url)
       : [],
-    documents: canViewCounterparty && Array.isArray((auction as any).documents)
-      ? (auction as any).documents.map((d: any) => d.url)
+    documents: Array.isArray((auction as any).documents)
+      ? (auction as any).documents.map((d: any) => (typeof d === "string" ? d : d.url))
       : [],
     bids: Array.isArray(auction.bids)
       ? (auction.bids as any[]).map((b) =>

@@ -280,31 +280,49 @@ const AuctionDetail: React.FC = () => {
     return !cat.includes("SUPPLEMENT") && !cat.includes("ACCESSOR");
   }, [displayAuction?.category]);
 
+  const isDocPdf = useCallback((u?: string | null) => {
+    if (!u) return false;
+    const clean = u.split("?")[0].split("#")[0].toLowerCase();
+    return clean.endsWith(".pdf") || clean.includes("pdf");
+  }, []);
+
+  const isDocImage = useCallback((u?: string | null) => {
+    if (!u) return false;
+    const clean = u.split("?")[0].split("#")[0].toLowerCase();
+    return (
+      /\.(jpg|jpeg|png|gif|webp|bmp|tiff|svg)$/i.test(clean) ||
+      (!clean.endsWith(".pdf") && !clean.includes("pdf"))
+    );
+  }, []);
+
   const pedigreeUrl = useMemo(() => {
     if (!isPigeon) return null;
     const fromPigeon = displayAuction?.pigeon?.pedigreeUrl || null;
     if (fromPigeon) return fromPigeon;
+    const docs = Array.isArray(displayAuction?.documents)
+      ? displayAuction!.documents
+      : [];
     const doc =
-      displayAuction?.documents?.find((d: string) =>
-        /\.(pdf|jpg|jpeg|png|gif|webp|bmp|tiff)(\?.*)?$/i.test(d),
-      ) || null;
+      docs.find((d: string) => isDocPdf(d)) ||
+      docs.find((d: string) => isDocImage(d)) ||
+      docs[0] ||
+      null;
     return doc || null;
-  }, [displayAuction, isPigeon]);
+  }, [displayAuction, isPigeon, isDocPdf, isDocImage]);
+
   const pedigreeImages = useMemo(() => {
-    const isImage = (u: string) =>
-      /\.(jpg|jpeg|png|gif|webp|bmp|tiff)(\?.*)?$/i.test(u);
     const imgs: string[] = [];
     if (
       displayAuction?.pigeon?.pedigreeUrl &&
-      isImage(displayAuction.pigeon.pedigreeUrl)
+      isDocImage(displayAuction.pigeon.pedigreeUrl)
     ) {
       imgs.push(displayAuction.pigeon.pedigreeUrl);
     }
     if (Array.isArray(displayAuction?.documents)) {
-      imgs.push(...displayAuction!.documents.filter(isImage));
+      imgs.push(...displayAuction!.documents.filter(isDocImage));
     }
-    return imgs;
-  }, [displayAuction]);
+    return Array.from(new Set(imgs));
+  }, [displayAuction, isDocImage]);
 
   const roleActions = useMemo(
     () => ({
@@ -733,7 +751,7 @@ const AuctionDetail: React.FC = () => {
                 )}
 
                 {/* Pedigree Images Section */}
-                {isPigeon && pedigreeImages && pedigreeImages.length > 0 && (
+                {isPigeon && (pedigreeImages.length > 0 || Boolean(pedigreeUrl)) && (
                   <div
                     className="p-5 rounded-3xl space-y-3"
                     style={{
@@ -758,24 +776,36 @@ const AuctionDetail: React.FC = () => {
                         Zobacz rodowód <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      {pedigreeImages.slice(0, 3).map((img, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setIsPedigreeOpen(true)}
-                          className="aspect-square rounded-xl overflow-hidden glass-vault border border-[#A68E4E]/30 hover:border-[#A68E4E] transition-all duration-300 hover:scale-105 group/ped"
-                        >
-                          <AuctionImage
-                            src={img && img.startsWith("http") ? img : "/placeholder.svg"}
-                            alt="Pedigree Image"
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover/ped:scale-110"
-                            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                              (e.target as HTMLImageElement).src = "/placeholder.svg";
-                            }}
-                          />
-                        </button>
-                      ))}
-                    </div>
+                    {pedigreeImages.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-3">
+                        {pedigreeImages.slice(0, 3).map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setIsPedigreeOpen(true)}
+                            className="aspect-square rounded-xl overflow-hidden glass-vault border border-[#A68E4E]/30 hover:border-[#A68E4E] transition-all duration-300 hover:scale-105 group/ped"
+                          >
+                            <AuctionImage
+                              src={img || "/placeholder.svg"}
+                              alt="Pedigree Image"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover/ped:scale-110"
+                              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                                (e.target as HTMLImageElement).src = "/placeholder.svg";
+                              }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setIsPedigreeOpen(true)}
+                        className="w-full py-4 px-4 rounded-xl border border-[#A68E4E]/40 hover:border-[#A68E4E] bg-[#A68E4E]/10 hover:bg-[#A68E4E]/20 transition-all flex items-center justify-center gap-3 text-[#A68E4E] group/pedbtn"
+                      >
+                        <FileText className="w-6 h-6 text-[#A68E4E] group-hover/pedbtn:scale-110 transition-transform" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-white">
+                          Otwórz oficjalny rodowód (PDF)
+                        </span>
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -1396,7 +1426,9 @@ const AuctionDetail: React.FC = () => {
                                     className="px-4 py-2.5 rounded-xl bg-[#A68E4E] hover:bg-[#8e7a42] text-zinc-950 text-xs font-black uppercase tracking-wider shadow-lg hover:scale-105 transition-all flex items-center gap-2"
                                   >
                                     <FileText className="w-4 h-4 text-zinc-950" />
-                                    Otwórz Rodowód PDF
+                                    {isDocPdf(pedigreeUrl)
+                                      ? "Otwórz Rodowód PDF"
+                                      : "Zobacz Rodowód"}
                                   </button>
                                 )}
                               </div>
