@@ -19,7 +19,7 @@ interface FeedbackContextValue {
   closeModal: () => void;
 }
 
-const FeedbackContext = createContext<FeedbackContextValue | null>(null);
+export const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 
 export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastConfig[]>([]);

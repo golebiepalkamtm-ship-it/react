@@ -1,33 +1,46 @@
-import { useFeedback } from "@/components/ui/feedback/FeedbackProvider";
+import { useContext } from "react";
+import { FeedbackContext } from "@/components/ui/feedback/FeedbackProvider";
 
 interface ToastOptions {
   message: string;
   duration?: number;
 }
 
-export const useOptimizedToast = () => {
-  const { openModal, closeModal } = useFeedback();
+type ToastArg = string | ToastOptions;
 
-  const showModal = (tone: 'success' | 'error' | 'info', message: string) => {
-    openModal({
-      tone,
-      title: tone === 'success' ? 'Sukces' : tone === 'error' ? 'Błąd' : 'Informacja',
-      message,
-      actions: [{ label: 'OK', onClick: closeModal }]
-    });
+export const useOptimizedToast = () => {
+  const feedback = useContext(FeedbackContext);
+
+  const showModal = (tone: 'success' | 'error' | 'info', arg: ToastArg) => {
+    const message = typeof arg === "string" ? arg : arg?.message || "";
+    if (feedback?.openModal) {
+      feedback.openModal({
+        tone,
+        title: tone === 'success' ? 'Sukces' : tone === 'error' ? 'Uwaga' : 'Informacja',
+        message,
+        actions: [{ label: 'OK', onClick: feedback.closeModal }]
+      });
+    } else {
+      console.log(`[Toast ${tone}]:`, message);
+    }
   };
 
-  const success = ({ message }: ToastOptions) => showModal("success", message);
-  const error = ({ message }: ToastOptions) => showModal("error", message);
-  const warning = ({ message }: ToastOptions) => showModal("error", message);
-  const info = ({ message }: ToastOptions) => showModal("info", message);
+  const success = (arg: ToastArg) => showModal("success", arg);
+  const error = (arg: ToastArg) => showModal("error", arg);
+  const warning = (arg: ToastArg) => showModal("error", arg);
+  const info = (arg: ToastArg) => showModal("info", arg);
 
   return {
     success,
     error,
     warning,
     info,
+    showSuccess: success,
+    showError: error,
+    showWarning: warning,
+    showInfo: info,
   };
 };
 
 export default useOptimizedToast;
+

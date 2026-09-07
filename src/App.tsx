@@ -90,30 +90,36 @@ const AnalyticsTracker = () => {
 };
 
 const StripeReturnHandler = () => {
-  const { showSuccess, showWarning } = useOptimizedToast();
+  const { showSuccess, showWarning, success, warning } = useOptimizedToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const paymentSetup = searchParams.get("payment_setup");
     if (paymentSetup === "success") {
-      showSuccess({
-        message: "Karta została pomyślnie podpięta. Masz teraz pełen dostęp do platformy!",
-      });
+      const fn = showSuccess || success;
+      if (typeof fn === "function") {
+        fn({
+          message: "Karta została pomyślnie podpięta. Masz teraz pełen dostęp do platformy!",
+        });
+      }
       // Remove query param without reloading
       setSearchParams((params) => {
         params.delete("payment_setup");
         return params;
       }, { replace: true });
     } else if (paymentSetup === "cancel") {
-      showWarning({
-        message: "Podpinanie karty zostało anulowane.",
-      });
+      const fn = showWarning || warning;
+      if (typeof fn === "function") {
+        fn({
+          message: "Podpinanie karty zostało anulowane.",
+        });
+      }
       setSearchParams((params) => {
         params.delete("payment_setup");
         return params;
       }, { replace: true });
     }
-  }, [searchParams, setSearchParams, showSuccess, showWarning]);
+  }, [searchParams, setSearchParams, showSuccess, showWarning, success, warning]);
 
   return null;
 };

@@ -142,51 +142,73 @@ router.post(
         },
       });
 
+      let connectDestination: string | null = null;
       const sellerConnectId = auction.seller?.stripeConnectId as string | undefined;
-      const splitEnabled = Boolean(sellerConnectId);
+      if (sellerConnectId && typeof sellerConnectId === "string" && sellerConnectId.startsWith("acct_")) {
+        try {
+          const acc = await stripe.accounts.retrieve(sellerConnectId);
+          if (acc && acc.charges_enabled) {
+            connectDestination = sellerConnectId;
+          } else {
+            console.warn(`[Stripe Checkout] Seller account ${sellerConnectId} charges not enabled. Using direct checkout.`);
+          }
+        } catch (err: any) {
+          console.warn(`[Stripe Checkout] Seller connect account ${sellerConnectId} lookup failed (${err?.message}). Falling back to direct checkout.`);
+        }
+      }
+
+      const splitEnabled = Boolean(connectDestination);
+
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = splitEnabled
+        ? [
+            {
+              price_data: {
+                currency,
+                unit_amount: amountCents + (commissionCents > 0 ? commissionCents : 0),
+                product_data: {
+                  name: auction.title,
+                  description: commissionCents > 0
+                    ? `Kwota aukcji + prowizja portalu (${(rate * 100).toFixed(0)}%)`
+                    : `Kwota aukcji`,
+                },
+              },
+              quantity: 1,
+            },
+          ]
+        : [
+            {
+              price_data: {
+                currency,
+                unit_amount: amountCents,
+                product_data: {
+                  name: auction.title,
+                },
+              },
+              quantity: 1,
+            },
+          ];
+
+      if (!splitEnabled && commissionCents > 0) {
+        lineItems.push({
+          price_data: {
+            currency,
+            unit_amount: commissionCents,
+            product_data: {
+              name: `Prowizja serwisu (${(rate * 100).toFixed(0)}%)`,
+            },
+          },
+          quantity: 1,
+        });
+      }
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
-        line_items: splitEnabled
-          ? [
-              {
-                price_data: {
-                  currency,
-                  unit_amount: amountCents + commissionCents,
-                  product_data: {
-                    name: auction.title,
-                    description: `Kwota aukcji + prowizja portalu (${(rate * 100).toFixed(0)}%)`,
-                  },
-                },
-                quantity: 1,
-              },
-            ]
-          : [
-          {
-            price_data: {
-              currency,
-              unit_amount: amountCents,
-              product_data: {
-                name: auction.title,
-              },
-            },
-            quantity: 1,
-          },
-          {
-            price_data: {
-              currency,
-              unit_amount: commissionCents,
-              product_data: {
-                name: `Prowizja serwisu (${(rate * 100).toFixed(0)}%)`,
-              },
-            },
-            quantity: 1,
-          },
-        ],
-        payment_intent_data: splitEnabled
+        line_items: lineItems,
+        payment_intent_data: splitEnabled && connectDestination
           ? {
-              application_fee_amount: commissionCents,
-              transfer_data: { destination: sellerConnectId as string },
+              application_fee_amount: commissionCents > 0 ? commissionCents : undefined,
+              transfer_data: { destination: connectDestination },
               metadata: {
                 payoutMethod: auction.seller?.payoutMethod ?? "",
                 payoutIban: auction.seller?.payoutIban ?? "",
@@ -205,7 +227,7 @@ router.post(
           paymentType,
         },
         client_reference_id: payment.id,
-        customer_email: (auction as any)?.email ?? undefined,
+        customer_email: req.user?.email || (auction as any)?.email || undefined,
       });
 
       await db.payment.update({
@@ -219,8 +241,8 @@ router.post(
 
       res.json({ url: session.url, paymentId: payment.id });
     } catch (error: any) {
-      console.error("Stripe checkout error", error);
-      res.status(500).json({ error: error.message || "Payment init failed" });
+      console.error("❌ Stripe checkout error:", error?.message || error, error?.stack);
+      res.status(500).json({ error: error?.message || "Payment init failed" });
     }
   },
 );
