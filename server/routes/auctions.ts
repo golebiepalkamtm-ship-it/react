@@ -717,9 +717,10 @@ router.post(
             "Ta aukcja nie ma opcji Kup Teraz.",
           );
         // Prevent Buy Now if aktualna cena >= Kup Teraz
+        const currentPriceNum = Number(auction.currentPrice);
         if (
-          typeof auction.currentPrice === "number" &&
-          auction.currentPrice >= Number(auction.buyNowPrice)
+          !Number.isNaN(currentPriceNum) &&
+          currentPriceNum >= Number(auction.buyNowPrice)
         ) {
           throw createAuctionError(
             AuctionErrorCodes.INVALID_BID_AMOUNT,

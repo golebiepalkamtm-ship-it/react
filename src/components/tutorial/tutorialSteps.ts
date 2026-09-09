@@ -40,6 +40,16 @@ export const TUTORIAL_TRACKS: Record<TutorialTrack, TutorialStep[]> = {
       placement: "bottom",
     },
     {
+      id: "welcome-sell",
+      targetSelector: "[data-tutorial='hero-sell-btn']",
+      fallbackPosition: "center",
+      title: "Otwarta Platforma",
+      description:
+        "Jesteśmy pierwszą platformą, na której to Ty wystawiasz swoje ptaki. Nie potrzebujesz pośredników - przejmij pełną kontrolę nad aukcją.",
+      icon: "💸",
+      placement: "bottom",
+    },
+    {
       id: "welcome-nav",
       targetSelector: "[data-tutorial='main-nav']",
       title: "Nawigacja",

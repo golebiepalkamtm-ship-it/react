@@ -74,7 +74,7 @@ export interface Auction {
   snipeExtensionMinutes?: number;
   minBidIncrement?: number;
   isExtended?: boolean;
-  status: "active" | "ended" | "cancelled";
+  status: "active" | "ended" | "cancelled" | "upcoming" | "ACTIVE" | "ENDED" | "CANCELLED" | "UPCOMING" | AuctionStatus;
   reserveMet: boolean;
   category: string;
   pigeon?: Pigeon;
@@ -151,7 +151,8 @@ export type AuctionStatus =
   | "ACTIVE"
   | "ENDED_WAITING_PAYMENT"
   | "COMPLETED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "UPCOMING";
 
 export const translateAuctionStatus = (status: AuctionStatus | string): string => {
   switch (status) {
@@ -160,6 +161,7 @@ export const translateAuctionStatus = (status: AuctionStatus | string): string =
     case "ENDED_WAITING_PAYMENT": return "Oczekuje na prowizję";
     case "COMPLETED": return "Zakończona (Opłacona)";
     case "CANCELLED": return "Anulowana";
+    case "UPCOMING": return "Wkrótce";
     default: return status || "Nieznany";
   }
 };

@@ -24,6 +24,7 @@ import { ArrowRight, Trophy, Zap, Users, Star } from "lucide-react";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 import Header from "@/components/Header";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import LiveBidsTicker from "@/components/auction/LiveBidsTicker";
 
 const Carousel3D = lazy(() => import("@/components/gallery/Carousel3D"));
 const AboutSection = lazy(() => import("@/components/AboutSection"));
@@ -229,27 +230,40 @@ const HeroPremium = () => {
             </span>
           </h1>
 
-          <div className="hero-reveal text-sm sm:text-base md:text-lg text-white/80 mb-14 mx-auto text-center leading-relaxed font-display italic tracking-wide whitespace-nowrap px-4">
+          <div className="hero-reveal text-sm sm:text-base md:text-lg text-white/80 mb-6 mx-auto text-center leading-relaxed font-display italic tracking-wide whitespace-nowrap px-4">
             <SplitText splitBy="word">
               Trzy pokolenia pasji. Setki mistrzostw. Elitarne gołębie pocztowe z Dolnego Śląska.
             </SplitText>
           </div>
 
-          <div className="hero-reveal flex flex-col items-center gap-6">
+          <div className="hero-reveal text-base md:text-xl text-gold font-bold mb-14 mx-auto text-center max-w-2xl leading-relaxed">
+            Pierwsza w Polsce otwarta platforma aukcyjna. <br/>
+            Wystawiaj swoje Championy samodzielnie – przejmij pełną kontrolę nad aukcją.
+          </div>
+
+          <div className="hero-reveal flex flex-col sm:flex-row items-center gap-6">
             <Link
               to="/champions"
-              className="group flex items-center gap-3 px-8 py-3.5 rounded-full font-bold text-sm bg-[#A68E4E] text-zinc-950 shadow-[0_0_20px_rgba(166,142,78,0.3)] hover:shadow-[0_0_35px_rgba(166,142,78,0.5)] transition-shadow"
+              className="group flex items-center gap-3 px-8 py-3.5 rounded-full font-bold text-sm bg-transparent border-2 border-[#A68E4E] text-[#A68E4E] hover:bg-[#A68E4E] hover:text-zinc-950 transition-colors"
             >
               <span>Eksploruj Championy</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </Link>
 
-            <div className="hero-scroll-indicator flex flex-col items-center gap-3 text-zinc-400">
+            <Link
+              to="/auctions?create=true"
+              data-tutorial="hero-sell-btn"
+              className="group flex items-center gap-3 px-8 py-3.5 rounded-full font-bold text-sm bg-[#A68E4E] text-zinc-950 shadow-[0_0_20px_rgba(166,142,78,0.3)] hover:shadow-[0_0_35px_rgba(166,142,78,0.5)] transition-shadow"
+            >
+              <span>Zacznij Sprzedawać</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="hero-reveal mt-12 flex flex-col items-center gap-3 text-zinc-400">
               <span className="text-[10px] uppercase tracking-[0.3em] font-medium">
                 Odkryj naszą historię
               </span>
               <div className="w-[1px] h-8 bg-[#A68E4E]/50 rounded-full" />
-            </div>
           </div>
         </div>
       </div>
@@ -388,9 +402,9 @@ const CTAFeaturesSection = () => {
     },
     {
       icon: Users,
-      title: "Wsparcie Ekspertów",
+      title: "Otwarta Platforma",
       description:
-        "Doradztwo w doborze par rozpłodowych i prowadzeniu gołębnika.",
+        "Pierwsza w Polsce giełda, gdzie możesz samodzielnie wystawiać swoje gołębie i zarządzać aukcjami.",
     },
   ];
 
@@ -505,6 +519,9 @@ export const HomePagePremium = () => {
   return (
     <div ref={containerRef} className="min-h-screen bg-transparent">
       <Header />
+      <div className="sticky top-[80px] z-[40]">
+        <LiveBidsTicker />
+      </div>
 
       <main>
         {/* Intro Section - Hero Wrapper */}

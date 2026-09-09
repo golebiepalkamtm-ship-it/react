@@ -413,9 +413,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       },
     );
 
+    const handleUnauthorized = async () => {
+      try {
+        const { data, error } = await client.auth.refreshSession();
+        if (!error && data?.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+        }
+      } catch (err) {
+        logger.warn("Auto-refresh session on 401 failed:", err);
+      }
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
     init();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+      subscription.unsubscribe();
+    };
   }, [clearPendingEmailVerification, fetchProfile, initCSRFToken]);
 
   const signUp = async (email: string, password: string) => {

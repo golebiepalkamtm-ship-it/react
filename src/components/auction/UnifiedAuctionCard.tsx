@@ -26,6 +26,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { FileText } from "lucide-react"; // for pedigree
 
 const AuctionImage = memo(
   ({
@@ -89,6 +90,7 @@ type UnifiedAuctionCardProps = {
   imageFit?: "cover" | "contain" | undefined;
   highlight?: boolean | undefined;
   nowMs?: number | undefined;
+  status?: "ACTIVE" | "ENDED" | "UPCOMING" | string | undefined;
 };
 
 const formatNumber = (value?: number, suffix = "zł") => {
@@ -115,6 +117,7 @@ export const UnifiedAuctionCard = memo(
     highlight = false,
     nowMs,
     viewsCount = 0,
+    status,
   }: UnifiedAuctionCardProps) => {
     const navigate = useNavigate();
     const [isLiked, setIsLiked] = useState(false);
@@ -237,15 +240,16 @@ export const UnifiedAuctionCard = memo(
     const ringBadge = isPigeon ? ringNumber : null;
 
     const specBadges = useMemo(() => {
-      const badges: string[] = [];
+      const badges: { label: string; icon?: string }[] = [];
       if (isPigeon && gender) {
         const g = gender.toLowerCase();
-        badges.push(
-          g === "female" ? "Samica" : g === "male" ? "Samiec" : gender,
-        );
+        badges.push({
+          label: g === "female" ? "Samica" : g === "male" ? "Samiec" : gender,
+          icon: g === "female" ? "♀" : g === "male" ? "♂" : undefined,
+        });
       }
-      if (isPigeon && color) badges.push(color);
-      if (category) badges.push(formatCategory(category));
+      if (isPigeon && color) badges.push({ label: color });
+      if (category) badges.push({ label: formatCategory(category) });
       return badges.slice(0, 3);
     }, [gender, color, category, isPigeon]);
 
@@ -366,6 +370,19 @@ export const UnifiedAuctionCard = memo(
                 </>
               )}
             </div>
+          ) : status === "UPCOMING" ? (
+            <div
+              className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all"
+              style={{
+                background: "linear-gradient(135deg, #2d3748, #1a202c)",
+                color: "#e2e8f0",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.5)",
+                border: "1px solid rgba(226,232,240,0.3)",
+              }}
+            >
+              <Clock className="h-3 w-3 text-slate-300" />
+              <span className="text-slate-200 font-bold">Wkrótce</span>
+            </div>
           ) : (
             /* Type identification badge when no main statuses are active */
             <div
@@ -484,6 +501,16 @@ export const UnifiedAuctionCard = memo(
                   PLACEHOLDER
                 </span>
               )}
+              
+              {/* Quick actions line */}
+              <Link 
+                to={`/auctions/${id}/pedigree`}
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto text-[10px] uppercase font-bold tracking-wider text-[#A68E4E] flex items-center gap-1 hover:text-white transition-colors"
+              >
+                <FileText className="w-3 h-3" />
+                Rodowód
+              </Link>
             </div>
 
             {/* Title */}
@@ -495,12 +522,13 @@ export const UnifiedAuctionCard = memo(
 
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2">
-              {specBadges.map((badge) => (
+              {specBadges.map((badge, idx) => (
                 <span
-                  key={`${id}-${badge}`}
-                  className="text-[10px] uppercase tracking-wider text-white/60 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1"
+                  key={`${id}-${badge.label}-${idx}`}
+                  className="text-[10px] uppercase tracking-wider text-white/60 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1 flex items-center gap-1"
                 >
-                  {badge}
+                  {badge.icon && <span className="text-lg leading-none -mt-0.5">{badge.icon}</span>}
+                  {badge.label}
                 </span>
               ))}
             </div>

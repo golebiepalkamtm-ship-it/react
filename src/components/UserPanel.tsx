@@ -238,8 +238,12 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
       await updateUserProfile(payload);
       setFeedbackType("success");
       setFeedbackTitle("Zapisano");
+      const isAlreadyVerified =
+        profile?.role === "USER_FULL_VERIFIED" || profile?.role === "ADMIN";
       setFeedbackMessage(
-        "Profil został zaktualizowany. Teraz musisz wykonać weryfikację SMS, aby w pełni aktywować konto.",
+        isAlreadyVerified
+          ? "Profil został pomyślnie zaktualizowany."
+          : "Profil został zaktualizowany. Teraz wykonaj weryfikację SMS, aby w pełni aktywować konto i móc licytować.",
       );
       setFeedbackOpen(true);
     } catch (err) {
