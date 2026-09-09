@@ -27,6 +27,7 @@ import {
   Venus,
   Mars,
   CircleDot,
+  Clock,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -376,29 +377,107 @@ export const UnifiedAuctionForm: React.FC<UnifiedAuctionFormProps> = ({
                 className={!isBuyNow ? "opacity-50" : ""}
               />
 
-              {/* Dni trwania */}
-              <InputField
-                label="Czas trwania (Dni)"
-                name="durationDays"
-                type="number"
-                value={String(formData.durationDays ?? 7)}
-                onChange={(e) => {
-                  const val = Math.max(0, Math.min(14, Number(e.target.value)));
-                  setFormData({ ...formData, durationDays: val });
-                }}
-              />
+              </div>
 
-              {/* Godziny */}
-              <InputField
-                label="Godziny"
-                name="durationHours"
-                type="number"
-                value={String(formData.durationHours ?? 0)}
-                onChange={(e) => {
-                  const val = Math.max(0, Number(e.target.value));
-                  setFormData({ ...formData, durationHours: val });
-                }}
-              />
+            {/* Czas trwania aukcji */}
+            <div className="pt-3 border-t border-white/10 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-white/80 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  Czas trwania aukcji
+                </label>
+                <span className="text-[11px] text-white/50">
+                  Łącznie: {formData.durationDays ?? 7} dni {formData.durationHours ? `${formData.durationHours} godz.` : ""}
+                </span>
+              </div>
+
+              {/* Szybkie presety */}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: "3 dni", days: 3, hours: 0 },
+                  { label: "5 dni", days: 5, hours: 0 },
+                  { label: "7 dni (standard)", days: 7, hours: 0 },
+                  { label: "10 dni", days: 10, hours: 0 },
+                  { label: "14 dni (maks.)", days: 14, hours: 0 },
+                ].map((preset) => {
+                  const isSelected =
+                    (formData.durationDays ?? 7) === preset.days &&
+                    (formData.durationHours ?? 0) === preset.hours;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          durationDays: preset.days,
+                          durationHours: preset.hours,
+                        });
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        isSelected
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                          : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const day = now.getDay(); // 0 = Sunday
+                    let daysUntilSunday = (7 - day) % 7;
+                    if (day === 0 && now.getHours() >= 18) {
+                      daysUntilSunday = 7;
+                    } else if (daysUntilSunday === 0) {
+                      daysUntilSunday = 7;
+                    }
+                    const target = new Date(now);
+                    target.setDate(now.getDate() + daysUntilSunday);
+                    target.setHours(20, 0, 0, 0);
+                    const diffMs = target.getTime() - now.getTime();
+                    const totalHours = Math.max(1, Math.round(diffMs / (1000 * 60 * 60)));
+                    const d = Math.floor(totalHours / 24);
+                    const h = totalHours % 24;
+                    setFormData({
+                      ...formData,
+                      durationDays: d,
+                      durationHours: h,
+                    });
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all flex items-center gap-1"
+                  title="Ustawia zakończenie aukcji na najbliższą niedzielę o godz. 20:00 (szczyt oglądalności hodowców)"
+                >
+                  ⭐ Finisz w niedzielę 20:00
+                </button>
+              </div>
+
+              {/* Ręczne wprowadzenie dni i godzin */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                <InputField
+                  label="Dni"
+                  name="durationDays"
+                  type="number"
+                  value={String(formData.durationDays ?? 7)}
+                  onChange={(e) => {
+                    const val = Math.max(0, Math.min(14, Number(e.target.value)));
+                    setFormData({ ...formData, durationDays: val });
+                  }}
+                />
+                <InputField
+                  label="Dodatkowe godziny"
+                  name="durationHours"
+                  type="number"
+                  value={String(formData.durationHours ?? 0)}
+                  onChange={(e) => {
+                    const val = Math.max(0, Math.min(23, Number(e.target.value)));
+                    setFormData({ ...formData, durationHours: val });
+                  }}
+                />
+              </div>
             </div>
           </motion.div>
         </div>

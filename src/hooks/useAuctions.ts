@@ -10,6 +10,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { useOptimizedToast } from "@/hooks/use-optimized-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateTimeLeft, formatTimeLeft } from "@/utils/auction";
+import { playBidChime } from "@/utils/auctionSound";
 import {
   type Auction,
   type Bid,
@@ -162,6 +163,7 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
             ? `Nowa oferta: ${priceFormatted}`
             : "Nowa oferta",
         });
+        playBidChime();
       }
     },
     onAuctionUpdate: (data: {

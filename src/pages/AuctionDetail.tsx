@@ -426,6 +426,19 @@ const AuctionDetail: React.FC = () => {
     }
   }, [checkAccess, token, dAuction, placeBid, bidAmount, maxBidAmount, isAutoBid, bidError, isOwner, profile]);
 
+  const handleQuickIncrement = useCallback(
+    (inc: number) => {
+      const min = minimumBidValue || 0;
+      const current = Number(bidAmount);
+      if (!Number.isFinite(current) || current < min) {
+        setBidAmount(String(min + inc));
+      } else {
+        setBidAmount(String(current + inc));
+      }
+    },
+    [bidAmount, minimumBidValue],
+  );
+
   const handleAdminUpdate = async (data: {
     currentPrice?: number;
     buyNowPrice?: number;
@@ -1203,24 +1216,41 @@ const AuctionDetail: React.FC = () => {
                                       </Tooltip>
                                     </TooltipProvider>
                                   </div>
-                                  <div className="flex items-center gap-1.5 pt-1">
-                                    <span className="text-[9px] text-[#A68E4E] uppercase font-black tracking-widest mr-1">
-                                      Szybki przebieg:
-                                    </span>
-                                    {[50, 100, 250, 500].map((inc) => (
-                                      <button
-                                        key={inc}
-                                        type="button"
-                                        onClick={() => {
-                                          const base = minimumBidValue || 0;
-                                          setBidAmount(String(base + inc));
-                                        }}
-                                        className="px-2.5 py-1 rounded-xl bg-[#A68E4E]/10 hover:bg-[#A68E4E]/25 border border-[rgba(166,142,78,0.5)] text-[#A68E4E] text-[10px] font-black tracking-wider transition-all duration-300 hover:scale-105 active:scale-95"
-                                      >
-                                        +{inc} zł
-                                      </button>
-                                    ))}
-                                  </div>
+                                   <div className="flex flex-wrap items-center gap-1.5 pt-1.5">
+                                     <span className="text-[9px] text-[#A68E4E] uppercase font-black tracking-widest mr-1">
+                                       Szybkie stawki:
+                                     </span>
+                                     {minimumBidValue > 0 && (
+                                       <button
+                                         type="button"
+                                         onClick={() => setBidAmount(String(minimumBidValue))}
+                                         className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300 text-[10px] font-black tracking-wider transition-all duration-300 hover:scale-105 active:scale-95"
+                                         title={`Ustaw minimalną stawkę: ${minimumBidValue.toLocaleString("pl-PL")} zł`}
+                                       >
+                                         Min: {minimumBidValue.toLocaleString("pl-PL")} zł
+                                       </button>
+                                     )}
+                                     {[50, 100, 250, 500].map((inc) => (
+                                       <button
+                                         key={inc}
+                                         type="button"
+                                         onClick={() => handleQuickIncrement(inc)}
+                                         className="px-2.5 py-1 rounded-xl bg-[#A68E4E]/10 hover:bg-[#A68E4E]/25 border border-[rgba(166,142,78,0.5)] text-[#A68E4E] text-[10px] font-black tracking-wider transition-all duration-300 hover:scale-105 active:scale-95"
+                                       >
+                                         +{inc} zł
+                                       </button>
+                                     ))}
+                                     {Boolean(bidAmount) && (
+                                       <button
+                                         type="button"
+                                         onClick={() => setBidAmount("")}
+                                         className="px-2 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white text-[10px] font-bold tracking-wider transition-all"
+                                         title="Wyczyść kwotę"
+                                       >
+                                         ✕
+                                       </button>
+                                     )}
+                                   </div>
                                 </div>
                               )}
                               {dAuction.buyNowPrice && (
@@ -1573,32 +1603,41 @@ const AuctionDetail: React.FC = () => {
                           className="grid grid-cols-1 gap-3"
                         >
                           {dAuction.documents?.map((doc, idx) => (
-                            <a
+                            <div
                               key={idx}
-                              href={doc}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="group flex items-center justify-between p-6 bg-black/40 border border-[#A68E4E]/30 rounded-2xl hover:border-[#A68E4E] transition-all duration-500"
+                              className="group flex items-center justify-between p-5 bg-black/40 border border-[#A68E4E]/30 rounded-2xl hover:border-[#A68E4E] transition-all duration-300"
                             >
-                              <div className="flex items-center gap-5">
-                                <div className="w-12 h-12 rounded-xl bg-[#A68E4E]/10 flex items-center justify-center border border-[#A68E4E]/20 group-hover:bg-[#A68E4E]/30 group-hover:border-[#A68E4E] transition-all duration-500">
-                                  <Sparkles className="w-6 h-6 text-[#A68E4E]" />
+                              <div className="flex items-center gap-4">
+                                <div className="w-11 h-11 rounded-xl bg-[#A68E4E]/10 flex items-center justify-center border border-[#A68E4E]/20 group-hover:bg-[#A68E4E]/25 group-hover:border-[#A68E4E] transition-all duration-300">
+                                  <FileText className="w-5 h-5 text-[#A68E4E]" />
                                 </div>
                                 <div>
-                                  <p className="text-xs text-white font-black uppercase tracking-widest mb-1">
-                                    Dokument #{idx + 1}
+                                  <p className="text-xs text-white font-black uppercase tracking-widest mb-0.5">
+                                    Dokument / Rodowód #{idx + 1}
                                   </p>
                                   <p className="text-[10px] text-white/50 truncate max-w-[200px]">
                                     {doc.split("/").pop()}
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-[9px] font-black text-zinc-950 uppercase tracking-widest px-5 py-2.5 bg-[#A68E4E] hover:bg-[#8e7a42] rounded-lg transition-all duration-500">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setIsPedigreeOpen(true)}
+                                  className="text-[10px] font-black text-zinc-950 uppercase tracking-widest px-4 py-2 bg-[#A68E4E] hover:bg-[#8e7a42] rounded-xl transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                                >
+                                  Podgląd
+                                </button>
+                                <a
+                                  href={doc}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[10px] font-black text-white/70 hover:text-white uppercase tracking-widest px-3 py-2 border border-white/20 hover:border-white/40 rounded-xl transition-all"
+                                >
                                   Pobierz
-                                </span>
+                                </a>
                               </div>
-                            </a>
+                            </div>
                           ))}
                         </motion.div>
                       )}
