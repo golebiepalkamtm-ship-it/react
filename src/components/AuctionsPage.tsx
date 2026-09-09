@@ -22,6 +22,7 @@ import { useAuctions } from "@/hooks/useAuctions";
 import UnifiedAuctionForm from "@/components/UnifiedAuctionForm";
 import AuctionCategorySelector from "@/components/AuctionCategorySelector";
 import { UnifiedModal } from "@/components/ui/UnifiedModal";
+import { AuctionCardSkeleton } from "@/components/ui/skeleton-variants";
 import { useAuctionFilters } from "@/hooks/useAuctionFilters";
 import { resolveAuctionImage } from "@/utils/image";
 import type { AuctionSortBy } from "@/types/auction";
@@ -769,11 +770,8 @@ const AuctionsPage = () => {
           {isLoading ? (
             shouldShowSkeletons && (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="h-[580px] rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm animate-pulse"
-                  />
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <AuctionCardSkeleton key={i} />
                 ))}
               </div>
             )

@@ -30,16 +30,43 @@ export const ChampionCardSkeleton = () => (
 );
 
 export const AuctionCardSkeleton = () => (
-  <div className="bg-card border border-border rounded-xl overflow-hidden">
-    <Skeleton className="h-[200px] w-full" />
-    <div className="p-4 space-y-3">
-      <Skeleton className="h-6 w-3/4" />
-      <div className="flex justify-between items-center">
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-10 w-10 rounded-full" />
+  <div
+    className="rounded-3xl overflow-hidden border border-[#A68E4E]/30 bg-black/40 backdrop-blur-md p-4 space-y-4 flex flex-col justify-between"
+    style={{
+      minHeight: "560px",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+    }}
+  >
+    {/* Image area skeleton */}
+    <div className="relative aspect-square w-full rounded-2xl bg-white/5 border border-white/5 overflow-hidden animate-pulse">
+      <div className="absolute top-3 left-3 w-24 h-6 rounded-full bg-white/10" />
+      <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10" />
+      <div className="absolute bottom-3 left-3 right-3 h-8 rounded-xl bg-white/10" />
+    </div>
+
+    {/* Content details */}
+    <div className="space-y-3 flex-1 pt-1 animate-pulse">
+      <div className="h-6 w-3/4 rounded-lg bg-white/10" />
+      <div className="flex gap-2">
+        <div className="h-5 w-24 rounded-md bg-[#A68E4E]/20" />
+        <div className="h-5 w-16 rounded-md bg-white/10" />
       </div>
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-8 w-full" />
+      <div className="space-y-1.5 pt-2">
+        <div className="h-3 w-full rounded bg-white/5" />
+        <div className="h-3 w-4/5 rounded bg-white/5" />
+      </div>
+    </div>
+
+    {/* Price & Action button */}
+    <div className="pt-3 border-t border-white/10 space-y-2.5 animate-pulse">
+      <div className="flex justify-between items-center">
+        <div className="space-y-1">
+          <div className="h-3 w-16 rounded bg-white/10" />
+          <div className="h-6 w-24 rounded bg-emerald-400/20" />
+        </div>
+        <div className="h-6 w-20 rounded bg-white/10" />
+      </div>
+      <div className="h-11 w-full rounded-xl bg-gradient-to-r from-[#A68E4E]/30 to-[#C5A95D]/20 border border-[#A68E4E]/40" />
     </div>
   </div>
 );

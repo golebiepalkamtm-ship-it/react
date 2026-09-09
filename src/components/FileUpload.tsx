@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Upload, X, File, Image, Video, FileText } from 'lucide-react';
+import { useOptimizedToast } from '@/hooks/use-optimized-toast';
 
 interface FileUploadProps {
   files: File[];
@@ -16,6 +17,7 @@ const FileUpload = ({
   maxSize = 10,
   accept = "image/jpeg,image/png,image/gif,image/bmp,image/webp,video/mp4,video/avi,video/mov,video/wmv,application/pdf,.psd,.pdf"
 }: FileUploadProps) => {
+  const { error: showError } = useOptimizedToast();
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,7 +38,7 @@ const FileUpload = ({
 
   const validateFile = (file: File) => {
     if (file.size > maxSize * 1024 * 1024) {
-      alert(`Plik ${file.name} jest za duży. Maksymalny rozmiar to ${maxSize}MB`);
+      showError(`Plik ${file.name} jest za duży. Maksymalny rozmiar to ${maxSize}MB`);
       return false;
     }
     return true;

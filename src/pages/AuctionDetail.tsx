@@ -843,7 +843,7 @@ const AuctionDetail: React.FC = () => {
                           >
                             <AuctionImage
                               src={img || "/placeholder.svg"}
-                              alt="Pedigree Image"
+                              alt={`Rodowód ${dAuction.title || "gołębia"} - strona ${idx + 1}`}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover/ped:scale-110"
                               onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                                 (e.target as HTMLImageElement).src = "/placeholder.svg";

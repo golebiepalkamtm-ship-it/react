@@ -522,6 +522,30 @@ const Header = () => {
             </motion.button>
           )}
 
+          {/* Mobile: Direct Profile Button */}
+          {user && profile && (
+            <motion.button
+              className="sm:hidden p-1 text-white/90 relative flex items-center justify-center rounded-xl bg-[#0b1329]/90 border border-[#d4af37]/40 active:scale-95 transition-transform"
+              onClick={() => setShowAccountModal(true)}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Panel użytkownika"
+              title="Panel użytkownika"
+            >
+              <div className="relative flex items-center justify-center w-7 h-7 rounded-full bg-[#d4af37]/15 text-[#d4af37]">
+                <User className="w-4 h-4" />
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-slate-950 ${
+                    profile.role === "ADMIN"
+                      ? "bg-purple-400"
+                      : profile.role === "USER_FULL_VERIFIED"
+                        ? "bg-emerald-400"
+                        : "bg-amber-400"
+                  }`}
+                />
+              </div>
+            </motion.button>
+          )}
+
           {/* Hamburger - mobile only (< lg) */}
           <motion.button
             className="lg:hidden p-2 text-white relative"
