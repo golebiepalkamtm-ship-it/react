@@ -27,6 +27,7 @@ import {
   LogOut,
   Edit3,
   Check,
+  CheckCircle,
   AlertCircle,
   TrendingUp,
   Heart,
@@ -56,6 +57,11 @@ import { Auction, translateAuctionStatus } from "@/types/auction";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { UserPaymentsSection } from "@/components/user/UserPaymentsSection";
+import {
+  formatIban,
+  normalizeIban,
+  validatePolishIbanChecksum,
+} from "@/utils/payoutValidation";
 
 interface UserPanelProps {
   onClose: () => void;
@@ -120,8 +126,15 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
   const [payoutMethod, setPayoutMethod] = useState<"IBAN" | "BLIK">(
     profile?.payoutMethod === "BLIK" ? "BLIK" : "IBAN",
   );
-  const [payoutIban, setPayoutIban] = useState(profile?.payoutIban ?? "");
+  const [payoutIban, setPayoutIban] = useState(
+    profile?.payoutIban ? formatIban(profile.payoutIban) : "",
+  );
   const [payoutPhone, setPayoutPhone] = useState(profile?.payoutPhone ?? "");
+
+  const ibanValidation = useMemo(() => {
+    if (payoutMethod !== "IBAN" || !payoutIban) return null;
+    return validatePolishIbanChecksum(payoutIban);
+  }, [payoutMethod, payoutIban]);
   const [showSmsAuth, setShowSmsAuth] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -211,9 +224,19 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
         phone: phone.trim(),
       };
     } else if (activeTab === "payments") {
+      if (payoutMethod === "IBAN" && payoutIban.trim()) {
+        const validation = validatePolishIbanChecksum(payoutIban);
+        if (!validation.isValid) {
+          setFeedbackType("error");
+          setFeedbackTitle("Nieprawidłowy numer konta");
+          setFeedbackMessage(validation.message);
+          setFeedbackOpen(true);
+          return;
+        }
+      }
       payload = {
         payoutMethod,
-        payoutIban: payoutMethod === "IBAN" ? payoutIban.trim() : "",
+        payoutIban: payoutMethod === "IBAN" ? normalizeIban(payoutIban) : "",
         payoutPhone: payoutMethod === "BLIK" ? payoutPhone.trim() : phone.trim(),
       };
     } else {
@@ -229,7 +252,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
         country: country.trim(),
         phone: phone.trim(),
         payoutMethod,
-        payoutIban: payoutMethod === "IBAN" ? payoutIban.trim() : "",
+        payoutIban: payoutMethod === "IBAN" ? normalizeIban(payoutIban) : "",
         payoutPhone: payoutMethod === "BLIK" ? payoutPhone.trim() : phone.trim(),
       };
     }
@@ -326,7 +349,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
     setStreet(profile.street ?? "");
     setPostalCode(profile.postal_code ?? "");
     setPayoutMethod(profile.payoutMethod === "BLIK" ? "BLIK" : "IBAN");
-    setPayoutIban(profile.payoutIban ?? "");
+    setPayoutIban(profile.payoutIban ? formatIban(profile.payoutIban) : "");
     setPayoutPhone(profile.payoutPhone ?? profile.phone ?? "");
     setCity(profile.city ?? "");
     setCountry(profile.country ?? "");
@@ -1632,27 +1655,58 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           {payoutMethod === "IBAN" ? (
                             <div>
                               <label className="text-sm font-medium text-white/90 mb-2 block">
-                                Numer IBAN
+                                Numer konta bankowego (IBAN do wypłat)
                               </label>
-                              <input
-                                type="text"
-                                value={payoutIban}
-                                onChange={(e) => setPayoutIban(e.target.value.toUpperCase())}
-                                placeholder="PL61 1090 1014 0000 0712 1981 2874"
-                                className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
-                              />
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={payoutIban}
+                                  onChange={(e) =>
+                                    setPayoutIban(formatIban(e.target.value))
+                                  }
+                                  placeholder="PL61 1090 1014 0000 0712 1981 2874"
+                                  className={`w-full px-4 py-3 bg-black/40 border rounded-xl text-[#A68E4E] font-mono tracking-wider placeholder-[#A68E4E]/40 focus:outline-none transition-colors ${
+                                    ibanValidation?.isValid
+                                      ? "border-emerald-500/70 focus:border-emerald-500"
+                                      : payoutIban.trim()
+                                      ? "border-amber-500/70 focus:border-amber-500"
+                                      : "border-[#A68E4E]/20 focus:border-[#A68E4E]"
+                                  }`}
+                                />
+                                {ibanValidation?.isValid && (
+                                  <CheckCircle className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400" />
+                                )}
+                              </div>
+                              {payoutIban.trim() && (
+                                <p
+                                  className={`text-xs mt-1.5 flex items-center gap-1.5 ${
+                                    ibanValidation?.isValid
+                                      ? "text-emerald-400 font-medium"
+                                      : "text-amber-400/90"
+                                  }`}
+                                >
+                                  {ibanValidation?.isValid ? (
+                                    <span>Poprawny polski numer konta (26 cyfr)</span>
+                                  ) : (
+                                    <>
+                                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                      <span>{ibanValidation?.message}</span>
+                                    </>
+                                  )}
+                                </p>
+                              )}
                             </div>
                           ) : (
                             <div>
                               <label className="text-sm font-medium text-white/90 mb-2 block">
-                                Telefon do BLIK
+                                Telefon do wypłat BLIK
                               </label>
                               <input
                                 type="tel"
                                 value={payoutPhone}
                                 onChange={(e) => setPayoutPhone(e.target.value)}
                                 placeholder="+48 600 000 000"
-                                className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none"
+                                className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none font-mono"
                               />
                             </div>
                           )}

@@ -125,7 +125,7 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
     enabled: !!auctionId,
   });
 
-  useSocket({
+  const { isConnected } = useSocket({
     auctionId,
     onBidPlaced: (data: {
       auctionId: string;
@@ -204,6 +204,7 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
     error: error as Error | null,
     refetch,
     viewersCount,
+    isConnected,
   };
 };
 

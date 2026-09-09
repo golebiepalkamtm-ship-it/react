@@ -104,6 +104,7 @@ const AuctionDetail: React.FC = () => {
     error,
     refetch: refetchAuction,
     viewersCount,
+    isConnected,
   } = useAuction({ auctionId: id || "" });
   const isEnded = useMemo(() => {
     if (!auction?.endTime) return false;
@@ -654,15 +655,58 @@ const AuctionDetail: React.FC = () => {
                 </div>
               </div>
 
-              {/* Verified Trust Tag */}
-              <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/40 border border-[#A68E4E]/50 backdrop-blur-md shadow-[0_0_15px_rgba(166,142,78,0.2)]">
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
-                  Aukcja Zweryfikowana • MTM Pałka Loft
-                </span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Live WebSocket Status Indicator */}
+                <div
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border backdrop-blur-md text-[10px] font-bold uppercase tracking-wider transition-all ${
+                    isConnected
+                      ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+                      : "bg-rose-950/50 border-rose-500/50 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)] animate-pulse"
+                  }`}
+                  title={
+                    isConnected
+                      ? "Połączenie WebSocket aktywne (aktualizacje na żywo)"
+                      : "Utracono połączenie na żywo z serwerem aukcji"
+                  }
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isConnected
+                        ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]"
+                        : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]"
+                    }`}
+                  />
+                  <span>{isConnected ? "Na żywo" : "Rozłączono"}</span>
+                </div>
+
+                {/* Verified Trust Tag */}
+                <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/40 border border-[#A68E4E]/50 backdrop-blur-md shadow-[0_0_15px_rgba(166,142,78,0.2)]">
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+                    Aukcja Zweryfikowana • MTM Pałka Loft
+                  </span>
+                </div>
               </div>
             </div>
+
+            {/* Offline Alert Bar if disconnected during active auction */}
+            {!isConnected && !isEnded && (
+              <div className="mb-6 p-3.5 rounded-2xl bg-rose-950/70 border border-rose-500/50 text-rose-200 text-xs flex flex-wrap items-center justify-between gap-4 backdrop-blur-md shadow-xl">
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <span>
+                    <strong>Uwaga:</strong> Utracono bezpośrednie połączenie na żywo z serwerem aukcji. Nowe oferty mogą nie pojawiać się automatycznie.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => refetchAuction()}
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-[11px] uppercase tracking-wider transition-colors shadow-md"
+                >
+                  Odśwież teraz
+                </button>
+              </div>
+            )}
 
             <div className="grid lg:grid-cols-2 gap-12 items-start relative">
               {/* Background Ambient Orbs */}
