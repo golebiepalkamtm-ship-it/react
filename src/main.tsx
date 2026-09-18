@@ -6,8 +6,6 @@ import { FeedbackProvider } from "@/components/ui/feedback/FeedbackProvider";
 import "./index.css";
 import { logger } from "@/lib/logger";
 import { TimeProvider } from "./providers/TimeProvider";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const startTime = performance.now();
 
@@ -99,8 +97,6 @@ root.render(
     <FeedbackProvider>
       <TimeProvider>
         <App />
-        <Analytics />
-        <SpeedInsights />
       </TimeProvider>
     </FeedbackProvider>
   </React.StrictMode>,
