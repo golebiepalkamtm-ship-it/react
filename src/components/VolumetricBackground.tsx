@@ -13,11 +13,12 @@ const FRAGMENT_SHADER = `
   uniform vec2 uMouse;
   uniform float uTime;
 
-  // Simplex-inspired noise (cheap)
+  // Fast hash
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
   }
 
+  // Value noise with Hermite interpolation
   float noise(vec2 p) {
     vec2 i = floor(p);
     vec2 f = fract(p);
@@ -29,15 +30,9 @@ const FRAGMENT_SHADER = `
     return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
   }
 
-  float fbm(vec2 p) {
-    float v = 0.0;
-    float a = 0.5;
-    for (int i = 0; i < 3; i++) {
-      v += a * noise(p);
-      p *= 2.0;
-      a *= 0.5;
-    }
-    return v;
+  // Fast 2-octave FBM for smooth volumetric fog
+  float fbm2(vec2 p) {
+    return noise(p) * 0.65 + noise(p * 2.05 + 1.2) * 0.35;
   }
 
   void main() {
@@ -46,37 +41,30 @@ const FRAGMENT_SHADER = `
     vec2 pos = uv * aspect;
     vec2 mouse = uMouse * aspect;
 
-    // Base: slightly lighter charcoal (subtle lift)
-    float vignette = 1.0 - length(uv - 0.5) * 0.72;
-    float base = 0.11 + 0.05 * vignette;
+    // Base vignette (dark charcoal)
+    float distCenter = length(uv - 0.5);
+    float vignette = 1.0 - distCenter * 0.72;
+    float base = 0.10 + 0.05 * vignette;
 
-    // Volumetric noise field - slow moving texture
-    float n = fbm(pos * 3.0 + uTime * 0.08);
-    float n2 = fbm(pos * 5.0 - uTime * 0.05 + 10.0);
-    float surface = n * 0.14 + n2 * 0.07;
+    // Atmospheric volumetric smoke drift
+    float n = fbm2(pos * 2.5 + vec2(uTime * 0.05, -uTime * 0.03));
+    float surface = (n - 0.5) * 0.16;
 
-    // Spotlight - soft radial falloff from mouse
+    // Subtle interactive spotlight following mouse
     float dist = length(pos - mouse);
-    float spotlight = exp(-dist * dist * 8.0) * 0.35;
+    float spotlight = exp(-dist * dist * 6.0) * 0.12;
 
-    // Secondary ambient glow - subtle breathing
-    float breath = sin(uTime * 0.3) * 0.5 + 0.5;
+    // Ambient breathing glow
+    float breath = sin(uTime * 0.4) * 0.5 + 0.5;
     vec2 glowCenter = vec2(0.5 * aspect.x, 0.5) + vec2(
-      sin(uTime * 0.15) * 0.3,
-      cos(uTime * 0.12) * 0.2
+      sin(uTime * 0.15) * 0.25,
+      cos(uTime * 0.12) * 0.15
     );
-    float ambientGlow = exp(-length(pos - glowCenter) * 1.2) * 0.10 * (0.7 + 0.3 * breath);
+    float ambientGlow = exp(-length(pos - glowCenter) * 1.4) * 0.08 * (0.8 + 0.2 * breath);
 
-    // Edge highlight - metallic rim lighting from cursor
-    float rimDist = length(pos - mouse);
-    float rim = smoothstep(0.6, 0.2, rimDist) * smoothstep(0.05, 0.15, rimDist) * 0.15;
-
-    // Combine
-    float lum = base + surface + ambientGlow;
-
-    // Subtle silver tint
-    vec3 color = vec3(lum);
-    color *= vignette;
+    // Combine lighting components
+    float lum = base + surface + spotlight + ambientGlow;
+    vec3 color = vec3(lum) * vignette;
 
     gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
   }
@@ -101,6 +89,7 @@ const VolumetricBackground = () => {
       depth: false,
       stencil: false,
       preserveDrawingBuffer: false,
+      powerPreference: "high-performance",
     });
     if (!gl) return false;
 
@@ -149,15 +138,17 @@ const VolumetricBackground = () => {
     const uTime = gl.getUniformLocation(program, "uTime");
 
     const resize = () => {
-      const dpr = 1; // Lock to 1x — background doesn't need high DPR
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      // Half-resolution rendering with bilinear filtering provides a smooth,
+      // cloud-like volumetric gradient while reducing fill-rate workload by ~75%
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5) * 0.5;
+      const w = Math.max(320, Math.floor(window.innerWidth * dpr));
+      const h = Math.max(240, Math.floor(window.innerHeight * dpr));
+      canvas.width = w;
+      canvas.height = h;
+      gl.viewport(0, 0, w, h);
     };
     resize();
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", resize, { passive: true });
 
     const onMove = (e: MouseEvent) => {
       targetMouseRef.current = {
@@ -165,32 +156,25 @@ const VolumetricBackground = () => {
         y: 1.0 - e.clientY / window.innerHeight,
       };
     };
-    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mousemove", onMove, { passive: true });
 
-    // Visibility API - pause when tab hidden
+    // Pause when tab is inactive to preserve battery and resources
     const onVisibility = () => {
       activeRef.current = !document.hidden;
     };
     document.addEventListener("visibilitychange", onVisibility);
 
     const startTime = performance.now();
-    const TARGET_FPS = 30;
-    const FRAME_INTERVAL = 1000 / TARGET_FPS;
-    let lastFrame = 0;
 
-    const render = (timestamp: number) => {
+    const render = () => {
       rafRef.current = requestAnimationFrame(render);
       if (!activeRef.current) return;
 
-      // Throttle to 30fps — background doesn't need 60fps
-      if (timestamp - lastFrame < FRAME_INTERVAL) return;
-      lastFrame = timestamp;
-
-      // Smooth mouse lerp
+      // Smooth mouse interpolation
       const m = mouseRef.current;
       const t = targetMouseRef.current;
-      m.x += (t.x - m.x) * 0.07;
-      m.y += (t.y - m.y) * 0.07;
+      m.x += (t.x - m.x) * 0.08;
+      m.y += (t.y - m.y) * 0.08;
 
       const time = (performance.now() - startTime) * 0.001;
 
@@ -199,7 +183,7 @@ const VolumetricBackground = () => {
       gl.uniform1f(uTime, time);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
-    render(0);
+    render();
 
     return () => {
       cancelAnimationFrame(rafRef.current);
@@ -212,8 +196,8 @@ const VolumetricBackground = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full"
-      style={{ zIndex: 0 }}
+      className="fixed inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 0, width: "100%", height: "100%" }}
     />
   );
 };

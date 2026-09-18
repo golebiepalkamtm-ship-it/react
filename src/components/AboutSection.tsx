@@ -142,19 +142,20 @@ const AboutSection = () => {
         signatureRef.current,
       ];
 
-      // Zaczynamy płynnie od dołu, ale nie aż tak głęboko jak wcześniej
+      // Zaczynamy płynnie od dołu
       gsap.fromTo(
         textElements,
-        { autoAlpha: 0, y: 60 },
+        { autoAlpha: 0, y: 40 },
         {
           autoAlpha: 1,
           y: 0,
-          stagger: 0.1,
-          ease: "none",
+          stagger: 0.08,
+          duration: 0.7,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top 80%",
-            toggleActions: "play none none reverse",
+            once: true,
           },
         },
       );
@@ -167,23 +168,24 @@ const AboutSection = () => {
       if (cards.length) {
         gsap.fromTo(
           cards,
-          { autoAlpha: 0, y: 80 },
+          { autoAlpha: 0, scale: 0.96 },
           {
             autoAlpha: 1,
-            y: 0,
-            stagger: 0.1,
-            ease: "none",
+            scale: 1,
+            stagger: 0.08,
+            duration: 0.6,
+            ease: "power2.out",
             scrollTrigger: {
               trigger: cards[0] as HTMLDivElement,
-              start: "top 80%",
-              toggleActions: "play none none reverse",
+              start: "top 85%",
+              once: true,
             },
           },
         );
 
-        // Delikatny, taki sam parallax dla WSZYSTKICH kart
+        // Delikatny, spójny parallax dla kart
         gsap.to(cards, {
-          y: -40,
+          y: -30,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,

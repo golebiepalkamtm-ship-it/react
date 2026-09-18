@@ -283,13 +283,13 @@ const AuctionDetail: React.FC = () => {
 
   const isDocPdf = useCallback((u?: string | null) => {
     if (!u) return false;
-    const clean = u.split("?")[0].split("#")[0].toLowerCase();
+    const clean = ((u.split("?")[0] ?? "").split("#")[0] ?? "").toLowerCase();
     return clean.endsWith(".pdf") || clean.includes("pdf");
   }, []);
 
   const isDocImage = useCallback((u?: string | null) => {
     if (!u) return false;
-    const clean = u.split("?")[0].split("#")[0].toLowerCase();
+    const clean = ((u.split("?")[0] ?? "").split("#")[0] ?? "").toLowerCase();
     return (
       /\.(jpg|jpeg|png|gif|webp|bmp|tiff|svg)$/i.test(clean) ||
       (!clean.endsWith(".pdf") && !clean.includes("pdf"))

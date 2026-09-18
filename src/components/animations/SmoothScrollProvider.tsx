@@ -39,17 +39,17 @@ export const SmoothScrollProvider = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Easing optimized for 144Hz+ monitors
-    const awwwEasing = (t: number): number => 1 - Math.pow(1 - t, 4);
+    // Smooth and responsive easing curve
+    const easeOutExpo = (t: number): number => Math.min(1, 1.001 - Math.pow(2, -10 * t));
 
     const lenis = new Lenis({
-      duration: 2.2, // Majestic, slow and smooth duration
-      easing: awwwEasing,
+      duration: 1.1, // Snappy yet silky smooth duration (prevents sluggish lag)
+      easing: easeOutExpo,
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 0.8, // Slightly softer wheel reaction
-      touchMultiplier: 1.2,
+      wheelMultiplier: 1.0, // Natural 1:1 wheel reaction
+      touchMultiplier: 1.5,
       infinite: false,
     });
 
@@ -64,12 +64,8 @@ export const SmoothScrollProvider = ({
     };
 
     gsap.ticker.add(update);
-    gsap.ticker.lagSmoothing(0);
-
-    // Hardware acceleration boost
-    if (wrapperRef.current) {
-      wrapperRef.current.style.willChange = "transform";
-    }
+    // Smooth frame pacing on frame drops instead of jumping
+    gsap.ticker.lagSmoothing(500, 33);
 
     const refreshScrollTriggers = () => {
       // Debounced or direct? Direct for accuracy, but maybe throttled on frequent resize

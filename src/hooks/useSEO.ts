@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 
 export interface SEOProps {
-  title?: string;
-  description?: string;
-  image?: string;
-  type?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  image?: string | undefined;
+  type?: string | undefined;
 }
 
 export function useSEO({

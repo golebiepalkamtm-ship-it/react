@@ -243,9 +243,10 @@ export const UnifiedAuctionCard = memo(
       const badges: { label: string; icon?: string }[] = [];
       if (isPigeon && gender) {
         const g = gender.toLowerCase();
+        const icon = g === "female" ? "♀" : g === "male" ? "♂" : undefined;
         badges.push({
           label: g === "female" ? "Samica" : g === "male" ? "Samiec" : gender,
-          icon: g === "female" ? "♀" : g === "male" ? "♂" : undefined,
+          ...(icon ? { icon } : {}),
         });
       }
       if (isPigeon && color) badges.push({ label: color });

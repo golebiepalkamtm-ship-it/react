@@ -24,7 +24,6 @@ import { ArrowRight, Trophy, Zap, Users, Star } from "lucide-react";
 import { MagneticButton } from "@/components/effects/MagneticButton";
 import Header from "@/components/Header";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import LiveBidsTicker from "@/components/auction/LiveBidsTicker";
 
 const Carousel3D = lazy(() => import("@/components/gallery/Carousel3D"));
 const AboutSection = lazy(() => import("@/components/AboutSection"));
@@ -135,14 +134,14 @@ const HeroPremium = () => {
         };
       });
 
-      gsap.set(chars, { willChange: "transform, opacity, filter" });
+      gsap.set(chars, { willChange: "transform, opacity" });
 
       const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: heroRef.current,
           start: "top top",
           end: "bottom top",
-          scrub: 1.2,
+          scrub: 0.6,
           pin: true,
           pinSpacing: false,
           anticipatePin: 1,
@@ -168,7 +167,6 @@ const HeroPremium = () => {
             scale: (i) => charAnimations[i]!.scale,
             rotation: (i) => charAnimations[i]!.rotation,
             opacity: 0,
-            filter: "blur(12px)",
             stagger: { amount: 0.1, from: "random" },
             ease: "power1.inOut",
             force3D: true,
@@ -176,22 +174,22 @@ const HeroPremium = () => {
           0,
         );
 
-      // SEKCJE
+      // SEKCJE - płynne pojawianie się bez migotania przy cofaniu
       const sections = gsap.utils.toArray<HTMLElement>(".home-section");
       sections.forEach((sec) => {
         gsap.fromTo(
           sec,
-          { autoAlpha: 0, y: 50, willChange: "transform, opacity" },
+          { autoAlpha: 0, y: 40 },
           {
             autoAlpha: 1,
             y: 0,
-            duration: 1,
+            duration: 0.8,
             ease: "power2.out",
             force3D: true,
             scrollTrigger: {
               trigger: sec,
               start: "top 90%",
-              toggleActions: "play none none reverse",
+              once: true,
             },
           },
         );
@@ -519,9 +517,6 @@ export const HomePagePremium = () => {
   return (
     <div ref={containerRef} className="min-h-screen bg-transparent">
       <Header />
-      <div className="sticky top-[80px] z-[40]">
-        <LiveBidsTicker />
-      </div>
 
       <main>
         {/* Intro Section - Hero Wrapper */}

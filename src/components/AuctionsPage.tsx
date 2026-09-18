@@ -96,7 +96,7 @@ const AuctionsPage = () => {
   const [isWatchlistActive, setIsWatchlistActive] = useState(false);
 
   const { auctions, isLoading, refetch, error } = useAuctions({
-    status: "active",
+    status: "ACTIVE",
     sortBy,
   });
 

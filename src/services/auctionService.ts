@@ -31,7 +31,7 @@ export const auctionService = {
   async getAuctions(filters: AuctionFilters = {}): Promise<Auction[]> {
     const params: Record<string, string | number | undefined> = {};
 
-    if (filters.status) params.status = filters.status;
+    if (filters.status) params.status = filters.status.toLowerCase();
     if (filters.sortBy) params.sortBy = filters.sortBy;
     if (filters.limit) params.limit = filters.limit;
     if (filters.search) params.search = filters.search;

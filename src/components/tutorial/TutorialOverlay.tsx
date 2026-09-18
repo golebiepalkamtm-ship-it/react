@@ -245,12 +245,16 @@ export default function TutorialOverlay() {
                 {/* Black = transparent cutout */}
                 {targetRect && (
                   <motion.rect
+                    x={targetRect.left || 0}
+                    y={targetRect.top || 0}
+                    width={targetRect.width || 0}
+                    height={targetRect.height || 0}
                     initial={{ opacity: 0 }}
                     animate={{
-                      x: targetRect.left,
-                      y: targetRect.top,
-                      width: targetRect.width,
-                      height: targetRect.height,
+                      x: targetRect.left || 0,
+                      y: targetRect.top || 0,
+                      width: targetRect.width || 0,
+                      height: targetRect.height || 0,
                       opacity: 1,
                     }}
                     transition={{

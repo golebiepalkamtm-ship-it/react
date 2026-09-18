@@ -46,7 +46,6 @@ import {
   LazyPrivacy,
 } from "@/utils/lazyImports";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { HeroBackground } from "@/styles/HeroBackground";
 
 import VolumetricBackground from "@/components/VolumetricBackground";
 import RippleShockwave from "@/components/RippleShockwave";
@@ -65,12 +64,12 @@ const BackgroundWrapper = React.memo(() => {
     <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
+        inset: 0,
+        width: "100%",
+        height: "100%",
         zIndex: -9999,
         pointerEvents: "none",
+        overflow: "hidden",
       }}
     >
       <VolumetricBackground />

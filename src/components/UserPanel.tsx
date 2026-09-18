@@ -154,16 +154,23 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
       if (!session?.access_token) return;
       try {
         setLoadingAuctions(true);
-        const [my, watched, bidding, won] = await Promise.all([
+        const results = await Promise.allSettled([
           auctionService.getUserAuctions(session.access_token),
           auctionService.getWatchlist(session.access_token),
           auctionService.getBiddingAuctions(session.access_token),
           auctionService.getWonAuctions(session.access_token),
         ]);
-        setUserAuctions(my);
-        setWatchedAuctions(watched);
-        setBiddingAuctions(bidding);
-        setWonAuctions(won);
+        
+        setUserAuctions(results[0].status === 'fulfilled' ? results[0].value : []);
+        setWatchedAuctions(results[1].status === 'fulfilled' ? results[1].value : []);
+        setBiddingAuctions(results[2].status === 'fulfilled' ? results[2].value : []);
+        setWonAuctions(results[3].status === 'fulfilled' ? results[3].value : []);
+        
+        results.forEach((r, i) => {
+          if (r.status === 'rejected') {
+            console.error(`Failed to fetch auction data at index ${i}:`, r.reason);
+          }
+        });
       } catch (err) {
         console.error("Failed to fetch user auction data:", err);
       } finally {

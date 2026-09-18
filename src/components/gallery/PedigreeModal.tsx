@@ -11,7 +11,7 @@ interface PedigreeModalProps {
 }
 
 export const PedigreeModal = ({ isOpen, onClose, pedigreeUrl, images = [], startIndex = 0 }: PedigreeModalProps) => {
-  const cleanUrl = (u?: string | null) => (u ? u.split('?')[0].split('#')[0].toLowerCase() : '');
+  const cleanUrl = (u?: string | null) => (u ? ((u.split('?')[0] ?? '').split('#')[0] ?? '').toLowerCase() : '');
 
   const isPdf = useMemo(() => {
     return typeof pedigreeUrl === 'string' && (cleanUrl(pedigreeUrl).endsWith('.pdf') || cleanUrl(pedigreeUrl).includes('pdf'));

@@ -85,6 +85,7 @@ const RippleShockwave = () => {
 
       for (let i = ripples.length - 1; i >= 0; i--) {
         const r = ripples[i];
+        if (!r) continue;
         r.life--;
         if (r.life <= 0) { ripples.splice(i, 1); continue; }
 

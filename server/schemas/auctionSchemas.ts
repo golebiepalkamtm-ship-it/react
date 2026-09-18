@@ -166,7 +166,11 @@ export const buyNowSchema = z.object({
 });
 
 export const queryParamsSchema = z.object({
-  status: z.enum(["all", "active", "ended", "cancelled"]).optional(),
+  status: z
+    .preprocess(
+      (val) => (typeof val === "string" ? val.toLowerCase() : val),
+      z.enum(["all", "active", "ended", "cancelled"]).optional(),
+    ),
   sortBy: z
     .enum(["price-high", "price-low", "newest", "ending-soon"])
     .optional(),

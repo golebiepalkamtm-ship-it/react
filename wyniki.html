@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Zestawienie Wyników Lotowych - Pałka MTM</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 10mm 10mm 12mm 10mm;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 8pt;
+      line-height: 1.35;
+      color: #1f2937;
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #b8933b;
+    }
+    .titles {
+      flex: 1;
+    }
+    .main-title {
+      font-size: 13pt;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      color: #111827;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .sub-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #8c6a1e;
+      letter-spacing: 0.8px;
+      margin: 2px 0 0 0;
+      text-transform: uppercase;
+    }
+    .stats-strip {
+      display: flex;
+      gap: 8px;
+    }
+    .stat-pill {
+      background: #fdfaf3;
+      border: 1px solid #e3d2a7;
+      border-radius: 4px;
+      padding: 4px 8px;
+      text-align: center;
+      min-width: 68px;
+    }
+    .stat-pill-val {
+      font-size: 11pt;
+      font-weight: 800;
+      color: #795b16;
+      line-height: 1;
+    }
+    .stat-pill-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      color: #4b5563;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .seasons-columns {
+      columns: 2;
+      column-gap: 10px;
+    }
+    .season-card {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin-bottom: 8px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .season-header {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 4px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .season-title {
+      font-size: 9pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.2px;
+    }
+    .season-badge {
+      font-size: 7pt;
+      font-weight: 700;
+      color: #795b16;
+      background: #fcf6e8;
+      border: 1px solid #dfcca0;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+    .season-note {
+      background: #fef2f2;
+      border-left: 2px solid #ef4444;
+      color: #991b1b;
+      font-size: 7pt;
+      font-weight: 600;
+      padding: 4px 6px;
+      margin: 4px 6px 2px 6px;
+      border-radius: 2px;
+      line-height: 1.25;
+    }
+    .achievement-list {
+      list-style: none;
+      padding: 4px 8px;
+      margin: 0;
+    }
+    .achievement-item {
+      padding: 2px 0;
+      border-bottom: 1px dotted #f1f5f9;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .achievement-item:last-child {
+      border-bottom: none;
+    }
+    .num {
+      font-size: 7pt;
+      font-weight: 700;
+      color: #94a3b8;
+      width: 14px;
+      flex-shrink: 0;
+    }
+    .ach-text {
+      flex: 1;
+      color: #334155;
+      font-size: 7.8pt;
+    }
+    .tag-mistrz {
+      color: #8c6a1e;
+      font-weight: 800;
+    }
+    .tag-wicemistrz {
+      color: #475569;
+      font-weight: 700;
+    }
+    .tag-przodownik {
+      color: #b45309;
+      font-weight: 600;
+    }
+    .footer-bar {
+      margin-top: 8px;
+      padding-top: 4px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 7pt;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-banner">
+    <div class="titles">
+      <h1 class="main-title">KOMPLETNE ZESTAWIENIE WYNIKÓW I OSIĄGNIĘĆ LOTOWYCH</h1>
+      <div class="sub-title">HODOWLA GOŁĘBI POCZTOWYCH PAŁKA MTM</div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-pill">
+        <div class="stat-pill-val">24</div>
+        <div class="stat-pill-label">Sezony</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-val">220</div>
+        <div class="stat-pill-label">Wyników</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-val">104</div>
+        <div class="stat-pill-label">Mistrz</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-val">108</div>
+        <div class="stat-pill-label">V-ce / Przod.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="seasons-columns">
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2001</span>
+          <span class="season-badge">6 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań – Kat A: <span class="tag-mistrz">Mistrz</span> (235.77 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań – Kat B: <span class="tag-wicemistrz">I Wicemistrz</span> (503.62 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Lubań – Kat GMO: <span class="tag-mistrz">Mistrz</span></span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-wicemistrz">I Wicemistrz</span> (235.77 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-przodownik">IX Przodownik</span> (503.62 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat GMO: <span class="tag-wicemistrz">I Wicemistrz</span></span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2002</span>
+          <span class="season-badge">6 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań – Kat A: <span class="tag-mistrz">Mistrz</span> (501.52 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań – Kat GMO: <span class="tag-wicemistrz">II Wicemistrz</span> (40 coeff)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (501.52 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Okręg Jelenia Góra – Kat GMO: <span class="tag-mistrz">Mistrz</span> (40 coeff)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">50 Przodownik</span> (501.52 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Region V – Kat B: <span class="tag-przodownik">II Przodownik</span> (168.11 coeff, 16 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2003</span>
+          <span class="season-badge">15 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań – Kat A: <span class="tag-mistrz">Mistrz</span> (203.54 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań – Kat B: <span class="tag-mistrz">Mistrz</span> (217.78 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Lubań – Kat C: <span class="tag-mistrz">Mistrz</span> (71.99 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Lubań – Kat GMO: <span class="tag-mistrz">Mistrz</span> (462.22 coeff)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (203.54 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-wicemistrz">I Wicemistrz</span> (217.78 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Okręg Jelenia Góra – Kat C: <span class="tag-mistrz">Mistrz</span> (71.99 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Okręg Jelenia Góra – Kat GMO: <span class="tag-przodownik">VI Przodownik</span> (462.22 coeff)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">10 Przodownik</span> (203.54 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Region V – Kat B: <span class="tag-przodownik">49 Przodownik</span> (217.78 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">Region V – Kat C: 2 Miejsce (971.99 coeff)</span></li><li class="achievement-item"><span class="num">12.</span><span class="ach-text">Region V – Kat D: <span class="tag-przodownik">II Przodownik</span></span></li><li class="achievement-item"><span class="num">13.</span><span class="ach-text">Region V – Kat GMP: <span class="tag-przodownik">11 Przodownik</span> (1066.26 coeff)</span></li><li class="achievement-item"><span class="num">14.</span><span class="ach-text">MP – Kat C: <span class="tag-przodownik">13 Przodownik</span> (71.99 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">15.</span><span class="ach-text">MP – Kat GMP: <span class="tag-przodownik">28 Przodownik</span> (1066.26 coeff)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2004</span>
+          <span class="season-badge">9 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań – Kat A: <span class="tag-mistrz">Mistrz</span> (180.91 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań – Kat B: <span class="tag-mistrz">Mistrz</span> (196.07 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Lubań – Kat GMO: <span class="tag-wicemistrz">I Wicemistrz</span></span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (180.91 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-przodownik">I Przodownik</span> (196.07 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat GMO: <span class="tag-przodownik">I Przodownik</span></span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">18 Przodownik</span> (180.91 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Region V – Kat D: <span class="tag-przodownik">35 Przodownik</span> (839.32 coeff)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">MP – Kat A: <span class="tag-przodownik">32 Przodownik</span> (180.91 coeff, 20 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2005</span>
+          <span class="season-badge">9 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań – Kat A: <span class="tag-mistrz">Mistrz</span> (90.65 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań – Kat B: <span class="tag-mistrz">Mistrz</span> (66.96 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Lubań – Kat GMO: <span class="tag-wicemistrz">I Wicemistrz</span></span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (90.65 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-mistrz">Mistrz</span> (66.96 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat GMO: <span class="tag-przodownik">I Przodownik</span></span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Region V – Kat A: <span class="tag-wicemistrz">II Wicemistrz</span> (90.65 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">MP – Kat A: <span class="tag-przodownik">I Przodownik</span> (90.65 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">MP – Kat B: <span class="tag-przodownik">V Przodownik</span> (66.96 coeff, 16 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2006</span>
+          <span class="season-badge">10 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań – Kat A: <span class="tag-mistrz">Mistrz</span> (240.15 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań – Kat B: <span class="tag-mistrz">Mistrz</span> (183.25 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Lubań – Kat GMO: <span class="tag-mistrz">Mistrz</span> (82.77 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (199.28 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-przodownik">II Przodownik</span> (367.51 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat GMO: <span class="tag-wicemistrz">I Wicemistrz</span> (82.77 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">18 Przodownik</span> (240.15 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Region V – Kat B: <span class="tag-przodownik">24 Przodownik</span> (183.25 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Region V – Kat GMO: <span class="tag-przodownik">3 Przodownik</span> (82.77 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">MP – Kat GMO: <span class="tag-przodownik">VI Przodownik</span> (82.77 coeff, 15 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2007</span>
+          <span class="season-badge">5 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań – Kat A: <span class="tag-mistrz">Mistrz</span> (78.06 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań – Kat GMO: <span class="tag-wicemistrz">II Wicemistrz</span></span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (78.06 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">II Przodownik</span> (78.06 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">MP – Kat A: <span class="tag-przodownik">I Przodownik</span> (78.06 coeff, 20 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2008</span>
+          <span class="season-badge">11 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Lubań 092 – Kat A: <span class="tag-mistrz">Mistrz</span> (49.88 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Lubań 092 – Kat B: <span class="tag-mistrz">Mistrz</span> (158.27 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Lubań 092 – Kat GMP: <span class="tag-wicemistrz">I Wicemistrz</span> (49.88 coeff)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (49.88 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-wicemistrz">II Wicemistrz</span> (158.27 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat GMP: <span class="tag-wicemistrz">I Wicemistrz</span> (49.88 coeff)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Region V – Kat A: <span class="tag-mistrz">Mistrz</span> (49.88 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Region V – Kat B: <span class="tag-przodownik">XX Przodownik</span> (158.27 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Region V – Kat GMP: <span class="tag-wicemistrz">I Wicemistrz</span> (49.88 coeff)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Region V – Kat GMP: <span class="tag-przodownik">20 Przodownik</span> (158.27 coeff)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">MP – Kat A: <span class="tag-przodownik">3 Przodownik</span> (49.88 coeff, 20 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2009</span>
+          <span class="season-badge">11 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat A: <span class="tag-mistrz">MISTRZ*</span> (82.33 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat B: <span class="tag-mistrz">MISTRZ*</span> (81.43 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat C: II/<span class="tag-wicemistrz">III V-ce MISTRZ*</span> (348.08 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat M: <span class="tag-wicemistrz">I V-ce MISTRZ*</span> (130.47 coeff, 6 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Młode: <span class="tag-wicemistrz">I V-ce MISTRZ*</span> (160.61 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">MISTRZ</span> (82.33 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-mistrz">MISTRZ</span> (81.43 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Okręg Jelenia Góra – Kat C: <span class="tag-przodownik">16. Przodownik</span> (348.08 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Okręg Jelenia Góra – Kat M: <span class="tag-przodownik">1. Przodownik</span> (130.47 coeff, 6 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Okręg Jelenia Góra – Kat Młode: <span class="tag-wicemistrz">I V-ce MISTRZ</span> (160.61 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">Generalne – <span class="tag-wicemistrz">I V-ce MISTRZ</span> (1401.99 coeff, 32 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2010</span>
+          <span class="season-badge">10 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat A: <span class="tag-wicemistrz">I V-ce MISTRZ*</span> (293.79 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat B: <span class="tag-mistrz">MISTRZ*</span> (62.47 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat H: <span class="tag-wicemistrz">I V-ce MISTRZ*</span> (975.71 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Młode: <span class="tag-mistrz">MISTRZ*</span> (245.86 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Roczne: <span class="tag-mistrz">MISTRZ*</span> (1692.16 coeff, 34 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-wicemistrz">I V-ce MISTRZ</span> (293.79 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-mistrz">MISTRZ</span> (62.47 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Okręg Jelenia Góra – Kat H: <span class="tag-wicemistrz">II V-ce MISTRZ</span> (975.71 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Okręg Jelenia Góra – Kat Młode: <span class="tag-mistrz">MISTRZ</span> (245.86 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Okręg Jelenia Góra – Kat Roczne: <span class="tag-przodownik">1. Przodownik</span> (1692.16 coeff, 34 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2011</span>
+          <span class="season-badge">19 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Total dorosłych: <span class="tag-mistrz">Mistrz</span> (611.73 coeff, 70 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat A: <span class="tag-mistrz">Mistrz</span> (161.32 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat B: <span class="tag-mistrz">Mistrz</span> (51.32 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat C: <span class="tag-mistrz">Mistrz</span> (84.07 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat M: <span class="tag-mistrz">Mistrz</span> (59.36 coeff, 6 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat D: <span class="tag-mistrz">Mistrz</span> (296.71 coeff)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat H: <span class="tag-mistrz">Mistrz</span> (588.92 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Roczne: <span class="tag-mistrz">Mistrz</span> (534.49 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-wicemistrz">I V-ce MISTRZ</span> (161.32 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-mistrz">MISTRZ</span> (51.32 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">Okręg Jelenia Góra – Kat C: <span class="tag-mistrz">MISTRZ</span> (84.07 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">12.</span><span class="ach-text">Okręg Jelenia Góra – Kat D: <span class="tag-mistrz">MISTRZ</span> (296.71 coeff, 45 kon)</span></li><li class="achievement-item"><span class="num">13.</span><span class="ach-text">Okręg Jelenia Góra – Kat E: <span class="tag-wicemistrz">II V-ce MISTRZ</span> (81.60 coeff, 6 kon)</span></li><li class="achievement-item"><span class="num">14.</span><span class="ach-text">Okręg Jelenia Góra – Kat F: <span class="tag-wicemistrz">I V-ce MISTRZ</span> (243.05 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">15.</span><span class="ach-text">Okręg Jelenia Góra – Kat G: <span class="tag-przodownik">1. Przodownik</span> (1583.79 coeff, 34 kon)</span></li><li class="achievement-item"><span class="num">16.</span><span class="ach-text">Okręg Jelenia Góra – Kat H: <span class="tag-wicemistrz">II V-ce MISTRZ</span> (588.92 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">17.</span><span class="ach-text">Generalne – <span class="tag-wicemistrz">I V-ce MISTRZ</span> (1417.76 coeff, 32 kon)</span></li><li class="achievement-item"><span class="num">18.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">3 Przodownik</span> (161.32 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">19.</span><span class="ach-text">Region V – Kat B: <span class="tag-mistrz">Mistrz</span> (51.32 coeff, 16 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2012</span>
+          <span class="season-badge">13 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat A: I <span class="tag-mistrz">Mistrz</span> (575.76 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat B: I <span class="tag-mistrz">Mistrz</span> (160.25 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat C: <span class="tag-wicemistrz">II Wicemistrz</span> (119.72 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat M Maraton: I <span class="tag-mistrz">Mistrz</span> (103.06 coeff)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat D: I <span class="tag-mistrz">Mistrz</span> (855.28 coeff)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat GMO: I <span class="tag-mistrz">Mistrz</span> (1409.58 coeff)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat H: I <span class="tag-mistrz">Mistrz</span> (887.54 coeff)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Roczne: I <span class="tag-mistrz">Mistrz</span> (413.58 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Olimpijskie: I <span class="tag-mistrz">Mistrz</span> (646.45 coeff)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Total dorośli: I <span class="tag-mistrz">Mistrz</span> (1080.51 coeff)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Total młodzi: <span class="tag-wicemistrz">II Wicemistrz</span> (150.62 coeff)</span></li><li class="achievement-item"><span class="num">12.</span><span class="ach-text">MP – Kat Maraton: <span class="tag-przodownik">8 Przodownik</span> (648.45 coeff)</span></li><li class="achievement-item"><span class="num">13.</span><span class="ach-text">MP – Kat Olimpijskie: <span class="tag-przodownik">68 Przodownik</span> (847.37 coeff)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2013</span>
+          <span class="season-badge">21 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat A: <span class="tag-mistrz">Mistrz</span> (66.43 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat B: <span class="tag-mistrz">Mistrz</span> (87.62 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat C: <span class="tag-przodownik">1 Przodownik</span> (525.46 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat D: <span class="tag-mistrz">Mistrz</span> (679.51 coeff, 45 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat GMO: <span class="tag-wicemistrz">II Wicemistrz</span> (1373.93 coeff, 32 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat H: <span class="tag-mistrz">Mistrz</span> (338.68 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Roczne: <span class="tag-przodownik">3 Przodownik</span> (1025.61 coeff, 28 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Total młodzi: <span class="tag-wicemistrz">I Wicemistrz</span> (562.03 coeff, 25 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat 5 najlepszych młodzi: <span class="tag-mistrz">Mistrz</span> (1139.02 coeff, 21 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (20 kon)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-mistrz">Mistrz</span> (16 kon)</span></li><li class="achievement-item"><span class="num">12.</span><span class="ach-text">Okręg Jelenia Góra – Kat H: <span class="tag-mistrz">Mistrz</span> (18 kon)</span></li><li class="achievement-item"><span class="num">13.</span><span class="ach-text">Okręg Jelenia Góra – Kat Roczne: <span class="tag-wicemistrz">I Wicemistrz</span> (20 kon)</span></li><li class="achievement-item"><span class="num">14.</span><span class="ach-text">Region V – Kat A: <span class="tag-wicemistrz">I Wicemistrz</span> (20 kon)</span></li><li class="achievement-item"><span class="num">15.</span><span class="ach-text">Region V – Kat B: <span class="tag-przodownik">1 Przodownik</span> (16 kon)</span></li><li class="achievement-item"><span class="num">16.</span><span class="ach-text">Region V – Kat Roczne: <span class="tag-przodownik">1 Przodownik</span> (20 kon)</span></li><li class="achievement-item"><span class="num">17.</span><span class="ach-text">Region V – Kat D: <span class="tag-przodownik">3 Przodownik</span> (45 kon)</span></li><li class="achievement-item"><span class="num">18.</span><span class="ach-text">Region V – Kat GMP: <span class="tag-przodownik">68 Przodownik</span> (1381.43 coeff)</span></li><li class="achievement-item"><span class="num">19.</span><span class="ach-text">MP – Kat A: <span class="tag-wicemistrz">II Wicemistrz</span> (66.43 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">20.</span><span class="ach-text">MP – Kat B: <span class="tag-przodownik">13 Przodownik</span> (685.69 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">21.</span><span class="ach-text">MP – Kat Roczne: <span class="tag-przodownik">9 Przodownik</span> (227.84 coeff, 20 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2014</span>
+          <span class="season-badge">14 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat A: I <span class="tag-mistrz">Mistrz</span> (116.13 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat B: I <span class="tag-mistrz">Mistrz</span> (661.38 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat C: <span class="tag-przodownik">5 Przodownik</span> (362.76 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat D: I <span class="tag-mistrz">Mistrz</span> (557.24 coeff)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat H: I <span class="tag-mistrz">Mistrz</span> (577.48 coeff)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Roczne: I <span class="tag-mistrz">Mistrz</span> (239.29 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat Lotniki: <span class="tag-przodownik">2 Przodownik</span> (524.88 coeff)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: I <span class="tag-mistrz">Mistrz</span> (116.13 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: I <span class="tag-mistrz">Mistrz</span> (661.38 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Region V – Kat A: <span class="tag-mistrz">Mistrz</span> (116.13 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">Region V – Kat B: <span class="tag-mistrz">Mistrz</span> (661.38 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">12.</span><span class="ach-text">MP – Kat A: <span class="tag-mistrz">Mistrz</span> (116.13 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">13.</span><span class="ach-text">MP – Kat B: <span class="tag-mistrz">Mistrz</span> (661.38 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">14.</span><span class="ach-text">MP – Kat Klasa Sport A: 22 Miejsce (20 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2015</span>
+          <span class="season-badge">8 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat A: I <span class="tag-mistrz">Mistrz</span> (86.77 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat B: I <span class="tag-mistrz">Mistrz</span> (237.95 coeff, 16 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat C: I <span class="tag-mistrz">Mistrz</span> (199.65 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Łużyce Lubań 0446 – Kat D: I <span class="tag-mistrz">Mistrz</span> (520.82 coeff, 45 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">Mistrz</span> (86.77 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Region V – Kat A: <span class="tag-mistrz">Mistrz</span> (86.77 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">MP – Kat A: <span class="tag-mistrz">Mistrz</span> (86.77 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">MP – Kat B: <span class="tag-przodownik">1 Przodownik</span> (71.68 coeff, 16 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2017</span>
+          <span class="season-badge">2 osiągnięcia</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Kwisa 0489 – Kat A: <span class="tag-przodownik">1 Przodownik</span> (348.53 coeff, 20 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Kwisa 0489 – Kat B: <span class="tag-przodownik">1 Przodownik</span> (153.39 coeff, 16 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2018</span>
+          <span class="season-badge">11 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Kwisa 0489 – Kat A: <span class="tag-mistrz">Mistrz</span> (29.38 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Kwisa 0489 – Kat B: <span class="tag-mistrz">Mistrz</span> (35.74 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Kwisa 0489 – Kat Total: <span class="tag-przodownik">XIII Przodownik</span> (942.69 coeff, 43 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Kwisa 0489 – Kat Młode 5 gołębi: 57 miejsce (239.98 pkt, 1018.135 coeff, 5 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Kwisa 0489 – Kat Młode Główna: 59 miejsce (109.32 pkt, 15.4 knk/km, 4 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">MISTRZ</span> (29.38 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-mistrz">MISTRZ</span> (35.74 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Region V – Kat A: <span class="tag-mistrz">MISTRZ</span> (27.97 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Region V – Kat B: <span class="tag-mistrz">MISTRZ</span> (38.43 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">MP – Kat A: <span class="tag-wicemistrz">I V-ce Mistrz</span> (25.94 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">MP – Kat B: <span class="tag-przodownik">3. Przodownik</span> (51.28 coeff, 15 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2019</span>
+          <span class="season-badge">8 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Kwisa 0489 – Kat A: <span class="tag-mistrz">Mistrz</span> (82.76 coeff)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Kwisa 0489 – Kat B: <span class="tag-mistrz">Mistrz</span> (130.64 coeff)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Kwisa 0489 – Kat Młode GMP: 1 miejsce (931.51 pkt)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Kwisa 0489 – Kat Młode Derby: 7 miejsce (591.85 pkt, 2752.677 coeff)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Oddział Kwisa 0489 – Kat Młode 5 gołębi: 1 miejsce (181.10 pkt, 2807.786 coeff)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Oddział Kwisa 0489 – Kat Młode Total: 1 miejsce (109.88 pkt, 73.7% coeff)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-wicemistrz">II Wicemistrz</span> (159.30 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Okręg Jelenia Góra – Kat Młode: <span class="tag-przodownik">1 Przodownik</span> (931.51 pkt, 24 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2020</span>
+          <span class="season-badge">16 osiągnięć</span>
+        </div>
+        <div class="season-note">UWAGA: Wyniki na szczeblu Okręgu, Regionu V i MP nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi</div>
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Kwisa 0489 – Kat A: <span class="tag-mistrz">Mistrz</span> (69.22 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Kwisa 0489 – Kat B: <span class="tag-mistrz">Mistrz</span> (82.03 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Oddział Kwisa 0489 – Kat C: <span class="tag-mistrz">Mistrz</span> (561.95 coeff, 9 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Oddział Kwisa 0489 – Kat D: <span class="tag-mistrz">Mistrz</span> (713.20 coeff, 42 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">Okręg Jelenia Góra (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat A: <span class="tag-mistrz">Mistrz</span> (69.22 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">6.</span><span class="ach-text">Okręg Jelenia Góra (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat B: <span class="tag-mistrz">Mistrz</span> (81.30 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">7.</span><span class="ach-text">Okręg Jelenia Góra (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat C: <span class="tag-przodownik">3 Przodownik</span> (561.95 coeff, 12kon)</span></li><li class="achievement-item"><span class="num">8.</span><span class="ach-text">Okręg Jelenia Góra (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat D: <span class="tag-mistrz">Mistrz</span> (713.20 coeff, 42 kon)</span></li><li class="achievement-item"><span class="num">9.</span><span class="ach-text">Region V (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat A: <span class="tag-wicemistrz">I V-ce Mistrz</span> (63.82 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">10.</span><span class="ach-text">Region V (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat B: <span class="tag-wicemistrz">I V-ce Mistrz</span> (70.75 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">11.</span><span class="ach-text">Region V (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat D: <span class="tag-wicemistrz">II V-ce Mistrz</span> (713.20 coeff, 42 kon)</span></li><li class="achievement-item"><span class="num">12.</span><span class="ach-text">Region V (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat Derby: Mistrz 567.530 coeff 25 kon (Mistrz miał 757 a <span class="tag-wicemistrz">V-ce Mistrz</span> 927)</span></li><li class="achievement-item"><span class="num">13.</span><span class="ach-text">MP (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat A: <span class="tag-wicemistrz">I V-ce Mistrz</span> (63.82 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">14.</span><span class="ach-text">MP (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat B: <span class="tag-przodownik">2 Przodownik</span> (70.75 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">15.</span><span class="ach-text">MP (nieuznane z powodu błędnego nagłówka protokołu przyporządkowania gołębi) – Kat Derby: Mistrz 567.530 coeff 25 kon (Mistrz miał 757 a <span class="tag-wicemistrz">V-ce Mistrz</span> 927)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2021</span>
+          <span class="season-badge">3 osiągnięcia</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-wicemistrz">I V-ce Mistrz</span> PAŁKA MTM (249.85 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Okręg Jelenia Góra – Kat R Roczne: <span class="tag-wicemistrz">V-ce Mistrz</span> (1351.35 coeff, 25 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">11 Przodownik</span> (249.85 coeff, 18 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2022</span>
+          <span class="season-badge">2 osiągnięcia</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-wicemistrz">I V-ce Mistrz</span> MTM Pałka (223.05 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-przodownik">4. Przodownik</span> MTM Pałka (247.24 coeff, 18 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2023</span>
+          <span class="season-badge">4 osiągnięcia</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Kwisa 0489 – Kat A: <span class="tag-mistrz">MISTRZ</span> Pałka MTM (184.75 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Kwisa 0489 – Kat B: <span class="tag-wicemistrz">I V-ce MISTRZ</span> Pałka MTM (286.13 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-przodownik">3. Przodownik</span> (278.52 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Okręg Jelenia Góra – Kat B: <span class="tag-przodownik">10. Przodownik</span> (344.55 coeff, 15 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2024</span>
+          <span class="season-badge">5 osiągnięć</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Kwisa 0489 – Kat A: <span class="tag-mistrz">MISTRZ</span> Pałka MTM (124.53 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Oddział Kwisa 0489 – Kat B: <span class="tag-mistrz">MISTRZ</span> Pałka MTM (245.78 coeff, 15 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-mistrz">MISTRZ</span> Pałka MTM (85.05 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">4.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">2. Przodownik</span> (85.05 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">5.</span><span class="ach-text">MP – Kat A: <span class="tag-przodownik">13. Przodownik</span> (85.05 coeff, 18 kon)</span></li>
+        </ul>
+      </div>
+    
+      <div class="season-card">
+        <div class="season-header">
+          <span class="season-title">SEZON 2025</span>
+          <span class="season-badge">3 osiągnięcia</span>
+        </div>
+        
+        <ul class="achievement-list">
+          <li class="achievement-item"><span class="num">1.</span><span class="ach-text">Oddział Kwisa 0489 – Kat A: <span class="tag-mistrz">MISTRZ</span> Pałka (296.42 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">2.</span><span class="ach-text">Okręg Jelenia Góra – Kat A: <span class="tag-przodownik">1. Przodownik</span> (296.42 coeff, 18 kon)</span></li><li class="achievement-item"><span class="num">3.</span><span class="ach-text">Region V – Kat A: <span class="tag-przodownik">45. Przodownik</span> (296.42 coeff, 18 kon)</span></li>
+        </ul>
+      </div>
+    
+  </div>
+
+  <div class="footer-bar">
+    <span>Pałka MTM &bull; Oficjalne zestawienie osiągnięć lotowych</span>
+    <span>Wygenerowano: 17.09.2026</span>
+  </div>
+</body>
+</html>
