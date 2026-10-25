@@ -27,9 +27,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
-    "@million/lint": "^1.0.14",
     "@playwright/test": "^1.61.1",
-    "@railway/cli": "^0.3.1",
+    "@railway/cli": "^5.57.9",
     "@supabase/mcp-server-supabase": "^0.9.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.11",
@@ -49,7 +48,7 @@
     "globals": "^15.15.0",
     "jsdom": "^28.1.0",
     "prettier": "3.8.1",
-    "prisma": "^8.0.0-rc.15",
+    "prisma": "^7.10.0",
     "rollup-plugin-visualizer": "^6.0.11",
     "supabase": "^2.68.0",
     "supertest": "^7.2.2",
@@ -58,7 +57,6 @@
     "vercel-mcp": "^0.0.7",
     "vercel-mcp-server": "^1.0.0",
     "vite-plugin-compression": "^0.5.1",
-    "vite-plugin-imagemin": "^0.4.6",
     "vite-plugin-pwa": "^0.21.2",
     "vitest": "^4.0.17"
   },
@@ -93,7 +91,9 @@
     "rollup": "^4.59.0",
     "ai": "5.0.52",
     "tar": "^7.5.21",
-    "fast-xml-parser": "^5.7.0"
+    "fast-xml-parser": "^5.7.0",
+    "deepmerge-ts": "^8.0.2",
+    "mysql2": "^3.24.4"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -129,7 +129,7 @@
     "dotenv": "^17.4.2",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
-    "esbuild": "^0.27.7",
+    "esbuild": "^0.28.2",
     "framer-motion": "^12.42.2",
     "glob": "^11.0.1",
     "got": "^14.6.6",
@@ -146,7 +146,7 @@
     "postgres": "^3.4.9",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router-dom": "^6.30.4",
+    "react-router-dom": "^7.18.4",
     "react-router-hash-link": "^2.4.3",
     "react-scan": "^0.4.3",
     "recharts": "^3.10.0",

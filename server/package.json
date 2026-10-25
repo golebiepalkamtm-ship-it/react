@@ -50,7 +50,9 @@
     "zod": "^3.25.76"
   },
   "overrides": {
-    "fast-xml-parser": "5.4.2"
+    "fast-xml-parser": "5.4.2",
+    "deepmerge-ts": "^8.0.2",
+    "mysql2": "^3.24.4"
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",

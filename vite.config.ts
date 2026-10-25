@@ -8,7 +8,6 @@ const require = createRequire(import.meta.url);
 // Conditional plugin imports
 let compression: any = null;
 let VitePWA: any = null;
-let viteImagemin: any = null;
 let visualizer: any = null;
 
 try {
@@ -21,12 +20,6 @@ try {
   VitePWA = require("vite-plugin-pwa").VitePWA;
 } catch (e) {
   console.log("PWA plugin not available, skipping...");
-}
-
-try {
-  viteImagemin = require("vite-plugin-imagemin").default;
-} catch (e) {
-  console.log("ImageMin plugin not available, skipping...");
 }
 
 try {
@@ -126,39 +119,6 @@ export default defineConfig(({ mode }) => ({
         ]
       : []),
 
-    // Image optimization (production only)
-    ...(viteImagemin && mode === "production"
-      ? [
-          viteImagemin({
-            gifsicle: {
-              optimizationLevel: 7,
-              interlaced: false,
-            },
-            optipng: {
-              optimizationLevel: 7,
-            },
-            mozjpeg: {
-              quality: 85,
-            },
-            pngquant: {
-              quality: [0.8, 0.9],
-              speed: 4,
-            },
-            svgo: {
-              plugins: [
-                {
-                  name: "removeViewBox",
-                  active: false,
-                },
-                {
-                  name: "removeEmptyAttrs",
-                  active: false,
-                },
-              ],
-            },
-          }),
-        ]
-      : []),
 
     // Bundle analyzer (production only)
     ...(visualizer && mode === "production"
