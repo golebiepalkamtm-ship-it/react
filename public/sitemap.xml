@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.palkamtm.pl/</loc>
+    <loc>https://react-seven-indol.vercel.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.palkamtm.pl/achievements</loc>
+    <loc>https://react-seven-indol.vercel.app/achievements</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.palkamtm.pl/auctions</loc>
+    <loc>https://react-seven-indol.vercel.app/auctions</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.palkamtm.pl/champions</loc>
+    <loc>https://react-seven-indol.vercel.app/champions</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.palkamtm.pl/references</loc>
+    <loc>https://react-seven-indol.vercel.app/references</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.palkamtm.pl/press</loc>
+    <loc>https://react-seven-indol.vercel.app/press</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.palkamtm.pl/contact</loc>
+    <loc>https://react-seven-indol.vercel.app/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.palkamtm.pl/breeder-meetings</loc>
+    <loc>https://react-seven-indol.vercel.app/breeder-meetings</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>

@@ -22,6 +22,7 @@ const normalizeOrigin = (raw?: string | null) => {
 
 const STATIC_CLIENT_ORIGINS = [
   validatedEnv.CLIENT_URL,
+  "https://react-seven-indol.vercel.app",
   "https://palkamtm.pl",
   "https://www.palkamtm.pl",
   "https://champion-pigeon-web.onrender.com",

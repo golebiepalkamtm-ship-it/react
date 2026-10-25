@@ -481,8 +481,8 @@ router.post("/stripe/setup-session", authMiddleware, async (req: any, res) => {
       mode: "setup",
       customer: customerId,
       payment_method_types: ["card"],
-      success_url: `${process.env.CLIENT_URL || "https://www.palkamtm.pl"}?payment_setup=success`,
-      cancel_url: `${process.env.CLIENT_URL || "https://www.palkamtm.pl"}?payment_setup=cancel`,
+      success_url: `${process.env.CLIENT_URL || "https://react-seven-indol.vercel.app"}?payment_setup=success`,
+      cancel_url: `${process.env.CLIENT_URL || "https://react-seven-indol.vercel.app"}?payment_setup=cancel`,
     });
 
     res.json({ url: session.url });

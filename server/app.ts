@@ -200,8 +200,8 @@ const serveSitemap = (req: Request, res: Response) => {
   }
   return res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.palkamtm.pl/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://www.palkamtm.pl/auctions</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://react-seven-indol.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://react-seven-indol.vercel.app/auctions</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
 </urlset>`);
 };
 
