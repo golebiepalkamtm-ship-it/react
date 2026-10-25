@@ -1,11 +1,4 @@
-import {
-  motion,
-  AnimatePresence,
-  PanInfo,
-  useMotionValue,
-  useTransform,
-  useDragControls,
-} from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   MapPin,
@@ -15,7 +8,6 @@ import {
   X,
   Calendar,
   Phone,
-  Mail,
   Lock,
   Save,
   Trophy,
@@ -23,7 +15,6 @@ import {
   Clock,
   Award,
   CreditCard,
-  Bell,
   LogOut,
   Edit3,
   Check,
@@ -40,7 +31,7 @@ import {
   Gavel,
   PlayCircle,
 } from "lucide-react";
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -63,10 +54,36 @@ import {
   validatePolishIbanChecksum,
 } from "@/utils/payoutValidation";
 
+type PanelTab = "overview" | "profile" | "security" | "auctions" | "payments";
+
 interface UserPanelProps {
   onClose: () => void;
-  defaultTab?: "overview" | "profile" | "security" | "auctions" | "payments";
+  defaultTab?: PanelTab;
 }
+
+/** Czytelne nazwy ról zamiast kodów z bazy. */
+const ROLE_LABELS: Record<string, string> = {
+  USER_REGISTERED: "Konto niezweryfikowane",
+  USER_EMAIL_VERIFIED: "E-mail potwierdzony",
+  USER_FULL_VERIFIED: "Konto zweryfikowane",
+  ADMIN: "Administrator",
+};
+
+const TABS: { id: PanelTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: "overview", label: "Przegląd", icon: User },
+  { id: "profile", label: "Profil", icon: Settings },
+  { id: "security", label: "Bezpieczeństwo", icon: Shield },
+  { id: "auctions", label: "Aukcje", icon: Package },
+  { id: "payments", label: "Płatności", icon: CreditCard },
+];
+
+/** Wspólny wygląd pól formularza: biały tekst, złote obramowanie przy fokusie. */
+const inputClass =
+  "w-full px-4 py-3 bg-black/40 border border-white/15 rounded-xl text-white placeholder-white/35 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/40 focus:border-[#A68E4E]/70 transition-colors duration-200 hover:border-white/25";
+
+/** Wspólna karta sekcji – spokojna, bez podskakiwania przy najechaniu. */
+const cardClass =
+  "rounded-2xl border border-[#A68E4E]/20 bg-[#0a1324]/80 p-6 shadow-xl";
 
 const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" }) => {
   const { user, profile, session, signOut } = useAuth();
@@ -86,35 +103,16 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
   const [feedbackTitle, setFeedbackTitle] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
 
-  // Mouse tracking for parallax effects (disabled to prevent flickering)
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const [isHovered, setIsHovered] = useState(false);
+  const [activeTab, setActiveTab] = useState<PanelTab>(defaultTab);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  // Glitch effect states (disabled to prevent flickering)
-  const [glitchIntensity, setGlitchIntensity] = useState(0);
-  const [chromaticShift, setChromaticShift] = useState(0);
-
-  // Mouse tracking effect (disabled to prevent flickering)
+  // Nowa zakładka zaczyna się od góry – inaczej krótsza treść
+  // lądowała poza widokiem po przewinięciu poprzedniej.
   useEffect(() => {
-    // Disabled mouse tracking to prevent flickering effects
-    return () => {};
-  }, []);
-
-  // Parallax transforms for different layers
-  const layer1X = useTransform(mouseX, [0, 1], [-20, 20]);
-  const layer1Y = useTransform(mouseY, [0, 1], [-15, 15]);
-  const layer2X = useTransform(mouseX, [0, 1], [-40, 40]);
-  const layer2Y = useTransform(mouseY, [0, 1], [-30, 30]);
-  const layer3X = useTransform(mouseX, [0, 1], [-60, 60]);
-  const layer3Y = useTransform(mouseY, [0, 1], [-45, 45]);
-
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "profile" | "security" | "auctions" | "payments"
-  >(defaultTab);
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [activeTab]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const dragConstraintsRef = useRef(null);
   const [username, setUsername] = useState(profile?.username ?? "");
   const [firstName, setFirstName] = useState(profile?.first_name ?? "");
   const [lastName, setLastName] = useState(profile?.last_name ?? "");
@@ -141,7 +139,6 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
   const [cardLoading, setCardLoading] = useState(false);
   const [passSaving, setPassSaving] = useState(false);
   const [passError, setPassError] = useState("");
-  const dragControls = useDragControls();
 
   const [userAuctions, setUserAuctions] = useState<Auction[]>([]);
   const [watchedAuctions, setWatchedAuctions] = useState<Auction[]>([]);
@@ -151,7 +148,10 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!session?.access_token) return;
+      if (!session?.access_token) {
+        setLoadingAuctions(false);
+        return;
+      }
       try {
         setLoadingAuctions(true);
         const results = await Promise.allSettled([
@@ -185,6 +185,39 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
     profile?.role === "USER_EMAIL_VERIFIED" ||
     profile?.role === "USER_FULL_VERIFIED" ||
     profile?.role === "ADMIN";
+
+  // Jedna lista kroków dla karty „Następny krok” i listy w Przeglądzie –
+  // wcześniej każda liczyła postęp inaczej.
+  const setupSteps = useMemo(() => {
+    const isProfileComplete = Boolean(
+      profile?.phone && profile?.first_name && profile?.last_name,
+    );
+    const isPayoutSet = Boolean(
+      (profile?.payoutMethod === "IBAN" && profile?.payoutIban) ||
+        (profile?.payoutMethod === "BLIK" &&
+          (profile?.payoutPhone || profile?.phone)),
+    );
+    return [
+      { id: 1, label: "Potwierdź e-mail", done: isEmailVerified, tab: "overview" as PanelTab },
+      { id: 2, label: "Podaj dane i telefon", done: isProfileComplete, tab: "profile" as PanelTab },
+      { id: 3, label: "Metoda wypłat", done: isPayoutSet, tab: "payments" as PanelTab },
+      { id: 4, label: "Podepnij kartę Stripe", done: Boolean(profile?.stripeCustomerId), tab: "payments" as PanelTab },
+    ];
+  }, [profile, isEmailVerified]);
+
+  const nextStep = setupSteps.find((step) => !step.done) ?? null;
+  const progressPercent = Math.round(
+    (setupSteps.filter((step) => step.done).length / setupSteps.length) * 100,
+  );
+
+  // Escape zamyka panel, chyba że otwarte jest okno SMS lub komunikat.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !showSmsAuth && !feedbackOpen) onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose, showSmsAuth, feedbackOpen]);
 
   const profileCompleteForSms = useMemo(() => {
     if (!isEmailVerified) return false;
@@ -382,194 +415,170 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
       data-lenis-prevent="true"
       data-lenis-prevent-touch="true"
     >
+      {/* Kliknięcie w tło zamyka panel */}
       <motion.div
-        className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+        className="absolute inset-0 bg-black/85 backdrop-blur-xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={onClose}
+        aria-hidden="true"
       />
 
       <motion.div
-        drag
-        dragListener={false}
-        dragControls={dragControls}
-        dragMomentum={false}
-        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-panel-title"
+        initial={{ opacity: 0, scale: 0.97, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        exit={{ opacity: 0, scale: 0.97, y: 12 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="relative w-full max-w-7xl h-auto max-h-[94vh] md:max-h-[90vh] bg-[#0c1427] border-2 border-[#A68E4E]/70 rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(166,142,78,0.35)] flex flex-col z-10 text-white"
+        className="relative w-full max-w-7xl h-auto max-h-[94vh] md:max-h-[90vh] bg-[#0c1427] border border-[#A68E4E]/50 rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(166,142,78,0.2)] flex flex-col z-10 text-white"
         data-lenis-prevent="true"
         data-lenis-prevent-touch="true"
       >
-        {/* Header */}
-        <div 
-          onPointerDown={(e) => dragControls.start(e)}
-          className="relative flex-shrink-0 px-6 py-4 border-b border-[#A68E4E]/40 bg-[#070e1e]/95 backdrop-blur-md flex items-center justify-between gap-4 cursor-move"
-        >
-          <div className="flex items-center gap-4">
-            <motion.div
-              className="relative w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#A68E4E]/40 via-amber-600/30 to-yellow-500/20 border border-[#A68E4E]/60 flex items-center justify-center shadow-md shadow-[#A68E4E]/20"
-              whileHover={{ scale: 1.05 }}
-            >
+        {/* Nagłówek */}
+        <div className="relative flex-shrink-0 px-4 md:px-6 py-4 border-b border-[#A68E4E]/30 bg-[#070e1e]/95 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            <div className="w-11 h-11 md:w-14 md:h-14 shrink-0 rounded-2xl bg-[#A68E4E]/15 border border-[#A68E4E]/50 flex items-center justify-center">
               <Crown className="w-6 h-6 md:w-7 md:h-7 text-gold" />
-            </motion.div>
+            </div>
 
-            <div className="space-y-0.5">
-              <div className="font-display text-xl md:text-2xl font-extrabold text-white tracking-tight">
-                Panel<span className="text-[#A68E4E]"> Użytkownika</span>
-              </div>
-              <div className="text-xs text-zinc-300 font-medium">
+            <div className="min-w-0">
+              <h2
+                id="user-panel-title"
+                className="font-display text-lg md:text-2xl font-extrabold text-white tracking-tight"
+              >
+                {profile?.first_name ? (
+                  <>
+                    Witaj, <span className="text-[#A68E4E]">{profile.first_name}</span>
+                  </>
+                ) : (
+                  <>
+                    Panel <span className="text-[#A68E4E]">Użytkownika</span>
+                  </>
+                )}
+              </h2>
+              <p className="text-xs text-zinc-400 font-medium truncate">
                 {user?.email}
-              </div>
+              </p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="px-3.5 py-2 rounded-xl bg-red-500/25 border border-red-500/50 text-red-200 hover:bg-red-500/40 transition-all flex items-center gap-2 text-xs md:text-sm font-bold shrink-0 shadow-md shadow-red-950/40"
+            className="w-10 h-10 md:w-auto md:px-4 md:py-2 rounded-xl border border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10 hover:text-white transition-colors flex items-center justify-center gap-2 text-sm font-bold shrink-0"
             aria-label="Zamknij panel użytkownika"
           >
-            <X className="w-4 h-4 md:w-5 md:h-5 text-red-200" />
-            <span className="hidden sm:inline">Zamknij</span>
+            <X className="w-5 h-5" />
+            <span className="hidden md:inline">Zamknij</span>
           </button>
         </div>
 
-        {/* Status Cards */}
-        <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 md:p-6 bg-[#070e1e]/60 border-b border-[#A68E4E]/30">
+        {/* Karty statusu – na telefonie po dwie w rzędzie */}
+        <div className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 p-3 md:p-5 bg-[#070e1e]/60 border-b border-[#A68E4E]/20">
           {[
-            {
-              icon: Mail,
-              label: "Email",
-              value: user?.email ?? "",
-              gradient: "from-cyan-500/20 via-blue-950/70 to-[#0e1832]",
-              border: "border-cyan-500/40",
-              textColor: "text-cyan-300",
-              iconColor: "text-cyan-400",
-            },
             {
               icon: Star,
               label: "Status",
-              value: profile?.role ?? "-",
-              gradient: "from-amber-500/25 via-orange-950/70 to-[#0e1832]",
-              border: "border-amber-500/40",
-              textColor: "text-amber-300",
-              iconColor: "text-amber-400",
+              value: profile?.role ? ROLE_LABELS[profile.role] ?? profile.role : "—",
             },
             {
               icon: Calendar,
               label: "Następny krok",
-              value:
-                profile?.role === "USER_REGISTERED"
-                  ? "Zweryfikuj email"
-                  : profile?.role === "USER_EMAIL_VERIFIED"
-                    ? "Uzupełnij profil"
-                    : profile?.role === "USER_FULL_VERIFIED" ||
-                        profile?.role === "ADMIN"
-                      ? "Konto aktywne"
-                      : "-",
-              gradient: "from-emerald-500/20 via-teal-950/70 to-[#0e1832]",
-              border: "border-emerald-500/40",
-              textColor: "text-emerald-300",
-              iconColor: "text-emerald-400",
+              value: nextStep ? nextStep.label : "Konto aktywne",
+              onClick: nextStep ? () => setActiveTab(nextStep.tab) : undefined,
+              highlight: Boolean(nextStep),
             },
             {
               icon: Phone,
               label: "Telefon",
-              value: profile?.phone ?? "Nie dodano",
-              gradient: "from-purple-500/20 via-indigo-950/70 to-[#0e1832]",
-              border: "border-purple-500/40",
-              textColor: "text-purple-300",
-              iconColor: "text-purple-400",
+              value: profile?.phone || "Nie dodano",
             },
-          ].map((card, index) => (
-            <motion.div
-              key={card.label}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.04 }}
-              whileHover={{ y: -4 }}
-              className={`bg-gradient-to-br ${card.gradient} rounded-2xl border ${card.border} p-4 shadow-lg backdrop-blur-md transition-all duration-300`}
-            >
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-1.5">
-                <card.icon className={`w-4 h-4 ${card.iconColor}`} />
-                <span className={card.textColor}>{card.label}</span>
+            {
+              icon: Shield,
+              label: "Profil",
+              value: `${progressPercent}% gotowe`,
+            },
+          ].map((card) => {
+            const content = (
+              <>
+                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1 text-[#A68E4E]">
+                  <card.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  <span>{card.label}</span>
+                </div>
+                <div className="text-white text-xs md:text-sm font-bold break-words line-clamp-2">
+                  {card.value}
+                </div>
+              </>
+            );
+            const base = `rounded-xl md:rounded-2xl border p-3 md:p-4 text-left ${
+              card.highlight
+                ? "border-[#A68E4E]/60 bg-[#A68E4E]/10"
+                : "border-white/10 bg-white/[0.03]"
+            }`;
+            return card.onClick ? (
+              <button
+                key={card.label}
+                type="button"
+                onClick={card.onClick}
+                className={`${base} hover:bg-[#A68E4E]/20 transition-colors`}
+              >
+                {content}
+              </button>
+            ) : (
+              <div key={card.label} className={base}>
+                {content}
               </div>
-              <div className="text-white text-sm font-extrabold break-words line-clamp-2">
-                {card.value}
-              </div>
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center justify-between p-3 md:px-6 border-b border-[#A68E4E]/30 bg-[#070e1e]/90 gap-4">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar" data-lenis-prevent="true">
-            {[
-              {
-                id: "overview",
-                label: "Przegląd",
-                icon: User,
-                activeBg: "bg-gradient-to-r from-[#A68E4E] via-amber-500 to-yellow-400 text-zinc-950 font-extrabold shadow-lg shadow-amber-500/30",
-                iconColor: "text-amber-400",
-              },
-              {
-                id: "profile",
-                label: "Profil",
-                icon: Settings,
-                activeBg: "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 text-white font-extrabold shadow-lg shadow-blue-500/30",
-                iconColor: "text-cyan-400",
-              },
-              {
-                id: "security",
-                label: "Bezpieczeństwo",
-                icon: Shield,
-                activeBg: "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-extrabold shadow-lg shadow-amber-500/30",
-                iconColor: "text-amber-400",
-              },
-              {
-                id: "auctions",
-                label: "Aukcje",
-                icon: Package,
-                activeBg: "bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white font-extrabold shadow-lg shadow-purple-500/30",
-                iconColor: "text-purple-400",
-              },
-              {
-                id: "payments",
-                label: "Płatności",
-                icon: CreditCard,
-                activeBg: "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-extrabold shadow-lg shadow-emerald-500/30",
-                iconColor: "text-emerald-400",
-              },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? `${tab.activeBg} scale-[1.02]`
-                    : "text-zinc-100 bg-[#121f3d] border border-[#A68E4E]/30 hover:bg-[#A68E4E]/30 hover:text-white"
-                }`}
-              >
-                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-current" : tab.iconColor}`} />
-                <span>{tab.label}</span>
-              </button>
-            ))}
+        {/* Zakładki */}
+        <div className="flex-shrink-0 flex items-center justify-between px-3 py-2.5 md:px-6 border-b border-[#A68E4E]/20 bg-[#070e1e]/90 gap-3">
+          <div
+            role="tablist"
+            aria-label="Sekcje panelu"
+            className="flex gap-1.5 overflow-x-auto no-scrollbar"
+            data-lenis-prevent="true"
+          >
+            {TABS.map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3.5 md:px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 whitespace-nowrap transition-colors duration-200 ${
+                    active
+                      ? "bg-[#A68E4E] text-zinc-950"
+                      : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           <button
+            type="button"
             onClick={() => startTutorial(`userpanel-${activeTab}` as any)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 shrink-0"
+            className="hidden sm:flex items-center justify-center gap-2 px-3.5 py-2.5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl text-xs font-bold transition-colors shrink-0"
+            aria-label="Włącz samouczek dla tej zakładki"
           >
             <PlayCircle className="w-4 h-4" />
-            Włącz samouczek
+            Samouczek
           </button>
         </div>
 
         {/* Tab Content */}
         <div
+          ref={contentRef}
           className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 no-scrollbar overscroll-contain"
           data-lenis-prevent="true"
           data-lenis-prevent-touch="true"
@@ -584,242 +593,193 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="h-full"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-tutorial="up-stats">
-                    <motion.div
-                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
-                      style={{
-                        background:
-                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
-                      }}
-                      whileHover={{ y: -5, scale: 1.02 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                    >
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6" data-tutorial="up-stats">
+                    <div className={cardClass}>
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                        <motion.div
-                          animate={{ rotate: [0, 10, -10, 0] }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatDelay: 3,
-                          }}
-                        >
-                          <Trophy className="w-6 h-6 text-gold" />
-                        </motion.div>
+                        <Trophy className="w-6 h-6 text-gold" />
                         Podsumowanie konta
                       </h3>
-                      <div className="space-y-4">
-                        <motion.button
-                          onClick={() => setActiveTab("auctions")}
-                          className="w-full flex items-center justify-between p-4 rounded-xl bg-black/20 hover:bg-[#A68E4E]/10 hover:border-[#A68E4E]/30 transition-all border border-[#A68E4E]/10 group"
-                          whileHover={{ x: 5 }}
-                        >
-                          <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
-                            <Package className="w-4 h-4" />
-                            Twoje aukcje
-                          </span>
-                          <motion.span
-                            className="text-white text-2xl font-bold group-hover:text-gold transition-colors"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.3, type: "spring" }}
+                      <div className="space-y-3">
+                        {[
+                          { label: "Twoje aukcje", icon: Package, count: userAuctions.length },
+                          { label: "Aktywne licytacje", icon: TrendingUp, count: biddingAuctions.length },
+                          { label: "Wygrane aukcje", icon: Award, count: wonAuctions.length },
+                          { label: "Obserwowane", icon: Heart, count: watchedAuctions.length },
+                        ].map((row) => (
+                          <button
+                            key={row.label}
+                            type="button"
+                            onClick={() => setActiveTab("auctions")}
+                            className="w-full flex items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5 hover:border-[#A68E4E]/30 hover:bg-[#A68E4E]/10 transition-colors group"
                           >
-                            {userAuctions.length}
-                          </motion.span>
-                        </motion.button>
-                        <motion.button
-                          onClick={() => setActiveTab("auctions")}
-                          className="w-full flex items-center justify-between p-4 rounded-xl bg-black/20 hover:bg-[#A68E4E]/10 hover:border-[#A68E4E]/30 transition-all border border-[#A68E4E]/10 group"
-                          whileHover={{ x: 5 }}
-                        >
-                          <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
-                            <TrendingUp className="w-4 h-4" />
-                            Aktywne licytacje
-                          </span>
-                          <motion.span
-                            className="text-white text-2xl font-bold group-hover:text-gold transition-colors"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.4, type: "spring" }}
-                          >
-                            {biddingAuctions.length}
-                          </motion.span>
-                        </motion.button>
-                        <motion.button
-                          onClick={() => setActiveTab("auctions")}
-                          className="w-full flex items-center justify-between p-4 rounded-xl bg-black/20 hover:bg-[#A68E4E]/10 hover:border-[#A68E4E]/30 transition-all border border-[#A68E4E]/10 group"
-                          whileHover={{ x: 5 }}
-                        >
-                          <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
-                            <Heart className="w-4 h-4" />
-                            Obserwowane
-                          </span>
-                          <motion.span
-                            className="text-white text-2xl font-bold group-hover:text-gold transition-colors"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.5, type: "spring" }}
-                          >
-                            {watchedAuctions.length}
-                          </motion.span>
-                        </motion.button>
+                            <span className="text-white/70 text-sm flex items-center gap-2 group-hover:text-white transition-colors">
+                              <row.icon className="w-4 h-4" />
+                              {row.label}
+                            </span>
+                            {loadingAuctions ? (
+                              <span
+                                className="w-8 h-6 rounded-md bg-white/10 animate-pulse"
+                                aria-label="Ładowanie"
+                              />
+                            ) : (
+                              <span className="text-white text-2xl font-bold tabular-nums group-hover:text-gold transition-colors">
+                                {row.count}
+                              </span>
+                            )}
+                          </button>
+                        ))}
                       </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div
-                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
-                      style={{
-                        background:
-                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
-                      }}
-                      whileHover={{ y: -5, scale: 1.02 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                    >
+                    <div className={cardClass}>
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Star className="w-6 h-6 text-gold" />
-                        </motion.div>
+                        <Star className="w-6 h-6 text-gold" />
                         Ukończenie profilu
                       </h3>
-                      <div className="space-y-4">
-                        {(() => {
-                          const isEmailVerified = profile?.role !== "USER_REGISTERED";
-                          const isProfileComplete = !!(profile?.phone && profile?.first_name && profile?.last_name);
-                          const isPayoutSet = !!(
-                            (profile?.payoutMethod === "IBAN" && profile?.payoutIban) ||
-                            (profile?.payoutMethod === "BLIK" && (profile?.payoutPhone || profile?.phone))
-                          );
-                          const isStripeSet = !!profile?.stripeCustomerId;
-                          
-                          const steps = [
-                            { id: 1, label: "Potwierdź e-mail", done: isEmailVerified, tab: "overview" },
-                            { id: 2, label: "Podaj dane i telefon", done: isProfileComplete, tab: "profile" },
-                            { id: 3, label: "Metoda wypłat", done: isPayoutSet, tab: "payments" },
-                            { id: 4, label: "Podepnij kartę Stripe", done: isStripeSet, tab: "payments" },
-                          ];
-                          
-                          const completedSteps = steps.filter(s => s.done).length;
-                          const progressPercent = Math.round((completedSteps / steps.length) * 100);
-
-                          return (
-                            <>
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-bold text-white/80">Progres</span>
-                                <span className="text-sm font-bold text-gold">{progressPercent}%</span>
-                              </div>
-                              <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden mb-6 border border-[#A68E4E]/20">
-                                <motion.div 
-                                  className="h-full bg-gradient-to-r from-amber-500 to-yellow-400"
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${progressPercent}%` }}
-                                  transition={{ duration: 1, ease: "easeOut" }}
-                                />
-                              </div>
-                              
-                              <div className="space-y-3">
-                                {steps.map((step, idx) => (
-                                  <motion.button
-                                    key={step.id}
-                                    onClick={() => setActiveTab(step.tab as any)}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 + idx * 0.1 }}
-                                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                      step.done 
-                                        ? "bg-green-500/10 border-green-500/30 hover:bg-green-500/20" 
-                                        : "bg-black/30 border-white/10 hover:border-[#A68E4E]/40 hover:bg-[#A68E4E]/10"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step.done ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-white/40'}`}>
-                                        {step.done ? <Check className="w-3 h-3" /> : <span className="text-xs font-bold">{step.id}</span>}
-                                      </div>
-                                      <span className={`text-sm font-medium ${step.done ? 'text-green-100' : 'text-white/70'}`}>
-                                        {step.label}
-                                      </span>
-                                    </div>
-                                    {!step.done && (
-                                      <span className="text-[10px] uppercase font-bold text-[#A68E4E] bg-[#A68E4E]/10 px-2 py-1 rounded-md">
-                                        Wymagane
-                                      </span>
-                                    )}
-                                  </motion.button>
-                                ))}
-                              </div>
-                            </>
-                          );
-                        })()}
-                        <div className="pt-4 space-y-3">
-                          <div className="flex items-center justify-between text-sm border-t border-white/5 pt-4">
-                            <span className="text-white/60 font-medium">
-                              Wskaźnik zaufania (Trust Score)
-                            </span>
-                            <span className="text-gold font-mono font-bold">
-                              {profile?.trustScore ? `${Number(profile.trustScore).toFixed(1)} / 5.0` : "0.0 / 5.0"}
-                            </span>
-                          </div>
-                        </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-white/80">Postęp</span>
+                        <span className="text-sm font-bold text-gold tabular-nums">
+                          {progressPercent}%
+                        </span>
                       </div>
-                    </motion.div>
+                      <div
+                        className="w-full h-2.5 bg-black/40 rounded-full overflow-hidden mb-5 border border-[#A68E4E]/20"
+                        role="progressbar"
+                        aria-valuenow={progressPercent}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label="Ukończenie profilu"
+                      >
+                        <motion.div
+                          className="h-full bg-[#A68E4E] origin-left"
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: progressPercent / 100 }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                        />
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {setupSteps.map((step) => (
+                          <button
+                            key={step.id}
+                            type="button"
+                            onClick={() => setActiveTab(step.tab)}
+                            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                              step.done
+                                ? "bg-emerald-500/10 border-emerald-500/25 hover:bg-emerald-500/15"
+                                : "bg-black/30 border-white/10 hover:border-[#A68E4E]/40 hover:bg-[#A68E4E]/10"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                  step.done ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/50"
+                                }`}
+                              >
+                                {step.done ? (
+                                  <Check className="w-3.5 h-3.5" />
+                                ) : (
+                                  <span className="text-xs font-bold">{step.id}</span>
+                                )}
+                              </div>
+                              <span className={`text-sm font-medium ${step.done ? "text-emerald-100" : "text-white/80"}`}>
+                                {step.label}
+                              </span>
+                            </div>
+                            {!step.done && (
+                              <span className="text-[10px] uppercase font-bold text-[#A68E4E] bg-[#A68E4E]/10 px-2 py-1 rounded-md">
+                                {step === nextStep ? "Teraz" : "Wymagane"}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm border-t border-white/5 pt-4 mt-5">
+                        <span className="text-white/60 font-medium">Wskaźnik zaufania</span>
+                        <span className="text-gold font-mono font-bold">
+                          {Number(profile?.trustScore ?? 0).toFixed(1)} / 5.0
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Ostatnia aktywność & Powiadomienia */}
-                  <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <motion.div
-                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300"
-                      style={{
-                        background:
-                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
-                      }}
-                      whileHover={{ y: -5, scale: 1.02 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                    >
+                  <div className="mt-4 md:mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                    <div className={cardClass}>
+                      <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                        <Sparkles className="w-6 h-6 text-gold" />
+                        Szybkie akcje
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            navigate("/auctions");
+                            setTimeout(() => {
+                              window.dispatchEvent(new CustomEvent("openCategorySelector"));
+                            }, 100);
+                          }}
+                          className="flex items-center gap-3 p-4 rounded-xl bg-[#A68E4E] text-zinc-950 font-bold text-sm hover:brightness-110 transition-[filter]"
+                        >
+                          <Plus className="w-5 h-5" />
+                          Wystaw aukcję
+                        </button>
+                        <Link
+                          to="/auctions"
+                          onClick={onClose}
+                          className="flex items-center gap-3 p-4 rounded-xl border border-[#A68E4E]/40 text-[#A68E4E] font-bold text-sm hover:bg-[#A68E4E]/10 transition-colors"
+                        >
+                          <Gavel className="w-5 h-5" />
+                          Przeglądaj aukcje
+                        </Link>
+                        <Link
+                          to="/champions"
+                          onClick={onClose}
+                          className="flex items-center gap-3 p-4 rounded-xl border border-white/10 text-white/80 font-bold text-sm hover:bg-white/5 hover:text-white transition-colors"
+                        >
+                          <Trophy className="w-5 h-5" />
+                          Galeria championów
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("profile")}
+                          className="flex items-center gap-3 p-4 rounded-xl border border-white/10 text-white/80 font-bold text-sm hover:bg-white/5 hover:text-white transition-colors"
+                        >
+                          <Edit3 className="w-5 h-5" />
+                          Edytuj profil
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className={cardClass}>
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
                         <Clock className="w-6 h-6 text-gold" />
                         Ostatnia aktywność
                       </h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-sm text-white/70">
-                          <div className="w-2 h-2 rounded-full bg-green-500" />
-                          <span>Ostatnie logowanie: {profile?.last_sign_in_at ? new Date(profile.last_sign_in_at).toLocaleString('pl-PL') : 'Brak danych'}</span>
+                      <dl className="space-y-3 text-sm">
+                        <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-black/20">
+                          <dt className="text-white/60">Ostatnie logowanie</dt>
+                          <dd className="text-white font-medium text-right">
+                            {profile?.last_sign_in_at
+                              ? formatDistanceToNow(new Date(profile.last_sign_in_at), { addSuffix: true, locale: pl })
+                              : "Brak danych"}
+                          </dd>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-white/70">
-                          <div className="w-2 h-2 rounded-full bg-blue-500" />
-                          <span>Konto utworzono: {profile?.created_at ? new Date(profile.created_at).toLocaleString('pl-PL') : 'Brak danych'}</span>
+                        <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-black/20">
+                          <dt className="text-white/60">Konto utworzono</dt>
+                          <dd className="text-white font-medium text-right">
+                            {profile?.created_at
+                              ? new Date(profile.created_at).toLocaleDateString("pl-PL", {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })
+                              : "Brak danych"}
+                          </dd>
                         </div>
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      className="rounded-2xl border border-[#A68E4E]/20 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-[#A68E4E]/30 transition-all duration-300 flex flex-col justify-center items-center text-center"
-                      style={{
-                        background:
-                          "linear-gradient(145deg, rgba(2, 10, 19, 0.6), rgba(6, 35, 46, 0.4))",
-                      }}
-                      whileHover={{ y: -5, scale: 1.02 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
-                    >
-                      <Bell className="w-8 h-8 text-gold mb-3" />
-                      <h3 className="font-display text-xl font-semibold text-white mb-2">
-                        Powiadomienia
-                      </h3>
-                      <p className="text-sm text-white/60 mb-4">
-                        Twój system powiadomień. Wkrótce dodamy tu ważne alerty z systemu.
-                      </p>
-                      <Button variant="outline" className="border-gold/30 text-gold hover:bg-gold/10 hover:border-gold/50" disabled>
-                        Zobacz powiadomienia (Wkrótce)
-                      </Button>
-                    </motion.div>
+                      </dl>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -835,19 +795,13 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-tutorial="up-profile-form">
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      className={cardClass}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      whileHover={{ y: -3 }}
                     >
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                        <motion.div
-                          whileHover={{ rotate: 360 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <User className="w-6 h-6 text-gold" />
-                        </motion.div>
+                        <User className="w-6 h-6 text-gold" />
                         Dane podstawowe
                       </h3>
                       <div className="space-y-4">
@@ -865,7 +819,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Nazwa użytkownika"
-                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                            className={inputClass}
                           />
                         </motion.div>
                         <motion.div
@@ -882,7 +836,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             placeholder="Imię"
-                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                            className={inputClass}
                           />
                         </motion.div>
                         <motion.div
@@ -899,7 +853,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             placeholder="Nazwisko"
-                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                            className={inputClass}
                           />
                         </motion.div>
                         <motion.div
@@ -916,26 +870,20 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="+48 600 000 000"
-                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                            className={inputClass}
                           />
                         </motion.div>
                       </div>
                     </motion.div>
 
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      className={cardClass}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
-                      whileHover={{ y: -3 }}
                     >
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                        <motion.div
-                          whileHover={{ scale: 1.2 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <MapPin className="w-6 h-6 text-gold" />
-                        </motion.div>
+                        <MapPin className="w-6 h-6 text-gold" />
                         Adres
                       </h3>
                       <div className="space-y-4">
@@ -953,7 +901,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             value={street}
                             onChange={(e) => setStreet(e.target.value)}
                             placeholder="Ulica i numer"
-                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                            className={inputClass}
                           />
                         </motion.div>
                         <motion.div
@@ -970,7 +918,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
                             placeholder="Miasto"
-                            className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                            className={inputClass}
                           />
                         </motion.div>
                         <div className="grid grid-cols-2 gap-4">
@@ -988,7 +936,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                               value={postalCode}
                               onChange={(e) => setPostalCode(e.target.value)}
                               placeholder="00-000"
-                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                              className={inputClass}
                             />
                           </motion.div>
                           <motion.div
@@ -1005,7 +953,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                               value={country}
                               onChange={(e) => setCountry(e.target.value)}
                               placeholder="Polska"
-                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                              className={inputClass}
                             />
                           </motion.div>
                         </div>
@@ -1028,7 +976,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                       <Button
                         disabled={profileSaving}
                         onClick={onSaveProfile}
-                        className="bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
+                        className="bg-[#A68E4E] text-zinc-950 hover:bg-[#b89e5c] font-bold transition-colors"
                       >
                         <Save className="w-4 h-4 mr-2" />
                         {profileSaving ? "Zapisywanie..." : "Zapisz profil"}
@@ -1067,24 +1015,14 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <motion.div
-                      className="rounded-2xl border border-white/20 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-xl shadow-xl hover:shadow-2xl hover:border-white/30 transition-all duration-300"
+                      className={cardClass}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      whileHover={{ y: -3 }}
                       data-tutorial="up-security-pass"
                     >
                       <h3 className="font-display text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                        <motion.div
-                          animate={{ rotate: [0, -10, 10, 0] }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatDelay: 3,
-                          }}
-                        >
-                          <Shield className="w-6 h-6 text-gold" />
-                        </motion.div>
+                        <Shield className="w-6 h-6 text-gold" />
                         Zmień hasło
                       </h3>
                       <form
@@ -1112,7 +1050,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                               onChange={(e) => setNewPassword(e.target.value)}
                               placeholder="Nowe hasło"
                               autoComplete="new-password"
-                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                              className={inputClass}
                             />
                             <button
                               type="button"
@@ -1146,7 +1084,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                               }
                               placeholder="Potwierdź hasło"
                               autoComplete="new-password"
-                              className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none focus:ring-2 focus:ring-[#A68E4E]/30 focus:border-[#A68E4E]/50 transition-all duration-200 hover:bg-black/50"
+                              className={inputClass}
                             />
                             <button
                               type="button"
@@ -1182,7 +1120,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           <Button
                             type="submit"
                             disabled={passSaving}
-                            className="w-full bg-gradient-to-r from-gold to-gold-dark text-navy hover:from-gold-light hover:to-gold font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300"
+                            className="w-full bg-[#A68E4E] text-zinc-950 hover:bg-[#b89e5c] font-bold transition-colors"
                           >
                             <Lock className="w-4 h-4 mr-2" />
                             {passSaving ? "Zmienianie..." : "Zmień hasło"}
@@ -1199,7 +1137,8 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                       transition={{ delay: 0.15 }}
                     >
                       <h4 className="font-display text-xl font-semibold text-[#A68E4E] mb-3 flex items-center gap-2">
-                        🎓 Samouczek
+                        <PlayCircle className="w-5 h-5" />
+                        Samouczek
                       </h4>
                       <p className="text-white/60 text-sm mb-4">
                         Pokaż ponownie samouczek z chmurkami, który przeprowadzi Cię przez funkcje platformy.
@@ -1214,7 +1153,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           }, 400);
                         }}
                       >
-                        🔄 Uruchom samouczek
+                        Uruchom samouczek
                       </Button>
                     </motion.div>
 
@@ -1269,7 +1208,6 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
-                      whileHover={{ y: -3 }}
                     >
                       <h4 className="font-display text-xl font-semibold text-red-200 mb-3 flex items-center gap-2">
                         <LogOut className="w-6 h-6" />
@@ -1377,7 +1315,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                                   );
                                 }, 100);
                               }}
-                              className="w-full bg-gold text-navy hover:bg-gold-light text-xs py-2 h-auto"
+                              className="w-full bg-[#A68E4E] text-zinc-950 hover:bg-[#b89e5c] font-bold transition-colors text-xs py-2 h-auto"
                             >
                               Stwórz aukcję
                             </Button>
@@ -1495,7 +1433,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                                 {!isPaid ? (
                                   <Button
                                     size="sm"
-                                    className="w-full bg-gold text-navy hover:bg-gold-light text-xs py-2 h-auto mt-2"
+                                    className="w-full bg-[#A68E4E] text-zinc-950 hover:bg-[#b89e5c] font-bold transition-colors text-xs py-2 h-auto mt-2"
                                     onClick={async () => {
                                       try {
                                         const res = await paymentService.createStripeCheckout(auction.id, session?.access_token || null);
@@ -1672,7 +1610,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                                     setPayoutIban(formatIban(e.target.value))
                                   }
                                   placeholder="PL61 1090 1014 0000 0712 1981 2874"
-                                  className={`w-full px-4 py-3 bg-black/40 border rounded-xl text-[#A68E4E] font-mono tracking-wider placeholder-[#A68E4E]/40 focus:outline-none transition-colors ${
+                                  className={`w-full px-4 py-3 bg-black/40 border rounded-xl text-white font-mono tracking-wider placeholder-white/35 focus:outline-none transition-colors ${
                                     ibanValidation?.isValid
                                       ? "border-emerald-500/70 focus:border-emerald-500"
                                       : payoutIban.trim()
@@ -1713,7 +1651,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                                 value={payoutPhone}
                                 onChange={(e) => setPayoutPhone(e.target.value)}
                                 placeholder="+48 600 000 000"
-                                className="w-full px-4 py-3 bg-black/40 border border-[#A68E4E]/20 rounded-xl text-[#A68E4E] placeholder-[#A68E4E]/40 focus:outline-none font-mono"
+                                className={`${inputClass} font-mono`}
                               />
                             </div>
                           )}
@@ -1723,7 +1661,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ onClose, defaultTab = "overview" 
                           <Button
                             disabled={profileSaving}
                             onClick={onSaveProfile}
-                            className="bg-gradient-to-r from-[#A68E4E] to-gold-dark text-navy hover:from-gold-light hover:to-gold w-fit font-semibold shadow-lg shadow-gold/30 hover:shadow-xl hover:shadow-gold/50 transition-all duration-300 mt-4"
+                            className="bg-[#A68E4E] text-zinc-950 hover:bg-[#b89e5c] font-bold transition-colors w-fit mt-4"
                           >
                             <Save className="w-4 h-4 mr-2" />
                             {profileSaving ? "Zapisywanie..." : "Zapisz ustawienia wypłat"}
