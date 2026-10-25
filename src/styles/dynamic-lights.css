@@ -189,20 +189,7 @@ button.bg-gold:hover::before {
   animation-duration: 6s;
 }
 
-/* Enhanced text shadows for better readability on new background */
-h1, h2, h3 {
-  text-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(0, 0, 0, 0.2);
-}
-
-/* Gold text with enhanced glow */
-.text-gold {
-  text-shadow: 
-    0 0 10px rgba(212, 175, 55, 0.5),
-    0 0 20px rgba(212, 175, 55, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.3);
-}
+/* Nagłówki i złoty tekst bez cieni i poświat – kontrast daje kolor, nie glow. */
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

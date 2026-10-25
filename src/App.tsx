@@ -48,7 +48,6 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import VolumetricBackground from "@/components/VolumetricBackground";
-import RippleShockwave from "@/components/RippleShockwave";
 import { ListingFeePaymentHost } from "@/components/ListingFeePaymentHost";
 
 // GSAP Demo - removed as file does not exist
@@ -73,12 +72,12 @@ const BackgroundWrapper = React.memo(() => {
       }}
     >
       <VolumetricBackground />
-      <RippleShockwave />
     </div>
   );
 });
 
 import { SmoothScrollProvider } from "@/components/animations/SmoothScrollProvider";
+import { CustomCursor, Preloader } from "@/components/experience";
 
 const AnalyticsTracker = () => {
   const location = useLocation();
@@ -151,6 +150,8 @@ const App = () => {
                     v1.0.8.7-stable
                   </div>
                   <BackgroundWrapper />
+                  <Preloader />
+                  <CustomCursor />
                   <ListingFeePaymentHost />
                   <UIProviders>
                     <GSAPPageTransition duration={0.7} primaryColor="#09090b">

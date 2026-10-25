@@ -70,11 +70,22 @@ html.lenis body {
     position: relative;
     margin: 0;
     padding: 0;
-    background-color: transparent !important;
     background-image: none !important;
     min-height: 100%;
     scroll-behavior: auto;
     color: #fff;
+  }
+
+  /* html carries the dark ground. Without it the page falls back to the
+     browser's white canvas wherever no section paints its own background,
+     and the white body copy becomes invisible. */
+  html {
+    background-color: #0a0a0a !important;
+  }
+
+  /* body stays transparent so the WebGL canvas shows through */
+  body {
+    background-color: transparent !important;
   }
 
   /* Global background layer to keep image visible everywhere */
@@ -512,19 +523,17 @@ html.lenis body {
   will-change: transform, opacity;
 }
 
-/* Smooth scroll wrapper – otrzymuje skew z SmoothScrollProvider */
+/* Smooth scroll wrapper – Lenis przewija window, więc wrapper nie dostaje
+   żadnego transformu. will-change: transform tworzyłby tu containing block
+   dla position: fixed, przez co sticky header przestawał być przypięty. */
 .smooth-scroll-wrapper {
-  transform-origin: center top;
-  will-change: transform;
   overflow-x: hidden;
 }
 
 /* Home sections – GSAP ustawia stan startowy przez gsap.set(), nie CSS */
 /* Fallback: sekcje są ZAWSZE widoczne jeśli GSAP nie zadziała */
 .home-section {
-  will-change: transform, opacity;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
+  position: relative;
 }
 
 /* Animated divider lines */
@@ -1173,7 +1182,6 @@ html.lenis body {
   font-family: var(--font-sans);
   color: inherit;
   text-shadow: none;
-  animation: fadeUp 1.1s cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
 
 /* subtle gold shimmer moving across the title */
@@ -2120,7 +2128,8 @@ html.lenis body {
 }
 
 .heading-black {
-  color: #000000 !important;
+  /* Nazwa historyczna – na ciemnych stronach czarny tekst był niewidoczny */
+  color: #f4f4f5 !important;
   opacity: 1 !important;
   filter: none !important;
   mix-blend-mode: normal !important;

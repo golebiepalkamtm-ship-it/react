@@ -42,7 +42,6 @@ export const ChampionCard = ({
 }: ChampionCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
 
   // Motion values dla 3D tilt
   const mouseX = useMotionValue(0);
@@ -80,14 +79,9 @@ export const ChampionCard = ({
     cardRef.current.style.setProperty("--mouse-x", `${(x + 0.5) * 100}%`);
     cardRef.current.style.setProperty("--mouse-y", `${(y + 0.5) * 100}%`);
 
+    // Motion values aktualizują DOM bez re-renderu Reacta przy każdym ruchu myszy
     mouseX.set(x);
     mouseY.set(y);
-    setIsHovered(true);
-
-    setMousePos({
-      x: (e.clientX - rect.left) / rect.width,
-      y: 1 - (e.clientY - rect.top) / rect.height,
-    });
   };
 
   const handleMouseLeave = () => {
@@ -102,7 +96,6 @@ export const ChampionCard = ({
     setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
-    setMousePos({ x: 0.5, y: 0.5 });
   };
 
   const handlePedigreeOpen = (e: ReactMouseEvent<HTMLButtonElement>) => {
@@ -131,9 +124,12 @@ export const ChampionCard = ({
       onClick={() => onSelect?.(champion)}
     >
       <motion.div
-        className="champion-card-inner relative rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.6)] transition-all duration-300 bg-[#010509]"
+        className="champion-card-inner relative rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.6)] bg-[#010509]"
         style={{
-          transformStyle: "preserve-3d",
+          // Bez preserve-3d i transition-all: przy overflow-hidden 3D i tak jest spłaszczane,
+          // a w Chromium powodowało mruganie warstw nad animowanym tłem WebGL.
+          // Transition transformu ustawia handleMouseMove/handleMouseLeave.
+          backfaceVisibility: "hidden",
           border: "2px solid rgba(166,142,78,0.7)",
           boxShadow:
             "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
@@ -183,7 +179,7 @@ export const ChampionCard = ({
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
-              className="w-full h-full object-contain object-top will-change-transform select-none pointer-events-none"
+              className="w-full h-full object-contain object-top select-none pointer-events-none"
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
                 if (!img.dataset.fallback) {
@@ -212,7 +208,7 @@ export const ChampionCard = ({
 
         {/* Content - numer gołębia i przycisk rodowodu */}
         <div
-          className="relative p-6 gallery-card-content backdrop-blur-2xl overflow-hidden"
+          className="relative p-6 gallery-card-content overflow-hidden"
           style={{
             backgroundImage: CONTENT_BACKGROUND,
             backgroundBlendMode: "normal",

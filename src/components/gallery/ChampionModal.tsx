@@ -5,11 +5,10 @@ import {
   X,
   Trophy,
   Sparkles,
-  ChevronLeft,
-  ChevronRight,
   Maximize2,
 } from "lucide-react";
 import { Champion } from "@/hooks/useChampions";
+import { GoldArrowButton } from "./GoldArrowButton";
 import { trackMetric } from "@/services/metricsService";
 import { FullscreenImageModal } from "@/components/ui/FullscreenImageModal";
 
@@ -183,8 +182,11 @@ export const ChampionModal = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto overflow-x-hidden bg-black/95 backdrop-blur-3xl p-0 md:p-4"
+      // Boczne odstępy jak wokół karuzeli na stronie głównej (md:px-8 lg:px-16),
+      // żeby strzałki championów wypadały w tych samych miejscach.
+      className="fixed inset-0 z-[9999] flex items-start md:items-center justify-center overflow-y-auto overflow-x-hidden bg-black/95 backdrop-blur-3xl p-0 md:py-4 md:px-8 lg:px-16"
       onClick={onClose}
+      data-lenis-prevent
     >
       {/* Global Close Button - Always at top right of viewport */}
       <button
@@ -195,13 +197,18 @@ export const ChampionModal = ({
         <X className="w-6 h-6 text-white group-hover:rotate-90 transition-transform duration-300" />
       </button>
 
+      {/* Wrapper o szerokości karuzeli – strzałki championów siedzą poza
+          ramką modala, tak jak strzałki karuzeli poza jej blokiem. */}
+      <div className="relative w-full max-w-7xl">
       {/* Modal Container */}
       <motion.div
         initial={{ y: 60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 60, opacity: 0 }}
         transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
-        className="relative w-full max-w-7xl h-auto min-h-screen md:min-h-[85vh] isolate pointer-events-auto overflow-hidden flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] md:rounded-[2.5rem] mt-0 md:mt-10 mb-10 border border-gold"
+        // Na desktopie modal ma dokładnie wysokość ekranu (minus odstęp),
+        // więc zdjęcie zawsze mieści się w całości bez przewijania.
+        className="relative w-full max-w-7xl min-h-[100svh] md:min-h-0 md:h-[calc(100svh-2rem)] isolate pointer-events-auto overflow-hidden flex flex-col md:flex-row shadow-[0_0_100px_rgba(0,0,0,0.8)] md:rounded-[2.5rem] border border-gold"
         style={{
           background:
             "radial-gradient(circle at top, rgba(66, 192, 206, 0.15), transparent 50%), linear-gradient(185deg, rgba(2, 10, 19, 0.98) 0%, rgba(6, 35, 46, 0.95) 45%, rgba(9, 61, 77, 0.92) 100%)",
@@ -209,7 +216,7 @@ export const ChampionModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Full Screen Image - Flexible Area */}
-        <div className="relative flex-1 md:basis-[65%] flex items-center justify-center bg-black/40 overflow-hidden py-12 px-6">
+        <div className="relative flex-1 min-w-0 min-h-0 md:basis-[65%] flex items-center justify-center bg-black/40 overflow-hidden py-16 px-6 md:px-20">
           {imageLoading && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
               <div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
@@ -231,7 +238,9 @@ export const ChampionModal = ({
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
-              className="max-h-[70vh] md:max-h-[80vh] w-auto h-auto object-contain cursor-zoom-in rounded-xl shadow-2xl select-none"
+              // Limit w obu wymiarach: szerokie grafiki championów (≈1,41:1)
+              // nie wychodzą poza kolumnę, wysokie nie poza ekran.
+              className="block max-w-full max-h-[60svh] md:max-h-full w-auto h-auto object-contain cursor-zoom-in rounded-xl shadow-2xl select-none"
               onClick={() => setIsFullscreenOpen(true)}
             />
           )}
@@ -244,23 +253,24 @@ export const ChampionModal = ({
             <Maximize2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
           </button>
 
-          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none z-10" />
+          {/* Nie szerszy niż odstęp px-20, żeby cień nie przykrywał krawędzi zdjęcia */}
+          <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none z-10" />
 
           {/* Photo Navigation - Inner */}
           {hasMultiplePhotos && (
             <>
-              <button
+              <GoldArrowButton
+                direction="prev"
                 onClick={prevPhoto}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white transition-all z-30"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
+                label="Poprzednie zdjęcie"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-30"
+              />
+              <GoldArrowButton
+                direction="next"
                 onClick={nextPhoto}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white transition-all z-30 mr-[40%] md:mr-0"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
+                label="Następne zdjęcie"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 mr-[40%] md:mr-0"
+              />
             </>
           )}
 
@@ -289,7 +299,7 @@ export const ChampionModal = ({
         </div>
 
         {/* Right Sidebar - Adjusted to be part of flex flow */}
-        <div className="relative w-full md:w-[320px] lg:w-[380px] bg-white/[0.02] backdrop-blur-3xl border-l border-white/10 z-20 flex flex-col p-6 md:p-8 shrink-0">
+        <div className="relative w-full md:w-[320px] lg:w-[380px] bg-white/[0.02] backdrop-blur-3xl border-l border-white/10 z-20 flex flex-col p-6 md:p-8 shrink-0 md:overflow-y-auto">
           <div className="mt-8 md:mt-12 flex-1 flex flex-col justify-start">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -346,54 +356,6 @@ export const ChampionModal = ({
           </div>
         </div>
 
-        {/* Navigation Arrows */}
-        {hasPrevChampion && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onPrevChampion();
-            }}
-            className="absolute left-6 top-1/2 -translate-y-1/2 z-30 p-4 rounded-2xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white/50 hover:text-white transition-all hover:scale-105 hidden md:flex"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
-        )}
-        {hasNextChampion && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onNextChampion();
-            }}
-            className="absolute right-6 top-1/2 -translate-y-1/2 z-30 p-4 rounded-2xl bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 text-white/50 hover:text-white transition-all hover:scale-105 hidden lg:flex"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
-        )}
-
         {/* Mobile Nav Overlay */}
         <div className="absolute inset-0 z-20 flex md:hidden pointer-events-none">
           <div
@@ -412,6 +374,33 @@ export const ChampionModal = ({
           />
         </div>
       </motion.div>
+
+      {/* Strzałki championów – te same przyciski i to samo miejsce co
+          w karuzeli na stronie głównej (Carousel3D). Na telefonie zmiana
+          championa działa dotknięciem lewej lub prawej połowy modala. */}
+      {hasPrevChampion && (
+        <GoldArrowButton
+          direction="prev"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrevChampion();
+          }}
+          label="Poprzedni champion"
+          className="absolute md:left-[-40px] lg:left-[-76px] top-1/2 -translate-y-1/2 z-30 hidden md:flex"
+        />
+      )}
+      {hasNextChampion && (
+        <GoldArrowButton
+          direction="next"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNextChampion();
+          }}
+          label="Następny champion"
+          className="absolute md:right-[-40px] lg:right-[-76px] top-1/2 -translate-y-1/2 z-30 hidden md:flex"
+        />
+      )}
+      </div>
 
       {/* Fullscreen Lightbox */}
       {isFullscreenOpen && champion && (

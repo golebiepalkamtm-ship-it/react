@@ -105,6 +105,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Only auto-start once per session
     if (autoStartedRef.current) return;
+    // Przeglądarki sterowane automatycznie (testy, zrzuty ekranu) nie dostają
+    // samouczka – zasłaniałby stronę. Ręczne uruchomienie (restart) działa dalej.
+    if (navigator.webdriver) return;
 
     const timer = setTimeout(() => {
       const track = detectTrack(user, profile);

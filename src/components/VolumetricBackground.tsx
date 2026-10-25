@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { gsap } from "gsap";
 
 const VERTEX_SHADER = `
   attribute vec2 position;
@@ -166,8 +167,9 @@ const VolumetricBackground = () => {
 
     const startTime = performance.now();
 
+    // Jeden wspólny zegar klatek z Lenis + GSAP (gsap.ticker) – tło, scroll
+    // i animacje renderują się w tej samej klatce, bez rozjazdów.
     const render = () => {
-      rafRef.current = requestAnimationFrame(render);
       if (!activeRef.current) return;
 
       // Smooth mouse interpolation
@@ -183,10 +185,10 @@ const VolumetricBackground = () => {
       gl.uniform1f(uTime, time);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
-    render();
+    gsap.ticker.add(render);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
+      gsap.ticker.remove(render);
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMove);
       document.removeEventListener("visibilitychange", onVisibility);

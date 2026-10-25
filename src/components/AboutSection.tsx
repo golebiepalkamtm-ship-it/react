@@ -1,13 +1,13 @@
-import React, { useRef, useCallback, useState } from "react";
+import React, { useRef, useCallback } from "react";
 import { Award, Target, Feather, Crown } from "lucide-react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
+import { gsap } from "@/lib/gsapConfig";
 import { useGSAP } from "@gsap/react";
+import { scrubReveal } from "@/lib/scrollReveal";
 
 const FeatureCard = React.memo(
   ({
     feature,
-    index,
   }: {
     feature: { icon: any; title: string; description: string };
     index: number;
@@ -16,13 +16,13 @@ const FeatureCard = React.memo(
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
-    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [16, -16]), {
-      stiffness: 120,
-      damping: 14,
+    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
+      stiffness: 180,
+      damping: 22,
     });
-    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-16, 16]), {
-      stiffness: 120,
-      damping: 14,
+    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
+      stiffness: 180,
+      damping: 22,
     });
 
     const handleMouseMove = useCallback(
@@ -49,8 +49,8 @@ const FeatureCard = React.memo(
     return (
       <motion.div
         ref={cardRef}
-        className="relative group"
-        style={{ perspective: "1600px", transformStyle: "preserve-3d" }}
+        className="relative group h-full"
+        style={{ perspective: "1400px", transformStyle: "preserve-3d" }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -72,7 +72,7 @@ const FeatureCard = React.memo(
             }}
           />
           <div
-            className="w-10 h-10 rounded-xl mb-3 flex items-center justify-center"
+            className="w-10 h-10 rounded-xl mb-3 flex items-center justify-center relative z-10"
             style={{
               background: "#A68E4E",
               boxShadow: "0 2px 12px rgba(166,142,78,0.5)",
@@ -81,10 +81,10 @@ const FeatureCard = React.memo(
           >
             <feature.icon className="w-5 h-5 text-black" />
           </div>
-          <h3 className="font-display text-base text-[#C8AE68] font-semibold mb-2">
+          <h3 className="font-display text-base text-[#C8AE68] font-semibold mb-2 relative z-10">
             {feature.title}
           </h3>
-          <p className="text-zinc-300 text-xs leading-relaxed">
+          <p className="text-zinc-300 text-xs leading-relaxed relative z-10">
             {feature.description}
           </p>
         </motion.div>
@@ -129,71 +129,43 @@ const AboutSection = () => {
   const paragraph1Ref = useRef<HTMLParagraphElement>(null);
   const paragraph2Ref = useRef<HTMLParagraphElement>(null);
   const signatureRef = useRef<HTMLDivElement>(null);
+  const cardsGridRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useGSAP(
     () => {
-      // Setup Text Reveal - Dostojny Wjazd
       const textElements = [
         badgeRef.current,
         titleRef.current,
         paragraph1Ref.current,
         paragraph2Ref.current,
         signatureRef.current,
-      ];
+      ].filter(Boolean);
 
-      // Zaczynamy płynnie od dołu
-      gsap.fromTo(
-        textElements,
-        { autoAlpha: 0, y: 40 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          stagger: 0.08,
-          duration: 0.7,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 80%",
-            once: true,
-          },
-        },
-      );
-
-      // Setup Cards Animation - płynne, symetryczne wejście
       const cards = cardsRef.current.filter(
         (card): card is HTMLDivElement => !!card,
       );
 
-      if (cards.length) {
+      // Ciągłe odsłanianie sprzężone ze scrollem (bez progów „once” = bez przeskoków)
+      scrubReveal(textElements, { y: 50 });
+      scrubReveal(cards, { y: 70, scale: 0.97, end: "top 65%" });
+
+      // Subtelny parallax na osobnym kontenerze siatki (brak konfliktu z tweenem wejścia kart)
+      if (cardsGridRef.current) {
         gsap.fromTo(
-          cards,
-          { autoAlpha: 0, scale: 0.96 },
+          cardsGridRef.current,
+          { y: 18 },
           {
-            autoAlpha: 1,
-            scale: 1,
-            stagger: 0.08,
-            duration: 0.6,
-            ease: "power2.out",
+            y: -18,
+            ease: "none",
             scrollTrigger: {
-              trigger: cards[0] as HTMLDivElement,
-              start: "top 85%",
-              once: true,
+              trigger: sectionRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
             },
           },
         );
-
-        // Delikatny, spójny parallax dla kart
-        gsap.to(cards, {
-          y: -30,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 0.5,
-          },
-        });
       }
     },
     { scope: sectionRef },
@@ -219,7 +191,7 @@ const AboutSection = () => {
               ref={titleRef}
               className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.18em] mb-7"
             >
-              <span className="text-zinc-900">Zrodzona z charakteru,</span>{" "}
+              <span className="text-zinc-100">Zrodzona z charakteru,</span>{" "}
               <span className="text-[#A68E4E]">prowadzona z pasją.</span>
             </h2>
 
@@ -266,14 +238,17 @@ const AboutSection = () => {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div
+            ref={cardsGridRef}
+            className="grid sm:grid-cols-2 gap-4 will-change-transform"
+          >
             {features.map((feature, index) => (
               <div
                 key={feature.title}
                 ref={(el) => {
                   cardsRef.current[index] = el;
                 }}
-                className="will-change-transform"
+                className="h-full will-change-transform"
               >
                 <FeatureCard feature={feature} index={index} />
               </div>

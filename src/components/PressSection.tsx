@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Newspaper, Calendar, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -7,10 +7,10 @@ import {
   useTransform,
   useMotionValue,
   useSpring,
-  useScroll,
 } from "framer-motion";
 import { useGSAP } from "@gsap/react";
-import { gsap } from "@/lib/gsapConfig";
+import { gsap, ScrollTrigger } from "@/lib/gsapConfig";
+import { scrubReveal } from "@/lib/scrollReveal";
 import { PressService, PressArticle } from "@/services/pressService";
 import { logger } from "@/lib/logger";
 
@@ -22,18 +22,17 @@ const PressArticleCard = ({
   index: number;
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
+    stiffness: 180,
+    damping: 22,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), {
+    stiffness: 180,
+    damping: 22,
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -43,11 +42,9 @@ const PressArticleCard = ({
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     mouseX.set(x);
     mouseY.set(y);
-    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -56,9 +53,8 @@ const PressArticleCard = ({
     <div
       ref={cardRef}
       className="relative group h-full"
-      style={{ perspective: "1000px" }}
+      style={{ perspective: "1200px" }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
       <motion.article
@@ -71,8 +67,8 @@ const PressArticleCard = ({
           boxShadow:
             "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
         }}
-        whileHover={{ scale: 1.02 }}
-        transition={{ scale: { duration: 0.2 } }}
+        whileHover={{ scale: 1.015 }}
+        transition={{ scale: { duration: 0.25 } }}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent pointer-events-none" />
 
@@ -113,7 +109,7 @@ const PressArticleCard = ({
 
           <div className="mt-auto">
             <Button
-              className="w-full inline-flex items-center justify-center bg-[#A68E4E] text-zinc-900 hover:bg-[#A68E4E]/90 border-0 font-bold uppercase tracking-wider py-5 rounded-full hover:scale-[1.05] active:scale-[0.95] transition-all shadow-md"
+              className="w-full inline-flex items-center justify-center bg-[#A68E4E] text-zinc-900 hover:bg-[#A68E4E]/90 border-0 font-bold uppercase tracking-wider py-5 rounded-full hover:scale-[1.03] active:scale-[0.97] transition-all shadow-md"
               asChild
             >
               <Link to={`/press/${article.id}`}>
@@ -128,7 +124,7 @@ const PressArticleCard = ({
           className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
-          transition={{ duration: 1, delay: index * 0.1 }}
+          transition={{ duration: 0.9, delay: index * 0.1 }}
           viewport={{ once: true }}
         />
       </motion.article>
@@ -145,13 +141,6 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
   const ctaRef = useRef<HTMLDivElement>(null);
   const [articles, setArticles] = useState<PressArticle[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const prefersReducedMotion = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    [],
-  );
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -175,90 +164,24 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
     fetchArticles();
   }, []);
 
-  // Używamy hooka do synchronizacji ScrollTrigger z Lenis - removed
-  // const { refresh } = useScrollTriggerSync({
-  //   refreshOnMount: true,
-  //   refreshDelay: 200,
-  // });
-
   useGSAP(
     () => {
       if (loading || articles.length === 0) return;
 
-      // 1. Force Initial States
-      gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
-      gsap.set(titleRef.current, { opacity: 0, y: 60 });
-      gsap.set(descRef.current, { opacity: 0, y: 40 });
+      const cards = cardsRef.current.filter(
+        (card): card is HTMLDivElement => card !== null,
+      );
 
-      if (ctaRef.current) {
-        gsap.set(ctaRef.current, { opacity: 0, y: 40, scale: 0.9 });
-      }
-
-      const cards = cardsRef.current;
-
-      // Cards Initial States
-      // Middle (1)
-      if (cards[1]) gsap.set(cards[1], { opacity: 0, y: 100, scale: 0.9 });
-      // Sides (0, 2)
-      if (cards[0]) gsap.set(cards[0], { opacity: 0, x: -100, rotateY: -10 });
-      if (cards[2]) gsap.set(cards[2], { opacity: 0, x: 100, rotateY: 10 });
-
-      // 2. Master Timeline
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
+      // Ciągłe odsłanianie sprzężone ze scrollem – bez progów i przeskoków
+      scrubReveal([badgeRef.current, titleRef.current, descRef.current], {
+        y: 50,
       });
+      scrubReveal(cards, { y: 80, scale: 0.97, end: "top 65%" });
+      scrubReveal(ctaRef.current, { y: 40 });
 
-      // 3. Header
-      tl.to(badgeRef.current, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: "back.out(1.5)",
-      })
-        .to(
-          titleRef.current,
-          { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" },
-          "-=0.6",
-        )
-        .to(
-          descRef.current,
-          { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" },
-          "-=0.7",
-        );
-
-      // 4. Cards: Middle First
-      if (cards[1]) {
-        tl.to(
-          cards[1],
-          { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "expo.out" },
-          "-=0.5",
-        );
-      }
-
-      // 5. Cards: Sides Next (Flying in from sides)
-      if (cards[0] && cards[2]) {
-        tl.to(
-          [cards[0], cards[2]],
-          { opacity: 1, x: 0, rotateY: 0, duration: 1.2, ease: "expo.out" },
-          "-=0.8",
-        );
-      }
-
-      // 6. CTA Button
-      if (ctaRef.current) {
-        tl.to(
-          ctaRef.current,
-          { opacity: 1, y: 0, scale: 1, duration: 1, ease: "back.out" },
-          "-=0.8",
-        );
-      }
+      ScrollTrigger.refresh();
     },
-    { dependencies: [loading, articles], scope: sectionRef },
+    { dependencies: [loading, articles.length], scope: sectionRef },
   );
 
   return (
@@ -266,45 +189,26 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
       ref={sectionRef}
       id="press-section"
       className="flex items-center py-24 md:py-32 relative overflow-hidden"
-      style={{
-        perspective: "2000px",
-        transformStyle: "preserve-3d",
-      }}
     >
       <div className="container mx-auto px-4 relative z-10">
-        <div
-          className="text-center mb-16"
-          style={{ transformStyle: "preserve-3d" }}
-        >
+        <div className="text-center mb-16">
           <span
             ref={badgeRef}
             className="inline-block px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] font-bold uppercase tracking-[0.2em] mb-6 shadow-lg shadow-gold/20"
-            style={{
-              transformStyle: "preserve-3d",
-              backfaceVisibility: "hidden",
-            }}
           >
             Autorytet w branży
           </span>
           <h2
             ref={titleRef}
-            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.18em] mb-8"
-            style={{
-              transformStyle: "preserve-3d",
-              backfaceVisibility: "hidden",
-            }}
+            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.18em] mb-8 text-zinc-100"
           >
-            <span className="heading-black">Pałka MTM w Mediach</span>
+            <span className="text-zinc-100">Pałka MTM w Mediach</span>
             {" – "}
             <span className="gold-heading">Standard Doskonałości</span>
           </h2>
           <p
             ref={descRef}
             className="text-white text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed"
-            style={{
-              transformStyle: "preserve-3d",
-              backfaceVisibility: "hidden",
-            }}
           >
             Naszą odpowiedzią na rozgłos są wyniki. Skupiamy się na pracy w
             gołębniku, pozwalając, by to osiągnięcia naszych ptaków były naszą
@@ -316,7 +220,7 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
         {showVideo && (
           <motion.div
             className="max-w-4xl mx-auto mb-16"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
@@ -344,14 +248,17 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
           </motion.div>
         )}
 
+        {loading && <div className="min-h-[560px] mb-16" aria-hidden="true" />}
+
         {!loading && articles.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {articles.map((article, index) => (
               <div
                 key={article.id}
                 ref={(el) => {
-                  if (el) cardsRef.current[index] = el;
+                  cardsRef.current[index] = el;
                 }}
+                className="h-full will-change-transform"
               >
                 <PressArticleCard article={article} index={index} />
               </div>
@@ -359,14 +266,7 @@ const PressSection = ({ showVideo = false }: { showVideo?: boolean }) => {
           </div>
         )}
 
-        <div
-          ref={ctaRef}
-          className="text-center"
-          style={{
-            transformStyle: "preserve-3d",
-            backfaceVisibility: "hidden",
-          }}
-        >
+        <div ref={ctaRef} className="text-center">
           <Button
             className="inline-flex items-center justify-center bg-[#A68E4E] text-zinc-900 font-bold uppercase tracking-widest px-12 py-6 rounded-full hover:scale-105 active:scale-95 transition-all shadow-xl shadow-gold/20"
             asChild

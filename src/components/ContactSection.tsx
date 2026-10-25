@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   MapPin,
   Phone,
@@ -14,8 +14,8 @@ import { UnifiedModal } from "@/components/ui/UnifiedModal";
 import { contactService } from "@/services/contactService";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MagneticButton } from "@/components/effects/MagneticButton";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useGSAP } from "@gsap/react";
+import { scrubReveal } from "@/lib/scrollReveal";
 import { gsap } from "@/lib/gsapConfig";
 
 const ContactFormCard = ({
@@ -25,18 +25,17 @@ const ContactFormCard = ({
   isSubmitting,
 }: any) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
+    stiffness: 180,
+    damping: 22,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), {
+    stiffness: 180,
+    damping: 22,
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -48,10 +47,7 @@ const ContactFormCard = ({
     mouseY.set(y);
   };
 
-  const handleMouseEnter = () => setIsHovered(true);
-
   const handleMouseLeave = () => {
-    setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -60,9 +56,8 @@ const ContactFormCard = ({
     <motion.div
       ref={cardRef}
       className="relative group h-full"
-      style={{ perspective: 1000 }}
+      style={{ perspective: 1200 }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
@@ -84,7 +79,10 @@ const ContactFormCard = ({
           <form onSubmit={handleSubmit} className="space-y-5 contact-form">
             <div className="grid sm:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="contact-fullName" className="block text-sm font-medium text-[#C8AE68] mb-2">
+                <label
+                  htmlFor="contact-fullName"
+                  className="block text-sm font-medium text-[#C8AE68] mb-2"
+                >
                   Imię i Nazwisko
                 </label>
                 <input
@@ -100,7 +98,10 @@ const ContactFormCard = ({
                 />
               </div>
               <div>
-                <label htmlFor="contact-email" className="block text-sm font-medium text-[#C8AE68] mb-2">
+                <label
+                  htmlFor="contact-email"
+                  className="block text-sm font-medium text-[#C8AE68] mb-2"
+                >
                   Adres Email
                 </label>
                 <input
@@ -117,7 +118,10 @@ const ContactFormCard = ({
               </div>
             </div>
             <div>
-              <label htmlFor="contact-subject" className="block text-sm font-medium text-[#C8AE68] mb-2">
+              <label
+                htmlFor="contact-subject"
+                className="block text-sm font-medium text-[#C8AE68] mb-2"
+              >
                 Temat
               </label>
               <input
@@ -133,7 +137,10 @@ const ContactFormCard = ({
               />
             </div>
             <div>
-              <label htmlFor="contact-message" className="block text-sm font-medium text-[#C8AE68] mb-2">
+              <label
+                htmlFor="contact-message"
+                className="block text-sm font-medium text-[#C8AE68] mb-2"
+              >
                 Wiadomość
               </label>
               <textarea
@@ -151,7 +158,7 @@ const ContactFormCard = ({
             <div className="relative z-40">
               <Button
                 type="submit"
-                className="w-full inline-flex items-center justify-center bg-[#A68E4E] text-zinc-900 font-bold py-5 rounded-full hover:scale-[1.05] active:scale-[0.95] transition-all shadow-xl shadow-gold/20 uppercase tracking-widest"
+                className="w-full inline-flex items-center justify-center bg-[#A68E4E] text-zinc-900 font-bold py-5 rounded-full hover:scale-[1.03] active:scale-[0.97] transition-all shadow-xl shadow-gold/20 uppercase tracking-widest"
                 disabled={isSubmitting}
               >
                 <Send className="w-5 h-5 mr-3" />
@@ -164,7 +171,7 @@ const ContactFormCard = ({
           className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent pointer-events-none"
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
-          transition={{ duration: 1, delay: 0.1 }}
+          transition={{ duration: 0.9, delay: 0.1 }}
           viewport={{ once: true }}
         />
       </motion.div>
@@ -174,7 +181,6 @@ const ContactFormCard = ({
 
 const GoogleMapCard = () => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -192,13 +198,13 @@ const GoogleMapCard = () => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
+    stiffness: 180,
+    damping: 22,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), {
+    stiffness: 180,
+    damping: 22,
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -211,7 +217,6 @@ const GoogleMapCard = () => {
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -254,7 +259,7 @@ const GoogleMapCard = () => {
     <motion.div
       ref={cardRef}
       className="relative group"
-      style={{ perspective: "1000px" }}
+      style={{ perspective: "1200px" }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -335,24 +340,22 @@ type ContactInfoItem = {
 
 const StyledContactCard = ({
   info,
-  index,
 }: {
   info: ContactInfoItem;
   index: number;
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), {
+    stiffness: 180,
+    damping: 22,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), {
-    stiffness: 150,
-    damping: 20,
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), {
+    stiffness: 180,
+    damping: 22,
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -365,7 +368,6 @@ const StyledContactCard = ({
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -392,8 +394,9 @@ const StyledContactCard = ({
         boxShadow:
           "0 0 12px rgba(166,142,78,0.25), 0 0 30px rgba(166,142,78,0.1), inset 0 0 0 1px rgba(166,142,78,0.08), 0 24px 60px rgba(0,0,0,0.6)",
       }}
+      onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: 1.03 }}
       transition={{ scale: { duration: 0.2 } }}
     >
       <div className="relative z-10 flex flex-col items-center text-center h-full">
@@ -418,7 +421,7 @@ const StyledContactCard = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`cursor-pointer ${!info.href && !info.action ? "cursor-default" : ""}`}
+      className={`h-full cursor-pointer ${!info.href && !info.action ? "cursor-default" : ""}`}
     >
       {cardContent}
     </div>
@@ -441,107 +444,20 @@ const ContactSection = () => {
   const descRef = useRef<HTMLParagraphElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Używamy hooka do synchronizacji ScrollTrigger z Lenis - removed
-  // const { refresh } = useScrollTriggerSync({
-  //   refreshOnMount: true,
-  //   refreshDelay: 200
-  // });
+  useGSAP(
+    () => {
+      if (!sectionRef.current) return;
 
-  // Bezpośrednie animacje GSAP zamiast useScrollAnimation
-  useEffect(() => {
-    // Tworzymy kontekst GSAP dla czystego sprzątania
-    const ctx = gsap.context(() => {
-      // 1. Initial States - Hide everything
-      gsap.set([titleRef.current, descRef.current], {
-        opacity: 0,
-        y: 60,
-      });
-
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return;
-        const direction = i % 2 === 0 ? -1 : 1;
-        gsap.set(card, {
-          opacity: 0,
-          y: 100,
-          x: direction * 50, // Większe przesunięcie
-          rotateY: direction * 15,
-          scale: 0.8,
-        });
-      });
-
-      // 2. Title & Description Animation
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: titleRef.current,
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
-      });
-
-      tl.to(titleRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: "power3.out",
-      }).to(
-        descRef.current,
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: "power3.out",
-        },
-        "-=0.8",
+      const cards = cardsRef.current.filter(
+        (card): card is HTMLDivElement => card !== null,
       );
 
-      // 3. Cards Animation
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return;
-
-        gsap.to(card, {
-          opacity: 1,
-          y: 0,
-          x: 0,
-          rotateY: 0,
-          scale: 1,
-          duration: 1.2,
-          ease: "expo.out",
-          delay: i * 0.15, // Większy stagger
-          scrollTrigger: {
-            trigger: card, // Indywidualne triggery dla lepszego efektu przy scrollowaniu
-            start: "top 80%",
-            toggleActions: "play none none reverse",
-          },
-        });
-      });
-
-      // 4. Form Animation
-      const formElements = document.querySelectorAll(
-        ".contact-form input, .contact-form textarea, .contact-form button",
-      );
-      if (formElements.length > 0 && formElements[0]) {
-        gsap.fromTo(
-          formElements,
-          { opacity: 0, x: -30 },
-          {
-            opacity: 1,
-            x: 0,
-            stagger: 0.1,
-            duration: 0.8,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: formElements[0] as HTMLElement,
-              start: "top 80%",
-              toggleActions: "play none none reverse",
-            },
-          },
-        );
-      }
-    }, sectionRef);
-
-    // Sprzątanie po odmontowaniu komponentu
-    return () => ctx.revert();
-  }, []);
+      // Ciągłe odsłanianie sprzężone ze scrollem – bez progów i przeskoków
+      scrubReveal([titleRef.current, descRef.current], { y: 50 });
+      scrubReveal(cards, { y: 70, scale: 0.97, end: "top 70%" });
+    },
+    { scope: sectionRef },
+  );
 
   const contactInfo: ContactInfoItem[] = [
     {
@@ -603,50 +519,29 @@ const ContactSection = () => {
       data-section="contact"
       ref={sectionRef}
       className="flex items-center py-24 md:py-32 text-foreground relative overflow-hidden"
-      style={{
-        perspective: "2000px",
-        transformStyle: "preserve-3d",
-      }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/[0.02] to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div
-          className="text-center mb-16"
-          style={{ transformStyle: "preserve-3d" }}
-        >
+        <div className="text-center mb-16">
           <h2
             ref={titleRef}
-            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.18em] mb-8"
-            style={{
-              transformStyle: "preserve-3d",
-              backfaceVisibility: "hidden",
-            }}
+            className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.18em] mb-8 text-zinc-100"
           >
-            <span className="heading-black">Kontakt</span>
+            <span className="text-zinc-100">Kontakt</span>
             {" – "}
             <span className="gold-heading">Porozmawiajmy o Mistrzach</span>
           </h2>
           <p
             ref={descRef}
             className="mt-6 text-lg md:text-xl text-white max-w-2xl mx-auto font-light leading-relaxed"
-            style={{
-              transformStyle: "preserve-3d",
-              backfaceVisibility: "hidden",
-            }}
           >
             Masz pytania lub chcesz dowiedzieć się więcej o naszej hodowli?
             Napisz lub zadzwoń!
           </p>
         </div>
 
-        <div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start"
-          style={{
-            perspective: "1500px",
-            transformStyle: "preserve-3d",
-          }}
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {contactInfo.map((info, index) => (
@@ -655,10 +550,7 @@ const ContactSection = () => {
                   ref={(el) => {
                     cardsRef.current[index] = el;
                   }}
-                  style={{
-                    transformStyle: "preserve-3d",
-                    backfaceVisibility: "hidden",
-                  }}
+                  className="will-change-transform"
                 >
                   <StyledContactCard info={info} index={index} />
                 </div>
@@ -668,10 +560,7 @@ const ContactSection = () => {
               ref={(el) => {
                 cardsRef.current[4] = el;
               }}
-              style={{
-                transformStyle: "preserve-3d",
-                backfaceVisibility: "hidden",
-              }}
+              className="will-change-transform"
             >
               <GoogleMapCard />
             </div>
@@ -680,10 +569,7 @@ const ContactSection = () => {
             ref={(el) => {
               cardsRef.current[5] = el;
             }}
-            style={{
-              transformStyle: "preserve-3d",
-              backfaceVisibility: "hidden",
-            }}
+            className="will-change-transform"
           >
             <ContactFormCard
               handleSubmit={handleSubmit}

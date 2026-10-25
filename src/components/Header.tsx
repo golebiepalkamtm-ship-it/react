@@ -496,7 +496,8 @@ const Header = () => {
             >
               <RouterLink
                 to="/auth?mode=login"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#b8972e] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] border border-white/40 transition-all"
+                data-magnetic="0.25"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#b8972e] text-slate-950 font-black text-xs tracking-wider uppercase shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] border border-white/40 transition-shadow"
                 data-tutorial="login-btn"
               >
                 <User className="w-4 h-4 text-slate-950" />

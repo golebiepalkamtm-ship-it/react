@@ -1,0 +1,577 @@
+/* ==========================================================================
+   Warstwa „experience”: preloader, własny kursor, maskowana typografia Hero.
+   Animujemy wyłącznie transform, opacity i clip-path.
+   ========================================================================== */
+
+/* --- Preloader ---------------------------------------------------------- */
+
+/* Korzeń jest przezroczysty: przy wyjściu jedzie w górę sama kurtyna,
+   a spod niej od razu widać Hero. */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  color: #f4f4f5;
+}
+
+.preloader__curtain {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: #09090b;
+  will-change: transform;
+}
+
+/* Wygięta dolna krawędź kurtyny – ten sam kolor, zwisa pod nią.
+   Animowana wyłącznie przez scaleY. */
+.preloader__edge {
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 0;
+  width: 100%;
+  height: 22vh;
+  fill: #09090b;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  pointer-events: none;
+}
+
+.is-preloading,
+.is-preloading body {
+  overflow: hidden;
+}
+
+.preloader__inner {
+  display: flex;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 clamp(24px, 4vw, 64px) clamp(32px, 6vh, 72px);
+}
+
+/* Maska: tekst wjeżdża i wyjeżdża spod krawędzi, nie znika w miejscu. */
+.preloader__mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+
+.preloader__name {
+  display: block;
+  font-family: "Playfair Display", serif;
+  font-weight: 900;
+  font-size: clamp(28px, 4vw, 56px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.preloader__counter {
+  display: block;
+  font-family: "Playfair Display", serif;
+  font-weight: 900;
+  font-size: clamp(96px, 22vw, 320px);
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: #a68e4e;
+}
+
+.preloader__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: #a68e4e;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* --- Własny kursor ------------------------------------------------------ */
+
+.has-custom-cursor,
+.has-custom-cursor * {
+  cursor: none !important;
+}
+
+.has-custom-cursor input,
+.has-custom-cursor textarea,
+.has-custom-cursor [contenteditable="true"] {
+  cursor: text !important;
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10001;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.cursor-ring {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Etykieta bez odwracania kolorów: na jasnych zdjęciach biel w trybie
+   difference dawała szare kółko i nieczytelny napis. */
+.cursor-ring[data-state="label"] {
+  mix-blend-mode: normal;
+  border-color: #a68e4e;
+  background: #a68e4e;
+}
+
+.cursor-ring[data-state="text"] {
+  border-color: transparent;
+  background: #fff;
+}
+
+/* Pierścień jest skalowany ×3, więc etykieta ma 1/3 docelowej wielkości. */
+.cursor-ring__label {
+  font-family: "Outfit", sans-serif;
+  font-size: 4.4px;
+  font-weight: 600;
+  line-height: 1;
+  color: #09090b;
+  opacity: 0;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+/* --- Maskowana typografia Hero ------------------------------------------ */
+
+.kinetic-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  /* Zapas na ogonki (ł, ę) i kursywę, żeby maska ich nie ucinała. */
+  padding: 0.04em 0.06em 0.12em;
+  margin: -0.04em -0.06em -0.12em;
+}
+
+.kinetic-unit {
+  display: inline-block;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* --- Championy w locie (poziomy przejazd) ------------------------------- */
+
+.champ-h {
+  position: relative;
+  overflow: hidden;
+  color: #f4f4f5;
+}
+
+.champ-h__backdrop {
+  position: absolute;
+  left: 4vw;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: "Playfair Display", serif;
+  font-weight: 900;
+  font-size: 34vw;
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(166, 142, 78, 0.07);
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+/* Telefon i ograniczony ruch: zwykły pas przewijany palcem. */
+.champ-h__viewport {
+  position: relative;
+  z-index: 1;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 96px 0 72px;
+}
+
+.champ-h__viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.champ-h__track {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  width: max-content;
+  margin: 0;
+  padding: 0 24px;
+  list-style: none;
+}
+
+.champ-h__intro,
+.champ-h__outro {
+  flex: none;
+  width: min(84vw, 420px);
+  scroll-snap-align: start;
+}
+
+.champ-h__title {
+  font-family: "Playfair Display", serif;
+  font-weight: 900;
+  font-size: clamp(44px, 6.4vw, 112px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #f4f4f5;
+}
+
+.champ-h__lead,
+.champ-h__outro-text {
+  margin-top: 28px;
+  max-width: 34ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #e4e4e7;
+}
+
+.champ-h__card {
+  flex: none;
+  width: 78vw;
+  scroll-snap-align: center;
+}
+
+.champ-h__link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.champ-h__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #18181b;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.champ-h__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+  transition: opacity 0.4s ease;
+}
+
+/* Obraz rysuje WebGL – <img> zostaje dla układu, alt i awarii kontekstu.
+   Zaokrąglone rogi rysuje shader, więc tło ramki znika razem z obrazem. */
+.champ-h__media[data-gl="ready"] {
+  background: transparent;
+}
+
+.champ-h__media[data-gl="ready"] img {
+  opacity: 0;
+}
+
+.champ-h__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.champ-h__ring {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #a68e4e;
+}
+
+.champ-h__name {
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.1;
+  color: #f4f4f5;
+}
+
+.champ-h__result {
+  font-size: 16px;
+  color: #d4d4d8;
+}
+
+.champ-h__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 36px;
+  padding: 14px 32px;
+  border-radius: 9999px;
+  background: #a68e4e;
+  color: #09090b;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: filter 0.3s ease;
+}
+
+.champ-h__cta:hover {
+  filter: brightness(1.1);
+}
+
+.champ-h__canvas {
+  display: none;
+}
+
+.champ-h__progress {
+  display: none;
+}
+
+/* Desktop z ruchem: sekcja przypięta na pełen ekran, tor jedzie w poziomie. */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .champ-h {
+    height: 100svh;
+  }
+
+  .champ-h__viewport {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+    scroll-snap-type: none;
+  }
+
+  .champ-h__track {
+    align-items: center;
+    gap: 4vw;
+    padding: 0 6vw;
+    will-change: transform;
+  }
+
+  .champ-h__intro {
+    width: 38vw;
+  }
+
+  .champ-h__outro {
+    width: 32vw;
+  }
+
+  .champ-h__card {
+    width: 30vw;
+    perspective: 1200px;
+  }
+
+  /* Rytm: co druga karta mniejsza i niżej. */
+  .champ-h__card--low {
+    width: 24vw;
+    margin-top: 14vh;
+  }
+
+  /* Płótno leży pod torem: przezroczyste ramki zdjęć pokazują to, co
+     rysuje WebGL, a podpisy i kursor zostają nad nim. */
+  .champ-h__canvas {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .champ-h__progress {
+    display: block;
+    position: absolute;
+    left: 6vw;
+    right: 6vw;
+    bottom: 40px;
+    z-index: 3;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .champ-h__progress-bar {
+    height: 100%;
+    background: #a68e4e;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+}
+
+/* --- Kolory sekcji ------------------------------------------------------ */
+
+/* Nad mgłą VolumetricBackground (z-index -9999), pod całą treścią.
+   Leży w #root obok mgły – oba w tym samym kontekście nakładania. */
+.section-tints {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.section-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
+/* --- Stopka odsłaniana spod strony -------------------------------------- */
+
+/* Ramka przycina wnętrze przesunięte w górę – stąd wrażenie, że stopka
+   leży pod ostatnią sekcją. */
+.footer-reveal {
+  position: relative;
+  overflow: hidden;
+  background: #050b12;
+}
+
+.footer-reveal__inner {
+  will-change: transform;
+}
+
+.footer-cta {
+  padding: clamp(96px, 16vh, 180px) clamp(16px, 5vw, 80px) clamp(64px, 10vh, 120px);
+  color: #f4f4f5;
+}
+
+.footer-cta__eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #a68e4e;
+}
+
+.footer-cta__title {
+  margin-top: 24px;
+  max-width: 14ch;
+  font-family: "Playfair Display", serif;
+  font-weight: 900;
+  font-size: clamp(44px, 8.4vw, 148px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: #f4f4f5;
+}
+
+.footer-cta__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+  margin-top: clamp(48px, 8vh, 88px);
+}
+
+/* Okrągłe CTA – na desktopie duże „magnetyczne” koło. */
+.footer-cta__orb {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  background: #a68e4e;
+  color: #09090b;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: filter 0.3s ease;
+}
+
+.footer-cta__orb:hover {
+  filter: brightness(1.1);
+}
+
+.footer-cta__orb-icon {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-cta__orb:hover .footer-cta__orb-icon {
+  transform: translate(3px, -3px);
+}
+
+.footer-cta__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-cta__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 28px;
+  border-radius: 9999px;
+  border: 2px solid #a68e4e;
+  background: #a68e4e;
+  color: #09090b;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.footer-cta__pill--ghost {
+  background: transparent;
+  color: #a68e4e;
+}
+
+.footer-cta__pill--ghost:hover {
+  background: #a68e4e;
+  color: #09090b;
+}
+
+@media (min-width: 768px) {
+  .footer-cta__actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 56px;
+  }
+
+  .footer-cta__orb {
+    width: 200px;
+    height: 200px;
+    font-size: 17px;
+  }
+}
+
+/* --- Zdjęcie z efektem WebGL (np. karuzela championów) ------------------ */
+
+.gl-host-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* WebGL rysuje zdjęcie – <img> zostaje dla układu, alt i awarii kontekstu. */
+.gl-host[data-gl="ready"] .gl-photo {
+  opacity: 0;
+}

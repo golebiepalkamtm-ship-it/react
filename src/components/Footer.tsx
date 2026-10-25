@@ -112,7 +112,7 @@ const Footer = () => {
                 <Trophy className="w-6 h-6 text-zinc-950" />
               </div>
               <div>
-                <h3 className="font-display text-xl text-zinc-900 font-bold uppercase tracking-tighter">
+                <h3 className="font-display text-xl text-zinc-100 font-bold uppercase tracking-tighter">
                   MTM Pałka
                 </h3>
                 <p className="text-[10px] text-gold font-bold uppercase tracking-[0.2em]">

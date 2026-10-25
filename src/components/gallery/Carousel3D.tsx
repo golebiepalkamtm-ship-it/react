@@ -1,22 +1,16 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-  Loader2,
-  Medal,
-  Trophy,
-} from "lucide-react";
+import { Loader2, Trophy } from "lucide-react";
 import { useChampions } from "@/hooks/useChampions";
 import { PedigreeModal } from "./PedigreeModal";
 import { ChampionModal } from "./ChampionModal";
-import { RevealOnScroll } from "@/components/motion/RevealOnScroll";
-import { MagneticButton } from "@/components/effects/MagneticButton";
+import { GoldArrowButton } from "./GoldArrowButton";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { scrubReveal } from "@/lib/scrollReveal";
 import { WidgetErrorBoundary } from "@/components/WidgetErrorBoundary";
+import { useDistortion } from "@/components/experience";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,7 +20,6 @@ export type TCarouselItem = {
 };
 
 export const Carousel3D = () => {
-  const animationRef = useRef<gsap.core.Timeline | null>(null);
   const resumeTimeoutRef = useRef<number | null>(null);
   const { champions, loading, error, refetch } = useChampions();
   const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -46,70 +39,53 @@ export const Carousel3D = () => {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const detailsContainerRef = useRef<HTMLDivElement>(null);
+  const glCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Zdjęcie championa w WebGL: fala i przechył pod kursorem, przenikanie
+  // przy zmianie slajdu. Kadr w spoczynku jest taki sam jak <img> (zoom 1);
+  // zapas płaszczyzny (overscan) pokazuje przy przechyle dalszą część
+  // zdjęcia, a rogi przycina sama ramka (rounded-3xl + overflow-hidden).
+  useDistortion(imageContainerRef, glCanvasRef, activeChampion?.images?.[0], {
+    overscan: 1.1,
+    zoom: 1,
+    radius: 0,
+    tilt: 0.6,
+    bulge: 50,
+  });
 
   useGSAP(
     () => {
-      if (!carouselRef.current) return;
+      if (!carouselRef.current || loading || items.length === 0) return;
 
-      // Force initial states
-      gsap.set(badgeRef.current, { opacity: 0, y: 40, scale: 0.9 });
-      gsap.set(titleRef.current, { opacity: 0, y: 60 });
-      gsap.set(imageContainerRef.current, {
-        opacity: 0,
-        scale: 0.9,
-        rotateY: -15,
+      // Ciągłe odsłanianie sprzężone ze scrollem – bez progów i przeskoków
+      scrubReveal([badgeRef.current, titleRef.current], { y: 50 });
+      scrubReveal(imageContainerRef.current, {
+        y: 80,
+        scale: 0.96,
+        end: "top 60%",
       });
-      gsap.set(detailsContainerRef.current, { opacity: 0, x: 50, rotateY: 15 });
-
-      const mainTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: carouselRef.current,
-          start: "top 90%", // Start earlier
-          toggleActions: "play none none none",
-          once: true,
-        },
+      scrubReveal(detailsContainerRef.current, {
+        y: 40,
+        x: 40,
+        end: "top 60%",
       });
-
-      mainTl
-        .fromTo(
-          badgeRef.current,
-          { opacity: 0, y: 40, scale: 0.9 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.5)" },
-          0,
-        )
-        // Title handled globally via data-split="chars"
-        .fromTo(
-          imageContainerRef.current,
-          { opacity: 0, scale: 0.9, rotateY: -15 },
-          { opacity: 1, scale: 1, rotateY: 0, duration: 1.3, ease: "expo.out" },
-          0.4,
-        )
-        .fromTo(
-          detailsContainerRef.current,
-          { opacity: 0, x: 50, rotateY: 15 },
-          { opacity: 1, x: 0, rotateY: 0, duration: 1.2, ease: "expo.out" },
-          0.6,
-        );
     },
-    { scope: carouselRef },
+    { dependencies: [loading, items.length], scope: carouselRef },
   );
 
   // Funkcja do zatrzymania auto-play z automatycznym wznowieniem
   const pauseAutoPlay = useCallback(() => {
     setIsAutoPlaying(false);
 
-    // Wyczyść poprzedni timeout jeśli istnieje
     if (resumeTimeoutRef.current) {
       window.clearTimeout(resumeTimeoutRef.current);
     }
 
-    // Wznów auto-play po 3 sekundach bezczynności
     resumeTimeoutRef.current = window.setTimeout(() => {
       setIsAutoPlaying(true);
     }, 3000);
   }, []);
 
-  // Throttled version of pauseAutoPlay
   const throttledPauseRef = useRef<number>(0);
   const handleUserInteraction = useCallback(() => {
     const now = Date.now();
@@ -133,6 +109,18 @@ export const Carousel3D = () => {
     [items.length],
   );
 
+  // Wczytaj z wyprzedzeniem zdjęcia wszystkich championów – bez tego każde
+  // przełączenie pokazywało pustą ramkę, zanim obraz zdążył się pobrać.
+  useEffect(() => {
+    items.forEach((champion) => {
+      const src = champion.images?.[0];
+      if (!src) return;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    });
+  }, [items]);
+
   useEffect(() => {
     if (!isAutoPlaying) return;
     if (items.length <= 1) return;
@@ -140,23 +128,25 @@ export const Carousel3D = () => {
     return () => window.clearInterval(timer);
   }, [isAutoPlaying, navigate, items.length]);
 
+  // Przenikanie: nowy obraz pojawia się NAD starym, który znika dopiero pod
+  // nim – w kadrze nigdy nie ma pustej ramki. Kierunek daje lekki dryf.
   const slideVariants = useMemo(
     () => ({
       enter: (d: number) => ({
-        x: d > 0 ? "100%" : "-100%",
+        x: d > 0 ? 24 : -24,
         opacity: 0,
-        scale: 0.9,
+        zIndex: 2,
       }),
       center: {
         x: 0,
         opacity: 1,
-        scale: 1,
+        zIndex: 2,
       },
-      exit: (d: number) => ({
-        x: d > 0 ? "-50%" : "50%",
+      exit: {
         opacity: 0,
-        scale: 0.9,
-      }),
+        zIndex: 1,
+        transition: { duration: 0.3, delay: 0.35 },
+      },
     }),
     [],
   );
@@ -187,7 +177,7 @@ export const Carousel3D = () => {
 
   if (loading) {
     return (
-      <section className="relative py-24 overflow-hidden section-surface">
+      <section className="relative py-24 overflow-hidden section-surface min-h-[85vh] flex items-center justify-center">
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 gold-icon animate-spin" />
           <span className="ml-3 text-muted-foreground">
@@ -245,44 +235,21 @@ export const Carousel3D = () => {
         onMouseEnter={pauseAutoPlay}
         onMouseMove={handleUserInteraction}
       >
-        {/* Wewnętrzne tła usunięte - prześwituje tło globalne */}
-
-        <div className="relative z-20 pt-16 md:pt-24 pb-8 text-center">
+        <div className="relative z-20 pt-8 md:pt-12 pb-8 text-center">
           <div>
             <span
               ref={badgeRef}
               className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-[#A68E4E] text-zinc-900 text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] shadow-lg shadow-gold/20 mb-8"
-              style={{
-                transformStyle: "preserve-3d",
-                backfaceVisibility: "hidden",
-              }}
             >
-              <motion.div
-                animate={{
-                  scale: [1, 1.15, 1],
-                  opacity: [0.8, 1, 0.8],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                <Trophy className="w-4 h-4 text-[#A68E4E]" />
-              </motion.div>
+              <Trophy className="w-4 h-4 text-zinc-900" />
               Pałka M.T.M
             </span>
 
             <h2
               ref={titleRef}
-              data-split="chars"
-              className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.2em] mb-10"
-              style={{
-                transformStyle: "preserve-3d",
-                backfaceVisibility: "hidden",
-              }}
+              className="font-display text-2xl md:text-3xl lg:text-4xl font-bold leading-tight uppercase tracking-[0.2em] mb-10 text-zinc-100"
             >
-              <span className="text-zinc-900">Championy Hodowli</span> –{" "}
+              <span className="text-zinc-100">Championy Hodowli</span> –{" "}
               <span className="text-[#A68E4E]">Nasza Elita</span>
             </h2>
           </div>
@@ -290,39 +257,34 @@ export const Carousel3D = () => {
 
         <div className="relative z-10 flex items-center justify-center px-4 md:px-8 lg:px-16 pb-16">
           <div className="relative w-full max-w-7xl">
-            <button
+            <GoldArrowButton
+              direction="prev"
               onClick={() => navigate(-1)}
-              className="absolute left-[-20px] md:left-[-60px] lg:left-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#A68E4E] flex items-center justify-center text-zinc-900 hover:scale-110 active:scale-90 transition-all duration-300 shadow-xl shadow-gold/20 group"
-              aria-label="Poprzedni"
-            >
-              <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 group-hover:-translate-x-1 transition-transform" />
-            </button>
-            <button
+              label="Poprzedni"
+              className="absolute left-2 md:left-[-40px] lg:left-[-76px] top-1/2 -translate-y-1/2 z-30"
+            />
+            <GoldArrowButton
+              direction="next"
               onClick={() => navigate(1)}
-              className="absolute right-[-20px] md:right-[-60px] lg:right-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#A68E4E] flex items-center justify-center text-zinc-900 hover:scale-110 active:scale-90 transition-all duration-300 shadow-xl shadow-gold/20 group"
-              aria-label="Następny"
-            >
-              <ChevronRight className="w-6 h-6 md:w-8 md:h-8 group-hover:translate-x-1 transition-transform" />
-            </button>
+              label="Następny"
+              className="absolute right-2 md:right-[-40px] lg:right-[-76px] top-1/2 -translate-y-1/2 z-30"
+            />
 
             <div className="relative flex flex-col lg:flex-row items-start gap-8 lg:gap-16">
               <div
                 ref={imageContainerRef}
-                className="relative w-full lg:w-3/5 aspect-[4/3] overflow-hidden rounded-3xl"
-                style={{
-                  transformStyle: "preserve-3d",
-                  backfaceVisibility: "hidden",
-                }}
+                className="gl-host relative w-full lg:w-3/5 aspect-[4/3] overflow-hidden rounded-3xl will-change-transform"
               >
-                {/* Złota poświata wokół ramki */}
-                <div className="absolute inset-0 rounded-3xl z-10 pointer-events-none">
-                  <div className="absolute inset-0 rounded-3xl shadow-[0_0_80px_rgba(212,175,55,0.6),0_0_140px_rgba(212,175,55,0.25),inset_0_0_60px_rgba(212,175,55,0.15)]" />
-                </div>
+                <canvas
+                  ref={glCanvasRef}
+                  className="gl-host-canvas"
+                  aria-hidden="true"
+                />
                 <div className="absolute inset-0 border-2 border-[#C8AE68] rounded-3xl z-20 pointer-events-none" />
                 <div className="absolute inset-4 border border-[#C8AE68] rounded-2xl z-20 pointer-events-none" />
 
                 <svg
-                  className="absolute top-2 left-2 w-12 h-12 gold-icon z-20"
+                  className="absolute top-2 left-2 w-12 h-12 gold-icon z-20 pointer-events-none"
                   viewBox="0 0 48 48"
                 >
                   <path
@@ -333,7 +295,7 @@ export const Carousel3D = () => {
                   />
                 </svg>
                 <svg
-                  className="absolute top-2 right-2 w-12 h-12 gold-icon z-20"
+                  className="absolute top-2 right-2 w-12 h-12 gold-icon z-20 pointer-events-none"
                   viewBox="0 0 48 48"
                 >
                   <path
@@ -344,7 +306,7 @@ export const Carousel3D = () => {
                   />
                 </svg>
                 <svg
-                  className="absolute bottom-2 left-2 w-12 h-12 gold-icon z-20"
+                  className="absolute bottom-2 left-2 w-12 h-12 gold-icon z-20 pointer-events-none"
                   viewBox="0 0 48 48"
                 >
                   <path
@@ -355,7 +317,7 @@ export const Carousel3D = () => {
                   />
                 </svg>
                 <svg
-                  className="absolute bottom-2 right-2 w-12 h-12 gold-icon z-20"
+                  className="absolute bottom-2 right-2 w-12 h-12 gold-icon z-20 pointer-events-none"
                   viewBox="0 0 48 48"
                 >
                   <path
@@ -366,7 +328,7 @@ export const Carousel3D = () => {
                   />
                 </svg>
 
-                <AnimatePresence initial={false} custom={direction} mode="wait">
+                <AnimatePresence initial={false} custom={direction}>
                   <motion.div
                     key={activeIndex}
                     custom={direction}
@@ -374,7 +336,7 @@ export const Carousel3D = () => {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                     className="absolute inset-0"
                   >
                     {activeChampion ? (
@@ -385,11 +347,11 @@ export const Carousel3D = () => {
                         <img
                           src={activeChampion?.images?.[0] ?? ""}
                           alt={activeChampion?.name ?? "Champion"}
-                          className="w-full h-full object-cover bg-gradient-to-b from-muted/20 to-background transition-transform duration-700"
-                          loading="lazy"
+                          className="gl-photo w-full h-full object-cover bg-zinc-900 transition-transform duration-700 group-hover/img:scale-[1.03]"
+                          decoding="async"
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 flex items-center justify-center">
-                          <div className="px-6 py-2 bg-gold text-black rounded-full font-bold uppercase tracking-widest text-xs transform translate-y-4 transition-transform duration-300">
+                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                          <div className="px-6 py-2.5 bg-[#A68E4E] text-zinc-950 rounded-full font-bold uppercase tracking-widest text-xs transform translate-y-3 group-hover/img:translate-y-0 transition-transform duration-300 shadow-lg">
                             Zobacz Galerię & Detale
                           </div>
                         </div>
@@ -405,22 +367,17 @@ export const Carousel3D = () => {
 
               <div
                 ref={detailsContainerRef}
-                className="relative w-full lg:w-2/5 text-center lg:text-left"
-                style={{
-                  transformStyle: "preserve-3d",
-                  backfaceVisibility: "hidden",
-                }}
+                className="relative w-full lg:w-2/5 text-center lg:text-left will-change-transform"
               >
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeIndex}
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -30 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
+                    exit={{ opacity: 0, y: -18 }}
+                    transition={{ duration: 0.38, ease: "easeOut" }}
                     className="space-y-6"
                   >
-                    {/* Ring number at the top */}
                     <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2">
                       <p className="font-body text-sm uppercase tracking-widest text-[#C8AE68] font-medium">
                         {activeChampion.ringNumber ||
@@ -443,13 +400,13 @@ export const Carousel3D = () => {
                               className="flex items-center gap-3 font-body text-[#C8AE68]"
                             >
                               <motion.div
-                                initial={{ opacity: 0, x: -20 }}
+                                initial={{ opacity: 0, x: -12 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.4 + i * 0.1 }}
+                                transition={{ delay: 0.1 + i * 0.06 }}
                                 className="flex items-center gap-3 w-full"
                               >
-                                <span className="w-2 h-2 rounded-full bg-[#C8AE68]" />
-                                {achievement}
+                                <span className="w-2 h-2 shrink-0 rounded-full bg-[#C8AE68]" />
+                                <span>{achievement}</span>
                               </motion.div>
                             </li>
                           ))}
@@ -467,22 +424,22 @@ export const Carousel3D = () => {
                               className="flex items-center gap-3 font-body text-[#C8AE68]"
                             >
                               <motion.div
-                                initial={{ opacity: 0, x: -20 }}
+                                initial={{ opacity: 0, x: -12 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{
                                   delay:
-                                    0.4 +
+                                    0.15 +
                                     (i +
                                       Math.ceil(
                                         (activeChampion.achievements ?? [])
                                           .length / 2,
                                       )) *
-                                      0.1,
+                                      0.06,
                                 }}
                                 className="flex items-center gap-3 w-full"
                               >
-                                <span className="w-2 h-2 rounded-full bg-[#C8AE68]" />
-                                {achievement}
+                                <span className="w-2 h-2 shrink-0 rounded-full bg-[#C8AE68]" />
+                                <span>{achievement}</span>
                               </motion.div>
                             </li>
                           ))}
