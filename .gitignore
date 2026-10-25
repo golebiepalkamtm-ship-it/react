@@ -31,3 +31,9 @@ server/.env.*
 
 .vercel
 .mcp.json
+
+# Local AI tooling and notes
+.claude/
+.taste-skill/
+skills-lock.json
+PROMPT_HOMEPAGE_SCROLL_STORY.md
