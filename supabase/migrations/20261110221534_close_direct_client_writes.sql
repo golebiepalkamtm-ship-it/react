@@ -1,5 +1,8 @@
 -- Migration: Stop clients from reaching auction data past the backend
 --
+-- Applied to the live project on 2026-11-10 as version 20261110221534
+-- (through the management API, not with "supabase db push").
+--
 -- The web app reads and writes auctions, bids, payments, watchlists and auction
 -- media only through the Express API. That API is where the rules live: bid
 -- increments, anti-sniping, the listing fee, the reserve price, the commission,

@@ -1,5 +1,8 @@
 -- Migration: Lock down public.users for client-side (Supabase REST) access
 --
+-- Applied to the live project on 2026-11-10 as version 20261110221516
+-- (through the management API, not with "supabase db push").
+--
 -- State of the live database, checked on 2026-11-10 (pg_policies, table grants,
 -- pg_trigger):
 --   * policy "Users Select Policy" (SELECT, USING true) plus a SELECT grant to
