@@ -20,7 +20,7 @@ import {
 import { resetLimiter, loginLimiter, otpSendLimiter, otpVerifyLimiter } from "../middleware/rateLimiter.js";
 import { validate } from "../middleware/validation.js";
 import { z } from "zod";
-import { prisma } from "../lib/db.js";
+import { prisma, supabase } from "../lib/db.js";
 import { smsService } from "../services/SmsService.js";
 
 const router: Router = express.Router();
@@ -180,13 +180,24 @@ router.delete(
         return res.status(500).json({ error: "Baza danych niedostępna." });
       }
 
-      // Sprawdź czy użytkownik nie ma aktywnych aukcji
-      const activeAuctions = await prisma.auction.count({
-        where: {
-          sellerId: userId,
-          status: "ACTIVE",
-        },
-      });
+      // An account can go only when nobody else is waiting on it: deleting it
+      // detaches the user's bids and auctions, which would otherwise be a way to
+      // back out of a bid or of a finished sale.
+      const [activeAuctions, openSettlements, bidsInActiveAuctions] =
+        await Promise.all([
+          prisma.auction.count({
+            where: { sellerId: userId, status: "ACTIVE" },
+          }),
+          prisma.auction.count({
+            where: {
+              status: "ENDED_WAITING_PAYMENT",
+              OR: [{ sellerId: userId }, { winnerId: userId }],
+            },
+          }),
+          prisma.bid.count({
+            where: { bidderId: userId, auction: { status: "ACTIVE" } },
+          }),
+        ]);
 
       if (activeAuctions > 0) {
         return res.status(400).json({
@@ -194,10 +205,43 @@ router.delete(
             "Nie można usunąć konta z aktywnymi aukcjami. Najpierw zakończ wszystkie aukcje.",
         });
       }
+      if (openSettlements > 0) {
+        return res.status(400).json({
+          error:
+            "Nie można usunąć konta, dopóki zakończone aukcje czekają na płatność.",
+        });
+      }
+      if (bidsInActiveAuctions > 0) {
+        return res.status(400).json({
+          error:
+            "Nie można usunąć konta w trakcie licytacji, w których złożyłeś ofertę.",
+        });
+      }
 
       await prisma.user.delete({ where: { id: userId } });
 
-      res.json({ success: true, message: "Konto zostało usunięte." });
+      // Remove the login itself (e-mail, password, sessions) from Supabase Auth.
+      // Without this the address stays stored and the next sign-in simply
+      // recreates an empty profile.
+      let authAccountRemoved = false;
+      if (supabase) {
+        const { error: authError } =
+          await supabase.auth.admin.deleteUser(userId);
+        if (authError) {
+          console.error(
+            "Account deletion: profile removed, but the Supabase Auth account could not be deleted",
+            { userId, error: authError.message },
+          );
+        } else {
+          authAccountRemoved = true;
+        }
+      }
+
+      res.json({
+        success: true,
+        message: "Konto zostało usunięte.",
+        authAccountRemoved,
+      });
     } catch (error) {
       console.error("Account deletion error:", error);
       res.status(500).json({ error: "Wystąpił błąd podczas usuwania konta." });

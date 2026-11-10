@@ -1,7 +1,5 @@
-import { useState } from "react";
 import {
   CreditCard,
-  Loader2,
   CheckCircle2,
   Clock,
   XCircle,
@@ -9,20 +7,31 @@ import {
   Banknote,
   TrendingUp,
   RefreshCw,
-  Zap,
   Receipt,
   ArrowUpRight,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 import { usePaymentHistory } from "@/hooks/usePaymentHistory";
-import { useAuth } from "@/contexts/AuthContext";
-import PaymentModal from "@/components/PaymentModal";
+
+// Statusy zwracane przez API (PaymentStatus): INITIATED, PENDING, SUCCEEDED, FAILED, CANCELLED
+const PAID_STATUSES = ["SUCCEEDED", "PAID", "COMPLETED"];
 
 const STATUS_CONFIG: Record<
   string,
   { label: string; color: string; bg: string; icon: React.ReactNode }
 > = {
+  SUCCEEDED: {
+    label: "Zapłacono",
+    color: "text-green-400",
+    bg: "bg-green-500/10 border border-green-500/25",
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+  },
+  INITIATED: {
+    label: "Rozpoczęto",
+    color: "text-amber-400",
+    bg: "bg-amber-500/10 border border-amber-500/25",
+    icon: <Clock className="w-3.5 h-3.5" />,
+  },
   COMPLETED: {
     label: "Zapłacono",
     color: "text-green-400",
@@ -56,6 +65,8 @@ const STATUS_CONFIG: Record<
 };
 
 const TYPE_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
+  BUY_NOW: { label: "Kup teraz", icon: <CreditCard className="w-3.5 h-3.5" /> },
+  WON_AUCTION: { label: "Wygrana aukcja", icon: <CreditCard className="w-3.5 h-3.5" /> },
   LISTING_FEE: { label: "Opłata wystawienia", icon: <Receipt className="w-3.5 h-3.5" /> },
   COMMISSION: { label: "Prowizja", icon: <Banknote className="w-3.5 h-3.5" /> },
   DEPOSIT: { label: "Kaucja", icon: <ArrowUpRight className="w-3.5 h-3.5" /> },
@@ -66,69 +77,20 @@ const formatPln = (amount: number) =>
   `${amount.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} PLN`;
 
 export function UserPaymentsSection() {
-  const { session } = useAuth();
-  const { payments, pendingCommissions, loading, error, refresh } =
-    usePaymentHistory();
-  const [commissionAuctionId, setCommissionAuctionId] = useState<string | null>(null);
+  const { payments, loading, error, refresh } = usePaymentHistory();
 
   const totalPaid = payments
-    .filter((p) => ["PAID", "COMPLETED"].includes(p.status))
+    .filter((p) => PAID_STATUSES.includes(p.status))
     .reduce((s, p) => s + p.amount, 0);
 
   const lastPayment = payments
-    .filter((p) => ["PAID", "COMPLETED"].includes(p.status))
+    .filter((p) => PAID_STATUSES.includes(p.status))
     .sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )[0];
 
   return (
     <div className="space-y-5 pb-4">
-
-      {/* ── Pending commissions alert ── */}
-      <AnimatePresence>
-        {pendingCommissions.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-amber-900/10 p-4"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="relative">
-                <Zap className="w-5 h-5 text-amber-400" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full animate-ping opacity-75" />
-              </div>
-              <h3 className="text-white font-semibold text-sm">
-                Oczekujące prowizje ({pendingCommissions.length})
-              </h3>
-            </div>
-            <ul className="space-y-2">
-              {pendingCommissions.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex flex-wrap items-center justify-between gap-2"
-                >
-                  <div>
-                    <p className="text-white/90 text-sm font-medium">
-                      {p.auctionTitle ?? "Aukcja"}
-                    </p>
-                    <p className="text-amber-400 font-semibold text-sm">
-                      {formatPln(p.amount)}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setCommissionAuctionId(p.auctionId)}
-                    className="bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs h-8"
-                  >
-                    Zapłać teraz
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Summary cards ── */}
       {!loading && payments.length > 0 && (
@@ -265,18 +227,6 @@ export function UserPaymentsSection() {
           </ul>
         )}
       </div>
-
-      {commissionAuctionId && (
-        <PaymentModal
-          open
-          onClose={() => {
-            setCommissionAuctionId(null);
-            refresh();
-          }}
-          auctionId={commissionAuctionId}
-          type="COMMISSION"
-        />
-      )}
     </div>
   );
 }

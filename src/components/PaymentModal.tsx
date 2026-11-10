@@ -6,7 +6,9 @@ import { paymentService } from '@/services/paymentService';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, CreditCard } from 'lucide-react';
 
-type PaymentKind = 'LISTING_FEE' | 'COMMISSION';
+// Jedyna opłata, którą sprzedawca wnosi sam. Prowizja od sprzedaży nie jest
+// osobną płatnością — serwis potrąca ją z wypłaty po wpłacie kupującego.
+type PaymentKind = 'LISTING_FEE';
 
 interface PaymentModalProps {
   open: boolean;
@@ -15,10 +17,9 @@ interface PaymentModalProps {
   type: PaymentKind;
   // Stała opłata za wystawienie — zgodna z backendem (server/routes/payments.ts listingFee = 20 PLN)
   listingFeeAmount?: number;
-  // Informacyjnie: prowizja liczona na backendzie (10%); tutaj tylko komunikat.
 }
 
-const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }: PaymentModalProps) => {
+const PaymentModal = ({ open, onClose, auctionId, listingFeeAmount = 20 }: PaymentModalProps) => {
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState<{
@@ -48,10 +49,12 @@ const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }:
       const successUrl = `${window.location.origin}/auctions/success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${window.location.origin}/auctions/cancel`;
 
-      const payload =
-        type === 'LISTING_FEE'
-          ? await paymentService.createListingFeeCheckout(auctionId, session.access_token, successUrl, cancelUrl)
-          : await paymentService.createCommissionCheckout(auctionId, session.access_token, successUrl, cancelUrl);
+      const payload = await paymentService.createListingFeeCheckout(
+        auctionId,
+        session.access_token,
+        successUrl,
+        cancelUrl,
+      );
 
       if ('free' in payload && payload.free) {
         onClose();
@@ -64,7 +67,7 @@ const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }:
         return;
       }
 
-      if (payload.url) {
+      if ('url' in payload && payload.url) {
         window.location.href = payload.url;
       } else {
         setFeedbackModal({
@@ -86,11 +89,8 @@ const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }:
     }
   };
 
-  const title = type === 'LISTING_FEE' ? 'Opłata za wystawienie' : 'Prowizja od sprzedaży';
-  const description =
-    type === 'LISTING_FEE'
-      ? `Stała opłata za wystawienie aukcji: ${listingFeeAmount} PLN.`
-      : 'Prowizja 10% od kwoty sprzedaży — naliczana na backendzie podczas tworzenia sesji Stripe.';
+  const title = 'Opłata za wystawienie';
+  const description = `Stała opłata za wystawienie aukcji: ${listingFeeAmount} PLN.`;
 
   return (
     <GlassModal open={open} onClose={onClose} title={title} description={description} size="md">
@@ -100,13 +100,9 @@ const PaymentModal = ({ open, onClose, auctionId, type, listingFeeAmount = 20 }:
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <p className="font-semibold">
-              {type === 'LISTING_FEE' ? 'Opłata stała' : 'Prowizja 10%'}
-            </p>
+            <p className="font-semibold">Opłata stała</p>
             <p className="text-sm text-white/60">
-              {type === 'LISTING_FEE'
-                ? `Kwota: ${listingFeeAmount} PLN. Płatność wymagana przed publikacją.`
-                : 'Kwota prowizji zostanie policzona po stronie serwera na podstawie ceny sprzedaży.'}
+              {`Kwota: ${listingFeeAmount} PLN. Płatność wymagana przed publikacją.`}
             </p>
           </div>
         </div>

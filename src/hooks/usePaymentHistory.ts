@@ -29,9 +29,5 @@ export function usePaymentHistory() {
     refresh();
   }, [refresh]);
 
-  const pendingCommissions = payments.filter(
-    (p) => p.type === "COMMISSION" && p.status === "INITIATED",
-  );
-
-  return { payments, pendingCommissions, loading, error, refresh };
+  return { payments, loading, error, refresh };
 }

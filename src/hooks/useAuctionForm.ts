@@ -153,12 +153,34 @@ export const useAuctionForm = ({
         session?.access_token ?? "",
       );
 
-      setFeedback({
-        isOpen: true,
-        type: "success",
-        title: "Sukces!",
-        message: "Aukcja została utworzona pomyślnie.",
-      });
+      // Serwer zapisuje aukcję jako oczekującą na opłatę za wystawienie —
+      // staje się widoczna dla licytujących dopiero po jej zaksięgowaniu.
+      const needsListingFee =
+        (created as { listingFeeRequired?: boolean }).listingFeeRequired ===
+          true || String(created.status).toUpperCase() === "WAITING_FOR_FEE";
+
+      if (needsListingFee) {
+        setFeedback({
+          isOpen: true,
+          type: "info",
+          title: "Aukcja zapisana",
+          message:
+            "Aukcja zostanie opublikowana po opłaceniu opłaty za wystawienie.",
+        });
+        onListingFeeRequired?.(created.id);
+        window.dispatchEvent(
+          new CustomEvent("listing-fee-required", {
+            detail: { auctionId: created.id },
+          }),
+        );
+      } else {
+        setFeedback({
+          isOpen: true,
+          type: "success",
+          title: "Sukces!",
+          message: "Aukcja została utworzona pomyślnie.",
+        });
+      }
       onSuccess?.();
     } catch (err) {
       const msg =

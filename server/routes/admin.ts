@@ -77,24 +77,22 @@ async function ensureAdmin(
     // Use specific select for efficiency and security
     const user = await prisma!.user.findUnique({
       where: { id: userId },
-      select: { role: true, email: true },
+      select: { role: true },
     });
 
     if (!user) {
+      console.warn(`❌ [ensureAdmin] User ${userId} not found in database`);
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    // Admin access is the ADMIN role in the database, nothing else
+    if (user.role !== "ADMIN") {
       console.warn(
-        `❌ [ensureAdmin] User ${userId} not found in database (checked email: ${req.user?.email})`,
+        `❌ [ensureAdmin] User ${userId} has role ${user.role}, not ADMIN`,
       );
       return res.status(403).json({ error: "Admin access required" });
     }
 
-    if (user.role !== "ADMIN" && user.email !== "superadmin@palkamtm.pl") {
-      console.warn(
-        `❌ [ensureAdmin] User ${user.email} (${userId}) has role ${user.role}, not ADMIN`,
-      );
-      return res.status(403).json({ error: "Admin access required" });
-    }
-
-    console.log(`✅ [ensureAdmin] Admin verified: ${user.email}`);
     next();
   } catch (err) {
     console.error("ensureAdmin error:", err);
@@ -1225,16 +1223,26 @@ router.patch(
         // Trigger auction side-effects only if status changed to SUCCEEDED
         if (status === "SUCCEEDED" && payment.status !== "SUCCEEDED") {
           if (payment.type === "BUY_NOW") {
+            // payment.amount includes the commission; the sale price is the buy-now price
+            const soldAuction = await tx.auction.findUnique({
+              where: { id: payment.auctionId },
+              select: { buyNowPrice: true },
+            });
             await tx.auction.update({
               where: { id: payment.auctionId },
               data: {
                 status: "ENDED",
-                currentPrice: payment.amount,
+                currentPrice: soldAuction?.buyNowPrice ?? payment.amount,
                 reserveMet: true,
                 winnerId: payment.userId,
               },
             });
-          } else if (payment.type === "COMMISSION") {
+          } else if (
+            payment.type === "WON_AUCTION" ||
+            payment.type === "COMMISSION"
+          ) {
+            // WON_AUCTION: the winner's payment confirmed by hand.
+            // COMMISSION: a seller commission charge from the earlier model.
             await tx.auction.update({
               where: { id: payment.auctionId },
               data: {
@@ -1242,10 +1250,7 @@ router.patch(
               },
             });
           } else if (payment.type === "LISTING_FEE") {
-            await tx.auction.update({
-              where: { id: payment.auctionId },
-              data: { listingFeePaid: true, status: "ACTIVE" },
-            });
+            await auctionService.markListingFeePaid(payment.auctionId, tx);
           }
         }
       });

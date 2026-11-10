@@ -2,8 +2,9 @@ import { prisma } from '../lib/db.js';
 import { cache } from '../lib/cache.js';
 import NotificationManager from './NotificationManager.js';
 import logger from '../lib/logger.js';
-import { Prisma, PaymentType, PaymentStatus, AuctionStatus } from '@prisma/client';
+import { AuctionStatus } from '@prisma/client';
 import redisClient, { getRedisReady } from '../lib/redis.js';
+import { isReserveMet } from '../utils/auctionRules.js';
 
 /**
  * Cron job responsible for closing ended auctions.
@@ -147,7 +148,13 @@ export class AuctionCronService {
                 orderBy: { amount: 'desc' },
               });
 
-              if (highestBid?.bidderId) {
+              // The seller's reserve price decides whether the highest bid wins at all
+              const reserveMet = isReserveMet(
+                auction.reservePrice,
+                highestBid?.amount,
+              );
+
+              if (highestBid?.bidderId && reserveMet) {
                 const winnerId = highestBid.bidderId;
                 const finalPrice = Number(highestBid.amount);
                 const cachedSettings = cache.get<{ commission?: number }>('system:platform_settings');
@@ -165,27 +172,8 @@ export class AuctionCronService {
                   }
                 });
 
-                const existingCommission = await tx.payment.findFirst({
-                  where: {
-                    auctionId: auction.id,
-                    userId: auction.sellerId,
-                    type: PaymentType.COMMISSION,
-                  },
-                });
-
-                if (!existingCommission && commissionAmount > 0) {
-                  await tx.payment.create({
-                    data: {
-                      auctionId: auction.id,
-                      userId: auction.sellerId,
-                      amount: commissionAmount,
-                      type: PaymentType.COMMISSION,
-                      provider: 'STRIPE',
-                      status: PaymentStatus.INITIATED
-                    }
-                  });
-                }
-
+                // No commission charge is created for the seller: the commission
+                // is taken out of the payout when the winner pays.
                 logger.info(`Auction ${auction.id} sold to ${winnerId} for ${finalPrice}`);
                 this.notifyAuctionSold(auction, winnerId, finalPrice, commissionAmount);
               } else {
@@ -197,8 +185,13 @@ export class AuctionCronService {
                   }
                 });
 
-                logger.info(`Auction ${auction.id} expired without bids`);
-                this.notifyAuctionExpired(auction);
+                if (highestBid?.bidderId) {
+                  logger.info(`Auction ${auction.id} ended below its reserve price (highest bid ${highestBid.amount})`);
+                  this.notifyReserveNotMet(auction, highestBid.bidderId);
+                } else {
+                  logger.info(`Auction ${auction.id} expired without bids`);
+                  this.notifyAuctionExpired(auction);
+                }
               }
             }, { timeout: 15000 }); // allow up to 15s for slow DB
           } catch (err) {
@@ -229,9 +222,32 @@ export class AuctionCronService {
           auctionId: auction.id,
           type: 'AUCTION_WON' as any,
           title: 'Aukcja zakończona sukcesem',
-          message: `Twoja aukcja "${auction.title}" została wylicytowana za ${finalPrice} zł. Opłać prowizję (${commissionAmount} zł), aby otrzymać dane wygrywającego.`
+          message: `Twoja aukcja "${auction.title}" została wylicytowana za ${finalPrice} zł. Gdy kupujący opłaci aukcję, otrzymasz jego dane kontaktowe oraz wypłatę pomniejszoną o prowizję serwisu (${commissionAmount} zł).`
         });
       }
+    } catch (e) {
+      logger.error('Notification error', e);
+    }
+  }
+
+  private async notifyReserveNotMet(auction: any, highestBidderId: string) {
+    try {
+      if (auction.sellerId) {
+        await NotificationManager.createNotification({
+          userId: auction.sellerId,
+          auctionId: auction.id,
+          type: 'AUCTION_ENDING' as any,
+          title: 'Aukcja zakończona bez sprzedaży',
+          message: `Twoja aukcja "${auction.title}" zakończyła się bez sprzedaży — najwyższa oferta nie osiągnęła ceny minimalnej.`
+        });
+      }
+      await NotificationManager.createNotification({
+        userId: highestBidderId,
+        auctionId: auction.id,
+        type: 'AUCTION_ENDING' as any,
+        title: 'Aukcja zakończona bez sprzedaży',
+        message: `Aukcja "${auction.title}" zakończyła się bez sprzedaży — Twoja oferta nie osiągnęła ceny minimalnej sprzedawcy.`
+      });
     } catch (e) {
       logger.error('Notification error', e);
     }

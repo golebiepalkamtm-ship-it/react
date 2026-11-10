@@ -49,20 +49,6 @@ export const paymentService = {
     );
   },
 
-  async createCommissionCheckout(
-    auctionId: string,
-    token: string | null,
-    successUrl?: string,
-    cancelUrl?: string,
-  ): Promise<{ url: string; paymentId: string }> {
-    if (!token) throw new Error("Wymagane logowanie");
-    return apiClient.post<{ url: string; paymentId: string }>(
-      "/payments/stripe/commission",
-      { auctionId, successUrl, cancelUrl },
-      token,
-    );
-  },
-
   async getPaymentHistory(
     token: string | null,
     page = 1,

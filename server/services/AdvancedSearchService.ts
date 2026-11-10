@@ -39,6 +39,9 @@ export class AdvancedSearchService {
       if (filters.status && filters.status !== 'all') {
         whereConditions.push(`status = $${paramIndex++}`);
         queryParams.push(filters.status.toUpperCase());
+      } else {
+        // Auctions that are not published yet (listing fee unpaid) never show up in search
+        whereConditions.push(`status::text NOT IN ('WAITING_FOR_FEE', 'DRAFT')`);
       }
 
       // Category filter

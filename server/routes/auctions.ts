@@ -1,8 +1,12 @@
 import express, { type Router } from "express";
 import { biddingLimiter } from "../middleware/rateLimiter.js";
 import { z } from "zod";
-import { authMiddleware } from "../middleware/auth.js";
+import {
+  authMiddleware,
+  optionalAuthMiddleware,
+} from "../middleware/auth.js";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
+import { sellerDeleteBlockReason } from "../utils/auctionRules.js";
 import {
   validate,
   validateParams,
@@ -20,7 +24,6 @@ import {
 import { cache } from "../lib/cache.js";
 import { prisma, supabase } from "../lib/db.js";
 import { hasCompletePayout, PAYOUT_REQUIRED_ERROR } from "../utils/sellerPayout.js";
-import { validatedEnv } from "../lib/env.js";
 import { auctionService } from "../services/AuctionService.js";
 import { Prisma } from "@prisma/client";
 import {
@@ -269,7 +272,9 @@ router.get("/won", authMiddleware, async (req: AuthenticatedRequest, res) => {
 });
 
 // Get auction by ID
-router.get("/:id", async (req, res) => {
+// Public, but a signed-in viewer is identified so the owner sees the reserve price
+// and seller/winner see each other's contact details once the sale allows it.
+router.get("/:id", optionalAuthMiddleware, async (req, res) => {
   try {
     const idValidation = auctionIdSchema.safeParse(req.params.id);
     if (!idValidation.success)
@@ -289,19 +294,33 @@ router.get("/:id", async (req, res) => {
     });
 
     if (!auction) return res.status(404).json({ error: "Auction not found" });
-    const viewerId = (req as AuthenticatedRequest).user?.id;
-    res.json(serializeAuction(auction, { userId: viewerId, isOwner: auction.sellerId === viewerId }));
+    const viewer = (req as AuthenticatedRequest).user;
+    const viewerId = viewer?.id;
+    const isOwner = Boolean(viewerId) && auction.sellerId === viewerId;
+
+    // Not published yet (listing fee unpaid): visible to its seller and admins only
+    const unpublished =
+      auction.status === "WAITING_FOR_FEE" || auction.status === "DRAFT";
+    if (unpublished && !isOwner && viewer?.role !== "ADMIN") {
+      return res.status(404).json({ error: "Auction not found" });
+    }
+
+    res.json(serializeAuction(auction, { userId: viewerId, isOwner }));
   } catch (error) {
     console.error("Error fetching auction:", error);
     res.status(500).json({ error: "Failed to fetch auction" });
   }
 });
 
-// Shared create logic for both dev and prod
+// A new auction waits for the listing fee (Terms §3.1) before it goes live.
+// Admins are exempt; REQUIRE_LISTING_FEE=false switches the fee off entirely.
+const isListingFeeRequired = (role?: string) =>
+  role !== "ADMIN" && process.env.REQUIRE_LISTING_FEE !== "false";
+
 async function performAuctionCreate(
   req: any,
   userId: string | null,
-  options?: { isAdmin?: boolean },
+  options?: { isAdmin?: boolean; requireListingFee?: boolean },
 ) {
   const {
     title,
@@ -477,7 +496,7 @@ async function performAuctionCreate(
       buyNowPrice: buyNowPrice ? new Prisma.Decimal(buyNowPrice) : undefined,
       reservePrice: reservePrice ? new Prisma.Decimal(reservePrice) : undefined,
       endTime: new Date(endTime),
-      status: "ACTIVE",
+      status: options?.requireListingFee ? "WAITING_FOR_FEE" : "ACTIVE",
       listingFeePaid: options?.isAdmin ? true : false,
       category: auctionCategory as any,
       location: location || "Lubań, Polska",
@@ -491,97 +510,84 @@ async function performAuctionCreate(
   });
 }
 
-// Create auction
-if (validatedEnv.NODE_ENV === "development") {
-  router.post("/", validate(createAuctionSchema), async (req, res) => {
+// Create auction — always authenticated, in every environment
+router.post(
+  "/",
+  authMiddleware,
+  validate(createAuctionSchema),
+  async (req: AuthenticatedRequest, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId)
+        return res
+          .status(401)
+          .json({ error: "Musisz być zalogowany, aby wykonać tę akcję." });
+      const role = req.user?.role;
+      if (role !== "USER_FULL_VERIFIED" && role !== "ADMIN") {
+        return res
+          .status(403)
+          .json({ error: "Twoje konto nie jest w pełni zweryfikowane." });
+      }
       if (!prisma)
         return res
           .status(500)
           .json({ error: "Błąd połączenia z bazą danych." });
-      const created = await performAuctionCreate(req, null, { isAdmin: false });
-      cache.invalidateResource("auctions"); // Invalidate auction lists
-      res.status(201).json(serializeAuction(created as any));
-    } catch (error) {
-      console.error("Error creating auction (dev):", error);
-      res.status(500).json({ error: "Nie udało się utworzyć aukcji." });
-    }
-  });
-} else {
-  router.post(
-    "/",
-    authMiddleware,
-    validate(createAuctionSchema),
-    async (req: AuthenticatedRequest, res) => {
-      try {
-        const userId = req.user?.id;
-        if (!userId)
-          return res
-            .status(401)
-            .json({ error: "Musisz być zalogowany, aby wykonać tę akcję." });
-        const role = req.user?.role;
-        if (role !== "USER_FULL_VERIFIED" && role !== "ADMIN") {
-          return res
-            .status(403)
-            .json({ error: "Twoje konto nie jest w pełni zweryfikowane." });
-        }
-        if (!prisma)
-          return res
-            .status(500)
-            .json({ error: "Błąd połączenia z bazą danych." });
 
-        if (role !== "ADMIN") {
-          const seller = await prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-              role: true,
-              payoutMethod: true,
-              payoutIban: true,
-              payoutPhone: true,
-              phone: true,
-            },
+      if (role !== "ADMIN") {
+        const seller = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            role: true,
+            payoutMethod: true,
+            payoutIban: true,
+            payoutPhone: true,
+            phone: true,
+          },
+        });
+        if (!hasCompletePayout(seller)) {
+          return res.status(400).json({
+            error: PAYOUT_REQUIRED_ERROR,
+            code: "PAYOUT_REQUIRED",
           });
-          if (!hasCompletePayout(seller)) {
-            return res.status(400).json({
-              error: PAYOUT_REQUIRED_ERROR,
-              code: "PAYOUT_REQUIRED",
-            });
-          }
         }
-
-        const requireCard = process.env.REQUIRE_CARD_FOR_LISTING !== "false" && process.env.REQUIRE_CARD_FOR_BID !== "false";
-        if (requireCard && role !== "ADMIN") {
-          const userObj = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { stripeCustomerId: true },
-          });
-          if (!userObj?.stripeCustomerId) {
-            return res.status(400).json({
-              error: "Musisz podpiąć kartę płatniczą do konta, aby móc wystawiać nowe aukcje. [REQUIRES_PAYMENT_CARD]",
-              code: "REQUIRES_PAYMENT_CARD",
-            });
-          }
-        }
-
-        const created = await performAuctionCreate(req, userId, {
-          isAdmin: role === "ADMIN",
-        });
-        cache.invalidateResource("auctions");
-        res.status(201).json(serializeAuction(created as any));
-      } catch (error) {
-        console.error("Error creating auction:", {
-          error: error instanceof Error ? error.message : error,
-          stack: error instanceof Error ? error.stack : undefined,
-          body: req.body,
-        });
-        res.status(500).json({
-          error: "Nie udało się utworzyć aukcji.",
-          details: error instanceof Error ? error.message : "Unknown error",
-        });
       }
-    },
-  );
-}
+
+      const requireCard = process.env.REQUIRE_CARD_FOR_LISTING !== "false" && process.env.REQUIRE_CARD_FOR_BID !== "false";
+      if (requireCard && role !== "ADMIN") {
+        const userObj = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { stripeCustomerId: true },
+        });
+        if (!userObj?.stripeCustomerId) {
+          return res.status(400).json({
+            error: "Musisz podpiąć kartę płatniczą do konta, aby móc wystawiać nowe aukcje. [REQUIRES_PAYMENT_CARD]",
+            code: "REQUIRES_PAYMENT_CARD",
+          });
+        }
+      }
+
+      const listingFeeRequired = isListingFeeRequired(role);
+      const created = await performAuctionCreate(req, userId, {
+        isAdmin: role === "ADMIN",
+        requireListingFee: listingFeeRequired,
+      });
+      cache.invalidateResource("auctions");
+      res
+        .status(201)
+        .json({ ...serializeAuction(created as any), listingFeeRequired });
+    } catch (error) {
+      console.error("Error creating auction:", {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        body: req.body,
+      });
+      res.status(500).json({
+        error: "Nie udało się utworzyć aukcji.",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
 
 // Place bid
 router.post(
@@ -887,7 +893,7 @@ router.delete(
   },
 );
 
-// Delete
+// Delete (seller removes their own auction)
 router.delete(
   "/:id",
   authMiddleware,
@@ -896,16 +902,49 @@ router.delete(
       const userId = req.user?.id;
       if (!userId || !prisma)
         return res.status(401).json({ error: "Unauthorized" });
+      if (!auctionIdSchema.safeParse(req.params.id).success)
+        return res.status(400).json({ error: "Invalid auction id" });
+
+      const auctionId = req.params.id;
       const auction = await prisma.auction.findUnique({
-        where: { id: req.params.id },
+        where: { id: auctionId },
+        include: {
+          _count: { select: { bids: true } },
+          payments: { where: { status: "SUCCEEDED" }, select: { id: true } },
+        },
       });
       if (!auction) return res.status(404).json({ error: "Not found" });
       if (auction.sellerId !== userId)
         return res.status(403).json({ error: "Forbidden" });
 
-      await prisma.auction.delete({ where: { id: req.params.id } });
-      res.json({ message: "Deleted" });
+      // Bids and a sale are commitments to other users — they cannot be erased
+      const blockReason = sellerDeleteBlockReason({
+        status: auction.status,
+        winnerId: auction.winnerId,
+        bidsCount: auction._count.bids,
+      });
+      if (blockReason) {
+        return res
+          .status(409)
+          .json({ error: blockReason, code: "AUCTION_NOT_DELETABLE" });
+      }
+
+      // A paid fee is an accounting record: withdraw the auction, keep the payment
+      const keepAsCancelled = auction.payments.length > 0;
+      if (keepAsCancelled) {
+        await prisma.auction.update({
+          where: { id: auctionId },
+          data: { status: "CANCELLED", endTime: new Date() },
+        });
+      } else {
+        await prisma.auction.delete({ where: { id: auctionId } });
+      }
+
+      cache.invalidateAuctionCache(auctionId);
+      cache.invalidateResource("auctions");
+      res.json({ message: keepAsCancelled ? "Cancelled" : "Deleted" });
     } catch (err) {
+      console.error("Error deleting auction:", err);
       res.status(500).json({ error: "Internal error" });
     }
   },

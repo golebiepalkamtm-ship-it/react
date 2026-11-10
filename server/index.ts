@@ -19,10 +19,34 @@ initializeAuth();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// `npm run dev` starts through dev.ts, which sets LOCAL_DEV. A developer machine
+// must never migrate the database it happens to be pointed at, whatever the
+// local .env says about NODE_ENV / PRISMA_MIGRATE_DEPLOY.
+const isLocalDev = process.env.LOCAL_DEV === "true";
+
+if (isLocalDev) {
+  let dbHost = "unknown";
+  try {
+    dbHost = new URL(validatedEnv.DATABASE_URL).hostname;
+  } catch {
+    // DATABASE_URL is not a parseable URL — keep "unknown"
+  }
+  const isRemoteDb = !["localhost", "127.0.0.1", "::1"].includes(dbHost);
+  console.warn(
+    `⚠️  LOCAL_DEV: migrate-on-start and the auction cron are disabled for this run (database host: ${dbHost}).`,
+  );
+  if (isRemoteDb) {
+    console.warn(
+      "⚠️  LOCAL_DEV: this backend is connected to a REMOTE database — every write here changes real data.",
+    );
+  }
+}
+
 // Run migrations in production
 if (
   validatedEnv.NODE_ENV === "production" &&
-  validatedEnv.PRISMA_MIGRATE_DEPLOY === "true"
+  validatedEnv.PRISMA_MIGRATE_DEPLOY === "true" &&
+  !isLocalDev
 ) {
   try {
     console.log("🔄 Running database migrations...");

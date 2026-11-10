@@ -5,6 +5,12 @@ import { validatePayoutInput } from '../utils/sellerPayout.js';
 
 const router: Router = express.Router();
 
+// Same number regardless of spaces, dashes or the +48 prefix
+const comparablePhone = (value?: string | null): string => {
+  const digits = (value ?? '').replace(/\D/g, '');
+  return digits.length === 11 && digits.startsWith('48') ? digits.slice(2) : digits;
+};
+
 // Get current user profile
 router.get('/profile', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
@@ -85,6 +91,26 @@ router.patch('/profile', authMiddleware, async (req: AuthenticatedRequest, res) 
       filteredUpdates.payoutMethod = payout.data.payoutMethod;
       filteredUpdates.payoutIban = payout.data.payoutIban;
       filteredUpdates.payoutPhone = payout.data.payoutPhone;
+    }
+
+    // The verified phone number is what makes an account "fully verified", so it
+    // can only be replaced through SMS verification (POST /api/auth/otp/verify).
+    if (filteredUpdates.phone !== undefined) {
+      const current = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true, phone: true },
+      });
+      const isPhoneVerified =
+        current?.role === 'USER_FULL_VERIFIED' || current?.role === 'ADMIN';
+      if (
+        isPhoneVerified &&
+        comparablePhone(String(filteredUpdates.phone)) !== comparablePhone(current?.phone)
+      ) {
+        return res.status(400).json({
+          error: 'Zmiana zweryfikowanego numeru telefonu wymaga ponownej weryfikacji SMS.',
+          code: 'PHONE_VERIFICATION_REQUIRED',
+        });
+      }
     }
 
     // Special validation for username if present

@@ -5,7 +5,7 @@
   "description": "Backend API for Champion Pigeon Auctions",
   "main": "dist/bootstrap.js",
   "scripts": {
-    "dev": "node --no-deprecation node_modules/nodemon/bin/nodemon.js --watch . --ext ts --exec \"tsx\" index.ts",
+    "dev": "node --no-deprecation node_modules/nodemon/bin/nodemon.js --watch . --ext ts --exec \"tsx\" dev.ts",
     "create-admin": "node ./scripts/create-admin.js",
     "create-user": "node ./scripts/create-user.js",
     "build": "prisma generate && tsc --skipLibCheck && node ./scripts/copy-runtime.js",

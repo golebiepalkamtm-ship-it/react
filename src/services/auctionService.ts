@@ -46,10 +46,16 @@ export const auctionService = {
   },
 
   /**
-   * Pobierz pojedynczą aukcję po ID
+   * Pobierz pojedynczą aukcję po ID.
+   * Endpoint jest publiczny; z tokenem właściciel widzi dodatkowo cenę minimalną
+   * i własną nieopłaconą aukcję, a strony sprzedaży — swoje dane kontaktowe.
    */
-  async getAuctionById(id: string): Promise<Auction> {
-    return apiClient.get<Auction>(`/auctions/${id}`);
+  async getAuctionById(id: string, token?: string | null): Promise<Auction> {
+    return apiClient.getWithToken<Auction>(
+      `/auctions/${id}`,
+      undefined,
+      token ?? undefined,
+    );
   },
 
   /**

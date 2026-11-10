@@ -158,7 +158,7 @@ export const translateAuctionStatus = (status: AuctionStatus | string): string =
   switch (status) {
     case "WAITING_FOR_FEE": return "Oczekuje na opłatę";
     case "ACTIVE": return "Aktywna";
-    case "ENDED_WAITING_PAYMENT": return "Oczekuje na prowizję";
+    case "ENDED_WAITING_PAYMENT": return "Oczekuje na płatność";
     case "COMPLETED": return "Zakończona (Opłacona)";
     case "CANCELLED": return "Anulowana";
     case "UPCOMING": return "Wkrótce";

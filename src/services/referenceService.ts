@@ -225,7 +225,9 @@ export const referenceService = {
               achievements: created.achievements,
               pigeon_name: created.pigeon_name,
               images: created.images ?? [],
-              is_approved: created.is_approved ?? true,
+              // Baza przyjmuje tylko niezatwierdzone zgłoszenia (polityka
+              // references_insert_policy) — publikuje je dopiero administrator.
+              is_approved: false,
             },
           ])
           .select()

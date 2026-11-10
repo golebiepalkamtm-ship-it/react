@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useMutation,
   useQuery,
@@ -74,7 +74,10 @@ export function useAuctions(filters: AuctionFilters = {}): UseAuctionsResult {
             if (a.id === data.auctionId) {
               return {
                 ...a,
-                currentPrice: Number.isFinite(price) ? price : a.currentPrice,
+                // Cena w aukcji tylko rośnie — spóźnione zdarzenie nie może jej cofnąć
+                currentPrice: Number.isFinite(price)
+                  ? Math.max(price, a.currentPrice ?? 0)
+                  : a.currentPrice,
                 endTime: data.newEndTime || data.meta?.newEndTime || a.endTime,
                 _count: {
                   ...a._count,
@@ -111,8 +114,11 @@ interface UseAuctionOptions {
 
 export const useAuction = ({ auctionId }: UseAuctionOptions) => {
   const queryClient = useQueryClient();
+  const { session } = useAuth();
   const { success: showSuccess, info: showInfo } = useOptimizedToast();
   const [viewersCount, setViewersCount] = useState<number>(0);
+  const accessToken = session?.access_token ?? null;
+  const viewerId = session?.user?.id ?? null;
 
   const {
     data: auction,
@@ -121,10 +127,21 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
     refetch,
   } = useQuery({
     queryKey: ["auction", auctionId],
-    queryFn: () => auctionService.getAuctionById(auctionId),
+    queryFn: () => auctionService.getAuctionById(auctionId, accessToken),
     staleTime: 30000,
     enabled: !!auctionId,
   });
+
+  // Odpowiedź zależy od tego, kto pyta (właściciel i strony sprzedaży widzą więcej),
+  // więc po zalogowaniu lub wylogowaniu pobieramy aukcję ponownie.
+  const previousViewerId = useRef(viewerId);
+  useEffect(() => {
+    if (previousViewerId.current === viewerId) return;
+    previousViewerId.current = viewerId;
+    if (auctionId) {
+      queryClient.invalidateQueries({ queryKey: ["auction", auctionId] });
+    }
+  }, [viewerId, auctionId, queryClient]);
 
   const { isConnected } = useSocket({
     auctionId,
@@ -145,7 +162,10 @@ export const useAuction = ({ auctionId }: UseAuctionOptions) => {
             if (!old) return old;
             return {
               ...old,
-              currentPrice: Number.isFinite(price) ? price : old.currentPrice,
+              // Cena w aukcji tylko rośnie — spóźnione zdarzenie nie może jej cofnąć
+              currentPrice: Number.isFinite(price)
+                ? Math.max(price, old.currentPrice ?? 0)
+                : old.currentPrice,
               endTime: data.newEndTime || data.meta?.newEndTime || old.endTime,
               bids: [data.bid, ...(old.bids || [])],
               _count: {

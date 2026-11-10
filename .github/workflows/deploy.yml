@@ -11,16 +11,37 @@ jobs:
       - name: Use Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - name: Install & build
+          # package.json "engines" requires Node >= 24
+          node-version: '24'
+      - name: Install dependencies
         run: |
           npm ci
-          npm run build
-      - name: Run tests
-        run: npm test --workspaces --if-present
+          npm ci --prefix server
+      - name: Generate Prisma client
+        # .npmrc sets ignore-scripts, so the client is not generated during install.
+        # Generating needs no database; the URL only satisfies prisma.config.ts.
+        run: npm --prefix server run prisma:generate
+        env:
+          DATABASE_URL: postgresql://localhost:5432/ci
+      - name: Typecheck (server)
+        run: npm --prefix server run type-check
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        # Runs the frontend and server suites once; reads .env.test (no real services).
+        run: npx vitest run
+      - name: Build
+        run: npm run build
 
   deploy:
     needs: build
+    # Opt-in. This job applies database migrations to production and deploys both
+    # apps. Until now it never ran, because the build job always failed at its
+    # test step ("npm test --workspaces" in a repository without workspaces).
+    # Now that the build job can pass, deploying from Actions has to be switched
+    # on deliberately: set the repository variable ENABLE_ACTIONS_DEPLOY to "true"
+    # (Settings → Secrets and variables → Actions → Variables).
+    if: ${{ vars.ENABLE_ACTIONS_DEPLOY == 'true' }}
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -29,7 +50,7 @@ jobs:
       - name: Use Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install dependencies
         run: npm ci

@@ -1054,7 +1054,7 @@ const AuctionDetail: React.FC = () => {
                       )}
                     </div>
 
-                    {(dAuction.status as string) === "WAITING_FOR_FEE" && isOwner && (
+                    {String(dAuction.status).toUpperCase() === "WAITING_FOR_FEE" && isOwner && (
                       <div className="flex flex-col gap-3">
                         <div className="w-full flex items-center justify-center gap-3 p-6 bg-amber-500/10 border border-amber-500/50 rounded-2xl text-amber-400 text-sm font-medium backdrop-blur-sm">
                           <AlertCircle className="w-5 h-5 text-amber-400" />
@@ -1087,43 +1087,17 @@ const AuctionDetail: React.FC = () => {
                       </div>
                     )}
 
-                    {(dAuction.status as string) === "ENDED_WAITING_PAYMENT" && isOwner && (
-                      <div className="flex flex-col gap-3">
-                        <div className="w-full flex items-center justify-center gap-3 p-6 bg-emerald-500/10 border border-emerald-500/50 rounded-2xl text-emerald-400 text-sm font-medium backdrop-blur-sm">
-                          <AlertCircle className="w-5 h-5 text-emerald-400" />
-                          Aukcja zakończona sukcesem! Oczekuje na opłacenie prowizji.
-                        </div>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                onClick={async () => {
-                                  try {
-                                    const res = await paymentService.createCommissionCheckout(dAuction.id, session?.access_token ?? null);
-                                    if ('url' in res && res.url) {
-                                      window.location.href = res.url;
-                                    }
-                                  } catch (err) {
-                                    toast({ title: "Błąd", description: "Nie udało się utworzyć płatności", variant: "destructive" });
-                                  }
-                                }}
-                                className="w-full px-4 py-4 rounded-2xl font-black uppercase tracking-wider transition-all text-[12px] whitespace-nowrap bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg hover:scale-[1.02] border-0"
-                              >
-                                Opłać prowizję od sprzedaży
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Opłacenie prowizji odblokuje dane kontaktowe kupującego i pozwoli sfinalizować transakcję.
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                    {String(dAuction.status).toUpperCase() === "ENDED_WAITING_PAYMENT" && isOwner && (
+                      <div className="w-full flex items-center justify-center gap-3 p-6 bg-emerald-500/10 border border-emerald-500/50 rounded-2xl text-emerald-400 text-sm font-medium backdrop-blur-sm">
+                        <AlertCircle className="w-5 h-5 shrink-0 text-emerald-400" />
+                        Aukcja zakończona sukcesem! Czekamy na płatność kupującego. Po jej zaksięgowaniu zobaczysz jego dane kontaktowe i otrzymasz wypłatę pomniejszoną o prowizję serwisu.
                       </div>
                     )}
 
-                    {(dAuction.status as string) === "ENDED_WAITING_PAYMENT" && !isOwner && (
+                    {String(dAuction.status).toUpperCase() === "ENDED_WAITING_PAYMENT" && !isOwner && (
                        <div className="w-full flex items-center justify-center gap-3 p-6 bg-black/30 border border-[#A68E4E]/30 rounded-2xl text-white/60 text-sm font-medium backdrop-blur-sm">
-                          <AlertCircle className="w-5 h-5 text-amber-400" />
-                          Aukcja zakończona. Oczekujemy na rozliczenie ze sprzedawcą.
+                          <AlertCircle className="w-5 h-5 shrink-0 text-amber-400" />
+                          Aukcja zakończona. Jeśli to Ty wygrałeś, opłać zakup w panelu użytkownika.
                        </div>
                     )}
 

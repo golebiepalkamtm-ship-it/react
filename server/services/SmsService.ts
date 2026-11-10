@@ -9,7 +9,6 @@ export interface SMSService {
     phone: string,
     auctionTitle: string,
     finalPrice: number,
-    sellerInfo: { name: string; phone: string },
   ): Promise<boolean>;
   sendCustomSMS(phone: string, message: string): Promise<boolean>;
 }
@@ -136,9 +135,9 @@ export class SmsService implements SMSService {
     phone: string,
     auctionTitle: string,
     finalPrice: number,
-    sellerInfo: { name: string; phone: string },
   ): Promise<boolean> {
-    const message = `🎉 Gratulacje! Wygrałeś aukcję "${auctionTitle}" za ${finalPrice.toLocaleString("pl-PL")} zł. Sprzedający: ${sellerInfo.name}, tel: ${sellerInfo.phone}. Skontaktuj się w celu finalizacji.`;
+    // No seller contact here: it is released only after the winner has paid.
+    const message = `🎉 Gratulacje! Wygrałeś aukcję "${auctionTitle}" za ${finalPrice.toLocaleString("pl-PL")} zł. Opłać ją w serwisie w ciągu 48 godzin — dane sprzedającego otrzymasz po zaksięgowaniu wpłaty.`;
 
     return this.sendCustomSMS(phone, message);
   }

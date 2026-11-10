@@ -1,9 +1,12 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { isAccountSuspended } from './accountStatus.js';
 
 export interface TokenVerificationResult {
   userId: string;
   email?: string;
   role?: string;
+  /** True while an admin ban/block is in force for this account. */
+  suspended?: boolean;
   aud?: string;
   iss?: string;
   exp?: number;
@@ -196,16 +199,15 @@ export class TokenVerifier {
   async verifyTokenWithRole(token: string, rateLimitKey?: string): Promise<TokenVerificationResult> {
     const result = await this.verifyToken(token, rateLimitKey);
     
-    // Fetch role from database using service key if available
+    // Fetch role and suspension state from database using service key if available.
+    // This runs on every call (it is not served from the token cache), so a ban
+    // or a role change takes effect on the user's next request.
     try {
-      const { data: roleData, error } = await this.supabaseClient
-        .from('users')
-        .select('role')
-        .eq('id', result.userId)
-        .single();
+      const account = await this.fetchAccountState(result.userId);
 
-      if (!error && roleData) {
-        result.role = roleData.role;
+      if (account) {
+        if (account.role !== undefined) result.role = account.role;
+        result.suspended = account.suspended;
         // FIX: Persist role in cache so subsequent calls don't lose authorization context
         const cacheKey = `token:${token}`;
         this.cache.set(cacheKey, {
@@ -219,6 +221,46 @@ export class TokenVerifier {
     }
 
     return result;
+  }
+
+  private async fetchAccountState(
+    userId: string,
+  ): Promise<{ role?: string; suspended: boolean } | null> {
+    const full = await this.supabaseClient
+      .from('users')
+      .select('role, is_banned, is_blocked, banned_until, blocked_until')
+      .eq('id', userId)
+      .single();
+
+    if (!full.error && full.data) {
+      const row = full.data as Record<string, any>;
+      return {
+        role: row.role,
+        suspended: isAccountSuspended({
+          isBanned: row.is_banned,
+          isBlocked: row.is_blocked,
+          bannedUntil: row.banned_until,
+          blockedUntil: row.blocked_until,
+        }),
+      };
+    }
+
+    // PGRST116 = no profile row yet (e.g. first request before /auth/sync)
+    if (full.error?.code === 'PGRST116') return null;
+
+    // Any other failure (for instance a suspension column missing in this
+    // database): fall back to the role alone so authorization keeps working.
+    console.warn('Account state lookup failed, falling back to role only:', full.error?.message);
+    const basic = await this.supabaseClient
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (!basic.error && basic.data) {
+      return { role: (basic.data as Record<string, any>).role, suspended: false };
+    }
+    return null;
   }
 
   invalidateCache(token: string): void {

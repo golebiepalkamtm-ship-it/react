@@ -33,12 +33,10 @@ import adminRoutes from "./routes/admin.js";
 import notificationRoutes from "./routes/notifications.js";
 import reviewRoutes from "./routes/reviews.js";
 import paymentRoutes, { stripeWebhookHandler } from "./routes/payments.js";
-import proxyRoutes from "./routes/proxy.js";
 import { testCSRFEndpoint } from "./routes/testCSRF.js";
 import metricsRoutes from "./routes/metrics.js";
 import timeRoutes from "./routes/time.js"; // Added time sync route
 import { csrfSync } from "csrf-sync";
-import csurf from "@dr.pogodin/csurf";
 import session from "express-session";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import { authMiddleware } from "./middleware/auth.js";
@@ -241,12 +239,7 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
   }
 
   // 3. Skip ONLY essential public endpoints / webhooks
-  const publicExceptions = [
-    "/api/webhooks",
-    "/api/proxy",
-    "/api/health",
-    "/api/metrics",
-  ];
+  const publicExceptions = ["/api/webhooks", "/api/health", "/api/metrics"];
 
   if (publicExceptions.some((path) => req.originalUrl.startsWith(path))) {
     return next();
@@ -258,11 +251,9 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
     validatedEnv.NODE_ENV === "production" ||
     process.env.CSRF_ENABLED === "true"
   ) {
-    // 4a. Skip for explicit E2E/Internal testing if safe to do so
-    if (
-      process.env.NODE_ENV === "test" ||
-      req.headers["x-e2e-bypass"] === "true"
-    ) {
+    // 4a. Skip only under the automated test runner. A request header must never
+    // be able to switch the protection off.
+    if (process.env.NODE_ENV === "test") {
       return next();
     }
     return (csrfProtection as any)(req, res, next);
@@ -293,7 +284,6 @@ app.use("/api/admin", authMiddleware, adminRoutes);
 app.use("/api/notifications", authMiddleware, notificationRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payments", authMiddleware, paymentRoutes);
-app.use("/api/proxy", proxyRoutes);
 
 // Test CSRF endpoint
 app.post("/api/test-csrf", testCSRFEndpoint);
@@ -312,8 +302,12 @@ app.use(notFound);
 app.use(errorHandler);
 
 const auctionCronService = AuctionCronService.getInstance();
-// Only start cron in non-test environments to prevent DB errors during tests
-if (process.env.NODE_ENV !== "test") {
+// Only start cron in non-test environments to prevent DB errors during tests.
+// A local `npm run dev` (LOCAL_DEV, set by dev.ts) does not close auctions either:
+// the local .env may point at the production database. Opt in with LOCAL_DEV_CRON=true.
+const skipCronInLocalDev =
+  process.env.LOCAL_DEV === "true" && process.env.LOCAL_DEV_CRON !== "true";
+if (process.env.NODE_ENV !== "test" && !skipCronInLocalDev) {
   try {
     auctionCronService.start();
   } catch (err: any) {

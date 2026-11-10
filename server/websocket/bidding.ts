@@ -125,6 +125,13 @@ export const setupWebSocketEvents = (io: Server) => {
           rateLimitKey,
         );
 
+        if (verificationResult.suspended) {
+          logger.warn(
+            `WebSocket connection rejected - suspended account: ${verificationResult.userId}`,
+          );
+          return next(new Error("Account suspended"));
+        }
+
         socket.data.userId = verificationResult.userId;
         socket.data.user = {
           id: verificationResult.userId,

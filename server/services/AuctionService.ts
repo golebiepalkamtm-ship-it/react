@@ -11,6 +11,44 @@ import { Prisma } from "@prisma/client";
 import type { Bid, Auction, User } from "@prisma/client";
 import { cache } from "../lib/cache.js";
 import { EventThrottler } from "../utils/eventThrottler.js";
+import { serializeBid } from "../utils/auctionSerializer.js";
+import {
+  isAccountSuspended,
+  ACCOUNT_SUSPENDED_ERROR,
+} from "../utils/accountStatus.js";
+import { shiftEndTimeToActivation } from "../utils/auctionRules.js";
+
+/**
+ * A bid as broadcast to everyone watching an auction.
+ * Built from the public serializer so private fields never reach the room:
+ * no maxBid (a proxy bidder's ceiling), no e-mail, no phone.
+ */
+export function toPublicBid(bid: {
+  id: string;
+  auctionId: string;
+  amount: unknown;
+  createdAt: Date | string;
+  isProxy?: boolean | null;
+  bidder: Record<string, unknown> | null;
+}) {
+  const serialized = serializeBid(bid as any);
+  return {
+    ...serialized,
+    auctionId: bid.auctionId,
+    isProxy: Boolean(bid.isProxy),
+    bidder: serialized.bidder
+      ? {
+          ...serialized.bidder,
+          username: serialized.bidder.username || "użytkownik",
+        }
+      : null,
+  };
+}
+
+interface PendingBidEvent {
+  bid: Parameters<typeof toPublicBid>[0];
+  isProxyBid: boolean;
+}
 
 export interface BidResult {
   bid: Bid & {
@@ -59,10 +97,12 @@ export class AuctionService {
         include: { seller: true },
       });
 
+      // Same state as an auction closed by the cron: the winner still has to pay,
+      // and seller/winner contact details stay hidden until they do.
       await tx.auction.update({
         where: { id: auctionId },
         data: {
-          status: "ENDED",
+          status: "ENDED_WAITING_PAYMENT",
           winnerId: highestBid.bidderId!,
         } as any,
       });
@@ -70,17 +110,10 @@ export class AuctionService {
       // Powiadomienie SMS dla zwycięzcy
       if (auction && (highestBid.bidder as any)?.phone) {
         try {
-          const seller = auction.seller as any;
-          const sellerName =
-            seller.first_name || seller.firstName || "Sprzedający";
           await smsService.sendAuctionWonNotification(
             (highestBid.bidder as any).phone,
             auction.title,
             Number(highestBid.amount),
-            {
-              name: sellerName,
-              phone: seller.phone || "",
-            },
           );
         } catch (error) {
           logger.error("Failed to send SMS notification:", error);
@@ -109,6 +142,38 @@ export class AuctionService {
   }
 
   /**
+   * Records a paid listing fee. An auction still waiting for the fee goes live
+   * with its full duration ahead of it; an auction in any other state only gets
+   * the flag — a late payment must not revive a cancelled or finished auction.
+   */
+  async markListingFeePaid(auctionId: string, tx: Prisma.TransactionClient) {
+    const auction = await tx.auction.findUnique({
+      where: { id: auctionId },
+      select: { status: true, createdAt: true, endTime: true },
+    });
+    const status = String(auction?.status ?? "").toUpperCase();
+    const awaitingFee = status === "WAITING_FOR_FEE" || status === "DRAFT";
+
+    if (!auction || !awaitingFee) {
+      await tx.auction.update({
+        where: { id: auctionId },
+        data: { listingFeePaid: true },
+      });
+      return;
+    }
+
+    const endTime = shiftEndTimeToActivation(auction.createdAt, auction.endTime);
+    await tx.auction.update({
+      where: { id: auctionId },
+      data: {
+        listingFeePaid: true,
+        status: "ACTIVE",
+        ...(endTime ? { endTime } : {}),
+      },
+    });
+  }
+
+  /**
    * Składa ofertę na aukcji (Zunifikowana logika z pełną walidacją)
    */
   async placeBid(
@@ -122,7 +187,11 @@ export class AuctionService {
       throw new Error("Baza danych nie jest dostępna");
     }
 
-    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    // WebSocket events are collected while the transaction runs and sent only
+    // after it commits, so a rolled-back bid is never announced.
+    const pendingEvents: PendingBidEvent[] = [];
+
+    const { result, finalAmount } = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // STEP 1: Row-level locking - zapobieganie race conditions
       await tx.$queryRaw`SELECT * FROM auctions WHERE id = ${auctionId}::uuid FOR UPDATE`;
 
@@ -152,8 +221,22 @@ export class AuctionService {
 
       const bidderUser = await tx.user.findUnique({
         where: { id: userId },
-        select: { stripeCustomerId: true },
+        select: {
+          stripeCustomerId: true,
+          isBanned: true,
+          isBlocked: true,
+          bannedUntil: true,
+          blockedUntil: true,
+        },
       });
+
+      // Checked here as well as at login: a socket opened before the ban stays connected
+      if (isAccountSuspended(bidderUser)) {
+        throw createAuctionError(
+          AuctionErrorCodes.FORBIDDEN,
+          ACCOUNT_SUSPENDED_ERROR,
+        );
+      }
 
       const requireCard = process.env.REQUIRE_CARD_FOR_BID !== "false";
       if (requireCard && !bidderUser?.stripeCustomerId) {
@@ -273,6 +356,7 @@ export class AuctionService {
           bidder: true,
         },
       });
+      pendingEvents.push({ bid: bid as any, isProxyBid: false });
 
       // PROXY BIDDING LOGIC: Check if previous highest bidder has active proxy bid
       let finalAmount = amount;
@@ -322,35 +406,7 @@ export class AuctionService {
             `Proxy bid auto-counter: ${autoCounterAmount} by ${highestBid.bidderId} (max: ${previousMaxBid})`,
           );
 
-          // Emit auto-bid event
-          try {
-            const io = getIO();
-            const autoBidder = (autoBid as any).bidder;
-            const autoBidUsername =
-              (autoBidder.username as string | undefined)?.trim() ||
-              (autoBidder.email as string | undefined)?.split("@")[0] ||
-              "użytkownik";
-            io.to(`auction-${auctionId}`).emit("auction:bid:placed", {
-              bid: {
-                ...autoBid,
-                bidder: {
-                  id: autoBidder.id,
-                  username: autoBidUsername,
-                },
-              },
-              newPrice: autoCounterAmount,
-              auctionId,
-              meta: {
-                wasExtended,
-                newEndTime,
-                auctionEnded: false,
-                winnerInfo: null,
-                isProxyBid: true,
-              },
-            });
-          } catch (err) {
-            logger.error("Failed to emit proxy bid event:", err);
-          }
+          pendingEvents.push({ bid: autoBid as any, isProxyBid: true });
         }
       }
 
@@ -393,35 +449,7 @@ export class AuctionService {
               `Proxy vs Proxy: Jumped to ${jumpAmount} (user max: ${currentMaxBid}, prev max: ${previousMaxBid})`,
             );
 
-            // Emit jump bid event
-            try {
-              const io = getIO();
-              const jumpBidder = (jumpBid as any).bidder;
-              const jumpBidUsername =
-                (jumpBidder.username as string | undefined)?.trim() ||
-                (jumpBidder.email as string | undefined)?.split("@")[0] ||
-                "użytkownik";
-              io.to(`auction-${auctionId}`).emit("auction:bid:placed", {
-                bid: {
-                  ...jumpBid,
-                  bidder: {
-                    id: jumpBidder.id,
-                    username: jumpBidUsername,
-                  },
-                },
-                newPrice: jumpAmount,
-                auctionId,
-                meta: {
-                  wasExtended,
-                  newEndTime,
-                  auctionEnded: false,
-                  winnerInfo: null,
-                  isProxyBid: true,
-                },
-              });
-            } catch (err) {
-              logger.error("Failed to emit proxy jump bid event:", err);
-            }
+            pendingEvents.push({ bid: jumpBid as any, isProxyBid: true });
           }
         }
       }
@@ -448,54 +476,72 @@ export class AuctionService {
         );
       }
 
-      // Emit real-time bid event z throttlingiem (leading+trailing)
-      try {
-        const io = getIO();
-        const bidder = (bid as any).bidder;
-        const displayUsername =
-          (bidder.username as string | undefined)?.trim() ||
-          (bidder.email as string | undefined)?.split("@")[0] ||
-          "użytkownik";
-        const eventData = {
-          bid: {
-            ...bid,
-            bidder: {
-              id: bidder.id,
-              username: displayUsername,
-            },
-          },
-          newPrice: amount,
-          auctionId,
-          meta: {
-            wasExtended,
-            newEndTime,
-            auctionEnded: false,
-            winnerInfo: null,
-          },
-        };
-
-        // Throttle: Pierwszy bid natychmiast, kolejne max co 500ms, ostatni zawsze
-        this.bidEventThrottler.throttle(
-          `auction-${auctionId}`,
-          eventData,
-          (data) =>
-            io.to(`auction-${auctionId}`).emit("auction:bid:placed", data),
-        );
-      } catch (err) {
-        logger.error("Failed to emit bid-placed event:", err);
-      }
-
-      // STEP 9: Selektywna invalidacja cache (tylko dotknięte klucze)
-      this.invalidateBidCache(auctionId, userId);
-
-      return {
+      const bidResult: BidResult = {
         bid: bid as any,
         wasExtended,
         newEndTime,
         auctionEnded: false,
         winnerInfo: null,
       };
+      return { result: bidResult, finalAmount };
     });
+
+    // STEP 9: po commicie — zdarzenia na żywo i selektywna invalidacja cache
+    this.emitBidEvents(auctionId, pendingEvents, {
+      currentPrice: finalAmount,
+      wasExtended: result.wasExtended,
+      newEndTime: result.newEndTime,
+    });
+    this.invalidateBidCache(auctionId, userId);
+
+    return result;
+  }
+
+  /**
+   * Broadcasts the bids created by one placeBid call, in creation order.
+   * Every event carries `currentPrice` — the auction price after the whole call —
+   * so a client shows the right price whatever order the events arrive in.
+   */
+  private emitBidEvents(
+    auctionId: string,
+    events: PendingBidEvent[],
+    state: {
+      currentPrice: number;
+      wasExtended: boolean;
+      newEndTime: string | null;
+    },
+  ): void {
+    try {
+      const io = getIO();
+      const room = `auction-${auctionId}`;
+
+      for (const { bid, isProxyBid } of events) {
+        const eventData = {
+          bid: toPublicBid(bid),
+          newPrice: Number(bid.amount),
+          currentPrice: state.currentPrice,
+          auctionId,
+          meta: {
+            wasExtended: state.wasExtended,
+            newEndTime: state.newEndTime,
+            auctionEnded: false,
+            winnerInfo: null,
+            ...(isProxyBid ? { isProxyBid: true } : {}),
+          },
+        };
+
+        if (isProxyBid) {
+          io.to(room).emit("auction:bid:placed", eventData);
+        } else {
+          // Throttle: pierwszy bid natychmiast, kolejne max co 500ms, ostatni zawsze
+          this.bidEventThrottler.throttle(room, eventData, (data) =>
+            io.to(room).emit("auction:bid:placed", data),
+          );
+        }
+      }
+    } catch (err) {
+      logger.error("Failed to emit bid-placed events:", err);
+    }
   }
 
   /**
@@ -553,7 +599,12 @@ export class AuctionService {
         );
       }
 
-      if (auction.status === "ENDED" || auction.status === "CANCELLED") {
+      if (
+        auction.status === "ENDED" ||
+        auction.status === "ENDED_WAITING_PAYMENT" ||
+        auction.status === "COMPLETED" ||
+        auction.status === "CANCELLED"
+      ) {
         return auction; // Already done
       }
 
